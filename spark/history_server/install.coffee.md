@@ -84,7 +84,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         # additionnal environmental variables.
         write: [
           match :/^export SPARK_PID_DIR=.*$/mg
-          replace:"export SPARK_PID_DIR=#{spark.history.pid_dir} # RYBA CONF \"ryba.spark.history.pid_dir\", DONT OVEWRITE"
+          replace:"export SPARK_PID_DIR=#{spark.history.pid_dir} # RYBA CONF \"ryba.spark.history.pid_dir\", DONT OVERWRITE"
           append: true
         ,
           match :/^export SPARK_CONF_DIR=.*$/mg
@@ -98,6 +98,14 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         ,
           match :/^export JAVA_HOME=.*$/mg
           replace:"export JAVA_HOME=#{java_home} # RYBA, DONT OVERWRITE"
+          append: true
+        ]
+      @file
+        header: 'Spark-config'
+        target: "/usr/hdp/current/spark-historyserver/sbin/spark-config.sh"
+        write: [
+          match :/^export SPARK_DAEMON_MEMORY=.*$/mg
+          replace:"export SPARK_DAEMON_MEMORY=#{spark.history.heapsize} # RYBA CONF \"ryba.spark.history.heapsize\", DONT OVERWRITE"
           append: true
         ]
       @file
