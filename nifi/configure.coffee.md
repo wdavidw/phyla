@@ -44,7 +44,8 @@
       properties['nifi.administrative.yield.duration'] ?= '30 sec'
       # If a component has no work to do (is "bored"), how long should we wait before checking again for work?'
       properties['nifi.bored.yield.duration'] ?= '10 millis'
-
+      # timeout [properties][nifi-properties] before node disconnect
+      properties['nifi.cluster.node.read.timeout'] ?= '15 sec'
       properties['nifi.authorizer.configuration.file'] ?= "#{nifi.conf_dir}/authorizers.xml"
       properties['nifi.login.identity.provider.configuration.file'] ?= "#{nifi.conf_dir}/login-identity-providers.xml"
       properties['nifi.templates.directory'] ?= "#{nifi.user.home}/templates"
@@ -344,3 +345,5 @@ Set local path of additional libs (for custom processors) in this array.
        prop.indexOf('nifi.content.repository.directory') > -1 or prop.indexOf('nifi.provenance.repository.directory') > -1
       nifi.config.data_dirs ?= []
       nifi.config.data_dirs.push properties[prop] for prop in props
+
+[nifi-properties]:https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster-node-properties
