@@ -32,7 +32,6 @@ data processing tools — Pig, MapReduce — to more easily read and write data 
           'ryba/hive/hcatalog/check'
         ]
         'check': [
-          'ryba/commons/db_admin'
           'ryba/hive/hcatalog/check'
         ]
         'start':
