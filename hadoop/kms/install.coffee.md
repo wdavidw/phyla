@@ -52,7 +52,7 @@
             source: "#{__dirname}/../resources/hadoop-httpfs-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0755
+            mode: 0o0644
           @system.tmpfs
             mount: "#{kms.pid_dir}"
             uid: kms.user.name

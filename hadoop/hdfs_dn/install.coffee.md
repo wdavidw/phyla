@@ -79,7 +79,7 @@ inside "/etc/init.d" and activate it on startup.
             source: "#{__dirname}/../resources/hadoop-hdfs-datanode-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0640
+            mode: 0o0644
 
       @call header: 'Compression', timeout: -1, retry: 2, (options) ->
         @service.remove 'snappy', if: options.attempt is 1

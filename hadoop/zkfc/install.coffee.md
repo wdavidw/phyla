@@ -57,7 +57,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
             source: "#{__dirname}/../resources/hadoop-hdfs-zkfc-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0640
+            mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
             mount: hdfs.pid_dir
