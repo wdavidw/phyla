@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* resources: normilize permissions to 644
 * bin: remove prepare in favor of ryba prepare
 * ambari: new hdf server & agent
 * nifi: new ambari pre-configuration
