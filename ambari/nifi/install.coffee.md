@@ -11,7 +11,7 @@
 ## Package
 
       @service 'nifi'
-
+  
 ## Toolkit
 
       @call header: 'Toolkit', ->
@@ -25,28 +25,35 @@
 
 ## Nifi SSL
 
-      @call header: 'SSL', retry: 0, if: !!options.ssl, ->
+      @call header: 'SSL', retry: 0, if: options.ssl.enabled, ->
         # Client: import certificate to all hosts
+        # `keytool -list -v -keystore /etc/nifi/conf/truststore.jks -storepass NifiTruststore123-`
         @java.keystore_add
-          if_exists: path.dirname options.truststore.target
-          keystore: options.truststore.target
-          storepass: options.truststore.password
+          keystore: options.ssl.truststore.target
+          storepass: options.ssl.truststore.password
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
           local: options.ssl.cacert.local
           uid: options.user.name
           gid: options.group.name
           mode: 0o0644
+        for hostname, cert of options.ssl.certs
+          @java.keystore_add
+            keystore: options.ssl.truststore.target
+            storepass: options.ssl.truststore.password
+            caname: "#{hostname}"
+            cacert: "#{cert.source}"
+            local: cert.local
         # Server: import certificates, private and public keys to hosts with a server
+        # `keytool -list -v -keystore /etc/nifi/conf/keystore.jks -storepass NifiKeystore123-`
         @java.keystore_add
-          if_exists: path.dirname options.keystore.target
-          keystore: options.keystore.target
-          storepass: options.keystore.password
+          keystore: options.ssl.keystore.target
+          storepass: options.ssl.keystore.password
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
           key: "#{options.ssl.key.source}"
           cert: "#{options.ssl.cert.source}"
-          keypass: options.keystore.keypass
+          keypass: options.ssl.keystore.keypass
           name: @config.shortname
           local: options.ssl.cert.local
           uid: options.user.name
@@ -55,6 +62,6 @@
 
 ## Dependencies
 
-    path = require 'path'
+    path = require('path').posix
 
 [sr]: http://docs.hortonworks.com/HDPDocuments/Ambari-2.2.2.0/bk_Installing_HDP_AMB/content/_meet_minimum_system_requirements.html
