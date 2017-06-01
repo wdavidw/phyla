@@ -139,6 +139,7 @@ Note: Compatible with every version of docker available at this time.
             host: cluster_config['master']
             port: cluster_config['port']
           @system.execute
+            if: @contexts('ryba/swarm/manager').length isnt 0
             cmd: docker.wrap options, "ps | grep #{ranger.admin.cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
           , (err, status, stdout) ->
             throw err if err
@@ -147,18 +148,21 @@ Note: Compatible with every version of docker available at this time.
             header: 'Create Collection'
           , ->
             @docker.exec
-              container: container
+              container: "#{container or cluster_config.master_container_runtime_name}"
               cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c ranger_audits"
               code_skipped: [1,126]
             @docker.exec
               unless: -> @status -1
-              container: container
+              container: "#{container or cluster_config.master_container_runtime_name}"
               cmd: """
                 /usr/solr-cloud/current/bin/solr create_collection -c ranger_audits \
-                  -shards #{@contexts('ryba/solr/cloud_docker').length}  \
-                  -replicationFactor #{@contexts('ryba/solr/cloud_docker').length-1} \
+                  -shards #{cluster_config.hosts.length}  \
+                  -replicationFactor #{cluster_config.hosts.length-1} \
                   -d /ranger_audits
                 """
+
+## ACL Users & Permissions
+
           @call
             header: 'Create Users and Permissions'
             if: cluster_config.security.authentication['class'] is 'solr.BasicAuthPlugin'

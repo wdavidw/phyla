@@ -21,7 +21,6 @@ differences.
         # 'backup':
         #   'ryba/zookeeper/server/backup'
         'check': [
-          'ryba/commons/krb5_user'
           'ryba/zookeeper/server/check'
         ]
         'install': [

@@ -8,12 +8,12 @@ installed before the agent registration.
     module.exports =
       use:
         java: module: 'masson/commons/java', recommanded: true
-        ambari_server: 'ryba/ambari/server', required: true
+        ambari_server: 'ryba/ambari/hdfserver', required: true
       configure:
-        'ryba/ambari/agent/configure'
+        'ryba/ambari/hdfagent/configure'
       commands:
         'install': ->
-          options = @config.ryba.ambari_agent
+          options = @config.ryba.ambari_hdfagent
           @call 'ryba/ambari/agent/install', options
           @call 'ryba/ambari/agent/start', options
         'start': 'ryba/ambari/agent/start'

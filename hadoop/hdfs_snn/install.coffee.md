@@ -61,7 +61,7 @@ script inside "/etc/init.d" and activate it on startup.
             source: "#{__dirname}/../resources/hadoop-hdfs-secondarynamenode-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0755
+            mode: 0o0644
           @system.tmpfs
             mount: "#{hdfs.pid_dir}"
             uid: hdfs.user.name

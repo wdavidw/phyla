@@ -4,8 +4,8 @@
 See the Ambari documentation relative to [Software Requirements][sr] before
 executing this module.
 
-    module.exports = header: 'Ambari Server Install', timeout: -1, handler: ->
-      options = @config.ryba.ambari_server
+    module.exports = header: 'Ambari Server Install', handler: (options) ->
+      # options = @config.ryba.ambari_server
 
 ## Identities
 
@@ -245,7 +245,7 @@ want to move it into a different location (eg "/etc/security/certs") as
 Ambari will store and work on a copy.
 
       @call header: 'SSL', ->
-        @file.download
+        @file
           header: 'Cert'
           source: options.ssl.cert.source
           local: options.ssl.cert.local
@@ -253,13 +253,13 @@ Ambari will store and work on a copy.
           uid: 'root'
           gid: options.group.name
           mode: 0o0644
-        @file.download
+        @file
           header: 'Key'
           source: options.ssl.key.source
           local: options.ssl.key.local
           target: "#{options.conf_dir}/key.pem"
           mode: 0o0600
-        @file.download
+        @file
           header: 'CACert'
           source: options.ssl.cacert.source
           local: options.ssl.cacert.local
@@ -270,17 +270,38 @@ Ambari will store and work on a copy.
           storepass: "#{options.truststore.password}"
           caname: "#{options.truststore.caname}"
           cacert: "#{options.conf_dir}/cacert.pem"
-    
+
 ## JAAS
 
 Note, Ambari will change ownership to root.
 
       @krb5.addprinc options.jaas,
         header: 'JAAS'
+        if: options.jaas.enabled
         randkey: true
         uid: 'root'
         gid: options.group.name
         mode: 0o660
+
+## MPack
+
+      for name, mpack of options.mpacks
+        mpack.target ?= "/var/tmp/#{path.basename mpack.source}"
+        @file.download
+          header: "Download #{name}"
+          if: mpack.enabled
+          source: mpack.source
+          target: mpack.target
+        @system.execute
+          header: "Register #{name}"
+          if: mpack.enabled
+          unless_exists: "/var/lib/ambari-server/resources/mpacks/#{path.basename mpack.source, '.tar.gz'}"
+          cmd: """
+          yes | ambari-server install-mpack \
+            --mpack=#{mpack.target} \
+            --purge \
+            --verbose
+          """
 
 ## Setup
 
@@ -381,17 +402,21 @@ Start the service or restart it if there were any changes.
         if: -> @status()
       @call 'ryba/ambari/server/wait',
         if: -> @status()
+        fqdn: options.fqdn
+        current_admin_password: options.current_admin_password
+        admin_password: options.admin_password
+        config: options.config
 
 ## Admin Credentials
 
       checkurl = url.format
         protocol: unless options.config['api.ssl'] then 'http' else 'https'
-        hostname: options.host
+        hostname: options.fqdn
         port: options.config[unless options.config['api.ssl'] then 'client.api.port' else 'client.api.ssl.port']
         pathname: '/api/v1/clusters'
       changeurl = url.format
         protocol: unless options.config['api.ssl'] then 'http' else 'https'
-        hostname: options.host
+        hostname: options.fqdn
         port: options.config[unless options.config['api.ssl'] then 'client.api.port' else 'client.api.ssl.port']
         pathname: '/api/v1/users/admin'
       cred = "admin:#{options.current_admin_password}"
@@ -410,6 +435,7 @@ Start the service or restart it if there were any changes.
 
 ## Dependencies
 
+    path = require 'path'
     url = require 'url'
     misc = require 'nikita/lib/misc'
     db = require 'nikita/lib/misc/db'

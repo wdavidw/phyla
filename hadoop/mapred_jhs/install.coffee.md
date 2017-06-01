@@ -74,7 +74,7 @@ script inside "/etc/init.d" and activate it on startup.
             source: "#{__dirname}/../resources/hadoop-mapreduce-historyserver-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0640
+            mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
             mount: "#{mapred.pid_dir}"

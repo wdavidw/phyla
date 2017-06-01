@@ -86,6 +86,7 @@ which has no dependency.
             local: true
             context: @config.ryba
             target: '/usr/lib/systemd/system/zookeeper-server.service'
+            mode: 0o0644
           @system.tmpfs
             mount: zookeeper.pid_dir
             uid: zookeeper.user.name

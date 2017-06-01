@@ -98,7 +98,7 @@ inside "/etc/init.d" and activate it on startup.
             source: "#{__dirname}/../resources/hadoop-hdfs-journalnode-systemd.j2"
             local: true
             context: @config.ryba
-            mode: 0o0640
+            mode: 0o0644
           @system.tmpfs
             header: 'Run Dir'
             mount: "#{hdfs.pid_dir}"

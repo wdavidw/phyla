@@ -3,7 +3,18 @@
 
 ## Trunk
 
+* bin: remove prepare in favor of ryba prepare
+* ambari: new hdf server & agent
+* nifi: new ambari pre-configuration
+* ambari server: fix certificate registration when remote
+* ambari server: mpack registration
+* ambari agent: use options
+* nifi: comment redundant CA registration
+* hdf & hdp: target and replace from config
+* ambari server: handle exit code 7 in wait
 * refactor hdp and initial commit for hdf
+* ambari: reliable wait and check
+* ambari: prevent ambari principal collision
 * spark historyserver: configure heapsize
 * hadoop: add systemd scripts
 * knox: add HBase WebUI service
