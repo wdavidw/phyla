@@ -143,7 +143,7 @@ Note: Compatible with every version of docker available at this time.
             cmd: docker.wrap options, "ps | grep #{ranger.admin.cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
           , (err, status, stdout) ->
             throw err if err
-            container = stdout.trim()
+            container = stdout?.trim()
           @call
             header: 'Create Collection'
           , ->
