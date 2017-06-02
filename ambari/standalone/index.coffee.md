@@ -15,12 +15,14 @@ manage and monitor a Hadoop cluster.
       configure: 'ryba/ambari/standalone/configure'
       commands:
         'ambari_blueprint': 'ryba/ambari/standalone/blueprint'
-        'check': 'ryba/ambari/standalone/check'
-        'install': [
-          'ryba/ambari/standalone/install'
-          'ryba/ambari/standalone/start'
-          'ryba/ambari/standalone/check'
-        ]
+        'check': ->
+          options = @config.ryba.ambari_standalone
+          @call 'ryba/ambari/standalone/check', options
+        'install': ->
+          options = @config.ryba.ambari_standalone
+          @call 'ryba/ambari/standalone/install', options
+          @call 'ryba/ambari/standalone/start', options
+          @call 'ryba/ambari/standalone/check', options
         'start': 'ryba/ambari/standalone/start'
         'stop': 'ryba/ambari/standalone/stop'
 
