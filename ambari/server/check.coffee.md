@@ -37,7 +37,7 @@ Wait for the Ambari Server to be ready.
         header: "Internal"
         host: @config.host
         port: options.config['server.url_port'] # TODO: detect SSL
-        
+
 ## Dependencies
 
     url = require 'url'
