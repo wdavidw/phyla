@@ -1,7 +1,7 @@
 
 # Tez Check
 
-    module.exports = header: 'Tez Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Tez Check', label_true: 'CHECKED', handler: ->
       {force_check, user} = @config.ryba
 
 ## Check HDFS
@@ -23,4 +23,3 @@
 ## Dependencies
 
     mkcmd = require '../lib/mkcmd'
-

@@ -48,7 +48,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 The packages "ganglia-gmetad-3.5.0-99" and "ganglia-web-3.5.7-99" are installed.
 
-      @call header: 'Service', timeout: -1, ->
+      @call header: 'Service', ->
         @service
           name: 'ganglia-gmetad-3.5.0-99'
           srv_name: 'gmetad'
@@ -61,7 +61,7 @@ The packages "ganglia-gmetad-3.5.0-99" and "ganglia-web-3.5.7-99" are installed.
 
 Upload the "hdp-gmetad" service file into "/etc/init.d".
 
-      @call header: 'Init Script', timeout: -1, ->
+      @call header: 'Init Script', ->
         @file
           target: '/etc/init.d/hdp-gmetad'
           source: "#{__dirname}/../resources/scripts/hdp-gmetad"
@@ -89,7 +89,7 @@ the objects files and generate the hosts configuration.
 Copy the object files provided in the HDP companion files into the
 "/usr/libexec/hdp/ganglia" folder. Permissions on those file are set to "0o744".
 
-      @call header: 'Objects', timeout: -1, (_, callback) ->
+      @call header: 'Objects', (_, callback) ->
         glob "#{__dirname}/../resources/objects/*.*", (err, files) =>
           @file.download (
             source: file
@@ -113,7 +113,7 @@ in its user account definition.
 The cluster generation follow Hortonworks guideline and generate the clusters
 "HDPHistoryServer", "HDPNameNode", "HDPResourceManager", "HDPSlaves" and "HDPHBaseMaster".
 
-      @call header: 'Clusters', timeout: -1, ->
+      @call header: 'Clusters', ->
         # On the Ganglia server, to configure the gmond collector
         @system.execute
           cmd: "/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHistoryServer -m"

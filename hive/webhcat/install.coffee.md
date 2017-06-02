@@ -135,7 +135,7 @@ Upload the Pig, Hive and Sqoop tarballs inside the "/hdp/apps/$version"
 HDFS directory. Note, the parent directories are created by the
 "ryba/hadoop/hdfs_dn/layout" module.
 
-      @call header: 'HDFS Tarballs', timeout: -1, ->
+      @call header: 'HDFS Tarballs', ->
         @hdfs_upload (
           for lib in ['pig', 'hive', 'sqoop']
             source: "/usr/hdp/current/#{lib}-client/#{lib}.tar.gz"

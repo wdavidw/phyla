@@ -8,7 +8,7 @@ Install titan archive. It contains scripts for:
 Note: the archive contains the rexster server but it is not configured here,
 please see ryba/rexster
 
-    module.exports = header: 'Titan Install', timeout: -1, handler: ->
+    module.exports = header: 'Titan Install', handler: ->
       {titan, hbase} = @config.ryba
 
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
@@ -17,7 +17,7 @@ please see ryba/rexster
 
 Download and extract a ZIP Archive
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         archive_name = path.basename titan.source
         unzip_dir = path.join titan.install_dir, path.basename archive_name, path.extname archive_name
         archive_path = path.join titan.install_dir, archive_name

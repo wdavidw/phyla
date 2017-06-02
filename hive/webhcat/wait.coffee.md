@@ -1,7 +1,7 @@
 
 # WebHCat Wait
 
-    module.exports = header: 'WebHCat Wait', timeout: -1, label_true: 'READY', handler:  ->
+    module.exports = header: 'WebHCat Wait', label_true: 'READY', handler:  ->
       options = {}
       options.wait_http = for webhcat_ctx in @contexts 'ryba/hive/webhcat'
         host: webhcat_ctx.config.host

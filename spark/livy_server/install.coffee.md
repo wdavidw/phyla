@@ -101,7 +101,7 @@ Write startup script to /etc/init.d/service-hue-docker
 
 ## Download Container
 
-      @call header: 'Download Container', timeout: -1, handler: ->
+      @call header: 'Download Container', handler: ->
         tmp = spark.livy.image_dir
         md5 = spark.livy.md5 ?= true
         @file.download

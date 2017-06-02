@@ -48,7 +48,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Package
 
-      @call header: 'Package', timeout: -1, (options) ->
+      @call header: 'Package', (options) ->
         @service
           name: 'hadoop-httpfs'
         @hdp_select
@@ -80,7 +80,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Kerberos
 
-      @call header: 'Kerberos', timeout: -1, ->
+      @call header: 'Kerberos', ->
         @system.copy # SPNEGO Keytab
           source: core_site['hadoop.http.authentication.kerberos.keytab']
           target: httpfs.site['httpfs.authentication.kerberos.keytab']

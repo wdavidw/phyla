@@ -14,7 +14,7 @@ su -l oozie -c "/usr/hdp/current/oozie-server/bin/oozied.sh stop"
 
 The file storing the PID is "/var/run/oozie/oozie.pid".
 
-    module.exports = header: 'Oozie Server Stop', label_true: 'STOPPED', timeout: -1, handler: ->
+    module.exports = header: 'Oozie Server Stop', label_true: 'STOPPED', handler: ->
       {oozie} = @config.ryba
       @service.stop
         name: 'oozie'

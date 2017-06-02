@@ -38,7 +38,7 @@ elasticsearch:x:493:
 
 ElasticSearch archive comes with an RPM
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @file.download
           source: elasticsearch.source
           target: "/var/tmp/elasticsearch-#{elasticsearch.version}.noarch.rpm"

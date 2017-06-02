@@ -4,7 +4,6 @@ Build container and save it.
   
     module.exports = 
       header: 'Solr Cloud Docker Prepare'
-      timeout: -1
       if: -> @contexts('ryba/solr/cloud_docker')[0]?.config.host is @config.host
       handler: ->
         {solr} = @config.ryba

@@ -21,7 +21,7 @@ eval "$(docker-machine env dev)" && docker build -t "ryba/hue-build" .
 Builds Hue from source
 
 
-    module.exports = header: 'Hue Docker Prepare', timeout: -1,  handler: ->
+    module.exports = header: 'Hue Docker Prepare', handler: ->
       {hue_docker} = @config.ryba
 
 # Hue compiling build from Dockerfile
@@ -36,7 +36,7 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
 
 # Hue Build dockerfile execution
 
-      @call header: 'Build Prepare', timeout: -1, ->
+      @call header: 'Build Prepare', ->
         @system.mkdir
           target: "#{@config.nikita.cache_dir}/huedocker"
         @system.mkdir
@@ -79,7 +79,7 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
 
 This production container running as hue service
 
-      @call header: 'Production Container', timeout: -1, ->
+      @call header: 'Production Container', ->
         @file.render
           source: hue_docker.prod.dockerfile
           target: "#{hue_docker.prod.directory}/Dockerfile"

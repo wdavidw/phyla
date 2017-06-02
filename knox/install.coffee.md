@@ -35,7 +35,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Packages
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', ->
         @service name: 'knox'
         @hdp_select name: 'knox-server'
         # Fix autogen of master secret
@@ -169,7 +169,7 @@ in the gateway.sh service script.
         header: 'Create Keystore'
         unless_exists: '/usr/hdp/current/knox-server/data/security/master'
       , (options, callback) ->
-        @options.ssh.shell (err, stream) =>
+        options.ssh.shell (err, stream) =>
           stream.write "su -l #{knox.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
           stream.on 'data', (data, extended) ->
             if /Enter master secret/.test data then stream.write "#{knox.ssl.storepass}\n"

@@ -143,7 +143,7 @@ namespaces are prefixed with an '@' character.
 
 Note, we are re-using the namespace created above.
 
-      @call header: 'Shell', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'Shell', label_true: 'CHECKED', ->
         @wait.execute
           cmd: mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists '#{hbase.client.test.namespace}:#{hbase.client.test.table}'\" | grep 'Table #{hbase.client.test.namespace}:#{hbase.client.test.table} does exist'"
         @system.execute
@@ -161,7 +161,7 @@ Note, we are re-using the namespace created above.
 
 ## Check MapReduce
 
-      @call header: 'MapReduce', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'MapReduce', label_true: 'CHECKED', ->
         @system.execute
           cmd: mkcmd.test @, """
           hdfs dfs -rm -skipTrash check-#{@config.host}-hbase-mapred
@@ -173,7 +173,7 @@ Note, we are re-using the namespace created above.
 
 ## Check Splits
 
-      @call header: 'Splits', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'Splits', label_true: 'CHECKED', ->
         {force_check} = @config.ryba
         table = "#{hbase.client.test.namespace}:check_#{@config.shortname}_test_splits"
         @system.execute
@@ -217,7 +217,7 @@ Note, we are re-using the namespace created above.
 
 This check is only executed if more than two HBase Master are declared.
 
-      @call header: 'Check HA', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'Check HA', label_true: 'CHECKED', ->
         return unless hbase_ctxs.length > 1
         table = "#{hbase.client.test.namespace}:check_#{@config.shortname}_ha"
         @system.execute

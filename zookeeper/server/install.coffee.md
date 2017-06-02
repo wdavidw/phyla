@@ -63,7 +63,7 @@ We open the client port if:
 Follow the [HDP recommandations][install] to install the "zookeeper" package
 which has no dependency.
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', (options) ->
         @service
           name: 'nc' # Used by check
         @service

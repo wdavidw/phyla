@@ -146,7 +146,7 @@ TODO: remove download and write and replace it with a template
 
 Load Zeppelin docker image from local host
 
-      @call header: 'Import', timeout: -1, ->
+      @call header: 'Import', ->
         @file.download
           source: "#{@config.nikita.cache_dir}/zeppelin.tar"
           target: "/tmp/zeppelin.tar" # add versioning

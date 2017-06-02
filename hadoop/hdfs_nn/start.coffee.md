@@ -11,7 +11,7 @@ service hadoop-hdfs-namenode start
 su -l hdfs -c "/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs start namenode"
 ```
 
-    module.exports = header: 'HDFS NN Start', timeout: -1, label_true: 'STARTED', handler: ->
+    module.exports = header: 'HDFS NN Start', label_true: 'STARTED', handler: ->
       @call once: true, 'ryba/zookeeper/server/wait'
       @call once: true, 'ryba/hadoop/hdfs_jn/wait'
       @service.start

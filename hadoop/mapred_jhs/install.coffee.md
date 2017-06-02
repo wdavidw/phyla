@@ -86,7 +86,7 @@ script inside "/etc/init.d" and activate it on startup.
 
 Create the log and pid directories.
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         {mapred, hadoop_group} = @config.ryba
         @system.mkdir
           target: "#{mapred.log_dir}"

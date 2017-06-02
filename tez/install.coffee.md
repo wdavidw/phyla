@@ -1,7 +1,7 @@
 
 # Tez Install
 
-    module.exports = header: 'Tez Install', timeout: -1, handler: ->
+    module.exports = header: 'Tez Install', handler: ->
       {tez, hadoop_conf_dir} = @config.ryba
 
 ## Register

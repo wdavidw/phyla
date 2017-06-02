@@ -1,7 +1,7 @@
 
 # Cloudera ManagerServer Wait
 
-    module.exports = header: 'Cloudera Manager Server Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'Cloudera Manager Server Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_admin = for cdm_ctx in @contexts 'ryba/cloudera-manager/server'
         host: cdm_ctx.config.host

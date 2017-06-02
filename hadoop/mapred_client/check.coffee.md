@@ -21,7 +21,7 @@ The distributed shell is a yarn client application which submit a command or a
 Shell script to be executed inside one or multiple YARN containers.
 
       # Note: should be moved to mapred since it requires mapred-site with memory settings
-      @call header: 'Distributed Shell', timeout: -1, label_true: 'CHECKED', handler: ->
+      @call header: 'Distributed Shell', label_true: 'CHECKED', handler: ->
         appname = "ryba_check_#{shortname}_distributed_cache_#{Date.now()}"
         scriptpath = "#{user.home}/check_distributed_shell.sh"
         @file

@@ -104,7 +104,6 @@ and launching the 'rs.initiate()' command.
       @call
         header: 'Replica Set Init Master'
         if: @config.host is mongodb.shard.replica_master
-        timeout: -1
       , ->
         message = {}
         @call (_, callback) ->
@@ -126,7 +125,6 @@ Adds the other shard servers members of the replica set.
       @call
         header: 'Replica Set Members'
         if: @config.host is mongodb.shard.replica_master
-        timeout: -1
       , ->
         message = {}
         @call ->

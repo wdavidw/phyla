@@ -93,7 +93,7 @@ Create the NameNode data and pid directories. The NameNode data is by defined in
 "/etc/hadoop/conf/hdfs-site.xml" file by the "dfs.namenode.name.dir" property. The pid
 file is usually stored inside the "/var/run/hadoop-hdfs/hdfs" directory.
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         {hdfs, hadoop_group} = @config.ryba
         @system.mkdir
           target: "#{hdfs.nn.conf_dir}"
@@ -312,7 +312,7 @@ is only exected once all the JournalNodes are started. The NameNode is finally r
 if the NameNode was formated.
 
       # 'ryba/hadoop/hdfs_jn/wait'
-      @call header: 'Format', timeout: -1, ->
+      @call header: 'Format', ->
         any_dfs_name_dir = hdfs.nn.site['dfs.namenode.name.dir'].split(',')[0]
         any_dfs_name_dir = any_dfs_name_dir.substr(7) if any_dfs_name_dir.indexOf('file://') is 0
         is_hdfs_ha = @contexts('ryba/hadoop/hdfs_nn').length > 1
@@ -335,7 +335,6 @@ is only executed on the standby NameNode.
 
       @call
         header: 'HA Init Standby'
-        timeout: -1
         if: -> @contexts('ryba/hadoop/hdfs_nn').length > 1
         unless: -> @config.host is active_nn_host
       , ->

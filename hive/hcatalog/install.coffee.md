@@ -182,7 +182,7 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
 
 ## Metastore DB
       
-      @call header: 'Metastore DB', timeout:-1, ->
+      @call header: 'Metastore DB', ->
         @db.user hive.hcatalog.db, database: null,
           header: 'User'
           if: hive.hcatalog.db.engine in ['mysql', 'postgres']
@@ -247,7 +247,7 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
 Create the directories to store the logs and pid information. The properties
 "ryba.hive.hcatalog.log\_dir" and "ryba.hive.hcatalog.pid\_dir" may be modified.
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hive.hcatalog.log_dir
           uid: hive.user.name
@@ -259,7 +259,7 @@ Create the directories to store the logs and pid information. The properties
           gid: hive.group.name
           parent: true
 
-      @call header: 'HDFS Layout', timeout: -1, ->
+      @call header: 'HDFS Layout', ->
         # todo: this isnt pretty, ok that we need to execute hdfs command from an hadoop client
         # enabled environment, but there must be a better way
         hive_user = hive.user.name
@@ -306,7 +306,6 @@ Create the directories to store the logs and pid information. The properties
       @system.execute
         header: 'Tez Layout'
         if: -> tez_ctxs.length
-        timeout: -1
         cmd: 'ls /usr/hdp/current/hive-metastore/lib | grep hive-exec- | sed \'s/^hive-exec-\\(.*\\)\\.jar$/\\1/g\''
         shy: true
       , (err, status, stdout) ->

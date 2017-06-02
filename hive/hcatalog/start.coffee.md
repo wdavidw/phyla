@@ -12,7 +12,7 @@ service hive-hcatalog-server start
 su -l hive -c 'nohup hive --service metastore >/var/log/hive-hcatalog/hcat.out 2>/var/log/hive-hcatalog/hcat.err & echo $! >/var/lib/hive-hcatalog/hcat.pid'
 ```
 
-    module.exports =  header: 'Hive HCatalog Start', timeout: -1, label_true: 'STARTED', handler: ->
+    module.exports =  header: 'Hive HCatalog Start', label_true: 'STARTED', handler: ->
       {hive} = @config.ryba
       jdbc = db.jdbc hive.hcatalog.site['javax.jdo.option.ConnectionURL']
 
@@ -28,13 +28,12 @@ The Hive HCatalog require the database server to be started. The Hive Server2
 require the HDFS Namenode to be started. Both of them will need to functionnal
 HDFS server to answer queries.
 
-      @call header: 'Wait DB', timeout: -1, label_true: 'READY', ->
+      @call header: 'Wait DB', label_true: 'READY', ->
         @connection.wait jdbc.addresses
 
       @service.start
         header: 'Start service'
         label_true: 'STARTED'
-        timeout: -1
         name: 'hive-hcatalog-server'
 
 # Module Dependencies

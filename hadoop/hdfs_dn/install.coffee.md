@@ -58,7 +58,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Install the "hadoop-hdfs-datanode" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'hadoop-hdfs-datanode'
         @hdp_select
@@ -81,7 +81,7 @@ inside "/etc/init.d" and activate it on startup.
             context: @config.ryba
             mode: 0o0644
 
-      @call header: 'Compression', timeout: -1, retry: 2, (options) ->
+      @call header: 'Compression', retry: 2, (options) ->
         @service.remove 'snappy', if: options.attempt is 1
         @service name: 'snappy'
         @service name: 'snappy-devel'

@@ -1,7 +1,7 @@
 
 # Poller Executor Build
 
-    module.exports = header: 'Shinken Poller Prepare', timeout: -1,  handler: ->
+    module.exports = header: 'Shinken Poller Prepare', handler: ->
       {shinken} = @config.ryba
       if @contexts('ryba/shinken/poller')[0].config.host is @config.host
 

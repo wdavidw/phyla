@@ -49,7 +49,7 @@ falcon:x:498:falcon
 
 ## Packages
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'falcon'
         @hdp_select

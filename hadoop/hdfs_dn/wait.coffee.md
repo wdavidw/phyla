@@ -1,7 +1,7 @@
 
 # Hadoop HDFS DataNode Wait
 
-    module.exports = header: 'HDFS DN Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'HDFS DN Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_ipc = for context in @contexts 'ryba/hadoop/hdfs_dn'
         [_, port] = context.config.ryba.hdfs.site['dfs.datanode.address'].split ':'
@@ -27,6 +27,5 @@ value is 50475.
 
       @connection.wait
         header: 'HTTP'
-        timeout: -1
         label_true: 'READY'
         servers: options.wait_http

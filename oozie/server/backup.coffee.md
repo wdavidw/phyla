@@ -1,7 +1,7 @@
 
 # Oozie Server Backup
 
-    module.exports = header: 'Oozie Server Backup', timeout: -1, label_true: 'BACKUPED', handler: ->
+    module.exports = header: 'Oozie Server Backup', label_true: 'BACKUPED', handler: ->
       {db_admin, oozie} = @config.ryba
 
 ## Database
@@ -15,7 +15,7 @@ an example:
 mysqldump -uroot -ppassword --hex-blob oozie > /data/1/oozie.sql
 ```
 
-      @call header: 'Backup Database', timeout: -1, label_true: 'BACKUPED', ->
+      @call header: 'Backup Database', label_true: 'BACKUPED', ->
         jdbc = db.jdbc oozie.site['oozie.service.JPAService.jdbc.url']
         engines_cmd =
           mysql: """

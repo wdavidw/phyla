@@ -101,7 +101,6 @@ The root user is needed for replication and has role `root`
       @call
         header: 'Init Master'
         if: @config.host is mongodb.configsrv.replica_master
-        timeout: -1
       , ->
         message = {}
         @call (_, callback) ->
@@ -121,7 +120,6 @@ The root user is needed for replication and has role `root`
       @call
         header: 'Set Members'
         if: @config.host is mongodb.configsrv.replica_master
-        timeout: -1
       , ->
         message = {}
         @call ->

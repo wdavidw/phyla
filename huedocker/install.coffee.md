@@ -61,7 +61,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Layout log Hue
 
-      @call header: 'Layout', timeout: -1,  ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hue_docker.log_dir
           uid: hue_docker.user.name
@@ -221,7 +221,7 @@ changes.
 Install Hue server docker container.
 It uses local checksum if provided to upload or not.
 
-      @call header: 'Upload Container', timeout: -1, retry:3, (options)  ->
+      @call header: 'Upload Container', retry:3, (options)  ->
         tmp = hue_docker.image_dir
         md5 = hue_docker.md5 ?= true
         @docker.checksum

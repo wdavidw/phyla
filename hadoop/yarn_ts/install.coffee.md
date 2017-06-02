@@ -176,7 +176,7 @@ See:
 
 Note, this is not documented anywhere and might not be considered as a best practice.
 
-      @call header: 'HDFS layout', timeout: -1, ->
+      @call header: 'HDFS layout', ->
         return unless yarn.site['yarn.timeline-service.generic-application-history.store-class'] is "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
         dir = yarn.site['yarn.timeline-service.fs-history-store.uri']
         @wait.execute

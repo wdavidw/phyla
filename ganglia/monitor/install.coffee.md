@@ -11,7 +11,6 @@ The package "ganglia-gmond-3.5.0-99" is installed.
       @service
         header: 'Service'
         name: 'ganglia-gmond-3.5.0-99'
-        timeout: -1
 
 ## Layout
 
@@ -41,7 +40,7 @@ Copy the object files provided in the HDP companion files into the
 
 Upload the "hdp-gmond" service file into "/etc/init.d".
 
-      @call header: 'Init Script', timeout: -1, ->
+      @call header: 'Init Script', ->
         @file
           target: '/etc/init.d/hdp-gmond'
           source: "#{__dirname}/../resources/scripts/hdp-gmond"
@@ -79,7 +78,7 @@ Ganglia) from starting. The variable "RRDCACHED_BASE_DIR" should point to
 Setup the Ganglia hosts. Categories are "HDPNameNode", "HDPResourceManager",
 "HDPSlaves" and "HDPHBaseMaster".
 
-      @call header: 'Host', timeout: -1, ->
+      @call header: 'Host', ->
         cmds = []
         # On the NameNode and SecondaryNameNode servers, to configure the gmond emitters
         if @has_any_modules 'ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_snn'

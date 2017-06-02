@@ -1,7 +1,7 @@
 
 ## Wait
 
-    module.exports = header: 'MongoDB Shard Server Wait', label_true: 'READY', timeout: -1, handler: ->
+    module.exports = header: 'MongoDB Shard Server Wait', label_true: 'READY', handler: ->
       mongodb_shards = @contexts 'ryba/mongodb/shard'
       @connection.wait
         servers: for ctx in mongodb_shards

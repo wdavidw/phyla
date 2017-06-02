@@ -1,7 +1,7 @@
 
 # Apache Atlas Install
 
-    module.exports = header: 'Atlas Install', timeout: -1, handler: ->
+    module.exports = header: 'Atlas Install', handler: ->
       {atlas, db_admin, kafka} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
       {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]

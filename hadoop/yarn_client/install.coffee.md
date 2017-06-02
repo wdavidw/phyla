@@ -19,7 +19,7 @@
       #     code: 0
       #     code_skipped: 9
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'hadoop'
         @service
@@ -27,7 +27,7 @@
         @service
           name: 'hadoop-client'
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         pid_dir = yarn.pid_dir.replace '$USER', yarn.user.name
         @system.mkdir
           target: "#{yarn.log_dir}/#{yarn.user.name}"

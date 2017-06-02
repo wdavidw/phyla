@@ -68,7 +68,7 @@ script inside "/etc/init.d" and activate it on startup.
             gid: hadoop_group.name
             perm: '0755'
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: for dir in hdfs.site['dfs.namenode.checkpoint.dir'].split ','
             if dir.indexOf('file://') is 0

@@ -3,7 +3,7 @@
 
 Wait for the Spark SQL Thrift Server port (HTTP or BINARY).
 
-    module.exports = header: 'Spark SQL Thrift Server Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'Spark SQL Thrift Server Wait', label_true: 'READY', handler: ->
       {hive_site} = @config.ryba.spark.thrift
       port = if hive_site['hive.server2.transport.mode'] is 'http'
       then hive_site['hive.server2.thrift.http.port']

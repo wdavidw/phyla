@@ -52,7 +52,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         ]
         if: @config.iptables.action is 'start'
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', (options) ->
         # Upgrading oozie failed, tested versions are hdp 2.1.2 -> 2.1.5 -> 2.1.7
         @system.execute
           cmd: "rm -rf /usr/lib/oozie && yum remove -y oozie oozie-client"
@@ -227,7 +227,7 @@ Install the HBase Libs as part of enabling the Oozie Unified Credentials with HB
 
 Install the LZO compression library as part of enabling the Oozie Web Console.
 
-      @call header: 'LZO', timeout: -1, ->
+      @call header: 'LZO', ->
         @call (_, callback) ->
           @service
             name: 'lzo-devel'

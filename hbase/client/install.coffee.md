@@ -39,7 +39,6 @@ JAAS configuration files for zookeeper to be deployed on the HBase Master,
 RegionServer, and HBase client host machines.
 
       @file.jaas
-        timeout: -1
         header: 'Zookeeper JAAS'
         target: "#{hbase.conf_dir}/hbase-client.jaas"
         content: Client:

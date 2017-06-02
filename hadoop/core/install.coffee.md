@@ -21,7 +21,7 @@ uploaded when the package is first installed or upgraded. Be careful, the
 original file will be overwritten with and user modifications. A copy will be
 made available in the same directory after any modification.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'openssl-devel'
         @service

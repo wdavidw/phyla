@@ -4,7 +4,7 @@
 Wait for the ResourceManager RPC and HTTP ports. It supports HTTPS and HA.
 
 
-    module.exports = header: 'Hive HCatalog Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'Hive HCatalog Wait', label_true: 'READY', handler: ->
       hive_ctxs = @contexts 'ryba/hive/hcatalog'
       options = {}
       options.wait_rpc = for hive_ctx in hive_ctxs

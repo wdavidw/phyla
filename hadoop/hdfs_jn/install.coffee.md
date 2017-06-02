@@ -75,7 +75,7 @@ The JournalNode data are stored inside the directory defined by the
 Install the "hadoop-hdfs-journalnode" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', (options) ->
         @service
           name: 'hadoop-hdfs-journalnode'
         @hdp_select

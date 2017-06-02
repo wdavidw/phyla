@@ -1,7 +1,7 @@
 
 # HBase Rest Gateway Check
 
-    module.exports =  header: 'HBase Rest Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports =  header: 'HBase Rest Check', label_true: 'CHECKED', handler: ->
       {shortname} = @config
       {force_check, jaas_client, hbase, user} = @config.ryba
       encode = (data) -> (new Buffer data, 'utf8').toString 'base64'

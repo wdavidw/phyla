@@ -69,7 +69,7 @@ So we must manually force install of hdf-select outside of yum to handle it
 
 ## Service
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', ->
         @service
           name: 'nifi'
         @system.execute

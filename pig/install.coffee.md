@@ -11,7 +11,7 @@ Learn more about Pig optimization by reading ["Making Pig Fly"][fly].
 
 The pig package is install.
 
-      @call header: 'Pig Service', timeout: -1, ->
+      @call header: 'Pig Service', ->
         @service
           header: 'Service'
           name: 'pig'
