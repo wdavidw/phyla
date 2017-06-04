@@ -7,6 +7,7 @@ information for the applications running inside YARN.
     module.exports =
       use:
         java: implicit: true, module: 'masson/commons/java'
+        krb5_client: module: 'masson/core/krb5_client'
         hadoop_core: 'ryba/hadoop/core'
         hdfs_client: 'ryba/hadoop/hdfs_client'
         # yarn_client: 'ryba/hadoop/yarn_client'

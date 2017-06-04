@@ -4,7 +4,6 @@
     module.exports =  header: 'MongoDB Router Servers Replicat Set', handler: ->
       {mongodb, realm, ssl} = @config.ryba
       {shard} = mongodb
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
       mongo_shell_exec =  "mongo admin --port #{shard.config.net.port}"
       mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{mongodb.admin.name} --password  '#{mongodb.admin.password}'"
       mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{mongodb.root.name} --password  '#{mongodb.root.password}'"

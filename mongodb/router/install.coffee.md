@@ -4,7 +4,6 @@
     module.exports =  header: 'MongoDB Router Install', handler: ->
       {mongodb, realm, ssl} = @config.ryba
       {router} = mongodb
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
 
 ## IPTables
 

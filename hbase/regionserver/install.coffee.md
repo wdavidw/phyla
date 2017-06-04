@@ -4,7 +4,7 @@
     module.exports = header: 'HBase RegionServer Install', handler: ->
       hbase_regionserver = @contexts 'ryba/hbase/regionserver'
       {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       regionservers = hbase_regionserver.map( (ctx) -> ctx.config.host).join '\n'
 
 ## Register

@@ -1,7 +1,7 @@
 
-# Hive & HCatalog Client
+# Hive Beeline Install
 
-    module.exports = header: 'Hive Client Install', handler: ->
+    module.exports = header: 'Hive Beeline Install', handler: ->
       {hive, hadoop_group} = @config.ryba
       {java_home} =@config.java
       {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba

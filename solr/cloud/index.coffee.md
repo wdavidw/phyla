@@ -8,6 +8,7 @@ Solr can be found [here](http://wwwftp.ciril.fr/pub/apache/lucene/solr/standalon
     module.exports = 
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         docker: implicit: true, module: 'masson/commons/docker'
         hadoop_core: module: 'ryba/hadoop/core'
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'

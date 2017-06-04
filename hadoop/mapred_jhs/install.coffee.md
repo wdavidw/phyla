@@ -10,7 +10,7 @@ Job History Server.
       {yarn, mapred} = @config.ryba
       {ssl, ssl_server, ssl_client, mapred} = @config.ryba
       {mapred, hadoop_group, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

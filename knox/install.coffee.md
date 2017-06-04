@@ -4,7 +4,7 @@
     module.exports = header: 'Knox Install', handler: ->
       {knox, realm} = @config.ryba
       {java_home, jre_home} = @config.java
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

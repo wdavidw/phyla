@@ -14,23 +14,26 @@ Rexster Console makes it possible to do remote script evaluation against configu
 graphs inside of a Rexster Server.
 
 
-    module.exports = ->
-      'configure':
+    module.exports =
+      use:
+        krb5_client: module: 'masson/core/krb5_client'
+      configure:
         'ryba/rexster/configure'
-      'install': [
-        'masson/core/iptables'
-        'masson/core/yum'
-        'masson/commons/java'
-        'ryba/rexster/install'
-        'ryba/rexster/start'
-        'ryba/rexster/check'
-      ]
-      'check': [
-        'ryba/rexster/check'
-      ]
-      'start':
-        'ryba/rexster/start'
-      'stop':
-        'ryba/rexster/stop'
-      'status':
-        'ryba/rexster/status'
+      commands:
+        'install': [
+          'masson/core/iptables'
+          'masson/core/yum'
+          'masson/commons/java'
+          'ryba/rexster/install'
+          'ryba/rexster/start'
+          'ryba/rexster/check'
+        ]
+        'check': [
+          'ryba/rexster/check'
+        ]
+        'start':
+          'ryba/rexster/start'
+        'stop':
+          'ryba/rexster/stop'
+        'status':
+          'ryba/rexster/status'

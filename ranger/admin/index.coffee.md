@@ -10,6 +10,7 @@ Ranger permit access
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         mysql_client: implicit: true, module: 'masson/commons/mysql/client'
         hadoop_core: module: 'ryba/hadoop/core'

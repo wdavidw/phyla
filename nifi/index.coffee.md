@@ -12,6 +12,7 @@ and objectives of NiFi includes:
 
       module.exports =
         use:
+          krb5_client: module: 'masson/core/krb5_client'
           hadoop_core: 'ryba/hadoop/core'
           openldap_server: 'masson/core/openldap_server'
           zoo_server: 'ryba/zookeeper/server'

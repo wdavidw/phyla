@@ -4,7 +4,7 @@
     module.exports = header: 'Atlas Install', handler: ->
       {atlas, db_admin, kafka} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       protocol = if atlas.application.properties['atlas.enableTLS'] is 'true' then 'https' else 'http'
       [hive_ctx] = @contexts('ryba/hive/server2')
       [ranger_admin] = @contexts 'ryba/ranger/admin'
@@ -212,7 +212,7 @@ Install Atlas packages
 Add THe Kerberos Principal for atlas service and setup a JAAS configuration file
 for atlas to able to open client connection to solr for its indexing backend.
 
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service'
         randkey: true
         principal: atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
@@ -220,13 +220,10 @@ for atlas to able to open client connection to solr for its indexing backend.
         uid: atlas.user.name
         gid: atlas.name
         mode: 0o660
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
       @system.execute
         header: 'SPNEGO'
         cmd: "su -l #{atlas.user.name} -c \'test -r #{atlas.application.properties['atlas.http.authentication.kerberos.keytab']}\'"
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service'
         principal: atlas.application.properties['atlas.http.authentication.kerberos.principal'].replace '_HOST', @config.host
         randkey: true
@@ -234,9 +231,6 @@ for atlas to able to open client connection to solr for its indexing backend.
         uid: atlas.user.name
         gid: hadoop_group.name
         mode: 0o660
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
         unless: -> @status -1
       @file.jaas
         if: atlas.atlas_opts['java.security.auth.login.config']?
@@ -260,14 +254,11 @@ for atlas to able to open client connection to solr for its indexing backend.
             doNotPrompt: false
             keyTab: atlas.application.properties['atlas.authentication.keytab']
             principal: atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service Admin Users'
         principal: atlas.admin_principal
         randkey: true
         password: atlas.admin_password
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
 
 ## Application Properties
 Writes `atlas-application.properties` file.

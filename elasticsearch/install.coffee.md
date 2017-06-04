@@ -7,7 +7,6 @@ of Elastics Search from rpm repositories and the configuration of Elastic Search
 
     module.exports = header: 'ES Install', handler: ->
       {elasticsearch ,realm} = @config.ryba
-      # krb5 = @config.krb5.etc_krb5_conf.realms[realm]
 
 ## Identities
 

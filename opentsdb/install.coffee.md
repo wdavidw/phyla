@@ -3,7 +3,7 @@
 
     module.exports = header: 'OpenTSDB Install', handler: -> 
       {opentsdb, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm] 
+      krb5 = @config.krb5_client.admin[realm] 
 
 ## Register
 

@@ -13,7 +13,7 @@ Run `ryba prepare` to create the Docker container.
       hadoop_conf_dir = hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir']
       hive_conf_dir = hue_docker.ini['beeswax']['hive_conf_dir'] 
       hbase_conf_dir = hue_docker.ini['hbase']['hbase_conf_dir']
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       machine = @config.nikita.machine
 
 ## Register

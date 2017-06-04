@@ -9,7 +9,7 @@ Run `ryba prepare` to create the Docker container.
     module.exports = header: 'Spark Livy Server', handler: ->
       {spark} = @config.ryba
       {hadoop_group, hdfs, hive, hbase, hadoop_conf_dir, realm, ssl} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_location = "/var/tmp/ryba/ssl"
 
 ## Wait

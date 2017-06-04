@@ -5,7 +5,7 @@
       {java} = @config
       {realm, hadoop_group, hadoop_metrics, hadoop_conf_dir, core_site, hdfs, yarn, container_executor, hadoop_libexec_dir} = @config.ryba
       {ssl, ssl_server, ssl_client} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

@@ -4,7 +4,7 @@
     module.exports =  header: 'MongoDB Config Server Install', handler: ->
       {mongodb, realm, ssl} = @config.ryba
       {configsrv} = mongodb
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## IPTables
 

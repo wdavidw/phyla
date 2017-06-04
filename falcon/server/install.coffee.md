@@ -9,7 +9,7 @@ each HDFS cluster.
     module.exports = header: 'Falcon Server Install', handler: ->
       {falcon, realm} = @config.ryba
       {user, group, startup, runtime, conf_dir} = @config.ryba.falcon
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       {hostname, port} = url.parse falcon.runtime['prism.falcon.local.endpoint']
 
 ## Register

@@ -17,7 +17,7 @@ NameNodes, and send block location information and heartbeats to both.
     module.exports = header: 'HDFS DN Install', handler: ->
       {ryba} = @config
       {realm, core_site, hdfs, hadoop_group, hadoop_metrics} = ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

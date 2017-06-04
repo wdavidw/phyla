@@ -4,7 +4,7 @@
     module.exports = header: 'Solr Standalone Install', handler: ->
       {solr, realm} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_archive_location = "/var/tmp/ryba/solr.tar.gz"
       protocol = if solr.single.ssl.enabled then 'https' else 'http'
 
@@ -174,16 +174,13 @@ Create HDFS solr user and its home directory
 
 ## Kerberos
 
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Solr Server User'
         principal: solr.single.principal
         keytab: solr.single.keytab
         randkey: true
         uid: solr.user.name
         gid: solr.group.name
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
 
 ## SSL
 

@@ -5,7 +5,7 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
     module.exports =  header: 'Phoenix QueryServer Install', handler: ->
       {phoenix, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

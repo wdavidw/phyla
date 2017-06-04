@@ -4,7 +4,7 @@
     module.exports = header: 'HDFS SNN', handler: ->
       {host} = @config
       {realm, hdfs, hadoop_group} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

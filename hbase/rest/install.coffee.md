@@ -8,7 +8,7 @@ have usecase for it yet.
 
     module.exports =  header: 'HBase Rest Install', handler: ->
       {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

@@ -6,6 +6,7 @@ It is responsible for serving and managing regions. In a distributed cluster, a 
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hadoop_core: 'ryba/hadoop/core'
         hdfs_client: 'ryba/hadoop/hdfs_client'

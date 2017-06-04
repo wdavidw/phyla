@@ -12,6 +12,7 @@ changes to cluster metadata.
       use: 
         core_local: implicit: true, module: 'masson/core/locale'
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
       configure:
         'ryba/mongodb/configsrv/configure'
       commands:

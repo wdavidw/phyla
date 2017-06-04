@@ -17,7 +17,7 @@ beloaded to the target server
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
+        krb5_client: module: 'masson/core/krb5_client'
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
         krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
         docker: implicit: true, module: 'masson/commons/docker'

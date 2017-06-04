@@ -3,7 +3,7 @@
 
     module.exports = header: 'Rexster Install', handler: ->
       {titan, rexster, hadoop_conf_dir, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 

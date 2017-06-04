@@ -11,8 +11,7 @@ web interface.
 
     module.exports =  header: 'Spark History Server Install', handler: (options) ->
       {spark, realm, hadoop_group} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       {java_home} = @config.java
 
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'

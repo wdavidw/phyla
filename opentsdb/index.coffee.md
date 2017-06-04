@@ -11,6 +11,7 @@ OpenTSDB does not seem to work without the hbase rights
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hbase_client: implicit: true, module: 'ryba/hbase/client'
         ranger_admin: 'ryba/ranger/admin'

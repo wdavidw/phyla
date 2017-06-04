@@ -7,6 +7,7 @@ enterprise data ecosystem.
 
     module.exports = 
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         # solr_cloud: 'ryba/solr/cloud'
         solr_cloud_docker: module: 'ryba/solr/cloud_docker'

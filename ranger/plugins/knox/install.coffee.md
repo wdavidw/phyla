@@ -2,8 +2,8 @@
     module.exports = header: 'Ranger Knox Gateway Plugin install', handler: ->
       {knox, ranger, realm, hadoop_group, core_site} = @config.ryba 
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
-      version=null
+      krb5 = @config.krb5_client.admin[realm]
+      version = null
 
 # Knox Dependencies
 

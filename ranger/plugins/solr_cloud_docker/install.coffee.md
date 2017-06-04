@@ -11,7 +11,7 @@
       # @call 'ryba/ranger/plugins/solr_cloud_docker/configure', solr_cluster: solr_cluster
       solr_plugin = solr_cluster.host_config.solr_plugin
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       version = null
 
 # Dependencies

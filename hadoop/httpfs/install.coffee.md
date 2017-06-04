@@ -3,7 +3,7 @@
 
     module.exports = header: 'HDFS HttpFS Install', handler: ->
       {httpfs, realm, core_site} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

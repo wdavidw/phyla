@@ -16,6 +16,7 @@ information and heartbeats to both.
 
     module.exports =
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         iptables: implicit: true, module: 'masson/core/iptables'
         java: implicit: true, module: 'masson/commons/java'
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'

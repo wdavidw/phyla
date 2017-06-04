@@ -17,8 +17,7 @@ Worth to investigate:
       {ssl} = ryba
       {realm, core_site, hadoop_metrics, hadoop_group} = ryba
       {hdfs, active_nn_host, nameservice, hadoop_policy} = ryba
-      # {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

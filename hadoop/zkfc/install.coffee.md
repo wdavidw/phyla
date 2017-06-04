@@ -6,7 +6,7 @@
       {hdfs, zkfc, active_nn_host} = ryba
       {hdfs, zkfc, core_site, hadoop_group} = ryba
       {realm, hadoop_group, hdfs, zkfc} = ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       {hdfs, core_site, zkfc} = ryba
       {hdfs, ssh_fencing, hadoop_group} = ryba
 

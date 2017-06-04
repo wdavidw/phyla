@@ -8,7 +8,7 @@ http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/4.2.0/CDH4-I
       tez_ctxs = @contexts 'ryba/tez'
       ranger_admin = @contexts 'ryba/ranger/admin'
       {hive, realm, active_nn_host, hdfs, hadoop_group, ssl} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tez_is_installed = if tez_ctxs.length >= 1 then true else false
       {hive} = @config.ryba
       tmp_location = "/var/tmp/ryba/ssl"

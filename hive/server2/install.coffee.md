@@ -13,7 +13,7 @@ Resources:
     module.exports =  header: 'Hive Server2 Install', handler: ->
       {hive} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_location = "/var/tmp/ryba/ssl"
       hive_server_port = if hive.server2.site['hive.server2.transport.mode'] is 'binary'
       then hive.server2.site['hive.server2.thrift.port']

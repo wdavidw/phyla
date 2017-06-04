@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* krb5: migrate usage of admin
 * src: remove usage of timeout
 * ambari: use options
 * resources: normilize permissions to 644

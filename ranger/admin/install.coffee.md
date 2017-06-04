@@ -3,7 +3,7 @@
 
     module.exports =  header: 'Ranger Admin Install', handler: (options) ->
       {ranger, ssl, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
