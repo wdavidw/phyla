@@ -3,7 +3,7 @@
 
 Wait for the ResourceManagers RPC and HTTP ports. It supports HTTPS and HA.
 
-    module.exports = header: 'YARN RM Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'YARN RM Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_tcp = for rm_ctx in @contexts 'ryba/hadoop/yarn_rm'
         {yarn} = rm_ctx.config.ryba

@@ -5,7 +5,6 @@ Download the additional jars
 
     module.exports =
       header: 'NiFi Prepare'
-      timeout: -1
       if: -> @contexts('ryba/nifi')[0]?.config.host is @config.host
       handler: ->
         @file.cache

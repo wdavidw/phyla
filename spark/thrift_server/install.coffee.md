@@ -3,7 +3,6 @@
 
     module.exports =  header: 'Spark SQL Thrift Server Install', handler: (options) ->
       {spark, realm, ssl} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
       {java_home} = @config.java
 
 ## Register

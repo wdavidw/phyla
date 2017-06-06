@@ -4,7 +4,7 @@
     module.exports = header: 'Solr Cloud Docker Install', handler: ->
       {solr, realm} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_dir  = solr.cloud_docker.tmp_dir ?= "/var/tmp/ryba/solr"
       hosts = @contexts('ryba/solr/cloud_docker').map (ctx) -> ctx.config.host
       solr.cloud_docker.build.dir = '/tmp/solr/build'
@@ -39,7 +39,7 @@ Create user and groups for solr user.
 
 ## Kerberos
 
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         unless_exists: solr.cloud_docker.spnego.keytab
         header: 'Kerberos SPNEGO'
         principal: solr.cloud_docker.spnego.principal
@@ -47,22 +47,16 @@ Create user and groups for solr user.
         keytab: solr.cloud_docker.spnego.keytab
         gid: hadoop_group.name
         mode: 0o660
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
       @system.execute
         header: 'SPNEGO'
         cmd: "su -l #{solr.user.name} -c 'test -r #{solr.cloud_docker.spnego.keytab}'"
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Solr Super User'
         principal: solr.cloud_docker.admin_principal
         password: solr.cloud_docker.admin_password
         randkey: true
         uid: solr.user.name
         gid: solr.group.name
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
       @file.jaas
         header: 'Solr JAAS'
         target: "#{solr.cloud_docker.conf_dir}/solr-server.jaas"
@@ -75,16 +69,13 @@ Create user and groups for solr user.
             useTicketCache: true
         uid: solr.user.name
         gid: solr.group.name
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Solr Server User'
         principal: solr.cloud_docker.principal
         keytab: solr.cloud_docker.keytab
         randkey: true
         uid: solr.user.name
         gid: solr.group.name
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
 
 ## SSL Certificate
 

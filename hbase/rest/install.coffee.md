@@ -8,7 +8,7 @@ have usecase for it yet.
 
     module.exports =  header: 'HBase Rest Install', handler: ->
       {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -49,7 +49,7 @@ hbase:x:492:
 
 ## HBase Rest Server Layout
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hbase.rest.pid_dir
           uid: hbase.user.name

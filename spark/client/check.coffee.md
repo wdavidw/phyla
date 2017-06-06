@@ -6,7 +6,7 @@ Run twice "[Spark Pi][Spark-Pi]" example for validating installation . The confi
 Spark programs are divided into a driver part and executors part.
 The driver program manages the executors task.
 
-    module.exports = header: 'Spark Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Spark Check', label_true: 'CHECKED', handler: ->
       {spark, force_check,  user, core_site} = @config.ryba
       hive_server2 = @contexts 'ryba/hive/server2'
 
@@ -21,7 +21,7 @@ Validate Spark installation with Pi-example in yarn-cluster mode.
 The YARN cluster mode makes the driver part of the spark submitted program to run inside YARN.
 In this mode the driver is the YARN application master (running inside YARN).
 
-      @call header: 'YARN Cluster', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'YARN Cluster', label_true: 'CHECKED', ->
         file_check = "check-#{@config.shortname}-spark-cluster"
         applicationId = null
         @system.execute
@@ -66,7 +66,7 @@ The YARN client mode makes the driver part of program to run on the local machin
 The local machine is the one from which the job has been submitted (called the client).
 In this mode the driver is the spark master running outside yarn.
 
-      @call header: 'YARN Client', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'YARN Client', label_true: 'CHECKED', ->
         file_check = "check-#{@config.shortname}-spark-client"
         applicationId = null
         @system.execute
@@ -97,7 +97,7 @@ In this mode the driver is the spark master running outside yarn.
 Test spark-shell, in yarn-client mode. Spark-shell supports onyl local[*] mode and
 yarn-client mode, not yarn-cluster.
 
-      @call header: 'Shell (No SQL)', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'Shell (No SQL)', label_true: 'CHECKED', ->
         file_check = "check-#{@config.shortname}-spark-shell-scala"
         directory = "check-#{@config.shortname}-spark_shell_scala"
         db = "check_#{@config.shortname}_spark_shell_scala"
@@ -172,7 +172,7 @@ Creating database from SparkSql is not supported for now.
 
 ## Spark Shell Python
 
-      @call header: 'Shell (PySpark)', timeout: -1, label_true: 'CHECKED', ->
+      @call header: 'Shell (PySpark)', label_true: 'CHECKED', ->
         file_check = "check-#{@config.shortname}-spark-shell-python"
         directory = "check-#{@config.shortname}-spark_shell_python"
         db = "check_#{@config.shortname}_spark_shell_python"

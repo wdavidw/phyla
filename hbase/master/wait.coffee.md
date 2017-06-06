@@ -1,7 +1,7 @@
 
 # HBase Master Wait
 
-    module.exports =  header: 'HBase Master Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports =  header: 'HBase Master Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_rcp = for hm_ctx in @contexts 'ryba/hbase/master'
         host: hm_ctx.config.host

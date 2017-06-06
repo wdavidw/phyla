@@ -4,7 +4,7 @@
     module.exports = header: 'HBase RegionServer Install', handler: ->
       hbase_regionserver = @contexts 'ryba/hbase/regionserver'
       {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       regionservers = hbase_regionserver.map( (ctx) -> ctx.config.host).join '\n'
 
 ## Register
@@ -48,7 +48,7 @@ hbase:x:492:
 
 ## HBase Regionserver Layout
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hbase.rs.pid_dir
           uid: hbase.user.name
@@ -70,7 +70,7 @@ hbase:x:492:
 Install the "hbase-regionserver" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Service', timeout: -1, (options) ->
+      @call header: 'Service', (options) ->
         @service
           name: 'hbase-regionserver'
         @hdp_select

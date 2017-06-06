@@ -31,7 +31,7 @@ m.cm_prepare
 COFFEE
 ```
 
-    module.exports = header: 'Cloudera Manager Server Prepare', timeout: -1, handler: (options) ->
+    module.exports = header: 'Cloudera Manager Server Prepare', handler: (options) ->
       options.distrib ?= 'el6'
       options.services ?= ['cdh5', 'accumulo', 'sqoop-connectors', 'phoenix', 'kafka']
       options['cdh4'] ?= version: '4.7.1.47'

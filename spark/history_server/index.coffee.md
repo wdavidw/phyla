@@ -3,6 +3,7 @@
 
     module.exports =
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hdfs: 'ryba/hadoop/hdfs_client'
         hive: 'ryba/hive/client'

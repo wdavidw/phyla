@@ -6,7 +6,7 @@
       {hdfs, zkfc, active_nn_host} = ryba
       {hdfs, zkfc, core_site, hadoop_group} = ryba
       {realm, hadoop_group, hdfs, zkfc} = ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       {hdfs, core_site, zkfc} = ryba
       {hdfs, ssh_fencing, hadoop_group} = ryba
 
@@ -67,7 +67,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 
 ## Configure
 
-      @call header: 'Configure', timeout: -1, ->
+      @call header: 'Configure', ->
         @system.mkdir
           target: "#{zkfc.conf_dir}"
         @hconfigure
@@ -274,7 +274,6 @@ NameNode, we wait for the active NameNode to take leadership and start the ZKFC 
       @call once: true, 'ryba/zookeeper/server/wait'
       @system.execute
         header: 'Format ZK'
-        timeout: -1
         if: [
           -> active_nn_host is @config.host
           -> hdfs.nn.site['dfs.ha.automatic-failover.enabled'] = 'true'

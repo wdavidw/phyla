@@ -17,7 +17,7 @@ NameNodes, and send block location information and heartbeats to both.
     module.exports = header: 'HDFS DN Install', handler: ->
       {ryba} = @config
       {realm, core_site, hdfs, hadoop_group, hadoop_metrics} = ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -58,7 +58,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Install the "hadoop-hdfs-datanode" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'hadoop-hdfs-datanode'
         @hdp_select
@@ -81,7 +81,7 @@ inside "/etc/init.d" and activate it on startup.
             context: @config.ryba
             mode: 0o0644
 
-      @call header: 'Compression', timeout: -1, retry: 2, (options) ->
+      @call header: 'Compression', retry: 2, (options) ->
         @service.remove 'snappy', if: options.attempt is 1
         @service name: 'snappy'
         @service name: 'snappy-devel'

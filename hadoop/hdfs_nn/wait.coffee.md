@@ -24,7 +24,7 @@ HA Namenodes with Kerberos:
 }
 ```
 
-    module.exports = header: 'HDFS NN Wait', timeout: -1, label_true: 'READY', handler:  ->
+    module.exports = header: 'HDFS NN Wait', label_true: 'READY', handler:  ->
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
       {hdfs, hadoop_conf_dir} = @config.ryba
       if @has_service 'ryba/hadoop/hdfs_nn' then conf_dir = "#{hdfs.nn.conf_dir}"

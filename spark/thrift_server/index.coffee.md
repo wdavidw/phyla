@@ -9,6 +9,7 @@ in order to make the data accessible to hive clients.
 
     module.exports =
       use:
+        'krb5_client': module: 'masson/core/krb5_client'
         'java': implicit: true, module: 'masson/commons/java'
         'hdfs': 'ryba/hadoop/hdfs_client'
         'hive_server2': 'ryba/hive/server2'

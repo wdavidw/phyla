@@ -5,7 +5,7 @@
       {shinken} = @config.ryba
       {poller} = @config.ryba.shinken
       {realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## IPTables
 
@@ -28,7 +28,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Package
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service name: 'net-snmp'
         @service name: 'net-snmp-utils'
         @service name: 'httpd'
@@ -65,7 +65,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Plugins
 
-      @call header: 'Plugins', timeout: -1, ->
+      @call header: 'Plugins', ->
       for plugin in glob.sync "#{__dirname}/resources/plugins/*"
         @file.download
           target: "#{shinken.plugin_dir}/#{path.basename plugin}"
@@ -84,7 +84,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           keytab: shinken.poller.executor.krb5.keytab
           mode: 0o644
 
-        @call header: 'Docker', timeout: -1, ->
+        @call header: 'Docker', ->
           @file.download
             source: "#{@config.nikita.cache_dir or '.'}/shinken-poller-executor.tar"
             target: '/var/lib/docker_images/shinken-poller-executor.tar'

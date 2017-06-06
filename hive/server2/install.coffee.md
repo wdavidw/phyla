@@ -13,7 +13,7 @@ Resources:
     module.exports =  header: 'Hive Server2 Install', handler: ->
       {hive} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_location = "/var/tmp/ryba/ssl"
       hive_server_port = if hive.server2.site['hive.server2.transport.mode'] is 'binary'
       then hive.server2.site['hive.server2.thrift.port']
@@ -68,7 +68,7 @@ inside "/etc/init.d" and activate it on startup.
 The server is not activated on startup because they endup as zombies if HDFS
 isnt yet started.
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hive'
         @service
@@ -147,7 +147,7 @@ Server2 to 4Gb by setting a value equal to "-Xmx4096m".
 Create the directories to store the logs and pid information. The properties
 "ryba.hive.server2.log\_dir" and "ryba.hive.server2.pid\_dir" may be modified.
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hive.server2.log_dir
           uid: hive.user.name

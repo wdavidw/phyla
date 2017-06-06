@@ -27,7 +27,6 @@ Wait for Kerberos, ZooKeeper and HDFS to be started.
       @wait.execute
         header: 'Wait Active NN'
         label_true: 'READY'
-        timeout: -1
         if: [
           # nn_ctxs.length > 1
           active_nn_host isnt @config.host

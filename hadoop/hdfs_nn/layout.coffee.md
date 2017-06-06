@@ -1,6 +1,6 @@
 # HDFS Datanode Layout
 
-    module.exports = header: 'HDFS NN layout', timeout: -1, handler: (options) ->
+    module.exports = header: 'HDFS NN layout', handler: (options) ->
       {user, group, hdfs, hadoop_group} = @config.ryba
 
 ## Wait
@@ -24,7 +24,7 @@ drwxr-xr-x   - hdfs   hadoop      /user
 drwxr-xr-x   - hdfs   hadoop      /user/hdfs
 ```
 
-      @call header: 'HDFS layout', timeout: -1, (opts)->
+      @call header: 'HDFS layout', (opts)->
         @wait.execute
           cmd: mkcmd.hdfs @, "hdfs --config '#{hdfs.nn.conf_dir}' dfs -test -d /"
         @system.execute
@@ -69,7 +69,6 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
 
       @system.execute
         header: 'HDP Layout'
-        timeout: -1
         cmd: mkcmd.hdfs @, """
         version=`readlink /usr/hdp/current/hadoop-client | sed 's/.*\\/\\(.*\\)\\/hadoop/\\1/'`
         hdfs --config '#{hdfs.nn.conf_dir}' dfs -mkdir -p /hdp/apps/$version

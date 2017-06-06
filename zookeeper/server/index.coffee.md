@@ -11,7 +11,7 @@ differences.
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hdp: 'ryba/hdp'
         # zoo_client: implicit: true, module: 'ryba/zookeeper/client'

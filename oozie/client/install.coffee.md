@@ -10,7 +10,7 @@ Additionnal oozie properties may be defined inside the "OOZIE_CLIENT_OPTS"
 environmental variables. For example, HDP declare its version as
 "-Dhdp.version=${HDP_VERSION}".
 
-    module.exports = header: 'Oozie Client Install', timeout: -1, handler: ->
+    module.exports = header: 'Oozie Client Install', handler: ->
       {oozie, hadoop_conf_dir, yarn, ssl} = @config.ryba
       {java_home, jre_home} = @config.java
 
@@ -23,7 +23,7 @@ environmental variables. For example, HDP declare its version as
 
 Install the oozie client package. This package doesn't create any user and group.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'oozie-client'
         @hdp_select

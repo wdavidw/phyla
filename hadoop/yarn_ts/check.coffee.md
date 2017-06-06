@@ -3,7 +3,7 @@
 
 Check the Timeline Server.
 
-    module.exports = header: 'YARN ATS Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'YARN ATS Check', label_true: 'CHECKED', handler: ->
       {yarn} = @config.ryba
 
 Wait for the server to be started.

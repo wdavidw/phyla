@@ -1,7 +1,7 @@
 
 # Hadoop HDFS NameNode Wait
 
-    module.exports = header: 'HDFS HttpFS Wait', timeout: -1, label_true: 'READY', handler:  ->
+    module.exports = header: 'HDFS HttpFS Wait', label_true: 'READY', handler:  ->
       options = {}
       options.wait_http = for httpfs_ctx in @contexts 'ryba/hadoop/httpfs'
         host: httpfs_ctx.config.host

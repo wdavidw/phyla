@@ -18,6 +18,7 @@ is approximatively 1000 checks/s
       use:
         yum: implicit: true, module: 'masson/core/yum'
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         docker: implicit: true, module: 'masson/commons/docker'
       configure: [
         'ryba/shinken/commons/configure'

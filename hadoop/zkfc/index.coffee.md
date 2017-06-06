@@ -8,6 +8,7 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hadoop_core: 'ryba/hadoop/core'
         zookeeper: 'ryba/zookeeper/server'

@@ -7,7 +7,7 @@ In HA mode, we need to ensure both NameNodes are installed before testing SSH
 Fencing. Otherwise, a race condition may occur if a host attempt to connect
 through SSH over another one where the public key isn't yet deployed.
 
-    module.exports = header: 'HDFS NN Check', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'HDFS NN Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
       {user, hdfs, active_nn_host, nameservice, force_check, check_hdfs_fsck} = @config.ryba
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
 
@@ -70,7 +70,6 @@ Additionnal information may be found on the [CentOS HowTos site][corblk].
         header: 'FSCK'
         retry: 3
         wait: 60000
-        timeout: -1
         cmd: mkcmd.hdfs @, "exec 5>&1; hdfs --config #{hdfs.nn.conf_dir} fsck / | tee /dev/fd/5 | tail -1 | grep HEALTHY 1>/dev/null"
         if: force_check or check_hdfs_fsck
 
@@ -97,7 +96,7 @@ is not present on HDFS.
 Read [Delegation Tokens in Hadoop Security](http://www.kodkast.com/blogs/hadoop/delegation-tokens-in-hadoop-security)
 for more information.
 
-      @call header: 'WebHDFS', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'WebHDFS', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         is_ha = nn_ctxs.length > 1
         protocol = if hdfs.nn.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
         nameservice = if is_ha then ".#{@config.ryba.hdfs.nn.site['dfs.nameservices']}" else ''

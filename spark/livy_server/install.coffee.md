@@ -9,7 +9,7 @@ Run `ryba prepare` to create the Docker container.
     module.exports = header: 'Spark Livy Server', handler: ->
       {spark} = @config.ryba
       {hadoop_group, hdfs, hive, hbase, hadoop_conf_dir, realm, ssl} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       tmp_location = "/var/tmp/ryba/ssl"
 
 ## Wait
@@ -101,7 +101,7 @@ Write startup script to /etc/init.d/service-hue-docker
 
 ## Download Container
 
-      @call header: 'Download Container', timeout: -1, handler: ->
+      @call header: 'Download Container', handler: ->
         tmp = spark.livy.image_dir
         md5 = spark.livy.md5 ?= true
         @file.download

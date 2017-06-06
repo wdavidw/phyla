@@ -4,7 +4,7 @@
     module.exports =  header: 'MongoDB Config Server Install', handler: ->
       {mongodb, realm, ssl} = @config.ryba
       {configsrv} = mongodb
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## IPTables
 
@@ -32,7 +32,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Install mongodb-org-server containing packages for a mongod service. We render the init scripts
 in order to rendered configuration file with custom properties.
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', ->
         @service name: 'mongodb-org-server'
         @service name: 'mongodb-org-shell'
         @service name: 'mongodb-org-tools'

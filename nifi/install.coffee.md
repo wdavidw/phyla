@@ -5,7 +5,7 @@
       {nifi} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
       {java_home} = @config.java
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       protocol = if nifi.config.properties['nifi.cluster.protocol.is.secure'] is 'true' then 'https' else 'http'
 
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
@@ -69,7 +69,7 @@ So we must manually force install of hdf-select outside of yum to handle it
 
 ## Service
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', ->
         @service
           name: 'nifi'
         @system.execute

@@ -5,7 +5,7 @@ There is 4 phoenix 'SYSTEM.*' tables. If they don't exist in HBase, we launch
 phoenix with hbase admin user.
 Independently, if 'ryba' hasn't CREATE right on these 4 tables, it will be granted
 
-    module.exports = header: 'Phoenix Client Init', timeout: 200000, handler: ->
+    module.exports = header: 'Phoenix Client Init', handler: ->
       {hbase} = @config.ryba
 
 Wait for HBase to be started.

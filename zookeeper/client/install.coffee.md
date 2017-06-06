@@ -30,7 +30,7 @@ hadoop:x:498:hdfs
 Follow the [HDP recommandations][install] to install the "zookeeper" package
 which has no dependency.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'zookeeper'
         @hdp_select

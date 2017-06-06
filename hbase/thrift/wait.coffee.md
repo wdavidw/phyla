@@ -1,7 +1,7 @@
 
 # HBase Thrift server Wait
 
-    module.exports = header: 'HBase Thrift Wait', label_true: 'READY', timeout: -1, handler: ->
+    module.exports = header: 'HBase Thrift Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_http = for thrift_ctx in @contexts 'ryba/hbase/thrift'
         host: thrift_ctx.config.host

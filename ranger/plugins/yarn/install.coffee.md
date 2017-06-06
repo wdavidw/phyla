@@ -2,7 +2,7 @@
     module.exports = header: 'Ranger YARN Plugin install', handler: ->
       {ranger, yarn, realm, hadoop_group, core_site, ssl_server} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       version = null
       conf_dir = null
       @call -> conf_dir = if @config.ryba.yarn_plugin_is_master then yarn.rm.conf_dir else yarn.nm.conf_dir

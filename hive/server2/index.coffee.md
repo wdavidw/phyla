@@ -10,8 +10,8 @@ open API clients like JDBC and ODBC.
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
         krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
         # mapred_client: implicit: true, module: 'ryba/hadoop/mapred_client'
         tez: implicit: true, module: 'ryba/tez'

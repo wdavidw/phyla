@@ -50,7 +50,7 @@ hbase:x:492:
 
 ## HBase Thrift Server Layout
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hbase.thrift.pid_dir
           uid: hbase.user.name

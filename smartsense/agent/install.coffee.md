@@ -48,7 +48,7 @@ Note rmp can only be download from the Hortonworks Support Web UI.
 
 ## Setup
 
-      @call header: 'Setup Execution', timeout: -1, ->
+      @call header: 'Setup Execution', ->
         @file.ini
           header: 'HST Agent ini file'
           target: "#{smartsense.agent.conf_dir}/hst-server.ini"

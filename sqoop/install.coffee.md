@@ -72,7 +72,7 @@ Upload the "sqoop-site.xml" files into the "/etc/sqoop/conf" folder.
 
 Install the Sqoop package following the [HDP instructions][install].
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'sqoop'
         @hdp_select

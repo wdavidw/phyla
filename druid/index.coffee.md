@@ -6,10 +6,11 @@ data store.
 
     module.exports =
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        hdfs_client:  implicit: true, module: 'ryba/hadoop/hdfs_client'
-        yarn_client:  implicit: true, module: 'ryba/hadoop/yarn_client'
-        mapred_client:  implicit: true, module: 'ryba/hadoop/mapred_client'
+        hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
+        yarn_client: implicit: true, module: 'ryba/hadoop/yarn_client'
+        mapred_client: implicit: true, module: 'ryba/hadoop/mapred_client'
         postgres_server: 'masson/commons/postgres/server'
         mysql_server: 'masson/commons/mysql/server'
         db_admin: implicit: true, module: 'ryba/commons/db_admin'

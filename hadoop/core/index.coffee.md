@@ -18,8 +18,8 @@ Managers, Web HDFS interactions, and others.
 
     module.exports =
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
         krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
         zookeeper: 'ryba/zookeeper/server'
         # hdp_repo: 'ryba/commons/repos'

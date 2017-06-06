@@ -60,7 +60,7 @@ Write startup script to /etc/init.d/activemq
 
 ## Layout directories
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: activemq.log_dir
           uid: activemq.user.name

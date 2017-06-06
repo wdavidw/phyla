@@ -7,7 +7,6 @@ of Elastics Search from rpm repositories and the configuration of Elastic Search
 
     module.exports = header: 'ES Install', handler: ->
       {elasticsearch ,realm} = @config.ryba
-      # krb5 = @config.krb5.etc_krb5_conf.realms[realm]
 
 ## Identities
 
@@ -38,7 +37,7 @@ elasticsearch:x:493:
 
 ElasticSearch archive comes with an RPM
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @file.download
           source: elasticsearch.source
           target: "/var/tmp/elasticsearch-#{elasticsearch.version}.noarch.rpm"

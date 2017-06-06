@@ -1,7 +1,7 @@
 
 # HDFS HttpFS Check
 
-    module.exports = header: 'HDFS HttpFS Check', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'HDFS HttpFS Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
       {user} = @config.ryba
 
 Wait for HttpFs to be started.

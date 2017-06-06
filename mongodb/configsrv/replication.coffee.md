@@ -4,7 +4,6 @@
     module.exports =  header: 'MongoDB ConfigSrv Replicat Set', handler: ->
       {mongodb, realm, ssl} = @config.ryba
       {configsrv} = mongodb
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
       mongo_shell_exec =  "mongo admin --port #{configsrv.config.net.port}"
       mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{mongodb.admin.name} --password  '#{mongodb.admin.password}'"
       mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{mongodb.root.name} --password  '#{mongodb.root.password}'"
@@ -101,7 +100,6 @@ The root user is needed for replication and has role `root`
       @call
         header: 'Init Master'
         if: @config.host is mongodb.configsrv.replica_master
-        timeout: -1
       , ->
         message = {}
         @call (_, callback) ->
@@ -121,7 +119,6 @@ The root user is needed for replication and has role `root`
       @call
         header: 'Set Members'
         if: @config.host is mongodb.configsrv.replica_master
-        timeout: -1
       , ->
         message = {}
         @call ->

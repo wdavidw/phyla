@@ -1,7 +1,7 @@
 
 # Altas Metadata Server Stop
 
-    module.exports = header: 'Atlas Stop', timeout: -1, label_true: 'STARTED', handler: ->
+    module.exports = header: 'Atlas Stop', label_true: 'STARTED', handler: ->
 
 You can stop the service with the following commands.
 * Centos/REHL 6

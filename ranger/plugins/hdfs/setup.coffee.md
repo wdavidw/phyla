@@ -6,7 +6,7 @@
       return unless @contexts('ryba/hadoop/hdfs_nn')[0].config.host is @config.host
       {ranger, hdfs, hadoop_group, realm, ssl_server} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       version=null
 
 ## HDFS Dependencies

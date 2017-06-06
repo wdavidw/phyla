@@ -10,7 +10,7 @@ Job History Server.
       {yarn, mapred} = @config.ryba
       {ssl, ssl_server, ssl_client, mapred} = @config.ryba
       {mapred, hadoop_group, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -86,7 +86,7 @@ script inside "/etc/init.d" and activate it on startup.
 
 Create the log and pid directories.
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         {mapred, hadoop_group} = @config.ryba
         @system.mkdir
           target: "#{mapred.log_dir}"

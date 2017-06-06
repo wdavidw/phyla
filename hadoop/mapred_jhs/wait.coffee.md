@@ -1,7 +1,7 @@
 
 # MapReduce JobHistoryServer Wait
 
-    module.exports = header: 'MapReduce JHS Wait', timeout: -1, label_true: 'READY', handler: ->
+    module.exports = header: 'MapReduce JHS Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_tcp = for jhs_ctx in @contexts 'ryba/hadoop/mapred_jhs'
         [fqdn, port] = jhs_ctx.config.ryba.mapred.site['mapreduce.jobhistory.address'].split ':'

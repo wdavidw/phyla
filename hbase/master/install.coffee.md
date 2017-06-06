@@ -6,7 +6,7 @@ TODO: [HBase backup node](http://willddy.github.io/2013/07/02/HBase-Add-Backup-M
     module.exports =  header: 'HBase Master Install', handler: ->
       hbase_regionservers = @contexts 'ryba/hbase/regionserver'
       {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -49,7 +49,7 @@ hbase:x:492:
 
 ## HBase Master Layout
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hbase.master.pid_dir
           uid: hbase.user.name
@@ -71,7 +71,7 @@ hbase:x:492:
 Install the "hbase-master" service, symlink the rc.d startup script inside
 "/etc/init.d" and activate it on startup.
 
-      @call header: 'Service', timeout: -1, (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hbase-master'
         @hdp_select

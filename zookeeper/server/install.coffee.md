@@ -3,7 +3,7 @@
 
     module.exports = header: 'ZooKeeper Server Install', handler: ->
       {zookeeper, hadoop_group, realm} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -63,7 +63,7 @@ We open the client port if:
 Follow the [HDP recommandations][install] to install the "zookeeper" package
 which has no dependency.
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', (options) ->
         @service
           name: 'nc' # Used by check
         @service

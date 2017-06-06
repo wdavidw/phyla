@@ -7,7 +7,7 @@
     module.exports = header: 'Nagios Install', handler: ->
       {nagios, realm, active_nn_host, core_site, hdfs} = @config.ryba
       {zookeeper, hbase, oozie, webhcat, ganglia, hue} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Kerberos
 

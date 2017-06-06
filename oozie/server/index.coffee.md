@@ -9,8 +9,8 @@ Please check Oozie page
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
         krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
         mysql_server: 'masson/commons/mysql/server'
         zookeeper: 'ryba/zookeeper/server'

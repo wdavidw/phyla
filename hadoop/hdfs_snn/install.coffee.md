@@ -4,7 +4,7 @@
     module.exports = header: 'HDFS SNN', handler: ->
       {host} = @config
       {realm, hdfs, hadoop_group} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -68,7 +68,7 @@ script inside "/etc/init.d" and activate it on startup.
             gid: hadoop_group.name
             perm: '0755'
 
-      @call header: 'Layout', timeout: -1, ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: for dir in hdfs.site['dfs.namenode.checkpoint.dir'].split ','
             if dir.indexOf('file://') is 0

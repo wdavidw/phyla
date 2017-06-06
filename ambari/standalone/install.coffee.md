@@ -4,7 +4,7 @@
 See the Ambari documentation relative to [Software Requirements][sr] before
 executing this module.
 
-    module.exports = header: 'Ambari Standalone Install', timeout: -1, handler: ->
+    module.exports = header: 'Ambari Standalone Install', handler: ->
       options = @config.ryba.ambari_standalone
 
 ## Identities

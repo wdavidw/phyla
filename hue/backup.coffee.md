@@ -6,7 +6,7 @@
 
 ## Database
 
-      @call header: 'Database', timeout: -1, label_true: 'BACKUPED', ->
+      @call header: 'Database', label_true: 'BACKUPED', ->
         {engine, host, port, user, password, name} = @config.ryba.hue.ini.desktop.database
         engines_cmd =
           mysql: "mysqldump -u#{database.user} -p#{database.password} -h#{database.host} -P#{database.port} #{database.name}"

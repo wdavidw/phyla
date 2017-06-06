@@ -5,11 +5,10 @@ Waits the replica set of config server to be initialized and ready before starti
 For this we wait to be able to execute a rs.status() on  the first initiated
 replica set primary server.
 
-    module.exports = header: 'MongoDB Router Server Start', label_true: 'READY', timeout: -1, handler: ->
+    module.exports = header: 'MongoDB Router Server Start', label_true: 'READY', handler: ->
       mongodb_configsrvs = @contexts 'ryba/mongodb/configsrv'
       {mongodb, realm, ssl} = @config.ryba
       {router} = mongodb
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
       mongo_shell_exec =  ""
       mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{mongodb.admin.name} --password  '#{mongodb.admin.password}'"
       # find master of the config server's replica set

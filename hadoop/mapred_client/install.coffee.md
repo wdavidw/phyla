@@ -37,7 +37,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Service
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'hadoop-mapreduce'
         @hdp_select
@@ -62,7 +62,6 @@ HDFS directory. Note, the parent directories are created by the
       @hdfs_upload
         header: 'HDFS Tarballs'
         wait: 60*1000
-        timeout: -1
         source: '/usr/hdp/current/hadoop-client/mapreduce.tar.gz'
         target: '/hdp/apps/$version/mapreduce/mapreduce.tar.gz'
         lock: '/tmp/ryba-mapreduce.lock'

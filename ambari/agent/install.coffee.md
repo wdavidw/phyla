@@ -2,7 +2,7 @@
 
 The ambari server must be set in the configuration file.
 
-    module.exports = header: 'Ambari Agent Install', timeout: -1, handler: (options) ->
+    module.exports = header: 'Ambari Agent Install', handler: (options) ->
 
 ## Identities
 

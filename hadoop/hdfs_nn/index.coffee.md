@@ -10,6 +10,7 @@ does not store the data of these files itself. It’s important that this metada
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
+        krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'
         ranger_admin: 'ryba/ranger/admin'

@@ -4,7 +4,7 @@
     module.exports = header: 'Hadoop Core Install', retry: 0, handler: ->
       {realm, hadoop_group, hdfs, yarn, mapred} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -21,7 +21,7 @@ uploaded when the package is first installed or upgraded. Be careful, the
 original file will be overwritten with and user modifications. A copy will be
 made available in the same directory after any modification.
 
-      @call header: 'Packages', timeout: -1, ->
+      @call header: 'Packages', ->
         @service
           name: 'openssl-devel'
         @service

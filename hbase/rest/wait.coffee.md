@@ -1,7 +1,7 @@
 
 # HBase Rest server Wait
 
-    module.exports = header: 'HBase Rest Wait', label_true: 'READY', timeout: -1, handler: ->
+    module.exports = header: 'HBase Rest Wait', label_true: 'READY', handler: ->
       options = {}
       options.wait_http = for rest_ctx in @contexts 'ryba/hbase/rest'
         host: rest_ctx.config.host

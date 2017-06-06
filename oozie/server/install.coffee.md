@@ -9,7 +9,7 @@ failover and Oozie must target the active node.
 
     module.exports = header: 'Oozie Server Install', handler: ->
       {oozie, hadoop_group, hadoop_conf_dir, yarn, realm, db_admin, core_site, ssl_client,ssl} = @config.ryba
-      {kadmin_principal, kadmin_password, admin_server} = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       is_falcon_installed = @contexts('ryba/falcon/server').length isnt 0
       is_hbase_installed = @contexts('ryba/hbase/master').length isnt 0
       port = url.parse(oozie.site['oozie.base.url']).port
@@ -52,7 +52,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         ]
         if: @config.iptables.action is 'start'
 
-      @call header: 'Packages', timeout: -1, (options) ->
+      @call header: 'Packages', (options) ->
         # Upgrading oozie failed, tested versions are hdp 2.1.2 -> 2.1.5 -> 2.1.7
         @system.execute
           cmd: "rm -rf /usr/lib/oozie && yum remove -y oozie oozie-client"
@@ -227,7 +227,7 @@ Install the HBase Libs as part of enabling the Oozie Unified Credentials with HB
 
 Install the LZO compression library as part of enabling the Oozie Web Console.
 
-      @call header: 'LZO', timeout: -1, ->
+      @call header: 'LZO', ->
         @call (_, callback) ->
           @service
             name: 'lzo-devel'
@@ -384,16 +384,13 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
 
 ## Kerberos
 
-      @krb5.addprinc
+      @krb5.addprinc krb5,
         header: 'Kerberos'
         principal: oozie.site['oozie.service.HadoopAccessorService.kerberos.principal'] #.replace '_HOST', @config.host
         randkey: true
         keytab: oozie.site['oozie.service.HadoopAccessorService.keytab.file']
         uid: oozie.user.name
         gid: oozie.group.name
-        kadmin_principal: kadmin_principal
-        kadmin_password: kadmin_password
-        kadmin_server: admin_server
       @system.copy
         header: 'SPNEGO'
         source: '/etc/security/keytabs/spnego.service.keytab'

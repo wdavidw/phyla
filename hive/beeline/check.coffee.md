@@ -3,7 +3,7 @@
 
 This module check the Hive Server2 servers using the `beeline` command.
 
-    module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', timeout: -1, handler: ->
+    module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', handler: ->
       {force_check, realm, user, hive} = @config.ryba
       hive_server2 = @contexts 'ryba/hive/server2'
       spark_thrift_servers = @contexts 'ryba/spark/thrift_server'
@@ -77,7 +77,6 @@ directive once you enter the beeline shell.
       @call
         header: 'Check Server2 (no ZK)'
         label_true: 'CHECKED'
-        timeout: -1
       , ->
         for hs2_ctx in hive_server2
           # {hive} = hs2_ctx.config.ryba
@@ -118,7 +117,6 @@ directive once you enter the beeline shell.
       @call
         header: 'Check Server2 (with ZK)'
         label_true: 'CHECKED'
-        timeout: -1
         if: -> hive_server2.length > 1
       , ->
         current = null
@@ -169,7 +167,6 @@ directive once you enter the beeline shell.
       @call
         header: 'Check Spark SQL Thrift Server'
         label_true: 'CHECKED'
-        timeout: -1
       , ->
         for sts_ctx in spark_thrift_servers
           # {hive} = sts_ctx.config.ryba

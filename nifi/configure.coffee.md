@@ -242,6 +242,7 @@
         when 'ldap-provider'
           ldap_provider = nifi.config.login_providers.ldap_provider ?= {}
           ldap_provider['auth_strategy'] ?= 'SIMPLE'
+          throw Error 'ldap_provider.auth_strategy must be "ANONYMOUS", "SIMPLE", or "START_TLS"' if ldap_provider['auth_strategy'] not in ['ANONYMOUS', 'SIMPLE', 'START_TLS']
           ldap_provider['tls_keystore'] ?= "#{properties['nifi.security.keystore']}"
           ldap_provider['tls_keystore_pwd'] ?= "#{properties['nifi.security.keystorePasswd']}"
           ldap_provider['tls_keystore_type'] ?= "#{properties['nifi.security.keystoreType']}"

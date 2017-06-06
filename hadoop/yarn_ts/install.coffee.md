@@ -8,7 +8,7 @@ co-located with any other service.
       {java} = @config
       {realm, hadoop_group, hadoop_metrics, core_site, hdfs, yarn, hadoop_libexec_dir} = @config.ryba
       {ssl, ssl_server, ssl_client, yarn} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -176,7 +176,7 @@ See:
 
 Note, this is not documented anywhere and might not be considered as a best practice.
 
-      @call header: 'HDFS layout', timeout: -1, ->
+      @call header: 'HDFS layout', ->
         return unless yarn.site['yarn.timeline-service.generic-application-history.store-class'] is "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
         dir = yarn.site['yarn.timeline-service.fs-history-store.uri']
         @wait.execute

@@ -10,7 +10,7 @@ parameter:
 hive -hiveconf hive.root.logger=DEBUG,console
 ```
 
-    module.exports =  header: 'Hive Client Check', label_true: 'CHECKED', timeout: -1, handler: ->
+    module.exports =  header: 'Hive Client Check', label_true: 'CHECKED', handler: ->
       {force_check, realm, user, hive} = @config.ryba
       [ranger_admin] = @contexts 'ryba/ranger/admin'
       hive_hcatalog = @contexts 'ryba/hive/hcatalog'
@@ -79,7 +79,7 @@ managed cluster, ACL must be set on HDFS an not on hive.
 Use the [Hive CLI][hivecli] client to execute SQL queries using the MapReduce
 engine.
 
-      @call header: 'Check HCatalog MapReduce', label_true: 'CHECKED', timeout: -1, ->
+      @call header: 'Check HCatalog MapReduce', label_true: 'CHECKED', ->
         for hcat_ctx in hive_hcatalog
           directory = "check-#{@config.shortname}-hive_hcatalog_mr-#{hcat_ctx.config.shortname}"
           db = "check_#{@config.shortname}_hive_hcatalog_mr_#{hcat_ctx.config.shortname}"
@@ -105,7 +105,7 @@ engine.
 
 Use the [Hive CLI][hivecli] client to execute SQL queries using the Tez engine.
 
-      @call header: 'Check HCatalog Tez', label_true: 'CHECKED', timeout: -1, ->
+      @call header: 'Check HCatalog Tez', label_true: 'CHECKED', ->
         for hcat_ctx in hive_hcatalog
           directory = "check-#{@config.shortname}-hive_hcatalog_tez-#{hcat_ctx.config.shortname}"
           db = "check_#{@config.shortname}_hive_hcatalog_tez_#{hcat_ctx.config.shortname}"

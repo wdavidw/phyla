@@ -3,7 +3,7 @@
 
     module.exports = header: 'Kafka Broker Install', handler: ->
       {kafka, hadoop_group, realm, ssl} = @config.ryba
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 

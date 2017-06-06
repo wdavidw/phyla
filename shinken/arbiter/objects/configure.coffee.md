@@ -273,8 +273,8 @@ Theses functions are used to generate business rules
       bp_has_all = (name, g) -> "bp_rule!(100%,1,1 of: #{ if g? then "g:#{g}" else '*'},r:^#{name}?)"
       #bp_has_percent = (name, w, c, g) -> "bp_rule!(100%,#{w}%,#{c}% of: #{ if g? then "g:#{g}" else '*'},r:^#{name}?)"
 
-      from_contexts = (ctxs) ->
-        clustername = ctxs[0].config.ryba.nameservice or 'default'
+      from_contexts = (ctxs, clustername) ->
+        clustername ?= ctxs[0].config.ryba.nameservice or 'default'
         clusters[clustername] ?= {}
         hg = hostgroups[clustername] ?= {}
         hg.members ?= []
@@ -1188,10 +1188,9 @@ Theses functions are used to generate business rules
         services['Cluster Availability'].use ?= 'bp-service'
         services['Cluster Availability'].check_command ?= bp_has_all '.*Available', '$HOSTNAME$'
 
-      if shinken.contexts_dirs?
-        shinken.contexts_dirs = [shinken.contexts_dirs] unless Array.isArray shinken.contexts_dirs
-        for ctx_dir in shinken.contexts_dirs
-          from_contexts.call @, glob.sync("#{ctx_dir}/*").map((f) -> require f) 
+      if shinken.contexts?
+        for clustername, ctx_dir of shinken.contexts
+          from_contexts.call @, glob.sync("#{ctx_dir}/*").map((f) -> require f), clustername
       else
         from_contexts.call @, @contexts '**'
 

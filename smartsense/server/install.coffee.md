@@ -76,7 +76,7 @@ Note rmp can only be download from the Hortonworks Support Web UI.
 
 ## Setup
 
-      @call header: 'Setup Execution', timeout: -1, ->
+      @call header: 'Setup Execution', ->
         cmd = """
         hst setup -q \
           --accountname=#{server.ini['customer']['account.name']} \

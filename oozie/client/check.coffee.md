@@ -1,7 +1,7 @@
 
 # Oozie Client Check
 
-    module.exports = header: 'Oozie Client Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Oozie Client Check', label_true: 'CHECKED', handler: ->
       {force_check, user, core_site, yarn, oozie} = @config.ryba
       rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
       hs2_ctxs = @contexts 'ryba/hive/server2'
@@ -14,7 +14,6 @@
 ## Check Client
 
       @system.execute
-        timeout: -1
         header: 'Check Client'
         cmd: mkcmd.test @, """
         oozie admin -oozie #{oozie.site['oozie.base.url']} -status
@@ -36,7 +35,7 @@
 
 ## Check HDFS Workflow
 
-      @call header: 'Check HDFS Workflow', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'Check HDFS Workflow', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           shortname = ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}"
@@ -97,7 +96,7 @@
 
 ## Check MapReduce Workflow
 
-      @call header: 'Check MapReduce', skip: true, timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'Check MapReduce', skip: true, label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           # rm_ctx = @context rm_ctxs[0].config.ryba.yarn.active_rm_host#, require('../../hadoop/yarn_rm').configure
@@ -200,7 +199,7 @@
 
 ## Check Pig Workflow
 
-      @call header: 'Check Pig Workflow', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'Check Pig Workflow', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           # rm_ctx = @context rm_ctxs[0].config.ryba.yarn.active_rm_host#, require('../../hadoop/yarn_rm').configure
@@ -332,7 +331,7 @@
 #   <end name="end"/>
 # </workflow-app>
 
-      @call skip: true, header: 'Check HCat Workflow', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call skip: true, header: 'Check HCat Workflow', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           # rm_ctx = @context rm_ctxs[0].config.ryba.yarn.active_rm_host#, require('../../hadoop/yarn_rm').configure
@@ -490,7 +489,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           """
           code_skipped: 22
 
-      @call header: 'Check Hive2 Workflow (No ZK)', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'Check Hive2 Workflow (No ZK)', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           # rm_ctx = @context rm_ctxs[0].config.ryba.yarn.active_rm_host#, require('../../hadoop/yarn_rm').configure
@@ -624,7 +623,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
 
 ## Check Spark Workflow
 
-      @call header: 'Check Spark', timeout: -1, label_true: 'CHECKED', label_false: 'SKIPPED', ->
+      @call header: 'Check Spark', label_true: 'CHECKED', label_false: 'SKIPPED', ->
         if rm_ctxs.length > 1
           rm_ctx = rm_ctxs[0]
           # rm_ctx = @context rm_ctxs[0].config.ryba.yarn.active_rm_host#, require('../../hadoop/yarn_rm').configure

@@ -9,6 +9,7 @@ mechanisms.
 
     module.exports =
       use:
+        krb5_client: module: 'masson/core/krb5_client'
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'
       configure:
         'ryba/flume/configure'

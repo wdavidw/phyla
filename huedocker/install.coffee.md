@@ -13,7 +13,7 @@ Run `ryba prepare` to create the Docker container.
       hadoop_conf_dir = hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir']
       hive_conf_dir = hue_docker.ini['beeswax']['hive_conf_dir'] 
       hbase_conf_dir = hue_docker.ini['hbase']['hbase_conf_dir']
-      krb5 = @config.krb5.etc_krb5_conf.realms[realm]
+      krb5 = @config.krb5_client.admin[realm]
       machine = @config.nikita.machine
 
 ## Register
@@ -61,7 +61,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Layout log Hue
 
-      @call header: 'Layout', timeout: -1,  ->
+      @call header: 'Layout', ->
         @system.mkdir
           target: hue_docker.log_dir
           uid: hue_docker.user.name
@@ -221,7 +221,7 @@ changes.
 Install Hue server docker container.
 It uses local checksum if provided to upload or not.
 
-      @call header: 'Upload Container', timeout: -1, retry:3, (options)  ->
+      @call header: 'Upload Container', retry:3, (options)  ->
         tmp = hue_docker.image_dir
         md5 = hue_docker.md5 ?= true
         @docker.checksum

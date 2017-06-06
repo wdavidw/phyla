@@ -8,7 +8,7 @@ Run the command `./bin/ryba check -m ryba/hadoop/hdfs_dn` to check all the
 DataNodes.
 
 
-    module.exports = header: 'HDFS DN Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'HDFS DN Check', label_true: 'CHECKED', handler: ->
       {hdfs} = @config.ryba
 
       @call once: true, 'ryba/hadoop/hdfs_dn/wait'
