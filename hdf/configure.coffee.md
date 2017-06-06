@@ -11,4 +11,4 @@
 
 ## Dependencies
 
-    path = require 'path'
+    path = require 'path'.posix
