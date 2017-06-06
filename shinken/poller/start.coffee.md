@@ -16,5 +16,5 @@ Start the docker executors (normal and admin)
           container: 'poller-executor'
         @docker.exec
           container: 'poller-executor'
-          cmd: "kinit #{shinken.poller.executor.krb5.unprivileged.principal} -kt #{shinken.poller.executor.krb5.unprivileged.keytab}"
+          cmd: "kinit #{shinken.poller.executor.krb5.principal} -kt #{shinken.poller.executor.krb5.keytab}"
           shy: true
