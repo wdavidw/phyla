@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ambari: ranger
 * hive hcatalog: esthetic
 * spark: add policy for hive database
 * krb5: migrate usage of admin

@@ -3,7 +3,7 @@
 
     module.exports =
       use:
-        ssl: implicit: true, module: 'masson/core/ssl'
+        ssl: module: 'masson/core/ssl'
         # ambari: 'ryba/ambari/hdfagent'
       configure: 'ryba/ambari/nifi/configure'
       commands:
