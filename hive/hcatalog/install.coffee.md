@@ -207,8 +207,11 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
           unless_exec: info_cmd
           header: 'Init Schema'
           cmd: """
-          hive --config #{@config.ryba.hive.hcatalog.conf_dir} \
-            --service schemaTool -dbType #{hive.hcatalog.db.engine} -initSchema
+          hive \
+            --config #{@config.ryba.hive.hcatalog.conf_dir} \
+            --service schemaTool \
+            -dbType #{hive.hcatalog.db.engine} \
+            -initSchema
           """
         @system.execute
           header: 'Read Versions'
@@ -224,12 +227,14 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
           if: -> !@status(-1) and !@status(-2)
           cmd: """
           engine="#{hive.hcatalog.db.engine}"
-          cd /usr/hdp/current/hive-metastore/scripts/metastore/upgrade/${engine} # Required for sql sources
           current_version=`#{current_version}`
-          hive --config #{@config.ryba.hive.hcatalog.conf_dir} \
-          --service schemaTool -dbType #{hive.hcatalog.db.engine} -upgradeSchemaFrom $current_version
+          cd /usr/hdp/current/hive-metastore/scripts/metastore/upgrade/${engine} # Required for sql sources
+          hive \
+            --config #{@config.ryba.hive.hcatalog.conf_dir} \
+            --service schemaTool \
+            -dbType $engine \
+            -upgradeSchemaFrom $current_version
           """
-
 
 ## Kerberos
 
