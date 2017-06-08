@@ -9,6 +9,7 @@ The driver program manages the executors task.
     module.exports = header: 'Spark Check', label_true: 'CHECKED', handler: ->
       {spark, force_check,  user, core_site} = @config.ryba
       hive_server2 = @contexts 'ryba/hive/server2'
+      [ranger_ctx] = @contexts 'ryba/ranger/admin'
 
 ## Wait
 
@@ -146,6 +147,54 @@ Creating database from SparkSql is not supported for now.
         .filter (c) ->
           p = current; current = c; p isnt c
         beeline = "beeline -u \"#{url}\" --silent=true "
+        @call header: 'Add Hive Policy', if: ranger_ctx?, ->
+          {install} = ranger_ctx.config.ryba.ranger.hive_plugin
+          name = "Ranger-Ryba-Hive-Spark-Policy-#{@config.host}-client"
+          dbs = []
+          tables = []
+          tables.push "check_#{@config.shortname}_spark_shell_hive_#{@config.shortname}"
+          hive_policy =
+            name: "#{name}"
+            service: "#{install['REPOSITORY_NAME']}"
+            repositoryType:"hive"
+            description: 'Spark Shell Hive Check'
+            isEnabled: true
+            isAuditEnabled: true
+            resources:
+              database:
+                isRecursive: false
+                isExcludes: false
+                values: tables
+              column:
+                isRecursive: false
+                isExcludes: false
+                values: ["*"]
+              table:
+                isRecursive: false
+                isExcludes: false
+                values: ["*"]
+            policyItems: [{
+              users: ["#{user.name}"]
+              groups: []
+              delegateAdmin: false
+              accesses:[
+                  "isAllowed": true
+                  "type": "all"
+              ]
+              }]
+          @system.execute
+            cmd: """
+            curl --fail -H "Content-Type: application/json" -k -X POST \
+              -d '#{JSON.stringify hive_policy}' \
+              -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
+              \"#{install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
+            """
+            unless_exec: """
+            curl --fail -H \"Content-Type: application/json\" -k -X GET  \
+              -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
+              \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/#{hive_policy.name}"
+            """
+            code_skipped: 22
         @call ->
           @system.execute
             cmd: mkcmd.test @, """
