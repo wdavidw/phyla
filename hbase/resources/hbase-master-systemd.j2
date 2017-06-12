@@ -8,6 +8,7 @@ PIDFile={{hbase.master.pid_dir}}/hbase-hbase-master.pid
 ExecStart=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{hbase.master.conf_dir}} start master
 ExecReload=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{hbase.master.conf_dir}} restart master
 ExecStop=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{hbase.master.conf_dir}} stop master
+LimitNOFILE={{hbase.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

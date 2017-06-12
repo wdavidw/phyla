@@ -8,6 +8,7 @@ PIDFile={{hbase.rest.pid_dir}}/hbase-hbase-rest.pid
 ExecStart=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.rest.conf_dir}} start rest
 ExecReload=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.rest.conf_dir}} restart rest
 ExecStop=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.rest.conf_dir}} stop rest
+LimitNOFILE={{hbase.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target
