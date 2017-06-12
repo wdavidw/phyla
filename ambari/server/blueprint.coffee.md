@@ -12,16 +12,18 @@ Ambari server is started with the service's syntax command.
 http://s07903v0.snm.snecma:8080/api/v1/blueprints
 
       clusters_url = url.format
-        protocol: 'http'
+        protocol: unless options.config['api.ssl'] is 'true'
+        then 'http'
+        else 'https'
         hostname: @config.host
         port: ambari_server.config['client.api.port']
-        pathname: '/api/v1/clusters/dev_01'
+        pathname: "/api/v1/clusters/#{options.cluster_nam}"
         query: 'format': 'blueprint'
       cred = "admin:#{ambari_server.admin_password}"
       @system.execute
         header: "Blueprint"
         cmd: """
-        curl -u #{cred} #{clusters_url}
+        curl -f -k -u #{cred} #{clusters_url}
         """
       , (err, status, stdout) -> @call (_, callback) ->
         throw err if err

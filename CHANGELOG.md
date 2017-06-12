@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ambari: ssl and cluster_name support in blueprint
 * ambari: ranger
 * hive hcatalog: esthetic
 * spark: add policy for hive database

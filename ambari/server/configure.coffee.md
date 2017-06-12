@@ -48,6 +48,7 @@
       {db_admin} = @config.ryba
       # Init
       options = @config.ryba.ambari_server ?= {}
+      options.cluster_name ?= null # Required for blueprint
       # throw Error "Required Option: cluster_name" unless options.cluster_name
       throw Error "Required Option: db.password" unless options.db?.password
 
