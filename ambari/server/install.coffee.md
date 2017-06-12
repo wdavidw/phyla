@@ -322,7 +322,7 @@ Be carefull, notes from Ambari 2.4.2:
             throw err if err
             for k, v of data
               props[k] ?= {}
-              props[k].org = v 
+              props[k].org = v
             callback()
         @system.execute
           shy: true
@@ -363,7 +363,7 @@ Be carefull, notes from Ambari 2.4.2:
           ambari-server setup-security \
             --security-option=setup-truststore \
             --truststore-path=#{options.truststore.target} \
-            --truststore-type=#{options.truststore.type} \ 
+            --truststore-type=#{options.truststore.type} \
             --truststore-password=#{options.truststore.password} \
             --truststore-reconfigure
           """
