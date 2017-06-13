@@ -159,11 +159,11 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
 ## Ranger provisionning
 
-    options.db_ranger ?= false
-    options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
-    if options.db_ranger
-      options.db_ranger.engine ?= options.db.engine
-      options.db_ranger[k] ?= v for k, v of db_admin[options.db_ranger.engine]
-      options.db_ranger.database ?= 'ranger'
-      options.db_ranger.username ?= 'ranger'
-      throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
+      options.db_ranger ?= false
+      options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
+      if options.db_ranger
+        options.db_ranger.engine ?= options.db.engine
+        options.db_ranger[k] ?= v for k, v of db_admin[options.db_ranger.engine]
+        options.db_ranger.database ?= 'ranger'
+        options.db_ranger.username ?= 'ranger'
+        throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
