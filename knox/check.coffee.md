@@ -37,7 +37,7 @@ The external client displays: {"supportedVersions":["v1"],"version":"v1"}
         topologies = Object.keys(knox.topologies).filter((tp) -> knox.topologies[tp].services.webhcat)
         for tp in topologies
           @system.execute
-            cmd: "curl -fiku #{knox.test_user.name}:#{knox.test_user.password} https://#{@config.host}:#{knox.site['gateway.port']}/#{knox.site['gateway.path']}/#{tp}/webhcat/v1/version"
+            cmd: "curl -fiku #{knox.test_user.name}:#{knox.test_user.password} https://#{@config.host}:#{knox.site['gateway.port']}/#{knox.site['gateway.path']}/#{tp}/templeton/v1/version"
 
 ## Check HBase REST Proxy
 

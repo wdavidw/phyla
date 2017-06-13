@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* knox: fixed webhcat check url
 * ambari: ssl and cluster_name support in blueprint
 * ambari: ranger
 * hive hcatalog: esthetic
