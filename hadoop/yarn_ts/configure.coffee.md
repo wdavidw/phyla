@@ -35,6 +35,8 @@
       yarn.site['yarn.timeline-service.http-cross-origin.max-age'] ?= "1800"
       # Generic-data related Configuration
       # Yarn doc: yarn.timeline-service.generic-application-history.enabled = false
+      yarn.site['yarn.timeline-service.generic-application-history.enabled'] ?= 'true'
+      yarn.site['yarn.timeline-service.generic-application-history.save-non-am-container-meta-info'] ?= 'true'
       yarn.site['yarn.timeline-service.generic-application-history.store-class'] ?= "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
       yarn.site['yarn.timeline-service.fs-history-store.uri'] ?= '/apps/ats' # Not documented, default to "$(hadoop.tmp.dir)/yarn/timeline/generic-history""
       # Enabling Generic Data Collection (HDP specific)
