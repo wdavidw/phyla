@@ -13,13 +13,6 @@
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @call once: true, "ryba/solr/#{mode}/start" unless mode is 'cloud_docker'
       @call once: true, "ryba/solr/#{mode}/wait" unless mode is 'cloud_docker'
-      @call 
-        once: true
-        if: mode is 'cloud_docker'
-      , ->
-          @connection.wait
-            servers: for host in cluster_config.hosts
-              host: host, port: cluster_config.port
 
 ## Layout
 
@@ -59,7 +52,7 @@ solr apache version.
           target: "#{tmp_dir}/ranger_audits/solrconfig.xml"
           local: true
           context:
-            retention_period: ranger.admin.retention
+            retention_period: ranger.admin.audit_retention_period
       @call
         if: -> mode in ['cloud_docker', 'cloud']
       , ->
@@ -135,9 +128,9 @@ Note: Compatible with every version of docker available at this time.
         retry: 2 #needed whensolr node are slow to start
       , (options) ->
           container = null
-          @connection.wait
-            host: cluster_config['master']
-            port: cluster_config['port']
+          @wait.execute
+            if: @contexts('ryba/swarm/manager').length isnt 0
+            cmd: docker.wrap options, "ps | grep #{ranger.admin.cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
           @system.execute
             if: @contexts('ryba/swarm/manager').length isnt 0
             cmd: docker.wrap options, "ps | grep #{ranger.admin.cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
