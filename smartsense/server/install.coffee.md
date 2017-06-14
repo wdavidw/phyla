@@ -13,7 +13,7 @@
 ## Packages
 Note rmp can only be download from the Hortonworks Support Web UI.
 
-      @download
+      @file.download
         header: 'Download HST Package'
         source: smartsense.source
         target: "#{smartsense.server.tmp_dir}/smartsense.rpm"
@@ -37,6 +37,22 @@ Note rmp can only be download from the Hortonworks Support Web UI.
         perm: '0750'
         uid: smartsense.user.name
         gid: smartsense.group.name
+
+## IPTables
+
+| Service              | Port  | Proto       | Parameter          |
+|----------------------|-------|-------------|--------------------|
+| Smartsense Server    | 9000  | http        | port               |
+
+IPTables rules are only inserted if the parameter "iptables.action" is set to
+"start" (default value).
+
+      @tools.iptables
+        header: 'Smartsense server'
+        if: @config.iptables.action is 'start'
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: smartsense.server.ini['server']['port'], protocol: 'tcp', state: 'NEW', comment: "Smartsense server" }
+        ]
 
 ## Layout
 
@@ -63,12 +79,12 @@ Note rmp can only be download from the Hortonworks Support Web UI.
         header: 'SSL Server'
         if: server.ini['server']['ssl_enabled']
       , ->
-        @download
+        @file.download
           source: ssl.cert
           target: "#{server.conf_dir}/cert.pem"
           uid: smartsense.user.name
           gid: smartsense.group.name
-        @download
+        @file.download
           source: ssl.key
           target: "#{server.conf_dir}/key.pem"
           uid: smartsense.user.name
