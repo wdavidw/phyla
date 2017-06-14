@@ -128,7 +128,7 @@ killed as a last resort.
       # List of SchedulingEditPolicy classes that interact with the scheduler.
       ryba.yarn.rm.site['yarn.resourcemanager.scheduler.monitor.policies'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.monitor.capacity.ProportionalCapacityPreemptionPolicy'
       # The time in milliseconds between invocations of this policy.
-      ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.monitoring_interva'] ?= '3000'
+      ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.monitoring_interval'] ?= '3000'
       # The time in milliseconds between requesting a preemption from an application and killing the container.
       ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.max_wait_before_kill'] ?= '15000'
       # The maximum percentage of resources preempted in a single round.
