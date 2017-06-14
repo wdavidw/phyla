@@ -46,28 +46,26 @@ Modify envvars in the gremlin scripts.
 
       @call header: 'Gremlin Env', ->
         write = [
-          match: /^(.*)JAVA_OPTIONS="-Dlog4j.configuration=[^f].*/m
-          replace: "    JAVA_OPTIONS=\"-Dlog4j.configuration=file:#{path.join janusgraph.home, 'conf', 'log4j-gremlin.properties'}\" # RYBA CONF, DON'T OVERWRITE"
+          match: /^JAVA_OPTIONS="\$JAVA_OPTIONS -Djava.security.auth.login.config=.*/m
+          replace: "JAVA_OPTIONS=\"$JAVA_OPTIONS -Djava.security.auth.login.config=#{path.join janusgraph.home, 'janusgraph.jaas'}\" # RYBA CONF, DON'T OVERWRITE"
+          place_before: /^exec \$JAVA \$JAVA_OPTIONS \$MAIN_CLASS.*/m
         ,
-          match: /^(.*)-Djava.security.auth.login.config=.*/m
-          replace: "    JAVA_OPTIONS=\"$JAVA_OPTIONS -Djava.security.auth.login.config=#{path.join janusgraph.home, 'janusgraph.jaas'}\" # RYBA CONF, DON'T OVERWRITE"
-          append: /^(.*)-Dgremlin.mr.log4j.level=.*/m
-        ,
-          match: /^(.*)-Djava.library.path.*/m
-          replace: "    JAVA_OPTIONS=\"$JAVA_OPTIONS -Djava.library.path=${HADOOP_HOME}/lib/native\" # RYBA CONF, DON'T OVERWRITE"
-          append: /^(.*)-Dgremlin.mr.log4j.level=.*/m
+          match: /^JAVA_OPTIONS="\$JAVA_OPTIONS -Djava.library.path=.*/m
+          replace: "JAVA_OPTIONS=\"$JAVA_OPTIONS -Djava.library.path=${HADOOP_HOME}/lib/native\" # RYBA CONF, DON'T OVERWRITE"
+          place_before: /^exec \$JAVA \$JAVA_OPTIONS \$MAIN_CLASS.*/m
         ,
           match: /^(.*)# RYBA SET HADOOP-ENV, DON'T OVERWRITE/m
           replace: "HADOOP_HOME=/usr/hdp/current/hadoop-client # RYBA SET HADOOP-ENV, DON'T OVERWRITE"
-          place_before: /^CP=`abs_path`.*/m
+          append: /^set -u.*/m
         ]
         if janusgraph.config['storage.backend'] is 'hbase' then write.unshift
           match: /^.*# RYBA CONF hbase-env, DON'T OVERWRITE/m
-          replace: "CP=\"$CP:#{@config.ryba.hbase.conf_dir}\" # RYBA CONF hbase-env, DON'T OVERWRITE"
-          append: /^CP=`abs_path`.*/m
+          replace: "CP=\"$CP:#{@config.ryba.hbase.conf_dir}:/etc/hadoop/conf\" # RYBA CONF hbase-env, DON'T OVERWRITE"
+          place_before: /^export CLASSPATH=.*/m
         @file
           target: path.join janusgraph.home, 'bin/gremlin.sh'
           write: write
+          mode: 0o755
 
 ## Kerberos
 
@@ -133,7 +131,7 @@ Namespace is still not working in version 1.0
           cmd: mkcmd.hbase @, """
           if hbase shell -n 2>/dev/null <<< "exists '#{table}'" | grep 'Table #{table} does exist'; then exit 3; fi
           cd #{janusgraph.home}
-          #{janusgraph.install_dir}/current/bin/gremlin.sh 2>/dev/null <<< \"g = TitanFactory.open('janusgraph.hbase-#{janusgraph.config['index.search.backend']}.properties')\" | grep '==>janusgraph.raph'
+          bin/gremlin.sh 2>/dev/null <<< \"g = JanusGraphFactory.open('janusgraph.hbase-#{janusgraph.config['index.search.backend']}.properties')\" | grep '==>janusgraph.raph'
           """
           code_skipped: 3
 

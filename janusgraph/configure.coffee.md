@@ -17,7 +17,7 @@ Storage Backend
       if janus.config['storage.backend'] is 'hbase'
         zk_hosts = @contexts('ryba/zookeeper/server').map( (ctx)-> ctx.config.host)
         janus.config['storage.hostname'] ?= zk_hosts.join ','
-        janus.config['storage.hbase.table'] ?= 'janus'
+        janus.config['storage.hbase.table'] ?= 'janusgraph'
         janus.config['storage.hbase.short-cf-names'] ?= true
 
 Indexation backend (mandatory even if it should not be)
