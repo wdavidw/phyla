@@ -37,52 +37,60 @@
           atlas.solr_type is 'cloud_docker'
         ]
         header:'Atlas Collection (cloud_docker)'
-      , ->
-        @connection.wait
-          host: cluster_config['master']
-          port: cluster_config['port']
-        @docker.exec
-          container: cluster_config.master_container_runtime_name
-          cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c vertex_index"
-          code_skipped: [1,126]
-        @docker.exec
-          unless: -> @status -1
-          header: 'Create vertex_index collection'
-          container: cluster_config.master_container_runtime_name
-          cmd: """
-          /usr/solr-cloud/current/bin/solr create_collection -c vertex_index \
-          -shards #{@contexts('ryba/solr/cloud_docker').length}  \
-          -replicationFactor #{@contexts('ryba/solr/cloud_docker').length} \
-          -d /atlas_solr
-          """
-        @docker.exec
-          container: cluster_config.master_container_runtime_name
-          cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c edge_index"
-          code_skipped: [1,126]
-        @docker.exec
-          unless: -> @status -1
-          header: 'Create edge_index collection'
-          container: cluster_config.master_container_runtime_name
-          cmd: """
-          /usr/solr-cloud/current/bin/solr create_collection -c edge_index \
-          -shards #{@contexts('ryba/solr/cloud_docker').length}  \
-          -replicationFactor #{@contexts('ryba/solr/cloud_docker').length} \
-          -d /atlas_solr
-          """
-        @docker.exec
-          container: cluster_config.master_container_runtime_name
-          cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c fulltext_index"
-          code_skipped: [1,126]
-        @docker.exec
-          unless: -> @status -1
-          header: 'Create fulltext_index collection'
-          container: cluster_config.master_container_runtime_name
-          cmd: """
-          /usr/solr-cloud/current/bin/solr create_collection -c fulltext_index \
-          -shards #{@contexts('ryba/solr/cloud_docker').length}  \
-          -replicationFactor #{@contexts('ryba/solr/cloud_docker').length} \
-          -d /atlas_solr
-          """
+      , (options) ->
+          container = null
+          @wait.execute
+            if: @contexts('ryba/swarm/manager').length isnt 0
+            cmd: docker.wrap options, "ps | grep #{atlas.solr_cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
+          @system.execute
+            if: @contexts('ryba/swarm/manager').length isnt 0
+            cmd: docker.wrap options, "ps | grep #{atlas.solr_cluster_name.split('_').join('')} | grep #{cluster_config['master']} | awk '{print $1}'"
+          , (err, status, stdout) ->
+            throw err if err
+            container = stdout?.trim()
+          @call ->
+            @docker.exec
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c vertex_index"
+              code_skipped: [1,126]
+            @docker.exec
+              unless: -> @status -1
+              header: 'Create vertex_index collection'
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: """
+              /usr/solr-cloud/current/bin/solr create_collection -c vertex_index \
+              -shards #{cluster_config.hosts.length}  \
+              -replicationFactor #{cluster_config.hosts.length-1} \
+              -d /atlas_solr
+              """
+            @docker.exec
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c edge_index"
+              code_skipped: [1,126]
+            @docker.exec
+              unless: -> @status -1
+              header: 'Create edge_index collection'
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: """
+              /usr/solr-cloud/current/bin/solr create_collection -c edge_index \
+              -shards #{cluster_config.hosts.length}  \
+              -replicationFactor #{cluster_config.hosts.length-1} \
+              -d /atlas_solr
+              """
+            @docker.exec
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: "/usr/solr-cloud/current/bin/solr healthcheck -c fulltext_index"
+              code_skipped: [1,126]
+            @docker.exec
+              unless: -> @status -1
+              header: 'Create fulltext_index collection'
+              container: "#{container or cluster_config.master_container_runtime_name}"
+              cmd: """
+              /usr/solr-cloud/current/bin/solr create_collection -c fulltext_index \
+              -shards #{cluster_config.hosts.length}  \
+              -replicationFactor #{cluster_config.hosts.length-1} \
+              -d /atlas_solr
+              """
       @call
         if: [
           @config.host is cluster_config.master
@@ -118,3 +126,7 @@
           -replicationFactor #{cluster_config.hosts.length} \
           -d #{cluster_config.atlas_collection_dir}
           """
+
+## Dependecies
+    
+    docker = require 'nikita/lib/misc/docker'

@@ -110,7 +110,7 @@ Forexample, `atlas.authentication.method.ldap.userDNpattern`=`cn=users\,cn=accou
       if atlas.application.properties['atlas.authentication.method.kerberos'] is 'true'
         atlas.application.properties['atlas.authentication.method.kerberos.principal'] ?= atlas.application.properties['atlas.http.authentication.kerberos.principal']
         atlas.application.properties['atlas.authentication.method.kerberos.keytab'] ?= atlas.application.properties['atlas.http.authentication.kerberos.keytab']
-        atlas.application.properties['atlas.authentication.method.kerberos.name.rules'] ?= core_site['hadoop.security.auth_to_local']
+        # atlas.application.properties['atlas.authentication.method.kerberos.name.rules'] ?= core_site['hadoop.security.auth_to_local']
       # Configure file authentication
       if atlas.application.properties['atlas.authentication.method.file'] is 'true'
         atlas.application.properties['atlas.authentication.method.file.filename'] ?= "#{atlas.conf_dir}/users-credentials.properties"

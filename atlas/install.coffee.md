@@ -270,6 +270,7 @@ Writes `atlas-application.properties` file.
         backup: true
         uid: atlas.user.name
         gid: atlas.group.name
+        merge: false
         mode: 0o770
 
 ## Log4 Properties
@@ -757,7 +758,10 @@ Populates the Oozie directory with the Atlas server JAR files.
               @system.execute
                 retry: 2
                 if: -> @status -1
-                cmd: mkcmd.hdfs @, "hdfs dfs -chown #{user}:#{user} #{sharelib}/hive/#{options.key}"
+                cmd: mkcmd.hdfs @, """
+                  hdfs dfs -chown #{user}:#{user} #{sharelib}/hive/#{options.key}
+                  hdfs dfs -chmod 755 #{sharelib}/hive/#{options.key}
+                  """
             @then callback
 
 ## Ranger Atlas Plugin Install
