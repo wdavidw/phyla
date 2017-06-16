@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* hdp: rename repo to source
 * knox: fixed webhcat check url
 * ambari: ssl and cluster_name support in blueprint
 * ambari: ranger

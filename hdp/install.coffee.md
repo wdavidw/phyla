@@ -6,7 +6,7 @@
       @tools.repo
         if: options.repo?
         header: 'Repository'
-        source: options.repo
+        source: options.source
         target: options.target
         replace: options.replace
         update: true
