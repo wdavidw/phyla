@@ -4,9 +4,9 @@
     module.exports = header: 'HDF Install', handler: (options) ->
       options = @config.ryba.hdf
       @tools.repo
-        if: options.repo?
+        if: options.source?
         header: 'Repository'
-        source: options.repo
+        source: options.source
         target: options.target
         replace: options.replace
         update: true
