@@ -2,7 +2,9 @@
 # Changelog
 
 ## Trunk
+
 * hdf: rename repo to source
+* repo: default to null, rename repo to source
 * hdp: rename repo to source
 * knox: fixed webhcat check url
 * ambari: ssl and cluster_name support in blueprint
