@@ -6,6 +6,7 @@
         ssl: module: 'masson/core/ssl'
         krb5_client: module: 'masson/core/krb5_client'
         java: module: 'masson/commons/java', recommanded: true
+        hdf: module: 'ryba/hdf'
         hadoop: 'ryba/hadoop/core'
       configure: 'ryba/ambari/hdfranger/configure'
       commands:

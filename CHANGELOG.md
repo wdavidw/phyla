@@ -4,6 +4,7 @@
 ## Trunk
 
 * hdf: rename repo to source
+* ambari: use repo
 * repo: default to null, rename repo to source
 * hdp: rename repo to source
 * knox: fixed webhcat check url

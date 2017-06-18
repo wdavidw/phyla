@@ -11,6 +11,7 @@ manage and monitor a Hadoop cluster.
         krb5_client: module: 'masson/core/krb5_client'
         java: module: 'masson/commons/java', recommanded: true
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
+        hdf: module: 'ryba/hdf'
         hadoop: 'ryba/hadoop/core'
       configure: 'ryba/ambari/hdfserver/configure'
       commands:
