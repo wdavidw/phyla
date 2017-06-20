@@ -2,7 +2,7 @@
 # JanusGraph Check
 
     module.exports = header: 'JanusGraph Check', timeout: -1, label_true: 'CHECKED', handler: ->
-      {force_check, hbase, titan} = @config.ryba
+      {force_check, hbase, janusgraph} = @config.ryba
       {shortname} = @config
 
 ## Wait
@@ -16,27 +16,27 @@ Check the configuration file (current.properties).
 
       @call header: 'Shell', timeout: -1, label_true: 'CHECKED', handler: ->
         config = {}
-        config[k] = v for k, v of titan.config
-        config['storage.hbase.table'] = 'titan-test'
+        config[k] = v for k, v of janusgraph.config
+        config['storage.hbase.table'] = 'janusgraph-test'
         check = false
         @file.properties
-          target: path.join titan.home, "titan-#{titan.config['storage.backend']}-#{titan.config['index.search.backend']}-test.properties"
+          target: path.join janusgraph.home, "janusgraph-#{janusgraph.config['storage.backend']}-#{janusgraph.config['index.search.backend']}-test.properties"
           content: config
           separator: '='
         @system.execute
           cmd: mkcmd.hbase @, """
-          cd #{titan.home}
-          #{titan.install_dir}/current/bin/gremlin.sh 2>/dev/null <<< \"g = TitanFactory.open('titan-hbase-#{titan.config['index.search.backend']}-test.properties')\" | grep '==>titangraph'
-          hbase shell 2>/dev/null <<< "grant 'ryba', 'RWC', 'titan-test'"
+          cd #{janusgraph.home}
+          #{janusgraph.install_dir}/current/bin/gremlin.sh 2>/dev/null <<< \"g = JanusGraphFactory.open('janusgraph-hbase-#{janusgraph.config['index.search.backend']}-test.properties')\" | grep '==>janusgraph'
+          hbase shell 2>/dev/null <<< "grant 'ryba', 'RWC', 'janusgraph-test'"
           """
-          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists 'titan-test'\""
+          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists 'janusgraph-test'\""
         , (err, status) ->
           check = true if status
         @system.execute
           cmd: mkcmd.test @, """
-          cd #{titan.home}
-          cmd="TitanFactory.open('titan-#{titan.config['storage.backend']}-#{titan.config['index.search.backend']}-test.properties')"
-          #{titan.install_dir}/current/bin/gremlin.sh <<< "$cmd" | grep '==>titangraph'
+          cd #{janusgraph.home}
+          cmd="TitanFactory.open('janusgraph-#{janusgraph.config['storage.backend']}-#{janusgraph.config['index.search.backend']}-test.properties')"
+          #{janusgraph.install_dir}/current/bin/gremlin.sh <<< "$cmd" | grep '==>janusgraph'
           """
           if: -> check
 
