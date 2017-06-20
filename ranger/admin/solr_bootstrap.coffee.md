@@ -4,8 +4,8 @@
       ranger =  @contexts('ryba/ranger/admin')[0].config.ryba.ranger
       {password} = ranger.admin
       cluster_config = ranger.admin.cluster_config
-      [zk_connect,zk_node] = cluster_config.zk_urls.split '/'
       mode = if ranger.admin.solr_type is 'single' then 'standalone' else ranger.admin.solr_type
+      [zk_connect,zk_node] = cluster_config.zk_urls.split '/' unless mode is 'standalone'
       tmp_dir = if mode is 'standalone' then "#{solr.user.home}" else '/tmp'
       
 ## Dependencies
@@ -32,24 +32,24 @@ solr apache version.
         if: -> mode is 'standalone'
         header: 'Ranger Collection Solr Standalone'
       , ->
-        @file.download
-          source: "#{__dirname}/../resources/solr/admin-extra.html"
-          target: "#{tmp_dir}/ranger_audits/admin-extra.html"
-        @file.download
-          source: "#{__dirname}/../resources/solr/admin-extra.menu-bottom.html"
-          target: "#{tmp_dir}/ranger_audits/admin-extra.menu-bottom.html"
-        @file.download
-          source: "#{__dirname}/../resources/solr/admin-extra.menu-top.html"
-          target: "#{tmp_dir}/ranger_audits/admin-extra.menu-top.html"
+        # @file.download
+        #   source: "#{__dirname}/../resources/solr/admin-extra.html"
+        #   target: "#{tmp_dir}/ranger_audits/admin-extra.html"
+        # @file.download
+        #   source: "#{__dirname}/../resources/solr/admin-extra.menu-bottom.html"
+        #   target: "#{tmp_dir}/ranger_audits/admin-extra.menu-bottom.html"
+        # @file.download
+        #   source: "#{__dirname}/../resources/solr/admin-extra.menu-top.html"
+        #   target: "#{tmp_dir}/ranger_audits/admin-extra.menu-top.html"
         @file.download
           source: "#{__dirname}/../resources/solr/elevate.xml"
           target: "#{tmp_dir}/ranger_audits/conf/elevate.xml" #remove conf if solr/cloud
         @file.download
           source: "#{__dirname}/../resources/solr/managed-schema"
-          target: "#{tmp_dir}/ranger_audits/managed-schema"
+          target: "#{tmp_dir}/ranger_audits/conf/managed-schema"
         @file.render
           source: "#{__dirname}/../resources/solr/solrconfig.xml"
-          target: "#{tmp_dir}/ranger_audits/solrconfig.xml"
+          target: "#{tmp_dir}/ranger_audits/conf/solrconfig.xml"
           local: true
           context:
             retention_period: ranger.admin.audit_retention_period
@@ -72,7 +72,7 @@ solr apache version.
           source: "#{__dirname}/../resources/solr/solrconfig.xml"
           target: "#{tmp_dir}/ranger_audits/conf/solrconfig.xml"
           local: true
-          context: retention_period: ranger.admin.retention
+          context: retention_period: ranger.admin.audit_retention_period
       @file.download
         if: -> (mode is 'cloud_docker')
         source: "#{__dirname}/../resources/solr/elevate.xml"
@@ -187,6 +187,7 @@ Note: Compatible with every version of docker available at this time.
 ## Zookeeper Znode ACL
 
       @system.execute
+        unless: mode is 'standalone'
         header: 'Zookeeper SolrCloud Znode ACL'
         unless_exec: mkcmd.solr @, """
         zookeeper-client -server #{zk_connect} \

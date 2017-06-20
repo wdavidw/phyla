@@ -167,7 +167,7 @@ on the same host than `ryba/ranger/admin` module.
           throw Error 'No Solr Standalone Server configured' unless st_ctxs.length > 0
           solr_ctx = st_ctxs[0]
           solr = solr_ctx.config.ryba.solr
-          ranger.admin.install['audit_solr_port'] ?= ctx.config.ryba.solr.single.port
+          ranger.admin.install['audit_solr_port'] ?= solr_ctx.config.ryba.solr.single.port
           ranger.admin.install['audit_solr_zookeepers'] ?= 'NONE'
           solrs_urls = st_ctxs.map( (ctx) -> 
            "#{if solr.single.ssl.enabled  then 'https://'  else 'http://'}#{ctx.config.host}:#{ctx.config.ryba.solr.single.port}")
@@ -176,7 +176,7 @@ on the same host than `ryba/ranger/admin` module.
           if @params.command is 'install'
             solr_ctx
             .after
-              type: 'java_keystore_add'
+              type: ['java','keystore_add']
               keystore: solr["#{ranger.admin.solr_type}"]['ssl_trustore_path']
               storepass: solr["#{ranger.admin.solr_type}"]['ssl_keystore_pwd']
               caname: "hadoop_root_ca"
@@ -191,7 +191,7 @@ on the same host than `ryba/ranger/admin` module.
            "#{if solr.cloud.ssl.enabled  then 'https://'  else 'http://'}#{ctx.config.host}:#{ctx.config.ryba.solr.cloud.port}")
             .map( (url) -> if ranger.admin.solr_type is 'single' then "#{url}/solr/ranger_audits" else "#{url}")
             .join(',')
-          ranger.admin.install['audit_solr_zookeepers'] ?= solr["#{ranger.admin.solr_type}"]['zkhosts']          
+          ranger.admin.install['audit_solr_zookeepers'] ?= solr["#{ranger.admin.solr_type}"]['zkhosts']
           if @params.command is 'install'
             solr_ctx
             .after
@@ -258,6 +258,7 @@ on the same host than `ryba/ranger/admin` module.
 ## Solr Audit Database Bootstrap
 Create the `ranger_audits` collection('cloud')/core('standalone').
 
+
       if ranger.admin.install['audit_store'] is 'solr'
         ranger.admin.install['audit_solr_urls'] ?= solrs_urls
         ranger.admin.install['audit_solr_user'] ?= 'ranger'
@@ -276,9 +277,9 @@ Example:
     name: 'my_plugin_user'
     secret: 'my_plugin_password'
 
-        ranger.admin.cluster_config.ranger.solr_users ?= []
-        if ranger.admin.cluster_config.ranger.solr_users.length is 0
-          ranger.admin.cluster_config.ranger.solr_users.push {
+        ranger.admin.solr_users ?= []
+        if ranger.admin.solr_users.length is 0
+          ranger.admin.solr_users.push {
             name: "#{ranger.admin.install['audit_solr_user']}"
             secret:"#{ranger.admin.install['audit_solr_password']}"
           }

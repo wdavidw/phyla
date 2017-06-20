@@ -23,13 +23,13 @@ ryba:
     source: 'http://mirrors.ircam.fr/pub/apache/lucene/solr/6.0.0/solr-6.0.0.tgz'
 ```
 
-    module.exports = handler: ->
+    module.exports = ->
       {java, ryba} = @config
       {solr, realm} = ryba ?= {}
       solr.user ?= {}
       solr.user = name: solr.user if typeof solr.user is 'string'
       solr.user.name ?= 'solr'
-      solr.user.home ?= "/var/#{solr.user.name}/data"
+      solr.user.home ?= "/var/lib/#{solr.user.name}"
       solr.user.system ?= true
       solr.user.comment ?= 'Solr User'
       solr.user.groups ?= 'hadoop'

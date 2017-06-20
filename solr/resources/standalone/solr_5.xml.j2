@@ -30,10 +30,9 @@
 
   <solrcloud>
 
-    <str name="host">${host:{{config.host}}}</str>
-    <int name="hostPort">${jetty.port:{{config.ryba.solr.single.port}}}</int>
+    <str name="host">${host:{{host}}}</str>
+    <int name="hostPort">${jetty.port:{{port}}}</int>
     <str name="hostContext">${hostContext:solr}</str>
-
     <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
     <str name="zkCredientialsProvider">org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider</str>
     <str name="zkACLProvider">org.apache.solr.common.cloud.VMParamsAllAndReadonlyDigestZkACLProvider</str>

@@ -10,7 +10,6 @@
 
 ## Dependencies
 
-      @call once:true, 'masson/commons/java'
       @call 'masson/core/krb5_client/wait'
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
@@ -30,7 +29,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: solr.single.port, protocol: 'tcp', state: 'NEW', comment: "Solr Server #{protocol}" }
         ]
-        unless @config.iptables.action is 'start'
+        if: @config.iptables.action is 'start'
 
 ## Identities
 
@@ -164,7 +163,10 @@ Create HDFS solr user and its home directory
           uid: solr.user.name
           gid: solr.group.name
           mode: 0o0755
-          context: @
+          context: {
+            host: @config.host
+            port: @config.ryba.solr.single.port
+          }
           local: true
           backup: true
           eof: true
