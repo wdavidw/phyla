@@ -143,7 +143,7 @@ The repository name should match the reposity name in web ui.
           hive_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
           hive_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
           hive_princ = @config.ryba.hive.server2.site['hive.server2.authentication.kerberos.principal'].replace '_HOST', @config.host
-          hive_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= hive_princ
+          hive_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] = hive_princ
           hive_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= @config.ryba.hive.server2.site['hive.server2.authentication.kerberos.keytab']
 
 ### HIVE Plugin SSL
@@ -154,10 +154,6 @@ Used only if SSL is enabled between Policy Admin Tool and Plugin
           hive_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
           hive_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']
           hive_plugin.install['SSL_TRUSTSTORE_PASSWORD'] ?= @config.ryba.ssl_client['ssl.client.truststore.password']
-
-## Merge hive_plugin conf to ranger admin
-
-        ranger_admin_ctx.config.ryba.ranger.hive_plugin = merge hive_plugin
 
 ## Dependencies
 

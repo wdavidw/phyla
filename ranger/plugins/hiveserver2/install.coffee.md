@@ -5,6 +5,7 @@
       {ranger, hive, realm, hadoop_group, core_site} = @config.ryba 
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
+      hive_plugin = @config.ryba.ranger.hive_plugin
       krb5 = @config.krb5_client.admin[realm]
       version = null
       #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
@@ -18,11 +19,11 @@
 # Create Hive Policy for On HDFS Repo
 
       @call
-        if: ranger.hive_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        if: hive_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         header: 'Hive ranger plugin audit to HDFS'
       , ->
         @system.mkdir
-          target: ranger.hive_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          target: hive_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
           uid: hive.user.name
           gid: hadoop_group.name
           mode: 0o0750
@@ -89,11 +90,11 @@
 # Hive ranger plugin audit to SOLR
 
       @system.mkdir
-        target: ranger.hive_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        target: hive_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
         uid: hive.user.name
         gid: hadoop_group.name
         mode: 0o0750
-        if: ranger.hive_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        if: hive_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
 # HIVE Service Repository creation
 Matchs step 1 in [hive plugin configuration][hive-plugin]. Instead of using the web ui
@@ -106,18 +107,18 @@ we execute this task using the rest api.
         @system.execute
           unless_exec: """
           curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \ 
-            -u admin:#{password} \"#{ranger.hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.hive_plugin.install['REPOSITORY_NAME']}\"
+            -u admin:#{password} \"#{hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{hive_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.hive_plugin.service_repo}' \
-            -u admin:#{password} \"#{ranger.hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
+          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify hive_plugin.service_repo}' \
+            -u admin:#{password} \"#{hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
           """
         @krb5.addprinc krb5,
-          if: ranger.hive_plugin.principal
+          if: hive_plugin.principal
           header: 'Ranger HIVE Principal'
-          principal: ranger.hive_plugin.principal
+          principal: hive_plugin.principal
           randkey: true
-          password: ranger.hive_plugin.password
+          password: hive_plugin.password
         @hdfs_mkdir
           header: 'Ranger Audit HIVE Layout'
           target: "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hiveServer2"
@@ -137,7 +138,7 @@ we execute this task using the rest api.
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.hive_plugin.install
+          write: for k, v of hive_plugin.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -167,7 +168,7 @@ we execute this task using the rest api.
             cmd: """
             echo '' | keytool -list \
               -storetype jceks \
-              -keystore /etc/ranger/#{ranger.hive_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+              -keystore /etc/ranger/#{hive_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
             code_skipped: 1 
           @call 
@@ -206,7 +207,7 @@ we execute this task using the rest api.
             header: 'JAAS Properties for solr'
             target: "#{hive.server2.conf_dir}/ranger-hive-audit.xml"
             merge: true
-            properties: ranger.hive_plugin.audit
+            properties: hive_plugin.audit
           @each files, (options, cb) ->
             file = options.key
             target = "#{hive.server2.conf_dir}/#{file}"
