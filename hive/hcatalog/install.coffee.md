@@ -101,9 +101,6 @@ isnt yet started.
           uid: hive.user.name
           gid: hive.group.name
           perm: '0750'
-        @system.execute
-          cmd: "service hive-hcatalog-server restart"
-          if: -> @status -4
 
 ## Configuration
 
