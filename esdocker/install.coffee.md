@@ -91,13 +91,13 @@
           local: true
           backup: true
 
-        @system.mkdir directory:"#{path}/#{es_name}",uid:'elasticsearch' for path in es.data_path
-        @system.mkdir directory:"#{es.plugins_path}",uid:'elasticsearch'
-        @system.mkdir directory:"#{es.plugins_path}/#{es.es_version}",uid:'elasticsearch'
-        @system.mkdir directory:"#{es.logs_path}/#{es_name}",uid:'elasticsearch'
-        @system.mkdir directory:"#{es.logs_path}/#{es_name}/logstash",uid:'elasticsearch'
-        @system.mkdir directory:"/etc/elasticsearch/#{es_name}/scripts",uid:'elasticsearch'
-        @system.mkdir directory:"/etc/elasticsearch/keytabs",uid:'elasticsearch'
+        @system.mkdir directory:"#{path}/#{es_name}" ,uid:elasticsearch.user.name, gid: elasticsearch.user.name for path in es.data_path
+        @system.mkdir directory:"#{es.plugins_path}",uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"#{es.plugins_path}/#{es.es_version}",uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"#{es.logs_path}/#{es_name}", uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"#{es.logs_path}/#{es_name}/logstash",uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"/etc/elasticsearch/#{es_name}/scripts",uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"/etc/elasticsearch/keytabs",uid:elasticsearch.user.name, gid: elasticsearch.user.name
 
         @each es.downloaded_urls,(options,callback) ->
           extract_target  = if options.value.indexOf("github") != -1  then "#{es.plugins_path}/#{es.es_version}/" else "#{es.plugins_path}/#{es.es_version}/#{options.key}"
@@ -106,8 +106,8 @@
               cache_file: "./#{options.key}.zip"
               source: options.value
               target: "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip"
-              uid: "elasticsearch"
-              gid: "elasticsearch"
+              uid: elasticsearch.user.name
+              gid: elasticsearch.user.name
               shy: true
             @tools.extract
               format: "zip"
