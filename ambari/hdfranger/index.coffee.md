@@ -7,6 +7,7 @@
         krb5_client: module: 'masson/core/krb5_client'
         java: module: 'masson/commons/java', recommanded: true
         hdf: module: 'ryba/hdf'
+        ambari_repo: module: 'ryba/ambari/hdfrepo'
         hadoop: 'ryba/hadoop/core'
       configure: 'ryba/ambari/hdfranger/configure'
       commands:

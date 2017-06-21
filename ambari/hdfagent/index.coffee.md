@@ -9,6 +9,7 @@ installed before the agent registration.
       use:
         java: module: 'masson/commons/java', recommanded: true
         hdf: module: 'ryba/hdf'
+        ambari_repo: module: 'ryba/ambari/hdfrepo'
         ambari_server: 'ryba/ambari/hdfserver', required: true
       configure:
         'ryba/ambari/hdfagent/configure'
