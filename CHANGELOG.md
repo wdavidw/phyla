@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ambari repo: fix
 * ambari: optionnal hdf dependency
 * hdf: rename repo to source
 * ambari: use repo
