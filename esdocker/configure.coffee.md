@@ -124,7 +124,7 @@
 
         es.cap_add ?= ["IPC_LOCK"]
 
-        es.environment = "affinity:container!=*#{es.normalized_name}*"
+        es.environment = ["affinity:container!=*#{es.normalized_name}*"]
         throw Error 'Required property "ports"' unless es.ports?
         if es.ports instanceof Array
           port_mapping = port.split(":").length > 1 for port in es.ports
@@ -158,6 +158,7 @@
             when "master" then es.master_nodes = node.number
             when "data" then es.data_nodes =  node.number
             when "master_data" then es.master_data_nodes = node.number
+          node.filter ?= ""
         es.total_nodes = es.master_nodes + es.data_nodes + es.master_data_nodes
         #ES Config file
         es.config = {}
@@ -171,6 +172,8 @@
         es.config["gateway.expected_nodes"] = es.total_nodes
         es.config["gateway.recover_after_nodes"] = es.total_nodes - 1
         es.config["xpack.security.enabled"] = false
+        es.config["cluster.routing.allocation.node_concurrent_recoveries"] = 8
+        es.config["indices.recovery.max_bytes_per_sec"] = "250mb"
 
 ## Plugins
 

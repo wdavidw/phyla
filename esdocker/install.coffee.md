@@ -143,7 +143,8 @@
               when "master" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=true -Enode.data=false"
               when "master_data" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=true -Enode.data=true"
               when "data" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=false -Enode.data=true"
-            docker_services[type] = {'environment' : [es.environment,"ES_JAVA_OPTS=-Xms#{es_node.heap_size} -Xmx#{es_node.heap_size} -Djava.security.policy=/usr/share/elasticsearch/config/java.policy","bootstrap.memory_lock=true"] }
+            es.environment.push "constraint:node==#{es_node.filter}" if es_node.filter != "" 
+            docker_services[type] = {'environment' : [].concat.apply([],[es.environment,"ES_JAVA_OPTS=-Xms#{es_node.heap_size} -Xmx#{es_node.heap_size} -Djava.security.policy=/usr/share/elasticsearch/config/java.policy","bootstrap.memory_lock=true"]) }
             service_def = 
               image : es.docker_es_image
               restart: "always"
