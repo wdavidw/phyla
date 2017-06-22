@@ -42,7 +42,9 @@ Example:
       hive.server2.log_dir ?= '/var/log/hive-server2'
       hive.server2.pid_dir ?= '/var/run/hive-server2'
       hive.server2.opts ?= ''
-      hive.server2.heapsize ?= 1024
+      hive.server2.mode ?= 'local'
+      throw Error 'hive.server2.mode must be "local" or "remote"' unless hive.server2.mode in ['local', 'remote'] 
+      hive.server2.heapsize ?= if hive.server2.mode is 'local' then 1536 else 1024
 
 ## Identities
 
@@ -53,7 +55,6 @@ Example:
 
       hive.server2.site ?= {}
       properties = [ # Duplicate client, might remove
-        'hive.metastore.uris'
         'hive.metastore.sasl.enabled'
         'hive.security.authorization.enabled'
         # 'hive.security.authorization.manager'
@@ -72,7 +73,22 @@ Example:
         'hive.heapsize'
         'hive.exec.max.created.files'
         'hive.auto.convert.sortmerge.join.noconditionaltask'
+        'hive.zookeeper.quorum'
       ]
+      if hive.server2.mode is 'local'
+        properties = properties.concat [
+          'datanucleus.autoCreateTables'
+          'javax.jdo.option.ConnectionURL'
+          'javax.jdo.option.ConnectionDriverName'
+          'javax.jdo.option.ConnectionUserName'
+          'javax.jdo.option.ConnectionPassword'
+          'hive.cluster.delegation.token.store.class'
+          'hive.cluster.delegation.token.store.zookeeper.znode'
+        ]
+        hive.server2.site['hive.metastore.uris'] = ' '
+        hive.server2.site['hive.compactor.initiator.on'] = 'false'
+      else
+        properties.push 'hive.metastore.uris'
       for property in properties
         hive.server2.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.site[property]
       # Server2 specific properties
