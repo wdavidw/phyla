@@ -21,6 +21,7 @@ Ranger permit access
         'ryba/ranger/admin/configure'
       commands:
         'install': [
+          'ryba/ranger/solr/install'
           'ryba/ranger/admin/install'
           'ryba/ranger/admin/start'
           'ryba/ranger/admin/setup'

@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ranger: add Solr Embedded
 * ambari repo: fix
 * ambari: optionnal hdf dependency
 * hdf: rename repo to source
