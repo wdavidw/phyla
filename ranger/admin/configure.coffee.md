@@ -7,7 +7,7 @@ variables but also inject some function to be executed.
       sc_ctxs = @contexts 'ryba/solr/cloud'
       st_ctxs = @contexts 'ryba/solr/standalone'
       scd_ctxs = @contexts 'ryba/solr/cloud_docker'
-      {ryba} = @config
+      {java, ryba} = @config
       {realm, db_admin, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
       ranger = @config.ryba.ranger ?= {}
 
@@ -78,7 +78,6 @@ User can be External and Internal. Only Internal users can be created from the r
        throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest" 
       ranger.admin.conf_dir ?= '/etc/ranger/admin'
       ranger.admin.site ?= {}
-      ranger.admin.site ?= {}
       ranger.admin.site['ranger.service.http.port'] ?= '6080'
       ranger.admin.site['ranger.service.https.port'] ?= '6182'
       ranger.admin.install ?= {}
@@ -128,11 +127,14 @@ Here SOLR configuration is discovered and ranger admin is set up.
 
 Ryba support both Solr Cloud mode and Solr Standalone installation. 
 
-The `ranger.admin.solr_type` designates the type of solr service (ie standalone, cloud, cloud indocker)
+The `ranger.admin.solr_type` designates the type of solr service (ie standalone, embedded, cloud, cloud indocker)
 used for Ranger.
 The type requires differents instructions/configuration for ranger plugin audit to work.
 - Solr Standalone `ryba/solr/standalone`
   Ryba default. You need to set `ryba/solr/standalone` on one host.
+- Solr Standalone embedded
+  No need to have `ryba/solr/standalone` on one host, Solr will be installed on the same host as Ranger Admin.
+  Change property `ranger.admin.solr_type` to `embedded` to use it.
 - Solr Cloud `ryba/solr/cloud`
   Changes  property `ranger.admin.solr_type` to `cloud` and deploy `ryba/solr/cloud`
   module on at least one host.
@@ -154,6 +156,28 @@ And it is configured by Ryba only in ryba/solr/cloud_docker installation.
 
 If no `ryba/solr/*` is configured Ranger admin deploys a `ryba/solr/standalone` 
 on the same host than `ryba/ranger/admin` module.
+
+## Example
+
+To use the embedded Solr mode, configure ranger-admin as follows:
+
+```json
+{ "ranger": {
+    "admin": {
+      "solr_type": "embedded"
+    }
+} }
+```
+
+If you have configured a Solr Cloud Docker in your cluster, you can configure like this:
+
+```json
+{ "ranger": {
+    "admin": {
+      "solr_type": "cloud_docker"
+    }
+} }
+```
 
       ranger.admin.solr_type ?= 'cloud_docker'
       solr = {}
@@ -182,6 +206,55 @@ on the same host than `ryba/ranger/admin` module.
               caname: "hadoop_root_ca"
             , -> @call 'ryba/ranger/admin/solr_bootstrap'
           break;
+        when 'embedded'
+          solr = @config.ryba.solr ?= {}
+          solr.user ?= {}
+          solr.user = name: solr.user if typeof solr.user is 'string'
+          solr.user.name ?= 'solr'
+          solr.user.home ?= "/var/lib/#{solr.user.name}"
+          solr.user.system ?= true
+          solr.user.comment ?= 'Solr User'
+          solr.user.groups ?= 'hadoop'
+          solr.group ?= {}
+          solr.group = name: solr.group if typeof solr.group is 'string'
+          solr.group.name ?= 'solr'
+          solr.group.system ?= true
+          solr.user.gid ?= solr.group.name
+          solr.version ?= '5.5.2'
+          solr.root_dir ?= '/usr'
+          solr.install_dir ?= "#{solr.root_dir}/solr/#{solr.version}"
+          solr.latest_dir = '/opt/lucidworks-hdpsearch/solr'
+          solr.pid_dir ?= '/var/run/solr'
+          solr.log_dir ?= '/var/log/solr'
+          solr.conf_dir ?= '/etc/solr/conf'
+          solr.env ?= {}
+          solr.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
+          solr.lock_type = 'native'
+          solr.conf_source = "#{__dirname}/../resources/solr/solr_5.xml.j2"
+          if @config.ryba.security is 'kerberos'
+            solr.principal ?= "#{solr.user.name}/#{@config.host}@#{realm}"
+            solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
+          solr.ssl ?= {}
+          solr.ssl.enabled ?= false
+          solr.port ?= if solr.ssl.enabled then 9983 else 8983
+          solr.ssl_trustore_path ?= "#{solr.conf_dir}/trustore"
+          solr.ssl_trustore_pwd ?= 'solr123'
+          solr.ssl_keystore_path ?= "#{solr.conf_dir}/keystore"
+          solr.ssl_keystore_pwd ?= 'solr123'
+          solr.env['SOLR_JAVA_HOME'] ?= java.java_home
+          solr.env['SOLR_HOST'] ?= @config.host
+          solr.env['SOLR_HEAP'] ?= "512m"
+          solr.env['SOLR_PORT'] ?= "#{solr.port}"
+          solr.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
+          if solr.ssl.enabled
+            solr.env['SOLR_SSL_KEY_STORE'] ?= solr.ssl_keystore_path
+            solr.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.ssl_keystore_pwd
+            solr.env['SOLR_SSL_TRUST_STORE'] ?= solr.ssl_trustore_path
+            solr.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.ssl_trustore_pwd
+            solr.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
+          solr.jre_home ?= java.jre_home
+          solrs_urls = "#{if solr.ssl.enabled  then 'https://'  else 'http://'}#{@config.host}:#{@config.ryba.solr.port}/solr/ranger_audits"
+          ranger.admin.install['audit_solr_zookeepers'] ?= 'NONE'
         when 'cloud'
           throw Error 'No Solr Cloud Server configure' unless sc_ctxs.length > 0
           solr_ctx = sc_ctxs[0]
