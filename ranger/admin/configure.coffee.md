@@ -157,6 +157,28 @@ And it is configured by Ryba only in ryba/solr/cloud_docker installation.
 If no `ryba/solr/*` is configured Ranger admin deploys a `ryba/solr/standalone` 
 on the same host than `ryba/ranger/admin` module.
 
+## Example
+
+To use the embedded Solr mode, configure ranger-admin as follows:
+
+```json
+{ "ranger": {
+    "admin": {
+      "solr_type": "embedded"
+    }
+} }
+```
+
+If you have configured a Solr Cloud Docker in your cluster, you can configure like this:
+
+```json
+{ "ranger": {
+    "admin": {
+      "solr_type": "cloud_docker"
+    }
+} }
+```
+
       ranger.admin.solr_type ?= 'cloud_docker'
       solr = {}
       solrs_urls = ''

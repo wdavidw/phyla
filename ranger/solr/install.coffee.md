@@ -219,35 +219,6 @@ We manage creating the ranger_audits core/collection in the three modes.
         -d  #{solr.user.home}/ranger_audits
         """
 
-## ACL Users & Permissions
-
-      # @call
-      #   header: 'Create Users and Permissions'
-      # , ->
-      #   @call header: 'Create Users', ->
-      #     url = "#{ranger.admin.install['audit_solr_urls'].split(',')[0]}/solr/admin/authentication"
-      #     cmd = 'curl --fail --insecure'
-      #     cmd += " --user #{ranger.admin.solr_admin_user}:#{ranger.admin.solr_admin_password} "
-      #     for user in ranger.admin.solr_users
-      #       @system.execute
-      #         cmd: """
-      #         #{cmd} \
-      #           #{url} -H 'Content-type:application/json' \
-      #           -d '#{JSON.stringify('set-user':"#{user.name}":"#{user.secret}")}'
-      #         """
-      #   @call header: 'Set ACL Users', ->
-      #     url = "#{ranger.admin.install['audit_solr_urls'].split(',')[0]}/solr/admin/authorization"
-      #     cmd = 'curl --fail --insecure'
-      #     cmd += " --user #{ranger.admin.solr_admin_user}:#{ranger.admin.solr_admin_password} "
-      #     for user in cluster_config.ranger.solr_users
-      #       new_role = "#{user.name}": ['read','update','admin']
-      #       @system.execute
-      #         cmd: """
-      #         #{cmd} \
-      #           #{url} -H 'Content-type:application/json' \
-      #           -d '#{JSON.stringify('set-user-role': new_role )}'
-      #         """
-
 ## Dependencies
 
     path = require('path').posix
