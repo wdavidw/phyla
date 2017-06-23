@@ -250,5 +250,5 @@ We manage creating the ranger_audits core/collection in the three modes.
 
 ## Dependencies
 
-    path = require 'path'
+    path = require('path').posix
     mkcmd  = require '../../lib/mkcmd'
