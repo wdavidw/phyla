@@ -72,6 +72,14 @@ instructions.
           #{user.home}/check_phoenix/create.sql \
           ../doc/examples/WEB_STAT.csv \
         >/dev/null 2>&1
+        """
+      @wait.execute
+        cmd: mkcmd.hbase @, """
+        hbase shell 2>/dev/null <<< "list" | grep '#{table}'
+        """
+      @system.execute
+        cmd: mkcmd.test @, """
+        cd /usr/hdp/current/phoenix-client/bin
         ./sqlline.py #{zk_path} \
           #{user.home}/check_phoenix/select.sql \
         | grep "|" | tail -n+2
