@@ -445,7 +445,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
         header: 'Check Policies (Ranger)'
         if: ranger_admin?
       , ->
-        {install} = ranger_admin.config.ryba.ranger.hive_plugin
+        {install} = hs2_ctxs[0].config.ryba.ranger.hive_plugin
         dbs = []
         for hs2_ctx in hs2_ctxs
           dbs.push "check_#{@config.shortname}_server2_#{hs2_ctx.config.shortname}"
