@@ -17,7 +17,7 @@ This module check the Hive Server2 servers using the `beeline` command.
 ## Add Ranger Policy 
 
       @call header: 'Add Hive Policy', if: ranger_admin?, ->
-        {install} = ranger_admin.config.ryba.ranger.hive_plugin
+        {install} = hive_server2[0].config.ryba.ranger.hive_plugin
         dbs = []
         for hs2_ctx in hive_server2
           dbs.push "check_#{@config.shortname}_server2_#{hs2_ctx.config.shortname}"

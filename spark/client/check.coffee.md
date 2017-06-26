@@ -148,7 +148,7 @@ Creating database from SparkSql is not supported for now.
           p = current; current = c; p isnt c
         beeline = "beeline -u \"#{url}\" --silent=true "
         @call header: 'Add Hive Policy', if: ranger_ctx?, ->
-          {install} = ranger_ctx.config.ryba.ranger.hive_plugin
+          {install} = hive_server2[0].config.ryba.ranger.hive_plugin
           name = "Ranger-Ryba-Hive-Spark-Policy-#{@config.host}-client"
           dbs = []
           tables = []

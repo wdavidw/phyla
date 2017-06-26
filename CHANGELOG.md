@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ranger/hiveserver2: load config from hiveserver2's context
 * ranger: add Solr Embedded
 * ambari repo: fix
 * ambari: optionnal hdf dependency
