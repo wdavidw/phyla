@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* hive/server2: MySQL connector for embedded metastore
 * oozie/client: load config from hiveserver2's context
 * phoenix/client: wait for hbase table to be created
 * ranger/hiveserver2: load config from hiveserver2's context
