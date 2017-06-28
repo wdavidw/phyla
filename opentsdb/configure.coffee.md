@@ -44,7 +44,7 @@ Example
       opentsdb.group.system ?= true
       opentsdb.user.gid = opentsdb.group.name
       # Package
-      opentsdb.version ?= "2.2.1"
+      opentsdb.version ?= "2.3.0"
       opentsdb.source ?= "https://github.com/OpenTSDB/opentsdb/releases/download/v#{opentsdb.version}/opentsdb-#{opentsdb.version}.rpm"
       # opentsdb.hbase
       opentsdb.hbase ?= {}
@@ -66,6 +66,8 @@ Example
       zoo_ctxs = @contexts 'ryba/zookeeper/server'
       opentsdb.config['tsd.storage.hbase.zk_quorum'] ?= zoo_ctxs.map((ctx) -> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.port}").join ','
       opentsdb.config['tsd.storage.hbase.zk_basedir'] ?= hbase.rs.site['zookeeper.znode.parent']
+      opentsdb.config['tsd.storage.fix_duplicates'] ?= 'true'
+      opentsdb.config['tsd.storage.repair_appends'] ?= 'true'
       ns = (table) -> if opentsdb.hbase.default_namespace? then "#{opentsdb.hbase.default_namespace}:#{table}" else table
       opentsdb.config['tsd.storage.hbase.data_table'] ?= ns 'tsdb'
       opentsdb.config['tsd.storage.hbase.uid_table'] ?= ns 'tsdb-uid'
