@@ -1,5 +1,5 @@
 
-# Ambari Repo
+# Ambari Repo Configuration
 
     module.exports = ->
       @config.ryba.ambari ?= {}
