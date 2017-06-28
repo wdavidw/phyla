@@ -335,11 +335,12 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
 ## Additional Libs
 
       @call header: 'Additional Libs', if: nifi.custom_libs_dir.length, ->
-        for lib in glob.sync nifi.custom_libs_dir
-          @file.download
-            target: "/usr/hdf/current/nifi/lib/extras/#{path.basename lib}"
-            source: lib
-            local: true
+        fs.readdir nifi.custom_libs_dir, (err, files) =>
+          for lib in files
+            @file.download
+              target: "/usr/hdf/current/nifi/lib/#{lib}"
+              source: "#{nifi.custom_libs_dir}/#{lib}"
+              local: true
 
 # User limits
 
@@ -363,3 +364,4 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
     path = require 'path'
     quote = require 'regexp-quote'
     builder = require 'xmlbuilder'
+    fs = require 'fs'
