@@ -35,7 +35,7 @@
 
       nifi.config ?= {}
       properties = nifi.config.properties ?= {}
-      properties['nifi.version'] ?= '1.1.0.2.1.2.0-10'
+      properties['nifi.version'] ?= '1.2.0.3.0.0.0-453'
       properties['nifi.flow.configuration.file'] ?= "#{nifi.user.home}/flow.xml.gz"
       properties['nifi.flow.configuration.archive.dir'] ?= "#{nifi.user.home}/archive"
       properties['nifi.flowcontroller.autoResumeState'] ?= 'true'
