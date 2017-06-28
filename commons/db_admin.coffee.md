@@ -52,7 +52,13 @@ set it hosts will be constructed on it.
         postgres_ctxs = @contexts 'masson/commons/postgres/server'
         ryba.db_admin.mysql ?= {}
         ryba.db_admin.mysql.engine = 'mysql'
-        ctxs = if mysql_ctxs.length isnt 0 then mysql_ctxs else mariadb_ctxs
+        use = 'mysql'
+        ctxs = {}
+        if mysql_ctxs.length isnt 0 
+          ctxs = mysql_ctxs
+        else 
+          ctxs = mariadb_ctxs
+          use = 'mariadb'
         mysql_hosts = ryba.db_admin.mysql.hosts ?= ctxs.map (ctx) -> ctx.config.host
         #backward compatibility with only host property
         if ryba.db_admin.mysql.host?
@@ -65,7 +71,7 @@ set it hosts will be constructed on it.
           ryba.db_admin.mysql.engine ?= 'mysql'
           cluster_servers = ctxs.filter (ctx) -> ctx.config.host in mysql_hosts
           if cluster_servers.length > 0
-            mysql_conf = ctxs[0].config.mysql.server
+            mysql_conf = ctxs[0].config[use].server
             ryba.db_admin.mysql.admin_username ?= 'root'
             ryba.db_admin.mysql.admin_password ?= mysql_conf.password
             ryba.db_admin.mysql.port ?= mysql_conf.my_cnf['mysqld']['port']
