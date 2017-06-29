@@ -41,7 +41,6 @@ set it hosts will be constructed on it.
         mariadb: 'masson/commons/mariadb/server'
         postres: 'masson/commons/postgres/server'
       configure: ->
-      
         @config.ryba ?= {}
         {ryba} = @config ?= {}
         ryba.db_admin ?= {}
