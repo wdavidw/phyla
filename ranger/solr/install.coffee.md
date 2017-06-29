@@ -208,6 +208,8 @@ We manage creating the ranger_audits core/collection in the three modes.
 
 ### Solr Embedded
 
+      @wait.execute
+        cmd: "curl -k --fail  \"#{if solr.ssl.enabled  then 'https://'  else 'http://'}#{@config.host}:#{@config.ryba.solr.port}/solr/admin/cores?wt=json\""
       @system.execute
         header: 'Create Ranger Core (embedded)'
         unless_exec: """
