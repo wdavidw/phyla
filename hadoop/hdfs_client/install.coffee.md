@@ -2,7 +2,7 @@
 # Hadoop HDFS Client Install
 
     module.exports = header: 'HDFS Client Install', handler: ->
-      {hadoop_conf_dir, core_site, hdfs, hadoop_group} = @config.ryba
+      {hadoop_conf_dir, hdfs, hadoop_group} = @config.ryba
 
 ## Register
 
@@ -39,16 +39,9 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
 ## Configuration
 
-Update the "core-site.xml" configuration file with properties from the
-"ryba.core_site" configuration.
+Update the "hdfs-site.xml" configuration file with properties from the
+"ryba.hdfs.site" configuration.
 
-      @hconfigure
-        header: 'Core Configuration'
-        target: "#{hadoop_conf_dir}/core-site.xml"
-        source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
-        local: true
-        properties: core_site
-        backup: true
       @hconfigure
         header: 'HDFS Configuration'
         target: "#{hadoop_conf_dir}/hdfs-site.xml"

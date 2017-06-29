@@ -2,7 +2,7 @@
 # Changelog
 
 ## Trunk
-
+* hadoop/core: moved core-site.xml rendering to hadoop/core
 * ranger/solr: wait for solr to run before creating collection
 * hive/server2: MySQL connector for embedded metastore
 * oozie/client: load config from hiveserver2's context

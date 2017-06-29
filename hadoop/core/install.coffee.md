@@ -2,7 +2,7 @@
 # Hadoop Core Install
 
     module.exports = header: 'Hadoop Core Install', retry: 0, handler: ->
-      {realm, hadoop_group, hdfs, yarn, mapred} = @config.ryba
+      {realm, hadoop_group, core_site, hdfs, yarn, mapred} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba
       krb5 = @config.krb5_client.admin[realm]
 
@@ -83,6 +83,19 @@ Configure the topology script to enable rack awareness to Hadoop.
           mode: 0o755
           backup: true
           eof: true
+
+## Configuration
+
+Update the "core-site.xml" configuration file with properties from the
+"ryba.core_site" configuration.
+
+        @hconfigure
+          header: 'Core Configuration'
+          target: "#{hadoop_conf_dir}/core-site.xml"
+          source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
+          local: true
+          properties: core_site
+          backup: true
 
 ## Kerberos HDFS User
 
