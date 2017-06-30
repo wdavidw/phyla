@@ -178,7 +178,7 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
         target: '/usr/hdp/current/hive-metastore/lib/postgresql-jdbc.jar'
 
 ## Metastore DB
-      
+
       @call header: 'Metastore DB', ->
         @db.user hive.hcatalog.db, database: null,
           header: 'User'

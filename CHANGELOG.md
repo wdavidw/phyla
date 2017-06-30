@@ -3,7 +3,7 @@
 
 ## Trunk
 
-## Verison 0.0.7
+## Version 0.0.7
 
 * hadoop/core: moved core-site.xml rendering to hadoop/core
 * ranger/solr: wait for solr to run before creating collection

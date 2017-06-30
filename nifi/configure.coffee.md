@@ -12,7 +12,7 @@
       nifi.conf_dir ?= '/etc/nifi/conf'
       nifi.log_dir ?= '/var/log/nifi'
 
-## User and Groups
+## Identities
 
       # Group
       nifi.group = name: nifi.group if typeof nifi.group is 'string'
