@@ -8,4 +8,4 @@ Download the hdp.repo file if available
         if: @contexts('ryba/hdp')[0].config.host is @config.host
         ssh: null
         location: true
-        source: options.repo
+        source: options.source
