@@ -84,9 +84,11 @@
 
       es_docker.sysctl ?= {}
       es_docker.sysctl["vm.max_map_count"] = 262144
+      es_masters = []
 
-      for es_name,es of es_docker.clusters 
+      for es_name,es of es_docker.clusters
         delete es_docker.clusters[es_name] unless es.only
+
       for es_name,es of es_docker.clusters
         es.normalized_name="#{es_name.replace(/_/g,"")}"
         #Docker:
@@ -124,7 +126,7 @@
 
         es.cap_add ?= ["IPC_LOCK"]
 
-        es.environment = ["affinity:container!=*#{es.normalized_name}*"]
+        es.environment = ["affinity:container!=*#{es.normalized_name}_*"]
         throw Error 'Required property "ports"' unless es.ports?
         if es.ports instanceof Array
           port_mapping = port.split(":").length > 1 for port in es.ports
@@ -155,9 +157,13 @@
           node.heap_size ?= if node.mem_limit.indexOf('g') > -1 then heap_size+'g' else heap_size+'mb'
           node.cpu_quota ?= es.default_cpu_quota
           switch type
-            when "master" then es.master_nodes = node.number
+            when "master"
+              es.master_nodes = node.number
+              for number in [1..es.master_nodes] then es_masters.push "#{es.normalized_name}_#{type}_#{number}"
             when "data" then es.data_nodes =  node.number
-            when "master_data" then es.master_data_nodes = node.number
+            when "master_data"
+              es.master_data_nodes = node.number
+              for number in [1..es.master_data_nodes] then es_masters.push "#{es.normalized_name}_#{type}_#{number}"
           node.filter ?= ""
         es.total_nodes = es.master_nodes + es.data_nodes + es.master_data_nodes
         #ES Config file
@@ -167,6 +173,7 @@
         es.config["path.data"] = "#{es.data_path}"
         es.config["path.logs"] = "/var/log/elasticsearch"
         es.config["script.engine.painless.inline"] = true
+        es.config["discovery.zen.ping.unicast.hosts"] = es_masters.join()
         es.config["discovery.zen.minimum_master_nodes"] = Math.floor((es.master_data_nodes+es.master_nodes) / 2) + 1
         es.config["discovery.zen.master_election.ignore_non_master_pings"] = true
         es.config["gateway.expected_nodes"] = es.total_nodes

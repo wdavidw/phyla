@@ -68,7 +68,6 @@
         docker_services = {}
         docker_networks = {}
 
-
         @file.yaml
           header: 'elasticsearch config file'
           target: "/etc/elasticsearch/#{es_name}/conf/elasticsearch.yml"
@@ -140,12 +139,13 @@
           # es.volumes.push "#{es.plugins_path}/#{es.es_version}/#{plugin}:/usr/share/elasticsearch/plugins/#{plugin}" for plugin in es.plugins
           for type,es_node of es.nodes
             command = switch type
-              when "master" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=true -Enode.data=false"
-              when "master_data" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=true -Enode.data=true"
-              when "data" then "elasticsearch -Ediscovery.zen.ping.unicast.hosts=#{master_node}_1 -Enode.master=false -Enode.data=true"
-            es.environment.push "constraint:node==#{es_node.filter}" if es_node.filter != "" 
+              when "master" then "elasticsearch -Enode.master=true -Enode.data=false"
+              when "master_data" then "elasticsearch -Enode.master=true -Enode.data=true"
+              when "data" then "elasticsearch -Enode.master=false -Enode.data=true"
+            es.environment.push "constraint:node==#{es_node.filter}" if es_node.filter != ""
             docker_services[type] = {'environment' : [].concat.apply([],[es.environment,"ES_JAVA_OPTS=-Xms#{es_node.heap_size} -Xmx#{es_node.heap_size} -Djava.security.policy=/usr/share/elasticsearch/config/java.policy","bootstrap.memory_lock=true"]) }
-            service_def = 
+
+            service_def =
               image : es.docker_es_image
               restart: "always"
               command: command
@@ -159,11 +159,11 @@
 
             if es_node.cpuset?
               service_def["cpuset"] = es_node.cpuset
-            else 
+            else
               service_def["cpu_quota"] = if es_node.cpu_quota? then es_node.cpu_quota * 1000 else es.default_cpu_quota
             misc.merge docker_services[type], service_def
           if es.kibana?
-            docker_services["#{es_name}_kibana"] = 
+            docker_services["#{es_name}_kibana"] =
               image: es.docker_kibana_image
               container_name: "#{es_name}_kibana"
               environment: ["ELASTICSEARCH_URL=http://#{master_node}_1:9200"]
