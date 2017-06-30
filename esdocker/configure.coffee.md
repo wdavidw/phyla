@@ -200,6 +200,7 @@
           "lang-python",
           "mapper-attachments",
           "mapper-murmur3",
+          "repository-s3",
           "mapper-size"
         ]
         for name in es.plugins
@@ -220,7 +221,8 @@
             version = es.es_version
           if version != null
             if user is null
-              es.plugins_urls["#{repo}"].push "https://download.elastic.co/elasticsearch/release/org/elasticsearch/plugin/#{repo}/#{version}/#{repo}-#{version}.zip"
+              # es.plugins_urls["#{repo}"].push "https://download.elastic.co/elasticsearch/release/org/elasticsearch/plugin/#{repo}/#{version}/#{repo}-#{version}.zip"
+              es.plugins_urls["#{repo}"].push "https://artifacts.elastic.co/downloads/elasticsearch-plugins/#{repo}/#{repo}-#{version}.zip"
             else
               es.plugins_urls["#{repo}"].push "https://download.elastic.co/#{user}/#{repo}/#{repo}-#{version}.zip"
               es.plugins_urls["#{repo}"].push "https://search.maven.org/remotecontent?filepath=#{user.replace('.','/')}/#{repo}/#{version}/#{repo}-#{version}.zip"
