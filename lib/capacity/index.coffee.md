@@ -419,7 +419,7 @@ options "-Xmx" and "-Xms". The values must be less than their
 
     exports.hive_client = (ctxs) ->
       for ctx in ctxs
-        continue unless ctx.has_service 'ryba/hive/client'
+        continue unless ctx.has_service 'ryba/hive/client' or ctx.has_service('ryba/hive/server2')
         {memory_per_container_mean, maximum_allocation_mb, hive_site} = ctx.config.capacity
         memory_per_container_mean_mb = Math.round memory_per_container_mean / 1024 / 1024
 
