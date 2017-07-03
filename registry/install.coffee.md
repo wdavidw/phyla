@@ -20,7 +20,7 @@
       rules = []
       for con, i in registry.config.server.applicationConnectors
         rules.push chain: 'INPUT', jump: 'ACCEPT', dport: con.port, protocol: 'tcp', state: 'NEW', comment: "Registry App #{i+1} port"
-      for con, i in registry.config.server.adminConnectors  
+      for con, i in registry.config.server.adminConnectors
         rules.push chain: 'INPUT', jump: 'ACCEPT', dport: con.port, protocol: 'tcp', state: 'NEW', comment: "Registry Admin #{i+1} port"
       @tools.iptables
         header: 'IPTables'

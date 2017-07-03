@@ -26,6 +26,9 @@
       registry.user.system ?= true
       registry.user.comment ?= 'Registry User'
       registry.user.home ?= '/var/lib/registry'
+      registry.user.limits ?= {}
+      registry.user.limits.nofile ?= 64000
+      registry.user.limits.nproc ?= 10000
       registry.db ?= {}
 
 ## Configuration
