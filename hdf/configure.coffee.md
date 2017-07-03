@@ -1,5 +1,5 @@
 
-# HDF Configure
+# HDF Repository Configure
 
     module.exports = ->
       @config.ryba.hdf ?= {}

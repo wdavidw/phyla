@@ -1,5 +1,5 @@
 
-# HDP Configure
+# HDP Repository Configure
 
     module.exports = ->
       @config.ryba.hdp ?= {}

@@ -1,5 +1,5 @@
 
-# HDP
+# HDP Repository
 
     module.exports =
       use: {}

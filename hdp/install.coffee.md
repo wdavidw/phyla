@@ -1,5 +1,5 @@
 
-# HDP Install
+# HDP Repository Install
 
     module.exports = header: 'HDP Install', handler: (options) ->
       options = @config.ryba.hdp

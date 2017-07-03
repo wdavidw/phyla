@@ -1,5 +1,5 @@
 
-# HDF
+# HDF Repository
 
     module.exports =
       use: {}
