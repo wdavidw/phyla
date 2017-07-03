@@ -56,7 +56,6 @@
 
       options.fqdn = @config.host
       options.http ?= '/var/www/html'
-      options.repo ?= null
       options.conf_dir ?= '/etc/ambari-server/conf'
       # options.database ?= {}
       # options.database.engine ?= @config.ryba.db_admin.engine

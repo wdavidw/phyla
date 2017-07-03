@@ -20,14 +20,6 @@ By default, the "ambari-server" package does not create any identities.
 Declare the Ambari custom repository.
 Install Ambari server package.
 
-      @file.download
-        header: 'Repo'
-        if: options.repo
-        source: options.repo
-        target: '/etc/yum.repos.d/ambari.repo'
-      @system.execute
-        cmd: "yum clean metadata; yum update -y"
-        if: -> @status -1
       @service
         header: 'Package'
         name: 'ambari-server'

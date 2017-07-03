@@ -12,7 +12,6 @@
       options.fqdn = @config.host
       options.sudo ?= false
       options.conf_dir ?= '/etc/ambari-agent/conf'
-      options.repo ?= ambari_server.repo
 
 ## Identities
 

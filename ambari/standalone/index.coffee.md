@@ -12,6 +12,7 @@ manage and monitor a Hadoop cluster.
         krb5_server: module: 'masson/core/krb5_server'
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
         hadoop: 'ryba/hadoop/core'
+        ambari_repo: 'ryba/ambari/repo'
       configure: 'ryba/ambari/standalone/configure'
       commands:
         'ambari_blueprint': 'ryba/ambari/standalone/blueprint'

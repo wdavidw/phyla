@@ -9,6 +9,7 @@ installed before the agent registration.
       use:
         java: module: 'masson/commons/java', recommanded: true
         ambari_server: 'ryba/ambari/server', required: true
+        ambari_repo: 'ryba/ambari/repo'
       configure:
         'ryba/ambari/agent/configure'
       commands:
