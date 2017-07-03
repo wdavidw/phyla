@@ -11,6 +11,7 @@
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 
 ## Identities
@@ -131,7 +132,7 @@ inside "/etc/init.d" and activate it on startup.
         target: "#{yarn.rm.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
-        properties: merge {}, core_site, yarn.rm.core_site
+        properties: yarn.rm.core_site
         backup: true
       @hconfigure
         header: 'HDFS Site'
@@ -294,6 +295,17 @@ the "ryba/hadoop/hdfs" module for additional information.
         @call -> @config.ryba.yarn_plugin_is_master = true
         @call 'ryba/ranger/plugins/yarn/install'
 
+## Node Labels HDFS Layout
+
+      @hdfs_mkdir
+        if: yarn.rm.site['yarn.node-labels.enabled'] is 'true'
+        header: 'HBase Master plugin HDFS audit dir'
+        target: yarn.rm.site['yarn.node-labels.fs-store.root-dir']
+        mode: 0o700
+        user: yarn.user.name
+        group: yarn.user.name
+        unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{yarn.rm.site['yarn.node-labels.fs-store.root-dir']}"
+
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
@@ -309,3 +321,7 @@ separately on an edge node.
 
 
 [capacity]: http://hadoop.apache.org/docs/r2.5.0/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html
+
+## Dependencies
+
+    mkcmd = require '../../lib/mkcmd'

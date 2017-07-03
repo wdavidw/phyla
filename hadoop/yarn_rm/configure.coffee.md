@@ -15,12 +15,14 @@
       rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
       ats_ctx.config.ryba.yarn.site['yarn.admin.acl'] ?= "#{@config.ryba.yarn.user.name}"
       {ryba} = @config
+      {core_site} = ryba
       ryba.yarn.rm ?= {}
       ryba.yarn.rm.home ?= '/usr/hdp/current/hadoop-yarn-client'
       ryba.yarn.rm.log_dir ?= '/var/log/hadoop-yarn'
       ryba.yarn.rm.pid_dir ?= '/var/run/hadoop-yarn'
       ryba.yarn.rm.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
       ryba.yarn.rm.core_site ?= {}
+      ryba.yarn.rm.core_site = merge {}, core_site, ryba.yarn.rm.core_site
       # Enable JAAS/Kerberos connection between YARN RM and ZooKeeper
       ryba.yarn.rm.opts ?= {}
       ryba.yarn.rm.opts['java.security.auth.login.config'] ?= "#{ryba.yarn.rm.conf_dir}/yarn-rm.jaas"
@@ -220,6 +222,11 @@ rmr /rmstore/ZKRMStateRoot
       ryba.capacity_scheduler['yarn.scheduler.capacity.root.queues'] ?= 'default'
       ryba.capacity_scheduler['yarn.scheduler.capacity.queue-mappings'] ?= '' # Introduce by hadoop 2.7
       ryba.capacity_scheduler['yarn.scheduler.capacity.queue-mappings-override.enable'] ?= 'false' # Introduce by hadoop 2.7
+
+## Node Labels
+      
+      ryba.yarn.rm.site['yarn.node-labels.enabled'] ?= 'true'
+      ryba.yarn.rm.site['yarn.node-labels.fs-store.root-dir'] ?= "#{ryba.yarn.rm.core_site['fs.defaultFS']}/apps/yarn/node-labels"
 
 ## Admin Web UI
 
