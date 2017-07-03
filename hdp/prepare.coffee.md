@@ -1,5 +1,5 @@
 
-# HDP Repo Prepare
+# HDP Repository Prepare
 
 Download the hdp.repo file if available
 
