@@ -73,6 +73,7 @@ instructions.
           ../doc/examples/WEB_STAT.csv \
         >/dev/null 2>&1
         """
+        retry: 3
       @wait.execute
         cmd: mkcmd.hbase @, """
         hbase shell 2>/dev/null <<< "list" | grep '#{table}'
@@ -85,6 +86,7 @@ instructions.
         | grep "|" | tail -n+2
         hdfs dfs -touchz check-#{@config.host}-phoenix
         """
+        retry: 3
         trap_on_error: true
       , (err, check, data) ->
         throw err if err
