@@ -217,6 +217,7 @@ Creating database from SparkSql is not supported for now.
               -e "DROP TABLE #{db}.spark_sql_test; DROP DATABASE #{db};"
             if hdfs dfs -test -f /user/#{user.name}/#{dir_check}/_SUCCESS; then exit 0; else exit 1;fi
             """
+            retry: 3
             unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f #{dir_check}/_SUCCESS"
 
 ## Spark Shell Python
