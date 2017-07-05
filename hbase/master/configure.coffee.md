@@ -100,18 +100,22 @@ Example
 ## Configuration for Kerberos
 
       hbase.master.site['hbase.security.authentication'] ?= 'kerberos' # Required by HM, RS and client
-      hbase.master.site['hbase.master.keytab.file'] ?= '/etc/security/keytabs/hm.service.keytab'
-      hbase.master.site['hbase.master.kerberos.principal'] ?= "hbase/_HOST@#{realm}" # "hm/_HOST@#{realm}" <-- need zookeeper auth_to_local
-      hbase.master.site['hbase.regionserver.kerberos.principal'] ?= "hbase/_HOST@#{realm}" # "rs/_HOST@#{realm}" <-- need zookeeper auth_to_local
-      hbase.master.site['hbase.coprocessor.master.classes'] ?= [
-        'org.apache.hadoop.hbase.security.access.AccessController'
-      ]
-      # master be able to communicate with regionserver
-      hbase.master.site['hbase.coprocessor.region.classes'] ?= [
-        'org.apache.hadoop.hbase.security.token.TokenProvider'
-        'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
-        'org.apache.hadoop.hbase.security.access.AccessController'
-      ]
+      if hbase.master.site['hbase.security.authentication'] is 'kerberos'
+        hbase.master.site['hbase.master.keytab.file'] ?= '/etc/security/keytabs/hm.service.keytab'
+        hbase.master.site['hbase.master.kerberos.principal'] ?= "hbase/_HOST@#{realm}" # "hm/_HOST@#{realm}" <-- need zookeeper auth_to_local
+        hbase.master.site['hbase.regionserver.kerberos.principal'] ?= "hbase/_HOST@#{realm}" # "rs/_HOST@#{realm}" <-- need zookeeper auth_to_local
+        hbase.master.site['hbase.security.authentication.ui'] ?= 'kerberos'
+        hbase.master.site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{ryba.realm}"
+        hbase.master.site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
+        hbase.master.site['hbase.coprocessor.master.classes'] ?= [
+          'org.apache.hadoop.hbase.security.access.AccessController'
+        ]
+        # master be able to communicate with regionserver
+        hbase.master.site['hbase.coprocessor.region.classes'] ?= [
+          'org.apache.hadoop.hbase.security.token.TokenProvider'
+          'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
+          'org.apache.hadoop.hbase.security.access.AccessController'
+        ]
 
 ## Configuration for Security
 

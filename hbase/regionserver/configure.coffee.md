@@ -40,16 +40,16 @@
 ## Configuration for Kerberos
 
       hbase.rs.site['hbase.security.authentication'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authentication']
-      hbase.rs.site['hbase.master.kerberos.principal'] = hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal'] #.replace '_HOST', hm_ctxs[0].config.host
-      hbase.rs.site['hbase.regionserver.kerberos.principal'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.regionserver.kerberos.principal']
-      hbase.rs.site['hbase.regionserver.keytab.file'] ?= '/etc/security/keytabs/rs.service.keytab'
+      if hbase.rs.site['hbase.security.authentication'] is 'kerberos'
+        hbase.rs.site['hbase.master.kerberos.principal'] = hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal'] #.replace '_HOST', hm_ctxs[0].config.host
+        hbase.rs.site['hbase.regionserver.kerberos.principal'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.regionserver.kerberos.principal']
+        hbase.rs.site['hbase.regionserver.keytab.file'] ?= '/etc/security/keytabs/rs.service.keytab'
+        hbase.rs.site['hbase.security.authentication.ui'] ?= 'kerberos'
+        hbase.rs.site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{ryba.realm}"
+        hbase.rs.site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
       hbase.rs.site['hbase.regionserver.global.memstore.upperLimit'] = null # Deprecated from HDP 2.3
       hbase.rs.site['hbase.regionserver.global.memstore.size'] = '0.4' # Default in HDP Companion Files
-      hbase.rs.site['hbase.coprocessor.region.classes'] =  hm_ctxs[0].config.ryba.hbase.master.site['hbase.coprocessor.region.classes'] ?= [
-        'org.apache.hadoop.hbase.security.token.TokenProvider'
-        'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
-        'org.apache.hadoop.hbase.security.access.AccessController'
-      ]
+      hbase.rs.site['hbase.coprocessor.region.classes'] =  hm_ctxs[0].config.ryba.hbase.master.site['hbase.coprocessor.region.classes']
       if @has_service('ryba/hbase/master') and hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal'] isnt hbase.rs.site['hbase.regionserver.kerberos.principal']
         throw Error "HBase principals must match in single node"
 
