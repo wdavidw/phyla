@@ -228,7 +228,7 @@ for atlas to able to open client connection to solr for its indexing backend.
         principal: atlas.application.properties['atlas.http.authentication.kerberos.principal'].replace '_HOST', @config.host
         randkey: true
         keytab: atlas.application.properties['atlas.http.authentication.kerberos.keytab']
-        uid: atlas.user.name
+        uid: 'root'
         gid: hadoop_group.name
         mode: 0o660
         unless: -> @status -1

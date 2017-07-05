@@ -137,7 +137,7 @@ same keytab file is for now shared between hdfs and yarn services.
           principal: "HTTP/#{@config.host}@#{realm}"
           randkey: true
           keytab: '/etc/security/keytabs/spnego.service.keytab'
-          uid: hdfs.user.name
+          uid: 'root'
           gid: hadoop_group.name
           mode: 0o660 # need rw access for hadoop and mapred users
         @system.execute # Validate keytab access by the hdfs user
