@@ -9,10 +9,11 @@ In a distributed cluster, a RegionServer runs on a DataNode.
     module.exports =
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
         java: implicit: true, module: 'masson/commons/java'
+        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
+        krb5_client: 'masson/core/krb5_client'
         hdfs_client: 'ryba/hadoop/hdfs_client'
+        zookeeper: 'ryba/zookeeper/server'
         hbase_master: 'ryba/hbase/master'
         ranger_admin: 'ryba/ranger/admin'
         ganglia: 'ryba/ganglia/collector'
