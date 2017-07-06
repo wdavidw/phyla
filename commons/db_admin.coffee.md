@@ -51,11 +51,15 @@ set it hosts will be constructed on it.
         postgres_ctxs = @contexts 'masson/commons/postgres/server'
         ryba.db_admin.mysql ?= {}
         ryba.db_admin.mysql.engine = 'mysql'
-        use = 'mysql'
+        ryba.db_admin.mysql.java ?= {}
+        ryba.db_admin.mysql.java.driver = 'com.mysql.jdbc.Driver'
         ctxs = {}
         if mysql_ctxs.length isnt 0 
+          ryba.db_admin.mysql.java.datasource = com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
           ctxs = mysql_ctxs
+          use = 'mysql'
         else 
+          ryba.db_admin.mysql.java.datasource = 'org.mariadb.jdbc.MariaDbDataSource'
           ctxs = mariadb_ctxs
           use = 'mariadb'
         mysql_hosts = ryba.db_admin.mysql.hosts ?= ctxs.map (ctx) -> ctx.config.host
@@ -83,6 +87,9 @@ set it hosts will be constructed on it.
         # Configuring postgres part
         ryba.db_admin.postgres ?= {}
         ryba.db_admin.postgres.engine = 'postgres'
+        ryba.db_admin.postgres.java ?= {}
+        ryba.db_admin.postgres.java.datasource = 'org.postgresql.jdbc2.Jdbc2PoolingDataSource'
+        ryba.db_admin.postgres.java.driver = 'org.postgresql.Driver'
         postgres_hosts = ryba.db_admin.postgres.hosts ?= postgres_ctxs.map (ctx) -> ctx.config.host
         #backward compatibility with only host property
         if ryba.db_admin.postgres.host?
