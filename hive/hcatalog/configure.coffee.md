@@ -29,12 +29,9 @@ Example:
 ```
 
     module.exports = ->
-      [pg_ctx] = @contexts 'masson/commons/postgres/server'
-      [my_ctx] = @contexts 'masson/commons/mysql/server'
-      [ma_ctx] = @contexts 'masson/commons/mariadb/server'
       zk_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      hive_hcatalog = @contexts 'ryba/hive/hcatalog'
-      hadoop_ctxs = @contexts ['ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
+      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
+      hcat_ctxs = @contexts 'ryba/hive/hcatalog'
       hive = @config.ryba.hive ?= {}
       {db_admin, realm} = @config.ryba
 
@@ -102,12 +99,7 @@ Example:
       hive.hcatalog.site['datanucleus.connectionPoolingType'] ?= 'DBCP'
       hive.hcatalog.site['hive.metastore.port'] ?= '9083'
       hive.hcatalog.site['hive.hwi.listen.port'] ?= '9999'
-      hive.hcatalog.site['hive.metastore.uris'] ?= null
-      unless hive.hcatalog.site['hive.metastore.uris']
-        hive.hcatalog.site['hive.metastore.uris'] = []
-        for host in hive_hcatalog.map( (ctx) -> ctx.config.host)
-          hive.hcatalog.site['hive.metastore.uris'].push "thrift://#{host}:#{hive.hcatalog.site['hive.metastore.port']}"
-        hive.hcatalog.site['hive.metastore.uris'] = hive.hcatalog.site['hive.metastore.uris'].join ','
+      hive.hcatalog.site['hive.metastore.uris'] ?= hcat_ctxs.map((ctx) -> "thrift://#{ctx.config.host}:#{hive.hcatalog.site['hive.metastore.port']}").join ','
       hive.hcatalog.site['datanucleus.autoCreateTables'] ?= 'true'
       hive.hcatalog.site['hive.security.authorization.enabled'] ?= 'true'
       hive.hcatalog.site['hive.security.authorization.manager'] ?= 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
@@ -148,43 +140,7 @@ Example:
 
 ## Configure Database
 
-Note, at the moment, only MySQL and PostgreSQL are supported.
-
-      hive.hcatalog.db ?= {}
-      hive.hcatalog.db.username ?= 'hive'
-      throw Error "Required Property: hive.hcatalog.db.password" unless hive.hcatalog.db.password
-      if hive.hcatalog.site['javax.jdo.option.ConnectionURL']
-        # Ensure the url host is the same as the one configured in config.ryba.db_admin
-        jdbc = db.jdbc hive.hcatalog.site['javax.jdo.option.ConnectionURL']
-        switch jdbc.engine
-          when 'mysql'
-            admin = jdbc.addresses.filter (address) ->
-              address.host in db_admin.mysql.hosts and "#{address.port}" is "#{db_admin.mysql.port}"
-            throw new Error "Invalid host configuration" unless admin.length
-          when 'postgresql'
-            admin = jdbc.addresses.filter (address) ->
-              address.host in db_admin.postgres.hosts and "#{address.port}" is "#{db_admin.postgres.port}"
-            throw new Error "Invalid host configuration" unless admin.length
-          else throw new Error 'Unsupported database engine'
-      else
-        if pg_ctx then hive.hcatalog.db.engine ?= 'postgres'
-        else if my_ctx then hive.hcatalog.db.engine ?= 'mysql'
-        else if ma_ctx then hive.hcatalog.db.engine ?= 'mysql'
-        else hive.hcatalog.db.engine ?= 'derby'
-        hive.hcatalog.db[k] ?= v for k, v of db_admin[hive.hcatalog.db.engine]
-        hive.hcatalog.db.database ?= 'hive'
-        switch hive.hcatalog.db.engine
-          when 'mysql'
-            hive.hcatalog.site['javax.jdo.option.ConnectionURL'] ?= "#{db_admin[hive.hcatalog.db.engine].jdbc}/#{hive.hcatalog.db.database}?createDatabaseIfNotExist=true"
-            hive.hcatalog.site['javax.jdo.option.ConnectionDriverName'] ?= 'com.mysql.jdbc.Driver'
-          when 'postgres'
-            hive.hcatalog.site['javax.jdo.option.ConnectionURL'] ?= "#{db_admin[hive.hcatalog.db.engine].jdbc}/#{hive.hcatalog.db.database}?createDatabaseIfNotExist=true"
-            hive.hcatalog.site['javax.jdo.option.ConnectionDriverName'] ?= 'org.postgresql.Driver'
-          else throw new Error 'Unsupported database engine'
-      hive.hcatalog.site['javax.jdo.option.ConnectionUserName'] ?= hive.hcatalog.db.username
-      hive.hcatalog.site['javax.jdo.option.ConnectionPassword'] ?= hive.hcatalog.db.password
-      throw new Error "Hive database username is required" unless hive.hcatalog.site['javax.jdo.option.ConnectionUserName']
-      throw new Error "Hive database password is required" unless hive.hcatalog.site['javax.jdo.option.ConnectionPassword']
+      hive.hcatalog.site[k] ?= v for k, v of hive.metastore.site 
 
 ## Configure Transactions and Lock Manager
 
@@ -212,7 +168,7 @@ hive.compactor.initiator.on can be activated on only one node !
 [hive compactor initiator][initiator]
 So we provide true by default on the 1st hive-hcatalog-server, but we force false elsewhere
 
-      if hive_hcatalog[0].config.host is @config.host
+      if hcat_ctxs[0].config.host is @config.host
         hive.hcatalog.site['hive.compactor.initiator.on'] ?= 'true'
       else
         hive.hcatalog.site['hive.compactor.initiator.on'] = 'false'

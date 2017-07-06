@@ -74,20 +74,6 @@ isnt yet started.
           name: 'hive-hcatalog-server'
         @hdp_select
           name: 'hive-metastore'
-        @call
-          if: hive.hcatalog.db.engine is 'mysql'
-        , ->
-            @service
-              name: 'mysql'
-            @service
-              name: 'mysql-connector-java'
-        @call 
-          if: hive.hcatalog.db.engine is 'postgres'
-        , ->
-            @service
-              name: 'postgresql'
-            @service
-              name: 'postgresql-jdbc'
         @service.init
           header: 'Init Script'
           source: "#{__dirname}/../resources/hive-hcatalog-server.j2"
@@ -167,12 +153,12 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
             target: "/usr/hdp/current/hive-metastore/lib/#{path.basename lib}"
           ) for lib in hive.libs
       @system.link
-        if: hive.hcatalog.db.engine is 'mysql'
+        if: hive.metastore.db.engine is 'mysql'
         header: 'Link MySQL Driver'
         source: '/usr/share/java/mysql-connector-java.jar'
         target: '/usr/hdp/current/hive-metastore/lib/mysql-connector-java.jar'
       @system.link
-        if: hive.hcatalog.db.engine is 'postgres'
+        if: hive.metastore.db.engine is 'postgres'
         header: 'Link PostgreSQL Driver'
         source: '/usr/share/java/postgresql-jdbc.jar'
         target: '/usr/hdp/current/hive-metastore/lib/postgresql-jdbc.jar'
@@ -180,26 +166,12 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
 ## Metastore DB
 
       @call header: 'Metastore DB', ->
-        @db.user hive.hcatalog.db, database: null,
-          header: 'User'
-          if: hive.hcatalog.db.engine in ['mysql', 'postgres']
-        @db.database hive.hcatalog.db,
-          header: 'Database'
-          user: hive.hcatalog.db.username
-          if: hive.hcatalog.db.engine in ['mysql', 'postgres']
-        @db.schema hive.hcatalog.db,
-          header: 'Schema'
-          if: hive.hcatalog.db.engine is 'postgres'
-          schema: hive.hcatalog.db.schema or hive.hcatalog.db.database
-          database: hive.hcatalog.db.database
-          owner: hive.hcatalog.db.username
-        # Metastore schema migration
         target_version = 'ls /usr/hdp/current/hive-metastore/lib | grep hive-common- | sed \'s/^hive-common-\\([0-9]\\+.[0-9]\\+.[0-9]\\+\\).*\\.jar$/\\1/g\''
         current_version =
-          switch hive.hcatalog.db.engine
-            when 'mysql'    then db.cmd hive.hcatalog.db, admin_username: null, 'select SCHEMA_VERSION from VERSION'
-            when 'postgres' then db.cmd hive.hcatalog.db, admin_username: null, 'select \\"SCHEMA_VERSION\\" from \\"VERSION\\"'
-        info_cmd = "hive --config #{@config.ryba.hive.hcatalog.conf_dir} --service schemaTool -dbType #{hive.hcatalog.db.engine} -info"
+          switch hive.metastore.db.engine
+            when 'mysql'    then db.cmd hive.metastore.db, admin_username: null, 'select SCHEMA_VERSION from VERSION'
+            when 'postgres' then db.cmd hive.metastore.db, admin_username: null, 'select \\"SCHEMA_VERSION\\" from \\"VERSION\\"'
+        info_cmd = "hive --config #{@config.ryba.hive.hcatalog.conf_dir} --service schemaTool -dbType #{hive.metastore.db.engine} -info"
         @system.execute
           unless_exec: info_cmd
           header: 'Init Schema'
@@ -207,13 +179,13 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
           hive \
             --config #{@config.ryba.hive.hcatalog.conf_dir} \
             --service schemaTool \
-            -dbType #{hive.hcatalog.db.engine} \
+            -dbType #{hive.metastore.db.engine} \
             -initSchema
           """
         @system.execute
           header: 'Read Versions'
           cmd: """
-          engine="#{hive.hcatalog.db.engine}"
+          engine="#{hive.metastore.db.engine}"
           cd /usr/hdp/current/hive-metastore/scripts/metastore/upgrade/${engine} # Required for sql sources
           target_version=`#{target_version}`
           current_version=`#{current_version}`
@@ -223,7 +195,7 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
         @system.execute
           if: -> !@status(-1) and !@status(-2)
           cmd: """
-          engine="#{hive.hcatalog.db.engine}"
+          engine="#{hive.metastore.db.engine}"
           current_version=`#{current_version}`
           cd /usr/hdp/current/hive-metastore/scripts/metastore/upgrade/${engine} # Required for sql sources
           hive \

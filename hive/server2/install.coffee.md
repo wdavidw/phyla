@@ -156,17 +156,6 @@ Create the directories to store the logs and pid information. The properties
           gid: hive.group.name
           parent: true
 
-## MySQL Connector
-
-We need this if the metastore is embedded in Hive Server2
-
-      @call
-        header: 'MySQL Connector'
-        if: hive.server2.mode is 'local' and hive.hcatalog.db.engine is 'mysql'
-      , ->
-        @service
-          name: 'mysql-connector-java'
-
 ## SSL
 
       @call

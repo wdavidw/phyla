@@ -27,7 +27,7 @@ Example:
 
     module.exports = ->
       zoo_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      hadoop_ctxs = @contexts ['ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
+      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
       hcat_ctxs = @contexts 'ryba/hive/hcatalog'
       hs2_ctxs = @contexts 'ryba/hive/server2'
       hm_ctxs = @contexts 'ryba/hbase/master'
@@ -54,6 +54,7 @@ Example:
 ## Configuration
 
       hive.server2.site ?= {}
+      hive.server2.site[k] ?= v for k, v of hive.metastore.site 
       properties = [ # Duplicate client, might remove
         'hive.metastore.sasl.enabled'
         'hive.security.authorization.enabled'
@@ -78,10 +79,6 @@ Example:
       if hive.server2.mode is 'local'
         properties = properties.concat [
           'datanucleus.autoCreateTables'
-          'javax.jdo.option.ConnectionURL'
-          'javax.jdo.option.ConnectionDriverName'
-          'javax.jdo.option.ConnectionUserName'
-          'javax.jdo.option.ConnectionPassword'
           'hive.cluster.delegation.token.store.class'
           'hive.cluster.delegation.token.store.zookeeper.znode'
         ]
@@ -271,10 +268,6 @@ Add Hive user as proxyuser
         hthrift_ctx.config.ryba.core_site ?= {}
         hthrift_ctx.config.ryba.core_site["hadoop.proxyuser.#{hive.user.name}.hosts"] ?= '*'
         hthrift_ctx.config.ryba.core_site["hadoop.proxyuser.#{hive.user.name}.groups"] ?= '*'
-      for hcat_ctx in hcat_ctxs
-        hcat_ctx.config.ryba.core_site ?= {}
-        hcat_ctx.config.ryba.core_site["hadoop.proxyuser.#{hive.user.name}.hosts"] ?= '*'
-        hcat_ctx.config.ryba.core_site["hadoop.proxyuser.#{hive.user.name}.groups"] ?= '*'
 
 ## Dependencies
 

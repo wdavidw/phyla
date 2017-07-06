@@ -14,11 +14,11 @@
 Check if Hive can authenticate and run a basic query to the database.
 
       @call header: 'Check Database', label_true: 'CHECKED', ->  
-        cmd = switch hive.hcatalog.db.engine
+        cmd = switch hive.metastore.db.engine
           when 'mysql' then 'SELECT * FROM VERSION'
           when 'postgres' then '\\dt'
         @system.execute
-          cmd: db.cmd hive.hcatalog.db, admin_username: null, cmd
+          cmd: db.cmd hive.metastore.db, admin_username: null, cmd
 
 ## Check Port
 
