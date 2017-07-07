@@ -82,7 +82,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           backup: true
         @file
           target: '/etc/shinken/shinken.cfg'
-          write: for k, v of shinken.config.shinken
+          write: for k, v of shinken.config
             match: ///^#{k}=.*$///mg
             replace: "#{k}=#{v}"
             append: true
@@ -126,14 +126,14 @@ Objects config
             source: "#{__dirname}/objects/resources/#{obj}.cfg.j2"
             local: true
             context:
-              "#{obj}": shinken.config[obj]
+              "#{obj}": monitoring[obj]
               brokers: brokers
             backup: true
         # Templated objects
         for obj in ['hosts', 'services', 'contacts']
           real = {}
           templated = {}
-          for k, v of shinken.config[obj]
+          for k, v of monitoring[obj]
             if "#{v.register}" is '0' then templated[k] = v
             else real[k] = v
           @file.render

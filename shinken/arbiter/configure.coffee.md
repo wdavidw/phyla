@@ -2,7 +2,7 @@
 # Shinken Arbiter Configure
 
     module.exports = ->
-      {shinken} = @config.ryba
+      {shinken, monitoring} = @config.ryba
       # Arbiter specific configuration
       arbiter = shinken.arbiter ?= {}
       # Auto-discovery of Modules
@@ -32,21 +32,12 @@
       arbiter.config.host ?= '0.0.0.0'
       arbiter.config.use_ssl ?= shinken.config.use_ssl
       arbiter.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
-      shinken.config.shinken ?= {}
-      shinken.config.shinken['date_format'] ?= 'iso8601'
-      shinken.config.shinken['shinken_user'] ?= shinken.user.name
-      shinken.config.shinken['shinken_group'] ?= shinken.group.name
-      shinken.config.shinken['interval_length'] ?= '1'
-      shinken.config.shinken['enable_flap_detection'] ?= '1'
-      shinken.config.shinken['no_event_handlers_during_downtimes'] ?= '1'
-      shinken.config.users ?=
-        shinken:
-          password: 'shinken123'
-          alias: 'Shinken Admin'
-          email: ''
-          admin: true
+      monitoring.contacts['shinken'] ?= {}
+      monitoring.contacts['shinken'].password ?= 'shinken123'
+      monitoring.contacts['shinken'].alias ?= 'Shinken Admin'
+      monitoring.contacts['shinken'].email ?= ''
+      monitoring.contacts['shinken'].admin ?= true
       # WebUI Groups
-      shinken.config.groups ?=
-        admins:
-          alias: 'Shinken Administrators'
-          members: ['shinken']
+      monitoring.contactgroups['admins'] ?= {}
+      monitoring.contactgroups['admins'].alias ?= 'Shinken Administrators'
+      monitoring.contactgroups['admins'].members ?= ['shinken']

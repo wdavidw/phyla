@@ -1,10 +1,10 @@
 
 # Shinken Configure
 
-*   `shinken.user` (object|string)
-    The Unix Shinken login name or a user object (see Nikita User documentation).
-*   `shinken.group` (object|string)
-    The Unix Shinken group name or a group object (see Nikita Group documentation).
+*   `shinken.user` (object|string)   
+    The Unix Shinken login name or a user object (see Nikita User documentation).   
+*   `shinken.group` (object|string)   
+    The Unix Shinken group name or a group object (see Nikita Group documentation).   
 
 Example
 
@@ -47,6 +47,11 @@ Example
       shinken.user.gid = shinken.group.name
       # Config
       shinken.config ?= {}
-      shinken.config.use_ssl ?= '0'
-      shinken.config.hard_ssl_name_check ?= '0'
-      shinken.import_config ?= false
+      shinken.config['date_format'] ?= 'iso8601'
+      shinken.config['shinken_user'] ?= shinken.user.name
+      shinken.config['shinken_group'] ?= shinken.group.name
+      shinken.config['interval_length'] ?= '1'
+      shinken.config['enable_flap_detection'] ?= '1'
+      shinken.config['no_event_handlers_during_downtimes'] ?= '1'
+      shinken.config['use_ssl'] ?= '0'
+      shinken.config['hard_ssl_name_check'] ?= '0'
