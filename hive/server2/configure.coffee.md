@@ -34,6 +34,7 @@ Example:
       hbase_client = @contexts 'ryba/hbase/client'
       hthrift_ctxs = @contexts 'ryba/hbase/thrift'
       phoenix_ctxs = @contexts 'ryba/phoenix/client'
+      ranger_ctxs = @contexts 'ryba/ranger/admin'
       {core_site, hive, realm} = @config.ryba ?= {}
       {java_home} = @config.java
       # Layout and environment
@@ -107,6 +108,10 @@ Example:
       hive.server2.site['hive.server2.tez.sessions.per.default.queue'] ?= '1'
       hive.server2.site['hive.server2.tez.initialize.default.sessions'] ?= 'false'
       hive.server2.site['hive.exec.post.hooks'] ?= 'org.apache.hadoop.hive.ql.hooks.ATSHook'
+      # Permission inheritance
+      # https://cwiki.apache.org/confluence/display/Hive/Permission+Inheritance+in+Hive
+      # true unless ranger is the authorizer
+      hive.server2.site['hive.warehouse.subdir.inherit.perms'] ?= "#{ranger_ctxs.length is 0}"
 
 ## Hive Server2 Environment
 
