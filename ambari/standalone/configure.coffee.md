@@ -43,6 +43,12 @@
       [maria_ctx] = @contexts 'masson/commons/mariadb/server'
       [krb5_ctx] = @contexts 'masson/core/krb5_server'
       [hadoop_ctx] = @contexts 'ryba/hadoop/core'
+      [o_ctx] = @contexts 'ryba/oozie/server'
+      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
+      yarn_ts_ctxs = @contexts 'ryba/hadoop/yarn_ts'
+      yarn_rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
+      hive_server2_ctxs = @contexts 'ryba/hive/server2'
+      [ranger_ctx] = @contexts 'ryba/ranger/admin'
       @config.ryba ?= {}
       {host, ssl} = @config
       {db_admin} = @config.ryba
@@ -166,3 +172,189 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
+
+## Views
+
+Configures Views to be used on the ambari server.
+Note: The Install scripts are separated for clarity purposes.
+
+### Files View Configuration
+the files view correspond to the view of HDFS. For now Ryba does only configure HA enabled Namenodes
+Note: Ambari hardcodes the masters's name, ie for example `master01` must be named `nn1`
+        
+      options.views ?= {}
+      # variable used for changing install instruction for ambari/standalone
+      options.views.enabled ?= false
+      if options.views.enabled
+        options.views.files ?= {}
+        options.views.files.enabled ?= if nn_ctxs.length > 0 then true else false
+        if options.views.files.enabled or options.views.hive.enabled
+          options.views.enabled = true
+          options.views.files.version ?= '1.0.0'
+          throw Error 'Need Kerberos For ambari' if (@config.ryba.security is 'kerberos') and not options.jaas.enabled
+          throw Error 'Need two namenodes' unless nn_ctxs.length is 2
+          options.views.files.configuration ?= {}
+          nn_site = nn_ctxs[0].config.ryba.hdfs.nn.site
+          # Global configuration
+          options.views.files.configuration['description'] ?=  "Files API"
+          options.views.files.configuration['label'] ?=  "FILES View"
+          # View Instance Properties
+          props = options.views.files.configuration.properties ?= {}
+          props['webhdfs.nameservices'] ?= nn_site['dfs.nameservices']
+          props['webhdfs.ha.namenodes.list'] ?= 'nn1,nn2'
+          nn_protocol = if nn_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+          [nn1,nn2] = nn_site["dfs.ha.namenodes.#{props['webhdfs.nameservices']}"].split(',')
+          props["webhdfs.ha.namenode.#{nn_protocol}-address.nn1"] ?= nn_site["dfs.namenode.#{nn_protocol}-address.#{props['webhdfs.nameservices']}.#{nn1}"]
+          props["webhdfs.ha.namenode.#{nn_protocol}-address.nn2"] ?= nn_site["dfs.namenode.#{nn_protocol}-address.#{props['webhdfs.nameservices']}.#{nn2}"]
+          props["webhdfs.ha.namenode.rpc-address.nn1"] ?= nn_site["dfs.namenode.rpc-address.#{props['webhdfs.nameservices']}.#{nn1}"]
+          props["webhdfs.ha.namenode.rpc-address.nn2"] ?= nn_site["dfs.namenode.rpc-address.#{props['webhdfs.nameservices']}.#{nn2}"]
+          # set class as ha automatic failover
+          props['webhdfs.client.failover.proxy.provider'] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
+          props['webhdfs.url'] ?= "hdfs://#{props['webhdfs.nameservices']}"
+          props['hdfs.auth_to_local'] ?= hadoop_ctx.config.ryba.core_site['hadoop.security.auth_to_local']
+          # authentication
+          props['webhdfs.auth'] ?= if options.jaas.enabled then 'auth=KERBEROS;proxyuser=ambari' else 'auth=SIMPLE'
+          props['webhdfs.username'] ?= '${username}'#doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user
+
+### Hive View Configuration
+the hive view enable to user to use hive, like Hue's database module.
+Configuration inherits properties from Files Views. It adds the Hive'server2 jdbc
+It has only been tested with HIVe VIEW version 1.5.0 and 2.0.0
+
+        options.views.hive ?= {}
+        options.views.hive.enabled ?= if hive_server2_ctxs.length > 0 then true else false
+        if options.views.hive.enabled
+          options.views.hive.version ?= '2.0.0'
+          options.views.enabled = true
+          throw Error 'HIVE View version not supported by ryba' unless options.views.hive.version in ['1.5.0','2.0.0']
+          options.views.hive.configuration ?= {}
+          options.views.hive.configuration['description'] ?=  "HIVE API"
+          options.views.hive.configuration['label'] ?=  "HIVE View"
+          properties = options.views.hive.configuration.properties ?= {}
+          #Hive server2 connection
+          quorum = hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.zookeeper.quorum']
+          namespace = hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.zookeeper.namespace']
+          principal = hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.authentication.kerberos.principal']
+          url = "jdbc:hive2://#{quorum}/;principal=#{principal};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=#{namespace}"
+          if hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.use.SSL'] is 'true'
+            url += ";ssl=true"
+            url += ";sslTrustStore=#{options.truststore.target}"
+            url += ";trustStorePassword=#{options.truststore.password}"
+          properties['hive.session.params'] ?= ''
+          # if hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
+          #   properties['hive.session.params'] += ";transportMode=#{hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.transport.mode']}"
+          #   properties['hive.session.params'] += ";httpPath=#{hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.thrift.http.path']}"
+          if hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
+            url += ";transportMode=#{hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.transport.mode']}"
+            url += ";httpPath=#{hive_server2_ctxs[0].config.ryba.hive.server2.site['hive.server2.thrift.http.path']}"
+          properties['hive.session.params'] = 'hive.server2.proxy.user=${username}'
+          properties['hive.jdbc.url'] ?= url
+          properties['hive.metastore.warehouse.dir'] ?= '/apps/hive/warehouse'
+          properties['scripts.dir'] ?= '/user/${username}/hive/scripts'
+          properties['jobs.dir'] ?= '/user/${username}/hive/jobs'
+          options.views.files.configuration.properties = merge properties, options.views.files.configuration.properties
+
+#### HIVE View to Yarn ATS
+
+          throw Error 'Cannot install HIVE View without Yarn TS' unless yarn_ts_ctxs.length
+          throw Error 'Cannot install HIVE View without YARN RM' unless yarn_rm_ctxs.length
+          ats_ctx = yarn_ts_ctxs[0]
+          rm_ctx = yarn_rm_ctxs[0]
+          id = if rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''
+          properties['yarn.ats.url'] ?= if ats_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
+          then "http://" + ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.address']
+          else "https://"+ ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.https.address']
+          properties['yarn.resourcemanager.url'] ?= if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
+          then "http://" + rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"]
+          else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
+          
+#### HIVE View to Ranger
+
+          if options.views.hive.version in ['2.0.0']
+            if hive_server2_ctxs[0].config.ryba.ranger?.hive_plugin?
+              options.views.hive.configuration.properties['hive.ranger.servicename'] ?= hive_server2_ctxs[0].config.ryba.ranger.hive_plugin['REPOSITORY_NAME']
+              options.views.hive.configuration.properties['hive.ranger.username'] ?= 'admin'
+              options.views.hive.configuration.properties['hive.ranger.password'] ?= ranger_ctx.config.ryba.ranger.admin.password
+              options.views.hive.configuration.properties['hive.ranger.url'] ?= hive_server2_ctxs[0].config.ryba.ranger.hive_plugin['POLICY_MGR_URL']
+
+### Tez View
+Note: Only test with TEZ VIEW 0.7.0.2.6.1.0-118
+
+          options.views.tez ?= {}
+          options.views.tez.enabled ?= if @contexts('ryba/tez').length > 0 then true else false
+          if options.views.tez.enabled
+            options.views.enabled = true
+            options.views.tez.version ?= '0.7.0.2.6.1.0-118'
+            options.views.tez.configuration ?= {}
+            options.views.tez.configuration['description'] ?=  "TEZ API"
+            options.views.tez.configuration['label'] ?=  "TEZ View"
+            properties = options.views.tez.configuration.properties ?= {}
+            throw Error 'Cannot install TEZ View without Yarn TS' unless yarn_ts_ctxs.length
+            throw Error 'Cannot install TEZ View without YARN RM' unless yarn_rm_ctxs.length
+            ats_ctx = yarn_ts_ctxs[0]
+            rm_ctx = yarn_rm_ctxs[0]
+            id = if rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''
+            properties['yarn.ats.url'] ?= if ats_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
+            then "http://" + ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.address']
+            else "https://"+ ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.https.address']
+            properties['yarn.resourcemanager.url'] ?= if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
+            then "http://" + rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"]
+            else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
+            properties['hdfs.auth_to_local'] ?= hadoop_ctx.config.ryba.core_site['hadoop.security.auth_to_local']
+            properties['timeline.http.auth.type'] ?= ats_ctx.config.ryba.yarn.site['yarn.timeline-service.http-authentication.type']
+            properties['hadoop.http.auth.type'] ?= hadoop_ctx.config.ryba.core_site['hadoop.http.authentication.type']
+
+## Workflow Manager
+The workflow manager correspond to the oozie view. It needs HDFS'properties and oozie base url. it does not support oozie High Availability.
+
+          options.views.wfmanager ?= {}
+          options.views.wfmanager.enabled ?= if o_ctxs? then true else false
+          if options.views.wfmanager.enabled
+            options.views.wfmanager.version ?= '1.0.0'
+            options.views.enabled = true
+            throw Error 'Workflow Manager View version not supported by ryba' unless options.views.wfmanager.version in ['1.0.0']
+            throw Error 'Need oozie server to enable Workflow Manager view' unless o_ctx?
+            options.views.wfmanager.configuration ?= {}
+            options.views.wfmanager.configuration['description'] ?=  "OOZIE API"
+            options.views.wfmanager.configuration['label'] ?=  "OOZIE View"
+            properties = options.views.wfmanager.configuration.properties ?= {}
+            properties['hadoop.security.authentication'] ?= hadoop_ctx.config.ryba.core_site['hadoop.security.authentication']
+            properties['oozie.service.uri'] = o_ctx.config.ryba.oozie.site['oozie.base.url']
+            options.views.wfmanager.configuration.properties = merge properties, options.views.files.configuration.properties
+
+## Workflow Manager YARN
+
+          throw Error 'Cannot install Workflow Manager View without YARN RM' unless yarn_rm_ctxs.length
+          rm_ctx = yarn_rm_ctxs[0]
+          id = if rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''
+          properties['yarn.resourcemanager.address'] ?= if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
+          then "http://" + rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"]
+          else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
+
+### Views Proxyusers
+        
+        hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm', 'ryba/hadoop/core']
+        for hadoop_ctx in hadoop_ctxs
+          hadoop_ctx.config.ryba ?= {}
+          hadoop_ctx.config.ryba.core_site ?= {}
+          hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.ambari.groups"] ?= '*'
+          hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.ambari.hosts"] ?= "#{@contexts('ryba/ambari/standalone').map( (c)->c.config.host)}"
+
+### Oozie Proxyusers
+
+        oozie_ctxs = @contexts 'ryba/oozie/server'
+        for oozie_ctx in oozie_ctxs
+          oozie_ctx.config.ryba ?= {}
+          oozie_ctx.config.ryba.oozie ?= {}
+          oozie_ctx.config.ryba.oozie.site ?= {}
+          oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.ambari.groups"] ?= '*'
+          oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.ambari.hosts"] ?= "#{@contexts('ryba/ambari/standalone').map( (c)->c.config.host)}"
+
+[files-view]:(https://github.com/apache/ambari/blob/branch-2.5/contrib/views/files/src/main/resources/view.xml)
+[files-view-custom]:(https://docs.hortonworks.com/HDPDocuments/Ambari-2.4.1.0/bk_ambari-views/content/Cluster_Configuration_Custom.html)
+[hive-view]:(https://github.com/apache/ambari/blob/79cca1c7184f1661236971dac70d85a83fab6c11/contrib/views/hive-next/src/main/resources/view.xml)
+[tez-view-resources]:(https://github.com/apache/ambari/blob/79cca1c7184f1661236971dac70d85a83fab6c11/contrib/views/tez/src/main/resources/view.xml)
+
+## Dependencies
+      
+    {merge} = require 'nikita/lib/misc'

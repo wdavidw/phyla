@@ -7,6 +7,10 @@ executing this module.
     module.exports = header: 'Ambari Standalone Install', handler: ->
       options = @config.ryba.ambari_standalone
 
+## Registry
+
+      @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
+
 ## Identities
 
 By default, the "ambari-server" package does not create any identities.
@@ -168,6 +172,27 @@ Note, Ambari will change ownership to root.
         uid: 'root'
         gid: options.group.name
         mode: 0o660
+      @file.jaas
+        header: 'JAAS'
+        if: options.views.enabled
+        target: '/etc/ambari-server/conf/krb5JAASLogin.conf'
+        content:
+          'com.sun.security.jgss.krb5.initiate':
+            principal: options.jaas.principal
+            keyTab: options.jaas.keytab
+            renewTGT: true
+            doNotPrompt: true
+            isInitiator: true
+            useTicketCache: true
+            client: true
+          Client:
+            principal: options.jaas.principal
+            keyTab: options.jaas.keytab
+            useKeyTab: true
+            storeKey: true
+        uid: 'root'
+        gid: 'root'
+        mode: 0o660
 
 ## Setup
 
@@ -233,9 +258,10 @@ Be carefull, notes from Ambari 2.4.2:
             --truststore-password=#{options.truststore.password} \
             --truststore-reconfigure
           """
+        # write the jaas in separate action because Ambari does not write Client Section
         @system.execute
           shy: true
-          if: options.jaas.enabled
+          if: options.jaas.enabled and not options.views.enabled
           cmd: """
           ambari-server setup-security \
             --security-option=setup-kerberos-jaas \

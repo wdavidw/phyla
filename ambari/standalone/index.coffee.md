@@ -13,6 +13,11 @@ manage and monitor a Hadoop cluster.
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
         hadoop: 'ryba/hadoop/core'
         ambari_repo: 'ryba/ambari/repo'
+        hdfs_nn: 'ryba/hadoop/hdfs_nn'
+        yarn_rm: 'ryba/hadoop/yarn_rm'
+        yarn_ts: 'ryba/hadoop/yarn_ts'
+        hive_server2: 'ryba/hive/server2'
+        oozie: 'ryba/oozie/server'
       configure: 'ryba/ambari/standalone/configure'
       commands:
         'ambari_blueprint': 'ryba/ambari/standalone/blueprint'
@@ -24,6 +29,7 @@ manage and monitor a Hadoop cluster.
           @call 'ryba/ambari/standalone/install', options
           @call 'ryba/ambari/standalone/start', options
           @call 'ryba/ambari/standalone/check', options
+          @call 'ryba/ambari/views', options if options.views?.enabled
         'start': 'ryba/ambari/standalone/start'
         'stop': 'ryba/ambari/standalone/stop'
 
