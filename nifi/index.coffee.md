@@ -27,6 +27,8 @@ and objectives of NiFi includes:
           ]
           'check':
             'ryba/nifi/check'
+          'prepare':
+            'ryba/nifi/prepare'
           'status':
             'ryba/nifi/status'
           'start':
