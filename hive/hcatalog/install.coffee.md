@@ -204,6 +204,33 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
             -dbType $engine \
             -upgradeSchemaFrom $current_version
           """
+        # need to create manually some missing table in HDP >= 2.5 (HDP official KB)
+        # HDP has backported patchs from hive 2.0 to hdp 2.5-1.2.1 version
+        # but scripts area not up-to-date
+        # did not test the need on other type of engine
+        @system.execute
+          header: "Metastore DB"
+          if: hive.metastore.db.engine is 'mysql'
+          cmd: "#{db.cmd @config.ryba.hive.metastore.db, admin_username: null} < /usr/hdp/current/hive-metastore/scripts/metastore/upgrade/mysql/026-HIVE-12818.mysql.sql"
+          unless_exec:  db.cmd @config.ryba.hive.metastore.db, admin_username: null, 'SHOW CREATE TABLE COMPLETED_COMPACTIONS'
+        @system.execute
+            header: 'WRITE_SET'
+            if: hive.metastore.db.engine is 'mysql'
+            cmd: db.cmd hive.metastore.db, admin_username: null, cmd: """
+              CREATE TABLE WRITE_SET (
+                WS_DATABASE varchar(128) NOT NULL,
+                WS_TABLE varchar(128) NOT NULL,
+                WS_PARTITION varchar(767),
+                WS_TXNID bigint NOT NULL,
+                WS_COMMIT_ID bigint NOT NULL,
+                WS_OPERATION_TYPE char(1) NOT NULL
+              ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+              ALTER TABLE COMPACTION_QUEUE ADD CQ_TBLPROPERTIES varchar(2048);
+              ALTER TABLE COMPLETED_COMPACTIONS ADD CC_TBLPROPERTIES varchar(2048);
+              ALTER TABLE TXN_COMPONENTS ADD TC_OPERATION_TYPE char(1) NOT NULL;
+             """
+            unless_exec:  db.cmd hive.metastore.db, admin_username: null, 'SHOW CREATE TABLE WRITE_SET'
+
 
 ## Kerberos
 
