@@ -55,7 +55,7 @@ set it hosts will be constructed on it.
         ryba.db_admin.mysql.java.driver = 'com.mysql.jdbc.Driver'
         ctxs = {}
         if mysql_ctxs.length isnt 0 
-          ryba.db_admin.mysql.java.datasource = com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
+          ryba.db_admin.mysql.java.datasource = 'com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource'
           ctxs = mysql_ctxs
           use = 'mysql'
         else 
