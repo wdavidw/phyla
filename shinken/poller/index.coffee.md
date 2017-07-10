@@ -16,19 +16,15 @@ is approximatively 1000 checks/s
 
     module.exports =
       use:
-        yum: implicit: true, module: 'masson/core/yum'
-        iptables: implicit: true, module: 'masson/core/iptables'
+        commons: implicit: true, module: 'ryba/shinken/commons'
         krb5_client: module: 'masson/core/krb5_client'
         docker: implicit: true, module: 'masson/commons/docker'
-      configure: [
-        'ryba/shinken/commons/configure'
+      configure:
         'ryba/shinken/poller/configure'
-      ]
       commands:
         'check':
-          'ryba/shinken/poller/configure'
+          'ryba/shinken/poller/check'
         'install': [
-          'ryba/shinken/commons/install'
           'ryba/shinken/poller/install'
           'ryba/shinken/poller/start'
           'ryba/shinken/poller/check'

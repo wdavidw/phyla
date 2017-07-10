@@ -2,7 +2,7 @@
 # Shinken Arbiter Install
 
     module.exports = header: 'Shinken Arbiter Install', handler: ->
-      {shinken} = @config.ryba
+      {shinken, monitoring} = @config.ryba
       {arbiter} = @config.ryba.shinken
 
 ## IPTables
@@ -39,27 +39,46 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @system.remove target: '/etc/shinken/templates/templates.cfg'
         @system.remove target: '/etc/shinken/resource.d/path.cfg'
 
-## Additional Modules
+## Modules
 
       @call header: 'Modules', ->
         installmod = (name, mod) =>
           @call unless_exec: "shinken inventory | grep #{name}", ->
             @file.download
-              target: "#{shinken.build_dir}/#{mod.archive}.zip"
+              target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
               source: mod.source
-              cache_file: "#{mod.archive}.zip"
+              cache_file: "#{mod.archive}.#{mod.format}"
               unless_exec: "shinken inventory | grep #{name}"
-              shy: true
             @tools.extract
-              source: "#{shinken.build_dir}/#{mod.archive}.zip"
-              shy: true
+              source: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
             @system.execute
               cmd: "shinken install --local #{shinken.build_dir}/#{mod.archive}"
-            @system.execute
-              cmd: "rm -rf #{shinken.build_dir}"
-              shy: true
+            @system.remove target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+            @system.remove target: "#{shinken.build_dir}/#{mod.archive}"
           for subname, submod of mod.modules then installmod subname, submod
         for name, mod of arbiter.modules then installmod name, mod
+
+## Python Modules
+
+      @call header: 'Python Modules', ->
+        install_dep = (k, v) => 
+          @call unless_exec: "pip list | grep #{k}", ->
+            @file.download
+              source: v.url
+              target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              cache_file: "#{v.archive}.#{v.format}"
+              md5: v.md5
+            @tools.extract
+              source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+            @system.execute
+              cmd:"""
+              cd #{shinken.build_dir}/#{v.archive}
+              python setup.py build
+              python setup.py install
+              """
+            @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+            @system.remove target: "#{shinken.build_dir}/#{v.archive}"
+        for _, mod of arbiter.modules then for k,v of mod.python_modules then install_dep k, v
 
 ## Configuration
 
@@ -123,7 +142,7 @@ Objects config
           @file.render
             header: obj
             target: "/etc/shinken/#{obj}/#{obj}.cfg"
-            source: "#{__dirname}/objects/resources/#{obj}.cfg.j2"
+            source: "#{__dirname}/../../commons/monitoring/resources/#{obj}.cfg.j2"
             local: true
             context:
               "#{obj}": monitoring[obj]
@@ -139,14 +158,14 @@ Objects config
           @file.render
             header: "#{obj} templates"
             target: "/etc/shinken/templates/#{obj}.cfg"
-            source: "#{__dirname}/objects/resources/#{obj}.cfg.j2"
+            source: "#{__dirname}/../../commons/monitoring/resources/#{obj}.cfg.j2"
             local: true
             context: "#{obj}": templated
             backup: true
           @file.render
             header: obj
             target: "/etc/shinken/#{obj}/#{obj}.cfg"
-            source: "#{__dirname}/objects/resources/#{obj}.cfg.j2"
+            source: "#{__dirname}/../../commons/monitoring/resources/#{obj}.cfg.j2"
             local: true
             context: "#{obj}": real
             backup: true

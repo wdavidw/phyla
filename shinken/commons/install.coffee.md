@@ -17,6 +17,7 @@
         @service name: 'libcurl-devel'
         @service name: 'python-pycurl'
         @service name: 'python-devel'
+        @service name: 'shinken'
 
 ## Layout
 
@@ -31,7 +32,9 @@
           target: "#{shinken.user.home}/doc"
           uid: shinken.user.name
           gid: shinken.group.name
-        @system.chown
+        @system.mkdir
+          target: "#{shinken.build_dir}"
+        @system.mkdir
           target: shinken.log_dir
           uid: shinken.user.name
           gid: shinken.group.name

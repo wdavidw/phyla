@@ -11,21 +11,19 @@ Sends broks (internal events of any kind) to the broker(s)
 
     module.exports =
       use:
-        yum: implicit: true, module: 'masson/core/yum'
-        iptables: implicit: true, module: 'masson/core/iptables'
-      configure: [
-        'ryba/shinken/commons/configure'
+        commons: implicit: true, module: 'ryba/shinken/commons'
+      configure:
         'ryba/shinken/scheduler/configure'
-      ]
       commands:
         'check':
           'ryba/shinken/scheduler/check'
         'install': [
-          'ryba/shinken/commons/install'
           'ryba/shinken/scheduler/install'
           'ryba/shinken/scheduler/start'
           'ryba/shinken/scheduler/check'
         ]
+        'prepare':
+          'ryba/shinken/scheduler/prepare'
         'start':
           'ryba/shinken/scheduler/start'
         'status':

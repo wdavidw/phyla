@@ -2,9 +2,11 @@
 # Shinken Poller Configure
 
     module.exports = ->
+      {docker} = @config
       {shinken} = @config.ryba
       # Add shinken to docker group
-      shinken.user.groups ?= ['docker']
+      shinken.user.groups ?= []
+      shinken.user.groups.push docker.group.name unless docker.group.name in shinken.user.groups
       poller = shinken.poller ?= {}
       # Executor
       poller.executor ?= {}
@@ -15,26 +17,29 @@
       # Python modules to install
       poller.python_modules ?= {}
       poller.python_modules.requests ?= {}
-      poller.python_modules.requests.archive ?= 'requests-2.5.1'
-      poller.python_modules.requests.source ?= 'https://github.com/kennethreitz/requests/archive/v2.5.1.tar.gz'
+      poller.python_modules.requests.version ?= '2.18.1'
       poller.python_modules.kerberos ?= {}
-      poller.python_modules.kerberos.archive ?= 'kerberos-1.1.1'
-      poller.python_modules.kerberos.source ?= 'https://pypi.python.org/packages/source/k/kerberos/kerberos-1.1.1.tar.gz'
+      poller.python_modules.kerberos.version ?= '1.2.5'
       poller.python_modules.requests_kerberos ?= {}
-      poller.python_modules.requests_kerberos.archive ?= 'requests-kerberos-0.7.0'
-      poller.python_modules.requests_kerberos.source ?= 'https://github.com/requests/requests-kerberos/archive/0.7.0.tar.gz'
+      poller.python_modules.requests_kerberos.version ?= '0.7.0'
       # Additionnal Modules to install
       poller.modules ?= {}
       configmod = (name, mod) =>
         if mod.version?
           mod.type ?= name
-          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.zip"
           mod.archive ?= "mod-#{name}-#{mod.version}"
+          mod.format ?= 'zip'
+          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.#{mod.format}"
           mod.config_file ?= "#{name}.cfg"
         mod.modules ?= {}
         mod.config ?= {}
         mod.config.modules = [mod.config.modules] if typeof mod.config.modules is 'string'
         mod.config.modules ?= Object.keys mod.modules
+        mod.python_modules ?= {}
+        for pyname, pymod of mod.python_modules
+          pymod.format ?= 'tar.gz'
+          pymod.archive ?= "#{pyname}-#{pymod.version}"
+          pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of poller.modules then configmod name, mod
       # Config

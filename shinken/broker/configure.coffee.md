@@ -8,32 +8,24 @@
       broker.modules ?= {}
       # WebUI
       webui = broker.modules['webui2'] ?= {}
-      webui.version ?= "2.4.2c"
-      webui.source ?= "https://github.com/shinken-monitoring/mod-webui/archive/#{webui.version}.zip"
+      webui.version ?= '2.5.1'
       webui.archive ?= "mod-webui-#{webui.version}"
-      webui.pip_modules ?= {}
-      webui.pip_modules.bottle ?= {}
-      webui.pip_modules.bottle.version ?= '0.12.8'
-      webui.pip_modules.bottle.url ?= 'https://pypi.python.org/packages/source/b/bottle/bottle-0.12.8.tar.gz'
-      webui.pip_modules.bottle.md5 ?= '13132c0a8f607bf860810a6ee9064c5b'
-      webui.pip_modules.pymongo ?= {}
-      webui.pip_modules.pymongo.version ?= '3.0.3'
-      webui.pip_modules.pymongo.url ?= 'https://pypi.python.org/packages/source/p/pymongo/pymongo-3.0.3.tar.gz'
-      webui.pip_modules.pymongo.md5 ?= '0425d99c2a453144b9c95cb37dbc46e9'
-      webui.pip_modules.importlib ?= {}
-      webui.pip_modules.importlib.version ?= '1.0.3'
-      webui.pip_modules.importlib.url ?= 'https://pypi.python.org/packages/0e/9c/daad476c540c4c36e7b35cf367331f0acf10d09d112cc5083c3e16a77347/importlib-1.0.3.tar.gz'
-      webui.pip_modules.importlib.md5 ?= '3ddefaed1eea78525b9bd4ccf194881d'
-      webui.pip_modules['alignak-backend-client'] ?= {}
-      webui.pip_modules['alignak-backend-client'].version ?= '0.3.0'
-      webui.pip_modules['alignak-backend-client'].archive ?= 'alignak_backend_client-0.3.0'
-      webui.pip_modules['alignak-backend-client'].url ?= 'https://pypi.python.org/packages/75/71/9794e301f803e5de6ab07e916a28b9218d2e1f6b46d4e8c1078f29b72d7b/alignak_backend_client-0.3.0.tar.gz'
-      webui.pip_modules['alignak-backend-client'].md5 ?= 'ae5ff7cb631a9b08451acc7629934db6'
-      webui.pip_modules.passlib ?= {}
-      webui.pip_modules.passlib.version ?= '1.6.5'
-      webui.pip_modules.passlib.url ?= 'https://pypi.python.org/packages/1e/59/d1a50836b29c87a1bde9442e1846aa11e1548491cbee719e51b45a623e75/passlib-1.6.5.tar.gz'
-      webui.pip_modules.passlib.md5 ?= 'd2edd6c42cde136a538b48d90a06ad67'
-      v.archive ?= "#{k}-#{v.version}" for k, v of webui.pip_modules
+      webui.python_modules ?= {}
+      webui.python_modules.bottle ?= {}
+      webui.python_modules.bottle.version ?= '0.12.8'
+      webui.python_modules.pymongo ?= {}
+      webui.python_modules.pymongo.version ?= '3.4.0'
+      # webui.python_modules.importlib ?= {}
+      # webui.python_modules.importlib.version ?= '1.0.4'
+      webui.python_modules.requests ?= {}
+      webui.python_modules.requests.version ?= '2.18.1'
+      webui.python_modules.arrow ?= {}
+      webui.python_modules.arrow.version ?= '0.10.0'
+      # webui.python_modules['alignak-backend-client'] ?= {}
+      # webui.python_modules['alignak-backend-client'].version ?= '0.9.3'
+      # webui.python_modules['alignak-backend-client'].archive ?= "alignak_backend_client-#{webui.python_modules['alignak-backend-client'].version}"
+      webui.python_modules.passlib ?= {}
+      webui.python_modules.passlib.version ?= '1.7.1'
       webui.modules ?= {}
       webui.config ?= {}
       webui.config.host ?= '0.0.0.0'
@@ -43,8 +35,6 @@
       uigraphite = webui.modules['ui-graphite'] ?= {}
       uigraphite.type ?= 'graphite-webui'
       uigraphite.version ?= "2.1.2"
-      uigraphite.source ?= "https://github.com/shinken-monitoring/mod-ui-graphite/archive/#{uigraphite.version}.zip"
-      uigraphite.archive ?= "mod-ui-graphite-#{uigraphite.version}"
       uigraphite.config ?= {}
       uigraphite.config.uri ?= 'http://localhost:3080/'
       uigraphite.config.templates_path ?= "#{shinken.user.home}/share/templates/graphite/"
@@ -67,7 +57,6 @@
       # Graphite
       graphite = broker.modules['graphite2'] ?= {}
       graphite.version ?= '2.1.4'
-      graphite.source ?= "https://github.com/shinken-monitoring/mod-graphite/archive/#{graphite.version}.zip"
       graphite.archive ?= "mod-graphite-#{graphite.version}"
       graphite.type ?= 'graphite_perfdata'
       graphite.config ?= {}
@@ -79,7 +68,7 @@
       graphite.config.graphite_data_source ?= 'shinken'
       # Livestatus
       livestatus = broker.modules['livestatus'] ?= {}
-      livestatus.version ?= '1.4.1'
+      livestatus.version ?= '1.4.2'
       livestatus.modules ?= {}
       livestatus.config ?= {}
       livestatus.config.host ?= '*'
@@ -92,13 +81,19 @@
       configmod = (name, mod) =>
         if mod.version?
           mod.type ?= name
-          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.zip"
           mod.archive ?= "mod-#{name}-#{mod.version}"
+          mod.format ?= 'zip'
+          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.#{mod.format}"
           mod.config_file ?= "#{name}.cfg"
         mod.modules ?= {}
         mod.config ?= {}
         mod.config.modules = [mod.config.modules] if typeof mod.config.modules is 'string'
         mod.config.modules ?= Object.keys mod.modules
+        mod.python_modules ?= {}
+        for pyname, pymod of mod.python_modules
+          pymod.format ?= 'tar.gz'
+          pymod.archive ?= "#{pyname}-#{pymod.version}"
+          pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of broker.modules then configmod name, mod
       # CONFIG

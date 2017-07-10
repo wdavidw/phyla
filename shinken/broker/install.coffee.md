@@ -29,48 +29,46 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service name: 'python-requests'
         @service name: 'python-arrow'
 
-## WebUI Dependencies
+## Modules
 
-      @call header: 'Install WebUI Dependencies', if: 'webui2' in broker.config.modules, ->
+      @call header: 'Modules', ->
+        installmod = (name, mod) =>
+          @call unless_exec: "shinken inventory | grep #{name}", ->
+            @file.download
+              target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+              source: mod.source
+              cache_file: "#{mod.archive}.#{mod.format}"
+              unless_exec: "shinken inventory | grep #{name}"
+            @tools.extract
+              source: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+            @system.execute
+              cmd: "shinken install --local #{shinken.build_dir}/#{mod.archive}"
+            @system.remove target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+            @system.remove target: "#{shinken.build_dir}/#{mod.archive}"
+          for subname, submod of mod.modules then installmod subname, submod
+        for name, mod of broker.modules then installmod name, mod
+
+## Python Modules
+
+      @call header: 'Python Modules', ->
         install_dep = (k, v) => 
           @call unless_exec: "pip list | grep #{k}", ->
             @file.download
               source: v.url
-              target: "#{shinken.build_dir}/#{v.archive}.tar.gz"
+              target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              cache_file: "#{v.archive}.#{v.format}"
               md5: v.md5
             @tools.extract
-              source: "#{shinken.build_dir}/#{v.archive}.tar.gz"
+              source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.execute
               cmd:"""
               cd #{shinken.build_dir}/#{v.archive}
               python setup.py build
               python setup.py install
               """
-            @system.remove target: "#{shinken.build_dir}/#{k}-#{v.version}.tar.gz"
-            @system.remove target: "#{shinken.build_dir}/#{k}-#{v.version}"
-        for k, v of broker.modules['webui2'].pip_modules then install_dep k, v
-
-## Additional Shinken Modules
-
-      @call header: 'Modules', ->
-        installmod = (name, mod) =>
-          @call unless_exec: "shinken inventory | grep #{name}", ->
-            @file.download
-              target: "#{shinken.build_dir}/#{mod.archive}.zip"
-              source: mod.source
-              cache_file: "#{mod.archive}.zip"
-              unless_exec: "shinken inventory | grep #{name}"
-              shy: true
-            @tools.extract
-              source: "#{shinken.build_dir}/#{mod.archive}.zip"
-              shy: true
-            @system.execute
-              cmd: "shinken install --local #{shinken.build_dir}/#{mod.archive}"
-            @system.execute
-              cmd: "rm -rf #{shinken.build_dir}"
-              shy: true
-          for subname, submod of mod.modules then installmod subname, submod
-        for name, mod of broker.modules then installmod name, mod
+            @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+            @system.remove target: "#{shinken.build_dir}/#{v.archive}"
+        for _, mod of broker.modules then for k,v of mod.python_modules then install_dep k, v
 
 ## Fix Groups View
 

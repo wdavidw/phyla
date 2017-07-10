@@ -16,21 +16,19 @@ This module is only needed when enabling passive checks
 
     module.exports =
       use:
-        yum: implicit: true, module: 'masson/core/yum'
-        iptables: implicit: true, module: 'masson/core/iptables'
-      configure: [
-        'ryba/shinken/commons/configure'
+        commons: implicit: true, module: 'ryba/shinken/commons'
+      configure:
         'ryba/shinken/receiver/configure'
-      ]
       commands:
         'check':
           'ryba/shinken/receiver/check'
         'install': [
-          'ryba/shinken/commons/install'
           'ryba/shinken/receiver/install'
           'ryba/shinken/receiver/start'
           'ryba/shinken/receiver/check'
         ]
+        'prepare':
+          'ryba/shinken/receiver/prepare'
         'start':
           'ryba/shinken/receiver/start'
         'status':

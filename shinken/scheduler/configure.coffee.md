@@ -9,13 +9,19 @@
       configmod = (name, mod) =>
         if mod.version?
           mod.type ?= name
-          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.zip"
           mod.archive ?= "mod-#{name}-#{mod.version}"
+          mod.format ?= 'zip'
+          mod.source ?= "https://github.com/shinken-monitoring/mod-#{name}/archive/#{mod.version}.#{mod.format}"
           mod.config_file ?= "#{name}.cfg"
         mod.modules ?= {}
         mod.config ?= {}
         mod.config.modules = [mod.config.modules] if typeof mod.config.modules is 'string'
         mod.config.modules ?= Object.keys mod.modules
+        mod.python_modules ?= {}
+        for pyname, pymod of mod.python_modules
+          pymod.format ?= 'tar.gz'
+          pymod.archive ?= "#{pyname}-#{pymod.version}"
+          pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of scheduler.modules then configmod name, mod
       # Config

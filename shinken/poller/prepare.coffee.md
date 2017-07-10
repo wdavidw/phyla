@@ -1,9 +1,32 @@
 
-# Poller Executor Build
+# Shinken Poller Prepare
 
-    module.exports = header: 'Shinken Poller Prepare', handler: ->
-      {shinken} = @config.ryba
-      if @contexts('ryba/shinken/poller')[0].config.host is @config.host
+Download Modules
+Prepare shinken-poller-executor docker image
+
+    module.exports =
+      header: 'Shinken Poller Prepare'
+      if: -> @contexts('ryba/shinken/poller')[0].config.host is @config.host
+      handler: ->
+        {poller} = @config.ryba.shinken
+
+## Modules
+
+        @call header: 'Modules', ->
+          installmod = (name, mod) =>
+            @file.cache
+              source: mod.source
+              cache_file: "#{mod.archive}.#{mod.format}"
+            for subname, submod of mod.modules then installmod subname, submod
+          for name, mod of poller.modules then installmod name, mod
+
+## Python Modules
+
+        @call header: 'Python Modules', ->
+          for _, mod of poller.modules then for k,v of mod.python_modules 
+            @file.cache
+                source: v.url
+                cache_file: "#{v.archive}.#{v.format}"
 
 ## Build Container
 
@@ -32,7 +55,7 @@
           header: 'Build Container'
           image: 'ryba/shinken-poller-executor'
           file: "#{@config.nikita.cache_dir or '.'}/build/Dockerfile"
-          cwd: shinken.poller.executor.build_dir
+          cwd: poller.executor.build_dir
 
 ## Save image
 
