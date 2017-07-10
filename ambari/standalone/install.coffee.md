@@ -6,6 +6,8 @@ executing this module.
 
     module.exports = header: 'Ambari Standalone Install', handler: ->
       options = @config.ryba.ambari_standalone
+      protocol = if options.config['api.ssl'] is 'true' then 'https' else 'http'
+      port = if protocol is 'https' then options.config['client.api.ssl.port'] else options.config['client.api.port']
 
 ## Registry
 
@@ -50,6 +52,22 @@ Install Ambari server package.
         header: 'Clean Sudo'
         unless: options.sudo
         target: '/etc/sudoers.d/ambari_server'
+
+## IPTables
+
+| Service       | Port  | Proto | Parameter       |
+|---------------|-------|-------|-----------------|
+| Ambari Server | 8080  |  tcp  |  HTTP Port      |
+| Ambari Server | 8842  |  tcp  |  HTTPS Port     |
+
+IPTables rules are only inserted if the parameter "iptables.action" is set to
+"start" (default value).
+
+      @tools.iptables
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Ambari REST SSL" }
+        ]
+        if: @config.iptables.action is 'start'
 
 ## Database
 
