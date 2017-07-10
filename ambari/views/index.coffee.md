@@ -17,7 +17,7 @@ It uses the Apache Ambari REST Api.
           cmd: """
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X POST \
             \"#{url}/api/v1/views/FILES/versions/#{options.views.files.version}/instances/RYBA_FILES_VIEW\" \
-            --data '#{JSON.stringify ViewInstanceInfo:options.views.files}'
+            --data '#{JSON.stringify ViewInstanceInfo:options.views.files.configuration}'
             """ 
           unless_exec: """
               curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
