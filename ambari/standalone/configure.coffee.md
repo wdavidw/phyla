@@ -127,16 +127,17 @@ Multiple ambari instance on a same server involve a different principal or the p
         options.jaas.realm ?= options.jaas.principal.split('@')[1] if options.jaas.principal
         throw Error "Require Property: jaas.realm or jaas.principal" unless options.jaas.realm
         # Masson 2 will require some adjustment in the way we discover the kerberos admin information
-        krb5 = krb5_ctx.config.krb5_server.admin[options.jaas.realm]
-        options.jaas.kadmin_principal ?= krb5.kadmin_principal
-        throw Error "Require Property: jaas.kadmin_principal" unless options.jaas.kadmin_principal
-        options.jaas.kadmin_password ?= krb5.kadmin_password
-        throw Error "Require Property: jaas.kadmin_password" unless options.jaas.kadmin_password
-        options.jaas.admin_server ?= krb5.admin_server
-        throw Error "Require Property: jaas.admin_server" unless options.jaas.admin_server
+        if krb5_ctx?
+          krb5 = krb5_ctx.config.krb5_server.admin[options.jaas.realm]
+          options.jaas.kadmin_principal ?= krb5.kadmin_principal
+          options.jaas.kadmin_password ?= krb5.kadmin_password
+          options.jaas.admin_server ?= krb5.admin_server
         options.jaas.keytab ?= '/etc/ambari-server/conf/ambari.service.keytab'
         options.jaas.principal ?= "ambari/_HOST@#{hadoop_ctx?.config.ryba.realm}" if hadoop_ctx?.config.ryba.realm
         options.jaas.principal = options.jaas.principal.replace '_HOST', @config.host
+        throw Error "Require Property: jaas.kadmin_principal" unless options.jaas.kadmin_principal
+        throw Error "Require Property: jaas.kadmin_password" unless options.jaas.kadmin_password
+        throw Error "Require Property: jaas.admin_server" unless options.jaas.admin_server
 
 ## Configuration
 
