@@ -6,6 +6,11 @@
 ## Version 0.0.7
 
 * ambari: initial commit for ambari views (standalone)
+* hive: fix group permissionn error when using ranger
+* monitoring: isolate objects conf (common to nagios/shinken/alignak)
+* hive: isolate metastore
+* HBase: UI security through SPNEGO
+* registry: initial commit for Schema Registry
 * hadoop/core: moved core-site.xml rendering to hadoop/core
 * ranger/solr: wait for solr to run before creating collection
 * hive/server2: MySQL connector for embedded metastore
