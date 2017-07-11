@@ -124,7 +124,7 @@ They must have register set to 0 to not be instanciated
       options.services['functional-service'].register = '0'
       # ContactGroups
       options.contactgroups['admins'] ?= {}
-      options.contactgroups['admins'].alias ?= 'Shinken Administrators'
+      options.contactgroups['admins'].alias ?= 'Administrators'
       # Contacts
       options.contacts['generic-contact'] ?= {}
       options.contacts['generic-contact'].use ?= ''
@@ -144,6 +144,11 @@ They must have register set to 0 to not be instanciated
       options.contacts['admin-contact'].is_admin ?= '1'
       options.contacts['admin-contact'].contactgroups ?= ['admins']
       options.contacts['admin-contact'].register = '0'
+      options.contacts['admin'] ?= {}
+      options.contacts['admin'].use ?= 'admin-contact'
+      options.contacts['admin'].register ?= '1'
+      unless options.contacts['admin'].password or "#{options.contacts['admin'].register}" is '0'
+        throw Error "Missing property: ryba.monitoring.contacts.admin.password"
       options.contacts['readonly-contact'] ?= {}
       options.contacts['readonly-contact'].use ?= 'generic-contact'
       options.contacts['readonly-contact'].contactgroups ?= ['readonly']
@@ -166,8 +171,8 @@ They must have register set to 0 to not be instanciated
       options.timeperiods.none.alias ?= 'Never'
       options.timeperiods.none.time = {}
       # Commands
-      options.commands['notify-host-by-email'] ?= '/usr/bin/printf "%b" "Shinken Notification\\n\\nType: $NOTIFICATIONTYPE$\\nHost: $HOSTNAME$\\nState: $HOSTSTATE$\\nAddress: $HOSTADDRESS$\\nDate: $SHORTDATETIME$\\nInfo: $HOSTOUTPUT$" | mailx -s "Host $NOTIFICATIONTYPE$: $HOSTNAME$ is $HOSTSTATE$" $CONTACTEMAIL$'
-      options.commands['notify-service-by-email'] ?= '/usr/bin/printf "%b" "Shinken Notification\\n\\nNotification Type: $NOTIFICATIONTYPE$\\n\\nService: $SERVICEDESC$\\nHost:$HOSTALIAS$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nDate: $SHORTDATETIME$\\nInfo : $SERVICEOUTPUT$" | mailx -s "Service $NOTIFICATIONTYPE$: $SERVICEDESC$ ($HOSTALIAS$) is $SERVICESTATE$"  $CONTACTEMAIL$'
+      options.commands['notify-host-by-email'] ?= '/usr/bin/printf "%b" "Monitoring Notification\\n\\nType: $NOTIFICATIONTYPE$\\nHost: $HOSTNAME$\\nState: $HOSTSTATE$\\nAddress: $HOSTADDRESS$\\nDate: $SHORTDATETIME$\\nInfo: $HOSTOUTPUT$" | mailx -s "Host $NOTIFICATIONTYPE$: $HOSTNAME$ is $HOSTSTATE$" $CONTACTEMAIL$'
+      options.commands['notify-service-by-email'] ?= '/usr/bin/printf "%b" "Monitoring Notification\\n\\nNotification Type: $NOTIFICATIONTYPE$\\n\\nService: $SERVICEDESC$\\nHost:$HOSTALIAS$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nDate: $SHORTDATETIME$\\nInfo : $SERVICEOUTPUT$" | mailx -s "Service $NOTIFICATIONTYPE$: $SERVICEDESC$ ($HOSTALIAS$) is $SERVICESTATE$"  $CONTACTEMAIL$'
 
 ## Object from Ryba
 

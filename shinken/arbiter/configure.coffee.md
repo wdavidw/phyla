@@ -38,12 +38,3 @@
       arbiter.config.host ?= '0.0.0.0'
       arbiter.config.use_ssl ?= shinken.config.use_ssl
       arbiter.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
-      monitoring.contacts['shinken'] ?= {}
-      monitoring.contacts['shinken'].password ?= 'shinken123'
-      monitoring.contacts['shinken'].alias ?= 'Shinken Admin'
-      monitoring.contacts['shinken'].email ?= ''
-      monitoring.contacts['shinken'].admin ?= true
-      # WebUI Groups
-      monitoring.contactgroups['admins'] ?= {}
-      monitoring.contactgroups['admins'].alias ?= 'Shinken Administrators'
-      monitoring.contactgroups['admins'].members ?= ['shinken']
