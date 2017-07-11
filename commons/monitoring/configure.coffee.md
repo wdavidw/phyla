@@ -356,7 +356,7 @@ Theses functions are used to generate business rules
             options.services['MySQL - Connected Threads'].hosts.push host
             options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
             options.services['MySQL - Connected Threads'].use ?= 'unit-service'
-            options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!50!80!#{options.db.username}!#{options.db.password}"
+            options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!80!100!#{options.db.username}!#{options.db.password}"
             create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
           if 'ryba/zookeeper/server' in ctx.services
             w.modules.push 'zookeeper_server' if 'zookeeper_server' not in w.modules
