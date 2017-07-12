@@ -5,6 +5,7 @@
 
 ## Version 0.0.7
 
+* ranger/admin: typos
 * ambari: initial commit for ambari views (standalone)
 * hive: fix group permissionn error when using ranger
 * monitoring: isolate objects conf (common to nagios/shinken/alignak)
