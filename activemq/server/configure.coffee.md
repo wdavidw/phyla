@@ -36,13 +36,25 @@
       activemq.server.port.jms ?= '61616'
       activemq.server.port.ui ?= '8161'
       activemq.server.container_name ?= 'activemq_server'
-      activemq.server.ports ?= {
-        openwire: { protocol: 'tcp',   port: 61616 },
-        amqp:     { protocol: 'amqp',  port: 5672  },
-        stomp:    { protocol: 'stomp', port: 61613 },
-        mqtt:     { protocol: 'mqtt',  port: 1883  },
-        ws:       { protocol: 'ws',    port: 61614 }
-      }
+      activemq.server.ports ?= {}
+      activemq.server.ports.openwire ?= {}
+      activemq.server.ports.openwire.protocol ?= 'tcp'
+      activemq.server.ports.openwire.port ?= 61616
+      activemq.server.ports.amqp ?= {}
+      activemq.server.ports.amqp.protocol ?= 'amqp'
+      activemq.server.ports.amqp.port ?= 5672
+      activemq.server.ports.stomp ?= {}
+      activemq.server.ports.stomp.protocol ?= 'stomp'
+      activemq.server.ports.stomp.port ?= 61613
+      activemq.server.ports.stomp ?= {}
+      activemq.server.ports.stomp.protocol ?= 'stomp'
+      activemq.server.ports.stomp.port ?= 61613
+      activemq.server.ports.mqtt ?= {}
+      activemq.server.ports.mqtt.protocol ?= 'mqtt'
+      activemq.server.ports.mqtt.port ?= 1883
+      activemq.server.ports.ws ?= {}
+      activemq.server.ports.ws.protocol ?= 'ws'
+      activemq.server.ports.ws.port ?= 61614
 
 ## Configuration
 

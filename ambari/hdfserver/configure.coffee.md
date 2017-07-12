@@ -102,11 +102,11 @@ Hadoop group. The default group name is "hadoop".
       options.ssl ?= ssl
       options.truststore ?= {}
       if options.ssl
-        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
-        throw Error "Required Option: ssl.key" if not options.ssl.key
-        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+        throw Error 'Required Option: ssl.cert' unless options.ssl.cert
+        throw Error 'Required Option: ssl.key' unless options.ssl.key
+        throw Error 'Required Option: ssl.cacert' unless options.ssl.cacert
         options.truststore.target ?= "#{options.conf_dir}/truststore"
-        throw Error "Required Property: truststore.password" if not options.truststore.password
+        throw Error 'Required Property: truststore.password' unless options.truststore.password
         options.truststore.caname ?= 'hadoop_root_ca'
         options.truststore.type ?= 'jks'
         throw Error "Invalid Truststore Type: #{truststore.type}" unless options.truststore.type in ['jks', 'jceks', 'pkcs12']

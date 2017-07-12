@@ -50,21 +50,21 @@ https://community.hortonworks.com/articles/81184/understanding-the-initial-admin
           options.ssl.certs[ssl_ctx.config.shortname] ?= {}
           options.ssl.certs[ssl_ctx.config.shortname] = ssl_ctx.config.ssl.cert
         options.ssl.truststore.target ?= "#{options.conf_dir}/truststore.jks"
-        throw Error "Required Property: truststore.password" if not options.ssl.truststore.password
+        throw Error 'Required Property: truststore.password' unless options.ssl.truststore.password
         options.ssl.truststore.caname ?= 'hadoop_root_ca'
         options.ssl.truststore.type ?= 'jks'
         throw Error "Invalid Truststore Type: #{truststore.type}" unless options.ssl.truststore.type in ['jks', 'jceks', 'pkcs12']
         options.ssl.keystore.target ?= "#{options.conf_dir}/keystore.jks"
-        throw Error "Required Property: keystore.password" if not options.ssl.keystore.password
-        throw Error "Required Property: keystore.keypass" if not options.ssl.keystore.keypass
-        # throw Error "Required Option: ssl.cert" if  not options.ssl.cert
-        # throw Error "Required Option: ssl.key" if not options.ssl.key
-        # throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+        throw Error 'Required Property: keystore.password' unless options.ssl.keystore.password
+        throw Error 'Required Property: keystore.keypass' unless options.ssl.keystore.keypass
+        # throw Error 'Required Option: ssl.cert' unless options.ssl.cert
+        # throw Error 'Required Option: ssl.key' unless options.ssl.key
+        # throw Error 'Required Option: ssl.cacert' unless options.ssl.cacert
         # options.truststore.target ?= "#{options.conf_dir}/truststore.jks"
-        # throw Error "Required Property: truststore.password" if not options.truststore.password
+        # throw Error 'Required Property: truststore.password' unless options.truststore.password
         # options.truststore.caname ?= 'hadoop_root_ca'
         # options.truststore.type ?= 'jks'
         # throw Error "Invalid Truststore Type: #{truststore.type}" unless options.truststore.type in ['jks', 'jceks', 'pkcs12']
         # options.keystore.target ?= "#{options.conf_dir}/keystore.jks"
-        # throw Error "Required Property: keystore.password" if not options.keystore.password
-        # throw Error "Required Property: keystore.keypass" if not options.keystore.keypass
+        # throw Error 'Required Property: keystore.password' unless options.keystore.password
+        # throw Error 'Required Property: keystore.keypass' unless options.keystore.keypass

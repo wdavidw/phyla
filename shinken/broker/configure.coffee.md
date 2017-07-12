@@ -35,10 +35,10 @@
       unless webui.config.uri
         mg_ctx = @contexts 'ryba/mongodb/router'
         if mg_ctx.length > 0 then webui.config.uri = "mongodb://#{mg_ctx[0].config.host}:#{mg_ctx[0].config.ryba.mongodb.router.net.port}/?safe=false"
-        else throw Error "No mongodb instance detected. Provide external uri (ryba.shinken.broker.modules['webui2'].config.uri) or install mongodb on the cluster"
+        else throw Error 'No mongodb instance detected. Provide external uri (ryba.shinken.broker.modules['webui2'].config.uri) or install mongodb on the cluster'
       uigraphite = webui.modules['ui-graphite'] ?= {}
       uigraphite.type ?= 'graphite-webui'
-      uigraphite.version ?= "2.1.2"
+      uigraphite.version ?= '2.1.2'
       uigraphite.config ?= {}
       uigraphite.config.uri ?= 'http://localhost:3080/'
       uigraphite.config.templates_path ?= "#{shinken.user.home}/share/templates/graphite/"
