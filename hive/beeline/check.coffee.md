@@ -113,6 +113,7 @@ directive once you enter the beeline shell.
             """
             unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
             trap: true
+            retry: 3
 
       @call
         header: 'Check Server2 (with ZK)'

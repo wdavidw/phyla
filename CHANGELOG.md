@@ -5,6 +5,7 @@
 
 ## Version 0.0.7
 
+* hive/beeline: retry in check
 * ranger/admin: typos
 * ambari: initial commit for ambari views (standalone)
 * hive: fix group permissionn error when using ranger
