@@ -5,6 +5,7 @@
 
 ## Version 0.0.7
 
+* phoenix/client: fixed check
 * hive/beeline: retry in check
 * ranger/admin: typos
 * ambari: initial commit for ambari views (standalone)

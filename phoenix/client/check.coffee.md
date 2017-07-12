@@ -74,6 +74,7 @@ instructions.
         >/dev/null 2>&1
         """
         retry: 3
+        interval: 10000
       @wait.execute
         cmd: mkcmd.hbase @, """
         hbase shell 2>/dev/null <<< "list" | grep '#{table}'
@@ -82,15 +83,14 @@ instructions.
         cmd: mkcmd.test @, """
         cd /usr/hdp/current/phoenix-client/bin
         ./sqlline.py #{zk_path} \
-          #{user.home}/check_phoenix/select.sql \
-        | grep "|" | tail -n+2
+          #{user.home}/check_phoenix/select.sql
         hdfs dfs -touchz check-#{@config.host}-phoenix
         """
         retry: 3
-        trap_on_error: true
+        trap: true
       , (err, check, data) ->
         throw err if err
-        throw Error "Invalid output" if check and string.lines(data.trim()).length isnt 3
+        throw Error "Invalid output" if check and data.trim().match(/\|(.*)\|(.*)\|(.*)\|/g).length isnt 4
 
 ## Dependencies
 
