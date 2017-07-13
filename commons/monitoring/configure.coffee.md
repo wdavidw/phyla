@@ -319,8 +319,8 @@ Theses functions are used to generate business rules
 
           # TODO: put db_admin username/password
           if 'masson/commons/mysql/server' in ctx.services or 'masson/commons/mariadb/server' in ctx.services
-            w.modules.push 'mysql_server' if 'mysql_server' not in w.modules
-            h.hostgroups.push 'mysql_server' if 'mysql_server' not in h.hostgroups
+            w.modules.push 'mysql_server' unless 'mysql_server' in w.modules
+            h.hostgroups.push 'mysql_server' unless 'mysql_server' in h.hostgroups
             options.services['MySQL - TCP'] ?= {}
             options.services['MySQL - TCP'].hosts ?= []
             options.services['MySQL - TCP'].hosts.push host
@@ -364,8 +364,8 @@ Theses functions are used to generate business rules
             options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!80!100!#{options.db.username}!#{options.db.password}"
             create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
           if 'ryba/zookeeper/server' in ctx.services
-            w.modules.push 'zookeeper_server' if 'zookeeper_server' not in w.modules
-            h.hostgroups.push 'zookeeper_server' if 'zookeeper_server' not in h.hostgroups
+            w.modules.push 'zookeeper_server' unless 'zookeeper_server' in w.modules
+            h.hostgroups.push 'zookeeper_server' unless 'zookeeper_server' in h.hostgroups
             options.services['Zookeeper Server - TCP'] ?= {}
             options.services['Zookeeper Server - TCP'].hosts ?= []
             options.services['Zookeeper Server - TCP'].hosts.push host
@@ -388,8 +388,8 @@ Theses functions are used to generate business rules
             options.services['Zookeeper Server - Connections'].check_command ?= "check_zk_stat!#{ryba.zookeeper.port}!connections!300!350"
             create_dependency 'Zookeeper Server - Connections', 'Zookeeper Server - TCP', host
           if 'ryba/hadoop/hdfs_nn' in ctx.services
-            w.modules.push 'hdfs_nn' if 'hdfs_nn' not in w.modules
-            h.hostgroups.push 'hdfs_nn' if 'hdfs_nn' not in h.hostgroups
+            w.modules.push 'hdfs_nn' unless 'hdfs_nn' in w.modules
+            h.hostgroups.push 'hdfs_nn' unless 'hdfs_nn' in h.hostgroups
             options.services['HDFS NN - TCP'] ?= {}
             options.services['HDFS NN - TCP'].hosts ?= []
             options.services['HDFS NN - TCP'].hosts.push host
@@ -449,8 +449,8 @@ Theses functions are used to generate business rules
             options.services['HDFS NN - UnderReplicated blocks'].check_command ?= "check_hdfs_state!#{https}!FSNamesystemState!UnderReplicatedBlocks!1000!2000!-S"
             create_dependency 'HDFS NN - UnderReplicated blocks', 'HDFS NN - WebService', host
           if 'ryba/hadoop/hdfs_jn' in ctx.services
-            w.modules.push 'hdfs_jn' if 'hdfs_jn' not in w.modules
-            h.hostgroups.push 'hdfs_jn' if 'hdfs_jn' not in h.hostgroups
+            w.modules.push 'hdfs_jn' unless 'hdfs_jn' in w.modules
+            h.hostgroups.push 'hdfs_jn' unless 'hdfs_jn' in h.hostgroups
             options.services['HDFS JN - TCP SSL'] ?= {}
             options.services['HDFS JN - TCP SSL'].hosts ?= []
             options.services['HDFS JN - TCP SSL'].hosts.push host
@@ -467,8 +467,8 @@ Theses functions are used to generate business rules
             options.services['HDFS JN - Certificate'].check_command ?= "check_cert!#{https}!120!60"
             create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', host
           if 'ryba/hadoop/hdfs_dn' in ctx.services
-            w.modules.push 'hdfs_dn' if 'hdfs_dn' not in w.modules
-            h.hostgroups.push 'hdfs_dn' if 'hdfs_dn' not in h.hostgroups
+            w.modules.push 'hdfs_dn' unless 'hdfs_dn' in w.modules
+            h.hostgroups.push 'hdfs_dn' unless 'hdfs_dn' in h.hostgroups
             options.services['HDFS DN - TCP SSL'] ?= {}
             options.services['HDFS DN - TCP SSL'].hosts ?= []
             options.services['HDFS DN - TCP SSL'].hosts.push host
@@ -491,8 +491,8 @@ Theses functions are used to generate business rules
             options.services['HDFS DN - Free space'].check_command ?= "check_dn_storage!#{ryba.hdfs.site['dfs.datanode.https.address'].split(':')[1]}!75%!90%!-S"
             create_dependency 'HDFS DN - Free space', 'HDFS DN - TCP SSL', host
           if 'ryba/hadoop/zkfc' in ctx.services
-            w.modules.push 'hdfs_zkfc' if 'hdfs_zkfc' not in w.modules
-            h.hostgroups.push 'hdfs_zkfc' if 'hdfs_zkfc' not in h.hostgroups
+            w.modules.push 'hdfs_zkfc' unless 'hdfs_zkfc' in w.modules
+            h.hostgroups.push 'hdfs_zkfc' unless 'hdfs_zkfc' in h.hostgroups
             options.services['ZKFC - TCP'] ?= {}
             options.services['ZKFC - TCP'].hosts ?= []
             options.services['ZKFC - TCP'].hosts.push host
@@ -501,8 +501,8 @@ Theses functions are used to generate business rules
             options.services['ZKFC - TCP']['_process_name'] ?= 'hadoop-hdfs-zkfc'
             options.services['ZKFC - TCP'].check_command ?= "check_tcp!#{ryba.hdfs.nn.site['dfs.ha.zkfc.port']}"
           if 'ryba/hadoop/httpfs' in ctx.services
-            w.modules.push 'httpfs' if 'httpfs' not in w.modules
-            h.hostgroups.push 'httpfs' if 'httpfs' not in h.hostgroups
+            w.modules.push 'httpfs' unless 'httpfs' in w.modules
+            h.hostgroups.push 'httpfs' unless 'httpfs' in h.hostgroups
             options.services['HttpFS - WebService'] ?= {}
             options.services['HttpFS - WebService'].hosts ?= []
             options.services['HttpFS - WebService'].hosts.push host
@@ -518,8 +518,8 @@ Theses functions are used to generate business rules
             options.services['HttpFS - Certificate'].check_command ?= "check_cert!#{ryba.httpfs.http_port}!120!60"
             create_dependency 'HttpFS - Certificate', 'HttpFS - WebService', host
           if 'ryba/hadoop/yarn_rm' in ctx.services
-            w.modules.push 'yarn_rm' if 'yarn_rm' not in w.modules
-            h.hostgroups.push 'yarn_rm' if 'yarn_rm' not in h.hostgroups
+            w.modules.push 'yarn_rm' unless 'yarn_rm' in w.modules
+            h.hostgroups.push 'yarn_rm' unless 'yarn_rm' in h.hostgroups
             options.services['YARN RM - Admin TCP'] ?= {}
             options.services['YARN RM - Admin TCP'].hosts ?= []
             options.services['YARN RM - Admin TCP'].hosts.push host
@@ -541,8 +541,8 @@ Theses functions are used to generate business rules
             options.services['YARN RM - Certificate'].check_command ?= "check_cert!8090!120!60"
             create_dependency 'YARN RM - Certificate', 'YARN RM - WebService', host
           if 'ryba/hadoop/yarn_nm' in ctx.services
-            w.modules.push 'yarn_nm' if 'yarn_nm' not in w.modules
-            h.hostgroups.push 'yarn_nm' if 'yarn_nm' not in h.hostgroups
+            w.modules.push 'yarn_nm' unless 'yarn_nm' in w.modules
+            h.hostgroups.push 'yarn_nm' unless 'yarn_nm' in h.hostgroups
             options.services['YARN NM - TCP'] ?= {}
             options.services['YARN NM - TCP'].hosts ?= []
             options.services['YARN NM - TCP'].hosts.push host
@@ -571,8 +571,8 @@ Theses functions are used to generate business rules
             options.services['YARN NM - Health'].check_command ?= 'check_nm_info!8044!nodeHealthy!true!-S'
             create_dependency 'YARN NM - Health', 'YARN NM - WebService', host
           if 'ryba/hadoop/yarn_ts' in ctx.services
-            w.modules.push 'yarn_ts' if 'yarn_ts' not in w.modules
-            h.hostgroups.push 'yarn_ts' if 'yarn_ts' not in h.hostgroups
+            w.modules.push 'yarn_ts' unless 'yarn_ts' in w.modules
+            h.hostgroups.push 'yarn_ts' unless 'yarn_ts' in h.hostgroups
             options.services['YARN TS - TCP'] ?= {}
             options.services['YARN TS - TCP'].hosts ?= []
             options.services['YARN TS - TCP'].hosts.push host
@@ -594,8 +594,8 @@ Theses functions are used to generate business rules
             options.services['YARN TS - Certificate'].check_command ?= 'check_cert!8190!120!60'
             create_dependency 'YARN TS - Certificate', 'YARN TS - WebService', host
           if 'ryba/hbase/master' in ctx.services
-            w.modules.push 'hbase_master' if 'hbase_master' not in w.modules
-            h.hostgroups.push 'hbase_master' if 'hbase_master' not in h.hostgroups
+            w.modules.push 'hbase_master' unless 'hbase_master' in w.modules
+            h.hostgroups.push 'hbase_master' unless 'hbase_master' in h.hostgroups
             options.services['HBase Master - TCP'] ?= {}
             options.services['HBase Master - TCP'].hosts ?= []
             options.services['HBase Master - TCP'].hosts.push host
@@ -618,8 +618,8 @@ Theses functions are used to generate business rules
             options.services['HBase Master - Certificate'].check_command ?= "check_cert!#{ryba.hbase.master.site['hbase.master.info.port']}!120!60"
             create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', host
           if 'ryba/hbase/regionserver' in ctx.services
-            w.modules.push 'hbase_regionserver' if 'hbase_regionserver' not in w.modules
-            h.hostgroups.push 'hbase_regionserver' if 'hbase_regionserver' not in h.hostgroups
+            w.modules.push 'hbase_regionserver' unless 'hbase_regionserver' in w.modules
+            h.hostgroups.push 'hbase_regionserver' unless 'hbase_regionserver' in h.hostgroups
             options.services['HBase RegionServer - TCP'] ?= {}
             options.services['HBase RegionServer - TCP'].hosts ?= []
             options.services['HBase RegionServer - TCP'].hosts.push host
@@ -641,8 +641,8 @@ Theses functions are used to generate business rules
             options.services['HBase RegionServer - Certificate'].check_command ?= "check_cert!#{ryba.hbase.rs.site['hbase.regionserver.info.port']}!120!60"
             create_dependency 'HBase RegionServer - Certificate', 'HBase RegionServer - WebUI', host
           if 'ryba/hbase/rest' in ctx.services
-            w.modules.push 'hbase_rest' if 'hbase_rest' not in w.modules
-            h.hostgroups.push 'hbase_rest' if 'hbase_rest' not in h.hostgroups
+            w.modules.push 'hbase_rest' unless 'hbase_rest' in w.modules
+            h.hostgroups.push 'hbase_rest' unless 'hbase_rest' in h.hostgroups
             options.services['HBase REST - WebService'] ?= {}
             options.services['HBase REST - WebService'].hosts ?= []
             options.services['HBase REST - WebService'].hosts.push host
@@ -664,8 +664,8 @@ Theses functions are used to generate business rules
             options.services['HBase REST - WebUI'].use ?= 'unit-service'
             options.services['HBase REST - WebUI'].check_command ?= "check_tcp!#{ryba.hbase.rest.site['hbase.rest.info.port']}"
           if 'ryba/hbase/thrift' in ctx.services
-            w.modules.push 'hbase_thrift' if 'hbase_thrift' not in w.modules
-            h.hostgroups.push 'hbase_thrift' if 'hbase_thrift' not in h.hostgroups
+            w.modules.push 'hbase_thrift' unless 'hbase_thrift' in w.modules
+            h.hostgroups.push 'hbase_thrift' unless 'hbase_thrift' in h.hostgroups
             options.services['HBase Thrift - TCP SSL'] ?= {}
             options.services['HBase Thrift - TCP SSL'].hosts ?= []
             options.services['HBase Thrift - TCP SSL'].hosts.push host
@@ -681,8 +681,8 @@ Theses functions are used to generate business rules
             options.services['HBase Thrift - Certificate'].check_command ?= "check_cert!#{ryba.hbase.thrift.site['hbase.thrift.port']}!120!60"
             create_dependency 'HBase Thrift - Certificate', 'HBase Thrift - TCP SSL', host
           if 'ryba/hive/hcatalog' in ctx.services
-            w.modules.push 'hcatalog' if 'hcatalog' not in w.modules
-            h.hostgroups.push 'hcatalog' if 'hcatalog' not in h.hostgroups
+            w.modules.push 'hcatalog' unless 'hcatalog' in w.modules
+            h.hostgroups.push 'hcatalog' unless 'hcatalog' in h.hostgroups
             options.services['HCatalog - TCP'] ?= {}
             options.services['HCatalog - TCP'].hosts ?= []
             options.services['HCatalog - TCP'].hosts.push host
@@ -691,8 +691,8 @@ Theses functions are used to generate business rules
             #services['HCatalog - TCP']['_process_name'] ?= 'hive-hcatalog-server'
             options.services['HCatalog - TCP'].check_command ?= "check_tcp!#{ryba.hive.server2.site['hive.metastore.uris'].split(',')[0].split(':')[2]}"
           if 'ryba/hive/server2' in ctx.services
-            w.modules.push 'hiveserver2' if 'hiveserver2' not in w.modules
-            h.hostgroups.push 'hiveserver2' if 'hiveserver2' not in h.hostgroups
+            w.modules.push 'hiveserver2' unless 'hiveserver2' in w.modules
+            h.hostgroups.push 'hiveserver2' unless 'hiveserver2' in h.hostgroups
             options.services['Hiveserver2 - TCP SSL'] ?= {}
             options.services['Hiveserver2 - TCP SSL'].hosts ?= []
             options.services['Hiveserver2 - TCP SSL'].hosts.push host
@@ -708,8 +708,8 @@ Theses functions are used to generate business rules
             options.services['Hiveserver2 - Certificate'].check_command ?= "check_cert!#{ryba.hive.server2.site['hive.server2.thrift.port']}!120!60"
             create_dependency 'Hiveserver2 - Certificate', 'Hiveserver2 - TCP SSL', host
           if 'ryba/hive/webhcat' in ctx.services
-            w.modules.push 'webhcat' if 'webhcat' not in w.modules
-            h.hostgroups.push 'webhcat' if 'webhcat' not in h.hostgroups
+            w.modules.push 'webhcat' unless 'webhcat' in w.modules
+            h.hostgroups.push 'webhcat' unless 'webhcat' in h.hostgroups
             options.services['WebHCat - WebService'] ?= {}
             options.services['WebHCat - WebService'].hosts ?= []
             options.services['WebHCat - WebService'].hosts.push host
@@ -732,8 +732,8 @@ Theses functions are used to generate business rules
             options.services['WebHCat - Database'].check_command ?= "check_webhcat_database!#{ryba.webhcat.site['templeton.port']}"
             create_dependency 'WebHCat - Database', 'WebHCat - WebService', host
           if 'ryba/oozie/server' in ctx.services
-            w.modules.push 'oozie_server' if 'oozie_server' not in w.modules
-            h.hostgroups.push 'oozie_server' if 'oozie_server' not in h.hostgroups
+            w.modules.push 'oozie_server' unless 'oozie_server' in w.modules
+            h.hostgroups.push 'oozie_server' unless 'oozie_server' in h.hostgroups
             options.services['Oozie Server - WebUI'] ?= {}
             options.services['Oozie Server - WebUI'].hosts ?= []
             options.services['Oozie Server - WebUI'].hosts.push host
@@ -749,8 +749,8 @@ Theses functions are used to generate business rules
             options.services['Oozie Server - Certificate'].check_command ?= "check_cert!#{ryba.oozie.http_port}!120!60"
             create_dependency 'Oozie Server - Certificate', 'Oozie Server - WebUI', host
           if 'ryba/kafka/broker' in ctx.services
-            w.modules.push 'kafka_broker' if 'kafka_broker' not in w.modules
-            h.hostgroups.push 'kafka_broker' if 'kafka_broker' not in h.hostgroups
+            w.modules.push 'kafka_broker' unless 'kafka_broker' in w.modules
+            h.hostgroups.push 'kafka_broker' unless 'kafka_broker' in h.hostgroups
             for protocol in ryba.kafka.broker.protocols
               options.services["Kafka Broker - TCP #{protocol}"] ?= {}
               options.services["Kafka Broker - TCP #{protocol}"].hosts ?= []
@@ -766,8 +766,8 @@ Theses functions are used to generate business rules
             options.services['Kafka Broker - TCPs']['_process_name'] ?= 'kafka-broker'
             options.services['Kafka Broker - TCPs'].check_command ?= "bp_rule!($HOSTNAME$,r:^Kafka Broker - TCP .*$)"
           if 'ryba/ranger/admin' in ctx.services
-            w.modules.push 'ranger' if 'ranger' not in w.modules
-            h.hostgroups.push 'ranger' if 'ranger' not in h.hostgroups
+            w.modules.push 'ranger' unless 'ranger' in w.modules
+            h.hostgroups.push 'ranger' unless 'ranger' in h.hostgroups
             options.services['Ranger - WebUI'] ?= {}
             options.services['Ranger - WebUI'].hosts ?= []
             options.services['Ranger - WebUI'].hosts.push host
@@ -786,8 +786,8 @@ Theses functions are used to generate business rules
             else
               options.services['Ranger - WebUI'].check_command ?= "check_tcp!#{ryba.ranger.admin.site['ranger.service.http.port']}"
           if 'ryba/opentsdb' in ctx.services
-            w.modules.push 'opentsdb' if 'opentsdb' not in w.modules
-            h.hostgroups.push 'opentsdb' if 'opentsdb' not in h.hostgroups
+            w.modules.push 'opentsdb' unless 'opentsdb' in w.modules
+            h.hostgroups.push 'opentsdb' unless 'opentsdb' in h.hostgroups
             options.services['OpenTSDB - WebService'] ?= {}
             options.services['OpenTSDB - WebService'].hosts ?= []
             options.services['OpenTSDB - WebService'].hosts.push host
@@ -796,8 +796,8 @@ Theses functions are used to generate business rules
             options.services['OpenTSDB - WebService']['_process_name'] ?= 'opentsdb'
             options.services['OpenTSDB - WebService'].check_command ?= "check_tcp!#{ryba.opentsdb.config['tsd.network.port']}"
           if 'ryba/phoenix/queryserver' in ctx.services
-            w.modules.push 'phoenix_qs' if 'phoenix_qs' not in w.modules
-            h.hostgroups.push 'phoenix_qs' if 'phoenix_qs' not in h.hostgroups
+            w.modules.push 'phoenix_qs' unless 'phoenix_qs' in w.modules
+            h.hostgroups.push 'phoenix_qs' unless 'phoenix_qs' in h.hostgroups
             options.services['Phoenix QueryServer - TCP'] ?= {}
             options.services['Phoenix QueryServer - TCP'].hosts ?= []
             options.services['Phoenix QueryServer - TCP'].hosts.push host
@@ -806,8 +806,8 @@ Theses functions are used to generate business rules
             options.services['Phoenix QueryServer - TCP']['_process_name'] ?= 'phoenix-queryserver'
             options.services['Phoenix QueryServer - TCP'].check_command ?= "check_tcp!#{ryba.phoenix.queryserver.site['phoenix.queryserver.http.port']}"
           if 'ryba/elasticsearch' in ctx.services
-            w.modules.push 'elasticsearch' if 'elasticsearch' not in w.modules
-            h.hostgroups.push 'elasticsearch' if 'elasticsearch' not in h.hostgroups
+            w.modules.push 'elasticsearch' unless 'elasticsearch' in w.modules
+            h.hostgroups.push 'elasticsearch' unless 'elasticsearch' in h.hostgroups
             options.services['ElasticSearch - WebService'] ?= {}
             options.services['ElasticSearch - WebService'].hosts ?= []
             options.services['ElasticSearch - WebService'].hosts.push host
@@ -822,8 +822,8 @@ Theses functions are used to generate business rules
             options.services['ElasticSearch - TCP'].use ?= 'unit-service'
             options.services['ElasticSearch - TCP'].check_command ?= 'check_tcp!9300'
           if 'ryba/rexster' in ctx.services
-            w.modules.push 'rexster' if 'rexster' not in w.modules
-            h.hostgroups.push 'rexster' if 'rexster' not in h.hostgroups
+            w.modules.push 'rexster' unless 'rexster' in w.modules
+            h.hostgroups.push 'rexster' unless 'rexster' in h.hostgroups
             options.services['Rexster - WebUI'] ?= {}
             options.services['Rexster - WebUI'].hosts ?= []
             options.services['Rexster - WebUI'].hosts.push host
@@ -832,8 +832,8 @@ Theses functions are used to generate business rules
             options.services['Rexster - WebUI']['_process_name'] ?= 'rexster'
             options.services['Rexster - WebUI'].check_command ?= "check_tcp!#{ryba.rexster.config.http['server-port']}"
           if 'ryba/atlas' in ctx.services
-            w.modules.push 'atlas' if 'atlas' not in w.modules
-            h.hostgroups.push 'atlas' if 'atlas' not in h.hostgroups
+            w.modules.push 'atlas' unless 'atlas' in w.modules
+            h.hostgroups.push 'atlas' unless 'atlas' in h.hostgroups
             options.services['Atlas - WebUI'] ?= {}
             options.services['Atlas - WebUI'].hosts ?= []
             options.services['Atlas - WebUI'].hosts.push host
@@ -852,8 +852,8 @@ Theses functions are used to generate business rules
             else
               options.services['Atlas - WebUI'].check_command ?= "check_tcp!#{ryba.atlas.application.properties['atlas.server.http.port']}"
           if 'ryba/huedocker' in ctx.services
-            w.modules.push 'hue' if 'hue' not in w.modules
-            h.hostgroups.push 'hue' if 'hue' not in h.hostgroups
+            w.modules.push 'hue' unless 'hue' in w.modules
+            h.hostgroups.push 'hue' unless 'hue' in h.hostgroups
             options.services['Hue - WebUI'] ?= {}
             options.services['Hue - WebUI'].hosts ?= []
             options.services['Hue - WebUI'].hosts.push host
@@ -872,8 +872,8 @@ Theses functions are used to generate business rules
             else
               options.services['Hue - WebUI'].check_command ?= "check_tcp!#{ryba.hue_docker.ini.desktop.http_port}"
           if 'ryba/knox' in ctx.services
-            w.modules.push 'knox' if 'knox' not in w.modules
-            h.hostgroups.push 'knox' if 'knox' not in h.hostgroups
+            w.modules.push 'knox' unless 'knox' in w.modules
+            h.hostgroups.push 'knox' unless 'knox' in h.hostgroups
             options.services['Knox - WebService'] ?= {}
             options.services['Knox - WebService'].hosts ?= []
             options.services['Knox - WebService'].hosts.push host
@@ -890,8 +890,8 @@ Theses functions are used to generate business rules
             create_dependency 'Knox - Certificate', 'Knox - WebService', host
           if 'ryba/nifi' in ctx.services
             {properties} = ryba.nifi.config
-            w.modules.push 'nifi' if 'nifi' not in w.modules
-            h.hostgroups.push 'nifi' if 'nifi' not in h.hostgroups
+            w.modules.push 'nifi' unless 'nifi' in w.modules
+            h.hostgroups.push 'nifi' unless 'nifi' in h.hostgroups
             # get nifi port
             options.services['NiFi - WebUI'] ?= {}
             options.services['NiFi - WebUI'].hosts ?= []
