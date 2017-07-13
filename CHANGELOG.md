@@ -5,6 +5,7 @@
 
 ## Version 0.0.7
 
+* lib/capacity: fixed yarn.app.mapreduce.am.resource.mb calculation
 * phoenix/client: fixed check
 * hive/beeline: retry in check
 * ranger/admin: typos

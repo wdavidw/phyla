@@ -364,27 +364,21 @@ system. This value also needs to be less than what is defined in
 condition.  Can be set at site level with "mapred-site.xml", or
 can be set at the job level. This change does not require a service restart.
 
-        getAmMb = ->
-          memory_per_container_mean_mb / 2
-          # am_mb = memory_per_container_mean_mb
-          # if am_mb < 1024
-          #   am_mb = Math.max minimum_allocation_mb, 256
-          # if memory_per_container_mean_mb > 1024 then 2 * memory_per_container_mean_mb else memory_per_container_mean_mb
-        mapreduce_am_memory_mb = mapred_site['yarn.app.mapreduce.am.resource.mb'] or getAmMb()
-        mapreduce_am_memory_mb = Math.min mapreduce_am_memory_mb, maximum_allocation_mb
-        mapred_site['yarn.app.mapreduce.am.resource.mb'] = mapreduce_am_memory_mb
-
-        mapreduce_am_opts = /-Xmx(.*?)m/.exec(mapred_site['yarn.app.mapreduce.am.command-opts'])?[1] or Math.floor .8 * mapreduce_am_memory_mb
-        mapreduce_am_opts = Math.min mapreduce_am_opts, maximum_allocation_mb
-        mapred_site['yarn.app.mapreduce.am.command-opts'] = "-Xmx#{mapreduce_am_opts}m"
-
         map_memory_mb = mapred_site['mapreduce.map.memory.mb'] or memory_per_container_mean_mb
         map_memory_mb = Math.min map_memory_mb, maximum_allocation_mb
         mapred_site['mapreduce.map.memory.mb'] = "#{map_memory_mb}"
 
-        reduce_memory_mb = mapred_site['mapreduce.reduce.memory.mb'] or 2 * memory_per_container_mean_mb
+        reduce_memory_mb = mapred_site['mapreduce.reduce.memory.mb'] or (if map_memory_mb < 2048 then 2 * memory_per_container_mean_mb else map_memory_mb)
         reduce_memory_mb = Math.min reduce_memory_mb, maximum_allocation_mb
         mapred_site['mapreduce.reduce.memory.mb'] = "#{reduce_memory_mb}"
+        
+        mapreduce_am_memory_mb = mapred_site['yarn.app.mapreduce.am.resource.mb'] or Math.max map_memory_mb, reduce_memory_mb
+        mapreduce_am_memory_mb = Math.min mapreduce_am_memory_mb, maximum_allocation_mb
+        mapred_site['yarn.app.mapreduce.am.resource.mb'] = mapreduce_am_memory_mb
+        
+        mapreduce_am_opts = /-Xmx(.*?)m/.exec(mapred_site['yarn.app.mapreduce.am.command-opts'])?[1] or Math.floor .8 * mapreduce_am_memory_mb
+        mapreduce_am_opts = Math.min mapreduce_am_opts, maximum_allocation_mb
+        mapred_site['yarn.app.mapreduce.am.command-opts'] = "-Xmx#{mapreduce_am_opts}m"
 
 The value of "mapreduce.map.java.opts" and "mapreduce.reduce.java.opts" are used
 to configure the maximum and minimum JVM heap size with respectively the java
