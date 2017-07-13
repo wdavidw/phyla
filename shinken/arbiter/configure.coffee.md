@@ -25,8 +25,15 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of arbiter.modules then configmod name, mod
-      # Config
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
       arbiter.config ?= {}
+      arbiter.config.host ?= '0.0.0.0'
       arbiter.config.port ?= 7770
       arbiter.config.spare ?= '0'
       arbiter.config.modules = [arbiter.config.modules] if typeof arbiter.config.modules is 'string'
@@ -35,6 +42,5 @@
       arbiter.config.hostname ?= @config.host
       arbiter.config.user = shinken.user.name
       arbiter.config.group = shinken.group.name
-      arbiter.config.host ?= '0.0.0.0'
       arbiter.config.use_ssl ?= shinken.config.use_ssl
       arbiter.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check

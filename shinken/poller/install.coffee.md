@@ -32,7 +32,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service name: 'net-snmp'
         @service name: 'net-snmp-utils'
         @service name: 'httpd'
-        # @service name: 'perl-Net-SNMP'
         @service name: 'fping'
         @service name: 'krb5-devel'
         @service name: 'zlib-devel'
@@ -40,6 +39,15 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service name: 'openssl-devel'
         @service name: 'ncurses-devel'
         @service name: 'shinken-poller'
+
+## Configuration
+
+      @file.ini
+        header: 'Configuration'
+        target: '/etc/shinken/daemons/pollerd.ini'
+        content: daemon: poller.ini
+        backup: true
+        eof: true
 
 ## Modules
 
@@ -81,7 +89,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
         for _, mod of poller.modules then for k,v of mod.python_modules then install_dep k, v
-        for k, v of poller.python_modules then install_dep k, v
 
 ## Plugins
 

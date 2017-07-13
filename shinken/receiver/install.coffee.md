@@ -27,6 +27,15 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         header: 'Packages'
         name: 'shinken-receiver'
 
+## Configuration
+
+      @file.ini
+        header: 'Configuration'
+        target: '/etc/shinken/daemons/receiverd.ini'
+        content: daemon: receiver.ini
+        backup: true
+        eof: true
+
 ## Modules
 
       @call header: 'Modules', ->

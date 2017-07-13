@@ -27,6 +27,15 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         header: 'Packages'
         name: 'shinken-scheduler'
 
+## Configuration
+
+      @file.ini
+        header: 'Configuration'
+        target: '/etc/shinken/daemons/schedulerd.ini'
+        content: daemon: scheduler.ini
+        backup: true
+        eof: true
+
 ## Modules
 
       @call header: 'Modules', ->

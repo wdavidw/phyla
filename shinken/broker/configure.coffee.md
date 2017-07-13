@@ -35,7 +35,7 @@
       unless webui.config.uri
         mg_ctx = @contexts 'ryba/mongodb/router'
         if mg_ctx.length > 0 then webui.config.uri = "mongodb://#{mg_ctx[0].config.host}:#{mg_ctx[0].config.ryba.mongodb.router.net.port}/?safe=false"
-        else throw Error 'No mongodb instance detected. Provide external uri (ryba.shinken.broker.modules['webui2'].config.uri) or install mongodb on the cluster'
+        else throw Error 'No mongodb instance detected. Provide external uri (ryba.shinken.broker.modules.webui2.config.uri) or install mongodb on the cluster'
       uigraphite = webui.modules['ui-graphite'] ?= {}
       uigraphite.type ?= 'graphite-webui'
       uigraphite.version ?= '2.1.2'
@@ -100,8 +100,15 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of broker.modules then configmod name, mod
-      # CONFIG
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
       broker.config ?= {}
+      broker.config.host ?= '0.0.0.0'
       broker.config.port ?= 7772
       broker.config.spare ?= '0'
       broker.config.realm ?= 'All'
@@ -111,3 +118,17 @@
       broker.config.modules ?= Object.keys broker.modules
       broker.config.use_ssl ?= shinken.config.use_ssl
       broker.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+
+## Ini
+
+This configuration is used by local service to load preconfiguration that cannot
+be set runtime by arbiter configuration synchronization.
+
+      broker.ini ?= {}
+      broker.ini[k] ?= v for k, v of shinken.ini
+      broker.ini.host = broker.config.host
+      broker.ini.port = broker.config.port
+      broker.ini.pidfile = '%(workdir)s/brokerd.pid'
+      broker.ini.local_log = '%(logdir)s/brokerd.log'
+      broker.ini.daemon_thread_pool_size ?= 16
+      broker.ini.max_queue_size ?= 100000

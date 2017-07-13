@@ -24,8 +24,15 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of reactionner.modules then configmod name, mod
-      # Config
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
       reactionner.config ?={}
+      reactionner.config.host ?= '0.0.0.0'
       reactionner.config.port ?= 7769
       reactionner.config.spare ?= '0'
       reactionner.config.realm ?= 'All'
@@ -35,3 +42,16 @@
       reactionner.config.tags ?= []
       reactionner.config.use_ssl ?= shinken.config.use_ssl
       reactionner.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+
+## Ini
+
+This configuration is used by local service to load preconfiguration that cannot
+be set runtime by arbiter configuration synchronization.
+
+      reactionner.ini ?= {}
+      reactionner.ini[k] ?= v for k, v of shinken.ini
+      reactionner.ini.host = reactionner.config.host
+      reactionner.ini.port = reactionner.config.port
+      reactionner.ini.pidfile = '%(workdir)s/reactionnerd.pid'
+      reactionner.ini.local_log = '%(logdir)s/reactionnerd.log'
+      reactionner.ini.daemon_thread_pool_size ?= 16

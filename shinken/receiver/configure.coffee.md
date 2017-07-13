@@ -24,8 +24,15 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of receiver.modules then configmod name, mod
-      # Config
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
       receiver.config ?= {}
+      receiver.config.host ?= '0.0.0.0'
       receiver.config.port ?= 7773
       receiver.config.spare ?= '0'
       receiver.config.realm ?= 'All'
@@ -33,3 +40,15 @@
       receiver.config.modules ?= Object.keys receiver.modules
       receiver.config.use_ssl ?= shinken.config.use_ssl
       receiver.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+
+## Ini
+
+This configuration is used by local service to load preconfiguration that cannot
+be set runtime by arbiter configuration synchronization.
+
+      receiver.ini ?= {}
+      receiver.ini[k] ?= v for k, v of shinken.ini
+      receiver.ini.host = receiver.config.host
+      receiver.ini.port = receiver.config.port
+      receiver.ini.pidfile = '%(workdir)s/receiverd.pid'
+      receiver.ini.local_log = '%(logdir)s/receiverd.log'

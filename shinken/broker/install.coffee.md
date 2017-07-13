@@ -29,11 +29,20 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service name: 'python-requests'
         @service name: 'python-arrow'
 
+## Configuration
+
+      @file.ini
+        header: 'Configuration'
+        target: '/etc/shinken/daemons/brokerd.ini'
+        content: daemon: broker.ini
+        backup: true
+        eof: true
+
 ## Modules
 
       @call header: 'Modules', ->
         installmod = (name, mod) =>
-          @call unless_exec: "shinken inventory | grep #{name}", ->
+          @call header: name, unless_exec: "shinken inventory | grep #{name}", ->
             @file.download
               target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
               source: mod.source
@@ -52,7 +61,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @call header: 'Python Modules', ->
         install_dep = (k, v) => 
-          @call unless_exec: "pip list | grep #{k}", ->
+          @call header: k, unless_exec: "pip list | grep #{k}", ->
             @file.download
               source: v.url
               target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"

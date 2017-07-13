@@ -14,14 +14,6 @@
       poller.executor.krb5.principal ?= "#{shinken.user.name}@#{@config.ryba.realm}"
       poller.executor.krb5.keytab ?= "/etc/security/keytabs/shinken.test.keytab"
       poller.executor.resources_dir ?= shinken.user.home
-      # Python modules to install
-      poller.python_modules ?= {}
-      poller.python_modules.requests ?= {}
-      poller.python_modules.requests.version ?= '2.18.1'
-      poller.python_modules.kerberos ?= {}
-      poller.python_modules.kerberos.version ?= '1.2.5'
-      poller.python_modules.requests_kerberos ?= {}
-      poller.python_modules.requests_kerberos.version ?= '0.7.0'
       # Additionnal Modules to install
       poller.modules ?= {}
       configmod = (name, mod) =>
@@ -42,8 +34,15 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of poller.modules then configmod name, mod
-      # Config
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
       poller.config ?= {}
+      poller.config.host ?= '0.0.0.0'
       poller.config.port ?= 7771
       poller.config.spare ?= '0'
       poller.config.realm ?= 'All'
@@ -53,3 +52,15 @@
       poller.config.tags ?= []
       poller.config.use_ssl ?= shinken.config.use_ssl
       poller.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+
+## Ini
+
+This configuration is used by local service to load preconfiguration that cannot
+be set runtime by arbiter configuration synchronization.
+
+      poller.ini ?= {}
+      poller.ini[k] ?= v for k, v of shinken.ini
+      poller.ini.host = poller.config.host
+      poller.ini.port = poller.config.port
+      poller.ini.pidfile = '%(workdir)s/pollerd.pid'
+      poller.ini.local_log = '%(logdir)s/pollerd.log'

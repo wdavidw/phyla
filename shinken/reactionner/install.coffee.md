@@ -55,6 +55,15 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         header: 'Packages'
         name: 'shinken-reactionner'
 
+## Configuration
+
+      @file.ini
+        header: 'Configuration'
+        target: '/etc/shinken/daemons/reactionnerd.ini'
+        content: daemon: reactionner.ini
+        backup: true
+        eof: true
+
 ## Modules
 
       @call header: 'Modules', ->

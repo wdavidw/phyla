@@ -178,3 +178,4 @@ This output is more verbose than a failed start so it runs at the end of install
       @system.execute
         header: 'Check config'
         cmd: 'shinken-arbiter -v -r -c /etc/shinken/shinken.cfg'
+        shy: true
