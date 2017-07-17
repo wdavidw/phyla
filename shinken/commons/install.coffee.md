@@ -1,7 +1,8 @@
 
-# Shinken Install
+# Shinken Commons Install
 
     module.exports = header: 'Shinken Install', handler: ->
+      {ssl} = @config
       {shinken} = @config.ryba
 
 ## Identities
@@ -9,14 +10,16 @@
       @system.group header: 'Group', shinken.group
       @system.user header: 'User', shinken.user
 
-## Commons Packages
+## Packages
 
-      @call header: 'Commons Packages', ->
+      @call header: 'Packages', ->
         @service name: 'python'
         @service name: 'python-pip'
         @service name: 'libcurl-devel'
         @service name: 'python-pycurl'
         @service name: 'python-devel'
+        @service name: 'gcc'
+        @service name: 'libffi-devel'
         @service name: 'shinken'
 
 ## Layout
@@ -40,13 +43,36 @@
           gid: shinken.group.name
         @system.execute
           cmd: 'shinken --init'
-          unless_exists: "#{shinken.user.home}/.shinken.ini"
+          unless_exists: "/root/.shinken.ini"
+
+## SSL Layout
+
+      @call
+        if: -> shinken.config['use_ssl'] is '1'
+        header: 'SSL Layout'
+      , ->
+        @file.download
+          target: shinken.config['ca_cert']
+          source: ssl.cacert.source
+          local: ssl.cacert.local
+        @file.download
+          target: shinken.config['server_cert']
+          source: ssl.cert.source
+          local: ssl.cert.local
+        @file.download
+          target: shinken.config['server_key']
+          source: ssl.key.source
+          local: ssl.key.local
 
 ## Python Modules
 
       @call header: 'Python Modules', ->
-        for k, v of shinken.python_modules
-          @call header: k, unless_exec: "pip list | grep #{k}", ->
+        @each shinken.python_modules, (options, callback) ->
+          v = options.value
+          @call
+            header: options.key
+            unless_exec: "pip list | grep #{options.key}"
+          , ->
             @file.download
               source: v.url
               target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
@@ -61,3 +87,4 @@
               """
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
+          @then callback

@@ -12,3 +12,5 @@ to all shinken submodules
       commands:
         'install':
           'ryba/shinken/commons/install'
+        'prepare':
+          'ryba/shinken/commons/prepare'
