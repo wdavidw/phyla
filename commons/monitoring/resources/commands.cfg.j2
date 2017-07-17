@@ -123,12 +123,12 @@ define command {
   command_line    $DOCKER_EXEC$ hive/check_webhcat_database.sh $HOSTNAME$ $ARG1$
 }
 define command {
-  command_name    check_es_containers
-  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_tcps.php -H $ARG1$ -p $ARG2$ -c $ARG3$ -k $ARG4$ $ARG5$
+  command_name    check_es_containers_tcps
+  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_tcps.php -H $ARG1$ -p $ARG2$ -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG3$
 }
 define command {
-  command_name    check_es_containers_cluster
-  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_tcps.php -H $ARG1$ -p $ARG2$ -c $ARG3$ -k $ARG4$ -C $ARG5$ $ARG6$
+  command_name    check_es_containers_status
+  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_status.php -H $ARG1$ -p $ARG2$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG5$
 }
 ## User/ryba-defined commands
 {% for name, command in commands %}
