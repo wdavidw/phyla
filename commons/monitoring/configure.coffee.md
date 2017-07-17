@@ -32,8 +32,7 @@ If a credential is disabled, tests that need this credential will be disabled.
       options.credentials.swarm_user.enabled ?= true
       if options.credentials.swarm_user.enabled
         options.credentials.swarm_user.username ?= 'ryba'
-        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.password' unless options.credentials.swarm_user.password?
-        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.ca_cert' unless options.credentials.swarm_user.ca_cert
+        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.password' unless options.credentials.swarm_user.password
         throw Error 'Required property: ryba.monitoring.credentials.swarm_user.cert' unless options.credentials.swarm_user.cert
         throw Error 'Required property: ryba.monitoring.credentials.swarm_user.key' unless options.credentials.swarm_user.key
 
