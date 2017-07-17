@@ -108,11 +108,11 @@ define command {
 }
 define command {
   command_name    check_hbase_scan
-  command_line    $DOCKER_EXEC$ hbase/check_scan_table.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t hbase:meta $ARG2$
+  command_line    $DOCKER_EXEC$ hbase/check_scan_table.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ $ARG3$
 }
 define command {
   command_name    check_hbase_write
-  command_line    $DOCKER_EXEC$ hbase/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t 'shinken:test' -c 'cf1' $ARG2$
+  command_line    $DOCKER_EXEC$ hbase/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ -c $ARG3$ $ARG4$
 }
 define command {
   command_name    check_webhcat_status

@@ -4,6 +4,7 @@
     module.exports = ->
       {db_admin, krb5_user} = @config.ryba
       options = @config.ryba.monitoring ?= {}
+      hbase_test_ns = @contexts('ryba/hbase/client')[0].config.ryba.hbase.client.test.namespace
 
 ## Credentials
 
@@ -946,14 +947,14 @@ Theses functions are used to generate business rules
               options.services['Knox - HBase Scan'].hosts.push host
               options.services['Knox - HBase Scan'].servicegroups ?= ['knox', 'hbase']
               options.services['Knox - HBase Scan'].use ?= 'functional-service'
-              options.services['Knox - HBase Scan'].check_command ?= "check_hbase_scan!#{ryba.knox.site['gateway.port']}!-S"
+              options.services['Knox - HBase Scan'].check_command ?= "check_hbase_scan!#{ryba.knox.site['gateway.port']}!hbase:meta!-S"
               create_dependency 'Knox - HBase Scan', 'Knox - WebService', host
               options.services['Knox - HBase Write'] ?= {}
               options.services['Knox - HBase Write'].hosts ?= []
               options.services['Knox - HBase Write'].hosts.push host
               options.services['Knox - HBase Write'].servicegroups ?= ['knox', 'hbase']
               options.services['Knox - HBase Write'].use ?= 'functional-service'
-              options.services['Knox - HBase Write'].check_command ?= "check_hbase_write!#{ryba.knox.site['gateway.port']}!-S"
+              options.services['Knox - HBase Write'].check_command ?= "check_hbase_write!#{ryba.knox.site['gateway.port']}!#{hbase_test_ns}:monitoring!cf1!-S"
               create_dependency 'Knox - HBase Write', 'Knox - WebService', host
               options.services['Knox - HDFS Write'] ?= {}
               options.services['Knox - HDFS Write'].hosts.push host
