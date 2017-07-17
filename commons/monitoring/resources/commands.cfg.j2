@@ -74,10 +74,6 @@ define command {
   command_line    $DOCKER_EXEC$ hdfs/check_state.php -H $HOSTNAME$ -p $ARG1$ -j $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
 }
 define command {
-  command_name    check_hdfs_write
-  command_line    $DOCKER_EXEC$ hdfs/check_write.php -H $HOSTNAME$ -p $ARG1$ -u $ARG2$ -P $ARG3$ -t $ARG4$ $ARG4$
-}
-define command {
   command_name    check_active_nn
   command_line    $DOCKER_EXEC$ hdfs/check_active_nn.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
 }
@@ -97,6 +93,11 @@ define command {
   command_name    check_dn_storage
   command_line    $DOCKER_EXEC$ hdfs/check_dn_storage.php -H $HOSTNAME$ -p $ARG1$ -w $ARG2$ -c $ARG3$ $ARG4$
 }
+{# From knox #}
+define command {
+  command_name    check_hdfs_write
+  command_line    $DOCKER_EXEC$ hdfs/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t /tmp/__monitoring_test $ARG2$
+}
 define command {
   command_name    check_active_rm
   command_line    $DOCKER_EXEC$ yarn/check_active_rm.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
@@ -107,11 +108,11 @@ define command {
 }
 define command {
   command_name    check_hbase_scan
-  command_line    $DOCKER_EXEC$ hbase/check_scan_table.php -H $HOSTNAME$ -p $ARG1$ -u $ARG2$ (shinken) -P $ARG3$ (Ryba4Shinken) -t hbase:meta $ARG4$
+  command_line    $DOCKER_EXEC$ hbase/check_scan_table.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t hbase:meta $ARG2$
 }
 define command {
   command_name    check_hbase_write
-  command_line    $DOCKER_EXEC$ hbase/check_write.php -H $HOSTNAME$ -p $ARG1$ -u $ARG2$ (shinken) -P $ARG3$ (Ryba4Shinken) -t $ARG4$ -c $ARG5$ ('cf1:') $ARG6$
+  command_line    $DOCKER_EXEC$ hbase/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t 'shinken:test' -c 'cf1' $ARG2$
 }
 define command {
   command_name    check_webhcat_status

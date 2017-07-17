@@ -2,8 +2,39 @@
 # Configure Monitoring Objects
 
     module.exports = ->
-      {db_admin} = @config.ryba
+      {db_admin, krb5_user} = @config.ryba
       options = @config.ryba.monitoring ?= {}
+
+## Credentials
+
+"credentials" object contains credentials for components that use authentication.
+If a credential is disabled, tests that need this credential will be disabled.
+
+      options.credentials ?= {}
+      options.credentials.krb5_user ?= {}
+      options.credentials.krb5_user.enabled ?= true
+      if options.credentials.krb5_user.enabled
+        options.credentials.krb5_user[k] ?= v for k,v of krb5_user
+        unless options.credentials.krb5_user.password? or options.credentials.krb5_user.keytab?
+          throw Error 'Required property: either ryba.monitoring.credentials.krb5_user.password or ryba.monitoring.credentials.krb5_user.keytab'
+      options.credentials.knox_user ?= {}
+      options.credentials.knox_user.enabled ?= true
+      if options.credentials.knox_user.enabled
+        options.credentials.knox_user.username ?= 'ryba'
+        throw Error 'Required property: ryba.monitoring.credentials.knox_user.password' unless options.credentials.knox_user.password?
+      options.credentials.sql_user ?= {}
+      options.credentials.sql_user.enabled ?= true
+      if options.credentials.sql_user.enabled
+        options.credentials.sql_user.username ?= 'ryba'
+        throw Error 'Required property: ryba.monitoring.credentials.sql_user.password' unless options.credentials.sql_user.password?
+      options.credentials.swarm_user ?= {}
+      options.credentials.swarm_user.enabled ?= true
+      if options.credentials.swarm_user.enabled
+        options.credentials.swarm_user.username ?= 'ryba'
+        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.password' unless options.credentials.swarm_user.password?
+        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.ca_cert' unless options.credentials.swarm_user.ca_cert
+        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.cert' unless options.credentials.swarm_user.cert
+        throw Error 'Required property: ryba.monitoring.credentials.swarm_user.key' unless options.credentials.swarm_user.key
 
 ## Default Configuration
 
@@ -34,10 +65,6 @@ Default "monitoring object" (servicegroups, hosts, etc) configuration.
       options.hostgroups['watcher'] ?= {}
       options.hostgroups['watcher'].alias ?= 'Cluster Watchers'
       options.hostgroups['watcher'].hostgroup_members ?= []
-      options.db ?= {}
-      options.db.username ?= 'shinken'
-      options.db.password ?= 'shinken123'
-      
 
 ### Templates
 
@@ -328,41 +355,42 @@ Theses functions are used to generate business rules
             options.services['MySQL - TCP'].use ?= 'process-service'
             options.services['MySQL - TCP']['_process_name'] ?= 'mysqld'
             options.services['MySQL - TCP'].check_command ?= "check_tcp!#{db_admin.mysql.port}"
-            options.services['MySQL - Connection time'] ?= {}
-            options.services['MySQL - Connection time'].hosts ?= []
-            options.services['MySQL - Connection time'].hosts.push host
-            options.services['MySQL - Connection time'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - Connection time'].use ?= 'unit-service'
-            options.services['MySQL - Connection time'].check_command ?= "check_mysql!#{db_admin.mysql.port}!connection-time!3!10!#{options.db.username}!#{options.db.password}"
-            create_dependency 'MySQL - Connection time', 'MySQL - TCP', host
-            options.services['MySQL - Slow queries'] ?= {}
-            options.services['MySQL - Slow queries'].hosts ?= []
-            options.services['MySQL - Slow queries'].hosts.push host
-            options.services['MySQL - Slow queries'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - Slow queries'].use ?= 'functional-service'
-            options.services['MySQL - Slow queries'].check_command ?= "check_mysql!#{db_admin.mysql.port}!!slow-queries!0,25!1!!#{options.db.username}!#{options.db.password}"
-            create_dependency 'MySQL - Slow queries', 'MySQL - TCP', host
-            options.services['MySQL - Slave lag'] ?= {}
-            options.services['MySQL - Slave lag'].hosts ?= []
-            options.services['MySQL - Slave lag'].hosts.push host
-            options.services['MySQL - Slave lag'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - Slave lag'].use ?= 'unit-service'
-            options.services['MySQL - Slave lag'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-lag!3!10!#{options.db.username}!#{options.db.password}"
-            create_dependency 'MySQL - Slave lag', 'MySQL - TCP', host
-            options.services['MySQL - Slave IO running'] ?= {}
-            options.services['MySQL - Slave IO running'].hosts ?= []
-            options.services['MySQL - Slave IO running'].hosts.push host
-            options.services['MySQL - Slave IO running'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - Slave IO running'].use ?= 'unit-service'
-            options.services['MySQL - Slave IO running'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-io-running!1!1!#{options.db.username}!#{options.db.password}"
-            create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', host
-            options.services['MySQL - Connected Threads'] ?= {}
-            options.services['MySQL - Connected Threads'].hosts ?= []
-            options.services['MySQL - Connected Threads'].hosts.push host
-            options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - Connected Threads'].use ?= 'unit-service'
-            options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!80!100!#{options.db.username}!#{options.db.password}"
-            create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
+            if options.credentials.sql_user.enabled
+              options.services['MySQL - Connection time'] ?= {}
+              options.services['MySQL - Connection time'].hosts ?= []
+              options.services['MySQL - Connection time'].hosts.push host
+              options.services['MySQL - Connection time'].servicegroups ?= ['mysql_server']
+              options.services['MySQL - Connection time'].use ?= 'unit-service'
+              options.services['MySQL - Connection time'].check_command ?= "check_mysql!#{db_admin.mysql.port}!connection-time!3!10"
+              create_dependency 'MySQL - Connection time', 'MySQL - TCP', host
+              options.services['MySQL - Slow queries'] ?= {}
+              options.services['MySQL - Slow queries'].hosts ?= []
+              options.services['MySQL - Slow queries'].hosts.push host
+              options.services['MySQL - Slow queries'].servicegroups ?= ['mysql_server']
+              options.services['MySQL - Slow queries'].use ?= 'functional-service'
+              options.services['MySQL - Slow queries'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slow-queries!0,25!1"
+              create_dependency 'MySQL - Slow queries', 'MySQL - TCP', host
+              options.services['MySQL - Slave lag'] ?= {}
+              options.services['MySQL - Slave lag'].hosts ?= []
+              options.services['MySQL - Slave lag'].hosts.push host
+              options.services['MySQL - Slave lag'].servicegroups ?= ['mysql_server']
+              options.services['MySQL - Slave lag'].use ?= 'unit-service'
+              options.services['MySQL - Slave lag'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-lag!3!10"
+              create_dependency 'MySQL - Slave lag', 'MySQL - TCP', host
+              options.services['MySQL - Slave IO running'] ?= {}
+              options.services['MySQL - Slave IO running'].hosts ?= []
+              options.services['MySQL - Slave IO running'].hosts.push host
+              options.services['MySQL - Slave IO running'].servicegroups ?= ['mysql_server']
+              options.services['MySQL - Slave IO running'].use ?= 'unit-service'
+              options.services['MySQL - Slave IO running'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-io-running!1!1"
+              create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', host
+              options.services['MySQL - Connected Threads'] ?= {}
+              options.services['MySQL - Connected Threads'].hosts ?= []
+              options.services['MySQL - Connected Threads'].hosts.push host
+              options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
+              options.services['MySQL - Connected Threads'].use ?= 'unit-service'
+              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!80!100"
+              create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
           if 'ryba/zookeeper/server' in ctx.services
             w.modules.push 'zookeeper_server' unless 'zookeeper_server' in w.modules
             h.hostgroups.push 'zookeeper_server' unless 'zookeeper_server' in h.hostgroups
@@ -688,7 +716,7 @@ Theses functions are used to generate business rules
             options.services['HCatalog - TCP'].hosts.push host
             options.services['HCatalog - TCP'].servicegroups ?= ['hcatalog']
             options.services['HCatalog - TCP'].use ?= 'process-service' #'unit-service'
-            #services['HCatalog - TCP']['_process_name'] ?= 'hive-hcatalog-server'
+            options.services['HCatalog - TCP']['_process_name'] ?= 'hive-hcatalog-server'
             options.services['HCatalog - TCP'].check_command ?= "check_tcp!#{ryba.hive.server2.site['hive.metastore.uris'].split(',')[0].split(':')[2]}"
           if 'ryba/hive/server2' in ctx.services
             w.modules.push 'hiveserver2' unless 'hiveserver2' in w.modules
@@ -698,7 +726,7 @@ Theses functions are used to generate business rules
             options.services['Hiveserver2 - TCP SSL'].hosts.push host
             options.services['Hiveserver2 - TCP SSL'].servicegroups ?= ['hiveserver2']
             options.services['Hiveserver2 - TCP SSL'].use ?= 'unit-service' #'process-service'
-            # services['Hiveserver2 - TCP SSL']['_process_name'] ?= 'hive-server2'
+            options.services['Hiveserver2 - TCP SSL']['_process_name'] ?= 'hive-server2'
             options.services['Hiveserver2 - TCP SSL'].check_command ?= "check_tcp!#{ryba.hive.server2.site['hive.server2.thrift.port']}!-S"
             options.services['Hiveserver2 - Certificate'] ?= {}
             options.services['Hiveserver2 - Certificate'].hosts ?= []
@@ -821,6 +849,30 @@ Theses functions are used to generate business rules
             options.services['ElasticSearch - TCP'].servicegroups ?= ['elasticsearch']
             options.services['ElasticSearch - TCP'].use ?= 'unit-service'
             options.services['ElasticSearch - TCP'].check_command ?= 'check_tcp!9300'
+          if 'ryba/swarm/manager' in ctx.services
+            w.modules.push 'swarm_manager' unless 'swarm_manager' in w.modules
+            h.hostgroups.push 'swarm_manager' unless 'swarm_manager' in h.hostgroups
+            options.services['Swarm Manager - TCP'] ?= {}
+            options.services['Swarm Manager - TCP'].hosts ?= []
+            options.services['Swarm Manager - TCP'].hosts.push host
+            options.services['Swarm Manager - TCP'].servicegroups ?= ['elasticsearch']
+            options.services['Swarm Manager - TCP'].use ?= 'unit-service'
+            options.services['Swarm Manager - TCP'].check_command ?= "check_tcp!#{ryba.swarm.manager.listen_port}"
+            if options.credentials.swarm_user.enabled
+              options.services['Swarm Containers - TCPs'] ?= {}
+              options.services['Swarm Containers - TCPs'].hosts ?= []
+              options.services['Swarm Containers - TCPs'].hosts.push host
+              options.services['Swarm Containers - TCPs'].servicegroups ?= ['elasticsearch']
+              options.services['Swarm Containers - TCPs'].use ?= 'unit-service'
+              options.services['Swarm Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
+              create_dependency 'Swarm Containers - TCPs', 'Swarm Manager - TCP', host
+              options.services['Swarm Containers - Status'] ?= {}
+              options.services['Swarm Containers - Status'].hosts ?= []
+              options.services['Swarm Containers - Status'].hosts.push host
+              options.services['Swarm Containers - Status'].servicegroups ?= ['elasticsearch']
+              options.services['Swarm Containers - Status'].use ?= 'unit-service'
+              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.ca_cert}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
+              create_dependency 'Swarm Containers - Status', 'Swarm Containers - TCPs', host
           if 'ryba/rexster' in ctx.services
             w.modules.push 'rexster' unless 'rexster' in w.modules
             h.hostgroups.push 'rexster' unless 'rexster' in h.hostgroups
@@ -888,6 +940,27 @@ Theses functions are used to generate business rules
             options.services['Knox - Certificate'].use ?= 'cert-service'
             options.services['Knox - Certificate'].check_command ?= "check_cert!#{ryba.knox.site['gateway.port']}!120!60"
             create_dependency 'Knox - Certificate', 'Knox - WebService', host
+            if options.credentials.knox_user.enabled
+              options.services['Knox - HBase Scan'] ?= {}
+              options.services['Knox - HBase Scan'].hosts ?= []
+              options.services['Knox - HBase Scan'].hosts.push host
+              options.services['Knox - HBase Scan'].servicegroups ?= ['knox', 'hbase']
+              options.services['Knox - HBase Scan'].use ?= 'functional-service'
+              options.services['Knox - HBase Scan'].check_command ?= "check_hbase_scan!#{ryba.knox.site['gateway.port']}!-S"
+              create_dependency 'Knox - HBase Scan', 'Knox - WebService', host
+              options.services['Knox - HBase Write'] ?= {}
+              options.services['Knox - HBase Write'].hosts ?= []
+              options.services['Knox - HBase Write'].hosts.push host
+              options.services['Knox - HBase Write'].servicegroups ?= ['knox', 'hbase']
+              options.services['Knox - HBase Write'].use ?= 'functional-service'
+              options.services['Knox - HBase Write'].check_command ?= "check_hbase_write!#{ryba.knox.site['gateway.port']}!-S"
+              create_dependency 'Knox - HBase Write', 'Knox - WebService', host
+              options.services['Knox - HDFS Write'] ?= {}
+              options.services['Knox - HDFS Write'].hosts.push host
+              options.services['Knox - HDFS Write'].servicegroups ?= ['knox', 'hdfs']
+              options.services['Knox - HDFS Write'].use ?= 'functional-service'
+              options.services['Knox - HDFS Write'].check_command ?= "check_hdfs_write!#{ryba.knox.site['gateway.port']}!-S"
+              create_dependency 'Knox - HDFS Write', 'Knox - WebService', host
           if 'ryba/nifi' in ctx.services
             {properties} = ryba.nifi.config
             w.modules.push 'nifi' unless 'nifi' in w.modules
