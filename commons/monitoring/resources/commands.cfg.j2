@@ -66,16 +66,12 @@ define command {
   command_line    $DOCKER_EXEC$ hdfs/check_content_summary.php -H `$DOCKER_EXEC$ ./service_status.php -H {{ brokers }} -p 50000 -d 'HDFS NN - Active Node' -f "host_groups >= $HOSTNAME$" -u` -p $ARG1$ -P $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
 }
 define command {
-  command_name    check_hdfs_content_summary_old
-  command_line    $DOCKER_EXEC$ ./service_status.php -H {{ brokers }} -p 50000 -d 'HDFS NN - Active Node' -f "host_groups >= $HOSTNAME$" -u | xargs -I % $DOCKER_EXEC$ hdfs/check_content_summary.php -H % -p $ARG1$ -P $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
-}
-define command {
   command_name    check_hdfs_state
   command_line    $DOCKER_EXEC$ hdfs/check_state.php -H $HOSTNAME$ -p $ARG1$ -j $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
 }
 define command {
-  command_name    check_active_nn
-  command_line    $DOCKER_EXEC$ hdfs/check_active_nn.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
+  command_name    active_nn
+  command_line    $DOCKER_EXEC$ hdfs/active_nn.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
 }
 define command {
   command_name    check_nn_last_checkpoint
@@ -99,20 +95,28 @@ define command {
   command_line    $DOCKER_EXEC$ hdfs/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t /tmp/__monitoring_test $ARG2$
 }
 define command {
-  command_name    check_active_rm
-  command_line    $DOCKER_EXEC$ yarn/check_active_rm.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
+  command_name    active_rm
+  command_line    $DOCKER_EXEC$ yarn/active_rm.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
 }
 define command {
   command_name    check_nm_info
   command_line    $DOCKER_EXEC$ yarn/check_nm_info.php -H $HOSTNAME$ -p $ARG1$ -f $ARG2$ -r $ARG3$ $ARG4$
 }
 define command {
+  command_name    active_hm
+  command_line    $DOCKER_EXEC$ hbase/active_hm.php -H {{ brokers }} -p 50000 -C $HOSTNAME$ -P $ARG1$ $ARG2$
+}
+define command {
   command_name    check_hbase_scan
-  command_line    $DOCKER_EXEC$ hbase/check_scan_table.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ $ARG3$
+  command_line    $DOCKER_EXEC$ hbase/scan.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ $ARG3$
 }
 define command {
   command_name    check_hbase_write
-  command_line    $DOCKER_EXEC$ hbase/check_write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ -c $ARG3$ $ARG4$
+  command_line    $DOCKER_EXEC$ hbase/write.php -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.knox_user.username }} -P {{ credentials.knox_user.password }} -t $ARG2$ -c $ARG3$ $ARG4$
+}
+define command {
+  command_name    check_hbase_unavailable_regions
+  command_line    $DOCKER_EXEC$ hbase/unavailable_regions.php -H `$DOCKER_EXEC$ ./service_status.php -H {{ brokers }} -p 50000 -d 'HBase Master - Active Node' -f "host_groups >= $HOSTNAME$" -u` -p $ARG1$ $ARG2$
 }
 define command {
   command_name    check_webhcat_status
@@ -124,11 +128,11 @@ define command {
 }
 define command {
   command_name    check_es_containers_tcps
-  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_tcps.php -H $ARG1$ -p $ARG2$ -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG3$
+  command_line    $DOCKER_EXEC$ elasticsearch/containers_tcps.php -H $ARG1$ -p $ARG2$ -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG3$
 }
 define command {
   command_name    check_es_containers_status
-  command_line    $DOCKER_EXEC$ elasticsearch/check_containers_status.php -H $ARG1$ -p $ARG2$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG5$
+  command_line    $DOCKER_EXEC$ elasticsearch/containers_status.php -H $ARG1$ -p $ARG2$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG5$
 }
 ## User/ryba-defined commands
 {% for name, command in commands %}

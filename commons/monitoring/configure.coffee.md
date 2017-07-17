@@ -1019,7 +1019,7 @@ Theses functions are used to generate business rules
           options.services['HDFS NN - Active Node'].hosts.push clustername
           options.services['HDFS NN - Active Node'].servicegroups ?= ['hdfs_nn']
           options.services['HDFS NN - Active Node'].use ?= 'unit-service'
-          options.services['HDFS NN - Active Node'].check_command ?= 'check_active_nn!50470!-S'
+          options.services['HDFS NN - Active Node'].check_command ?= 'active_nn!50470!-S'
         if 'hdfs_zkfc' in w.modules
           options.services['ZKFC - Available'] ?= {}
           options.services['ZKFC - Available'].hosts ?= []
@@ -1068,7 +1068,7 @@ Theses functions are used to generate business rules
           options.services['YARN RM - Active Node'].hosts.push clustername
           options.services['YARN RM - Active Node'].servicegroups ?= ['hdfs_nn']
           options.services['YARN RM - Active Node'].use ?= 'unit-service'
-          options.services['YARN RM - Active Node'].check_command ?= 'check_active_rm!8090!-S'
+          options.services['YARN RM - Active Node'].check_command ?= 'active_rm!8090!-S'
           create_dependency 'YARN RM - Active Node', 'YARN RM - Available', clustername
           options.services['YARN RM - TCP SSL'] ?= {}
           options.services['YARN RM - TCP SSL'].hosts ?= []
@@ -1114,12 +1114,25 @@ Theses functions are used to generate business rules
           options.services['HBase Master - Available'].check_command ?= bp_has_one 'HBase Master - TCP', '$HOSTNAME$'
           create_dependency 'HBase Master - Available', 'Zookeeper Server - Available', clustername
           create_dependency 'HBase Master - Available', 'HDFS - Available', clustername
+          options.services['HBase Master - Active Node'] ?= {}
+          options.services['HBase Master - Active Node'].hosts ?= []
+          options.services['HBase Master - Active Node'].hosts.push clustername
+          options.services['HBase Master - Active Node'].servicegroups ?= ['hdfs_nn']
+          options.services['HBase Master - Active Node'].use ?= 'unit-service'
+          options.services['HBase Master - Active Node'].check_command ?= 'active_hm!60010!-S'
+          create_dependency 'HBase Master - Active Node', 'HBase Master - Available', clustername
+          options.services['HBase - Unavailable Regions'] ?= {}
+          options.services['HBase - Unavailable Regions'].hosts ?= []
+          options.services['HBase - Unavailable Regions'].hosts.push clustername
+          options.services['HBase - Unavailable Regions'].servicegroups ?= ['hbase']
+          options.services['HBase - Unavailable Regions'].use ?= 'functional-service'
+          options.services['HBase - Unavailable Regions'].check_command ?= 'check_hbase_unavailable_regions!60010!-S'
           options.services['HBase - Replication logs'] ?= {}
           options.services['HBase - Replication logs'].hosts ?= []
           options.services['HBase - Replication logs'].hosts.push clustername
           options.services['HBase - Replication logs'].servicegroups ?= ['hbase']
           options.services['HBase - Replication logs'].use ?= 'functional-service'
-          options.services['HBase - Replication logs'].check_command ?= "check_hdfs_content_summary!50470!/apps/hbase/data/oldWALs!spaceConsumed!824633720832!1099511627776!-S" # 768GiB | 1TiB
+          options.services['HBase - Replication logs'].check_command ?= 'check_hdfs_content_summary!50470!/apps/hbase/data/oldWALs!spaceConsumed!824633720832!1099511627776!-S' # 768GiB | 1TiB
         if 'hbase_regionserver' in w.modules
           options.services['HBase RegionServer - Available'] ?= {}
           options.services['HBase RegionServer - Available'].hosts ?= []
