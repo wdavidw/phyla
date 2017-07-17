@@ -12,6 +12,10 @@
 
 ## HTTP
 
+      if arbiter.ini.use_ssl is '1'
+        cmd = "curl -k https://#{@config.host}:#{arbiter.config.port}"
+      else
+        cmd = "curl http://#{@config.host}:#{arbiter.config.port}"
       @system.execute
         header: 'HTTP'
-        cmd: "curl http://#{@config.host}:#{arbiter.config.port} | grep OK"
+        cmd: "#{cmd} | grep OK"

@@ -15,3 +15,13 @@
       @system.execute
         header: 'HTTP'
         cmd: "curl http://#{@config.host}:#{broker.config.port} | grep OK"
+
+## HTTP
+
+      if broker.ini.use_ssl is '1'
+        cmd = "curl -k https://#{@config.host}:#{broker.config.port}"
+      else
+        cmd = "curl http://#{@config.host}:#{broker.config.port}"
+      @system.execute
+        header: 'HTTP'
+        cmd: "#{cmd} | grep OK"

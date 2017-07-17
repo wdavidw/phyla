@@ -12,6 +12,10 @@
 
 ## HTTP
 
+      if poller.ini.use_ssl is '1'
+        cmd = "curl -k https://#{@config.host}:#{poller.config.port}"
+      else
+        cmd = "curl http://#{@config.host}:#{poller.config.port}"
       @system.execute
         header: 'HTTP'
-        cmd: "curl http://#{@config.host}:#{poller.config.port} | grep OK"
+        cmd: "#{cmd} | grep OK"

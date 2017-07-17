@@ -12,6 +12,10 @@
 
 ## HTTP
 
+      if receiver.ini.use_ssl is '1'
+        cmd = "curl -k https://#{@config.host}:#{receiver.config.port}"
+      else
+        cmd = "curl http://#{@config.host}:#{receiver.config.port}"
       @system.execute
         header: 'HTTP'
-        cmd: "curl http://#{@config.host}:#{receiver.config.port} | grep OK"
+        cmd: "#{cmd} | grep OK"
