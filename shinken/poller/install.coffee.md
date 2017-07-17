@@ -77,7 +77,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
               source: v.url
               target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
               cache_file: "#{v.archive}.#{v.format}"
-              md5: v.md5
             @tools.extract
               source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.execute
@@ -115,7 +114,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           @file.download
             source: "#{@config.nikita.cache_dir or '.'}/shinken-poller-executor.tar"
             target: '/var/lib/docker_images/shinken-poller-executor.tar'
-            md5: true
           @docker.load
             source: '/var/lib/docker_images/shinken-poller-executor.tar'
             if: -> @status -1

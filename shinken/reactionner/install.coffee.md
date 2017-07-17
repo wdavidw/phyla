@@ -92,7 +92,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
               source: v.url
               target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
               cache_file: "#{v.archive}.#{v.format}"
-              md5: v.md5
             @tools.extract
               source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.execute
