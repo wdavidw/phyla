@@ -314,49 +314,21 @@ and permissions set to "0600".
 
 # Kernel
 
-Configure kernel parameters at runtime. A usefull resource is the Pivotal
-presentation [Key Hadoop Cluster Configuration - OS (slide 15)][key_os] which
-suggest:
+Configure kernel parameters at runtime. There are no properties set by default,
+here's a suggestion:
 
-*    vm.swappiness = 0
+*    vm.swappiness = 10
 *    vm.overcommit_memory = 1
 *    vm.overcommit_ratio = 100
-*    net.core.somaxconn=1024 (default socket listen queue size 128)
+*    net.core.somaxconn = 4096 (default socket listen queue size 128)
 
 Note, we might move this middleware to Masson.
 
-      @call header: 'Kernel', (_, next) ->
-        @system.execute
-          if: Object.keys(hdfs.sysctl).length
-          cmd: 'sysctl -a'
-          stdout: null
-          shy: true
-        , (err, _, content) ->
-          throw err if err
-          content = misc.ini.parse content
-          properties = {}
-          for k, v of hdfs.sysctl
-            v = "#{v}"
-            properties[k] = v if content[k] isnt v
-          return next null, false unless Object.keys(properties).length
-          @fs.readFile '/etc/sysctl.conf', 'ascii', (err, config) =>
-            current = misc.ini.parse config
-            #merge properties from current config
-            for k, v of current
-              properties[k] = v if hdfs.sysctl[k] isnt v
-            @file
-              header: 'Write Kernel Parameters'
-              target: '/etc/sysctl.conf'
-              content: misc.ini.stringify_single_key properties
-              backup: true
-              eof: true
-            , (err) ->
-              throw err if err
-              properties = for k, v of properties then "#{k}='#{v}'"
-              properties = properties.join ' '
-              @system.execute
-                cmd: "sysctl #{properties}"
-              , next
+      @tools.sysctl
+        header: 'Kernel'
+        properties: hdfs.sysctl
+        merge: true
+        comment: true
 
 ## Ulimit
 

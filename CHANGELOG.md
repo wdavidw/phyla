@@ -5,6 +5,7 @@
 
 * shinken: ssl support
 * lib/capacity: fixed yarn.app.mapreduce.am.resource.mb calculation
+* hdfs/dn: use nikita sysctl
 * phoenix/client: fixed check
 * hive/beeline: retry in check
 * ranger/admin: typos
