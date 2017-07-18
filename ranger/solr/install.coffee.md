@@ -182,8 +182,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         uid: solr.user.name
         gid: solr.group.name
         mode: 0o0755
-        
-      @call  
+      @call
         header: 'Ranger Collection Solr Embedded'
       , ->
         @file.download

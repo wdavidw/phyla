@@ -149,7 +149,7 @@ The type requires differents instructions/configuration for ranger plugin audit 
     Ryba will search by default for an instance named `ranger_cluster` which is set
     by the property `ranger.admin.cluster_name`.
     An example is available in [the ryba-cluster config file][ryba-cluster-conf].
-  
+
 Note July 2016:
 The previous properties works only with (HDP 2.4) `solr.BasicAuthPlugin` (in solr cluster config).
 And it is configured by Ryba only in ryba/solr/cloud_docker installation.

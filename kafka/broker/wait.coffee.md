@@ -13,4 +13,3 @@
       @connection.wait
         header: 'Broker'
         servers: options.brokers
-          

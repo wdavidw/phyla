@@ -11,7 +11,7 @@
 ## Package
 
       @service 'nifi'
-  
+
 ## Toolkit
 
       @call header: 'Toolkit', ->

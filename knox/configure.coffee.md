@@ -236,7 +236,6 @@ This mechanism can be used to configure a specific gateway without having to dec
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['HIVE'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true;' + 
             "zookeeperEnsemble=#{hs2_ctxs[0].config.ryba.hive.server2.site['hive.zookeeper.quorum']};zookeeperNamespace=#{hs2_ctxs[0].config.ryba.hive.server2.site['hive.server2.zookeeper.namespace']}"
-            
             topology.services.hive = ''
           else if hs2_ctxs.length == 1
             host = hs2_ctxs[0].config.host

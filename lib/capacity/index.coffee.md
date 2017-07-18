@@ -251,9 +251,9 @@ containers, and load-balancing by spliting the access to the disks.
             path.resolve disk, yarn_nm_log_dir or './yarn/log'
 
 Raise the number of vcores later allocated for the ResourceManager.
-        
+
         maximum_allocation_vcores = Math.max maximum_allocation_vcores, yarn_site['yarn.nodemanager.resource.cpu-vcores']
-      
+
       memory_per_container_mean = for ctx in ctxs
         continue unless ctx.has_service 'ryba/hadoop/yarn_nm'
         ctx.config.capacity.memory_per_container
@@ -371,11 +371,11 @@ can be set at the job level. This change does not require a service restart.
         reduce_memory_mb = mapred_site['mapreduce.reduce.memory.mb'] or (if map_memory_mb < 2048 then 2 * memory_per_container_mean_mb else map_memory_mb)
         reduce_memory_mb = Math.min reduce_memory_mb, maximum_allocation_mb
         mapred_site['mapreduce.reduce.memory.mb'] = "#{reduce_memory_mb}"
-        
+
         mapreduce_am_memory_mb = mapred_site['yarn.app.mapreduce.am.resource.mb'] or Math.max map_memory_mb, reduce_memory_mb
         mapreduce_am_memory_mb = Math.min mapreduce_am_memory_mb, maximum_allocation_mb
         mapred_site['yarn.app.mapreduce.am.resource.mb'] = mapreduce_am_memory_mb
-        
+
         mapreduce_am_opts = /-Xmx(.*?)m/.exec(mapred_site['yarn.app.mapreduce.am.command-opts'])?[1] or Math.floor .8 * mapreduce_am_memory_mb
         mapreduce_am_opts = Math.min mapreduce_am_opts, maximum_allocation_mb
         mapred_site['yarn.app.mapreduce.am.command-opts'] = "-Xmx#{mapreduce_am_opts}m"

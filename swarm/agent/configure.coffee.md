@@ -22,9 +22,11 @@
       swarm.agent.advertise_port ?= @config.docker.default_port
 
 ## Docker Deamon Configuration
+
 Pass docker start option to docker daemon to use it with swarm.
 
 ### TCP Socket
+
 Swarm nodes use the advertise address to communicate. It must be specified
 in the start option of the local daemon engine to enable it.
 
@@ -32,9 +34,9 @@ in the start option of the local daemon engine to enable it.
       if @config.docker.sockets.tcp.indexOf(tcp_socket) is -1
       then @config.docker.sockets.tcp.push tcp_socket
 other_args      @config.docker.
-      
-      
+
 ### Swarm Cluster
+
 This starting options should be injected to @config.docker variable. For now 
 `ryba/swarm/agent` modify the starting options and restart docker engine.
 

@@ -1,4 +1,6 @@
-    
+
+# Ranger Admin : SolR Bootstrap
+
     module.exports = header: 'Ranger Audit Solr Boostrap', handler: ->
       {solr} = @config.ryba 
       ranger =  @contexts('ryba/ranger/admin')[0].config.ryba.ranger
@@ -7,7 +9,7 @@
       mode = if ranger.admin.solr_type is 'single' then 'standalone' else ranger.admin.solr_type
       [zk_connect,zk_node] = cluster_config.zk_urls.split '/' unless mode is 'standalone'
       tmp_dir = if mode is 'standalone' then "#{solr.user.home}" else '/tmp'
-      
+
 ## Dependencies
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
@@ -81,7 +83,7 @@ solr apache version.
         if: -> (mode is 'cloud')
         source: "#{__dirname}/../resources/solr/elevate.xml"
         target: "#{tmp_dir}/ranger_audits/elevate.xml" #rem
-        
+
 ## Create ranger_audits Collection/Core
 The solrconfig.xml file corresponding to ranger_audits collection/core is rendered from
 the resources, as it is not distributed in the apache community version.
@@ -202,5 +204,5 @@ Note: Compatible with every version of docker available at this time.
 
     mkcmd = require '../../lib/mkcmd'
     docker = require 'nikita/lib/misc/docker'
-    
+
 [ranger-solr-script]:(https://community.hortonworks.com/questions/29291/ranger-solr-script-create-ranger-audits-collection.html)

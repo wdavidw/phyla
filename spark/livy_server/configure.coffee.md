@@ -54,9 +54,9 @@ Configure Spark Livy Server and integrates it with the other components deployed
       livy.keystorePassword ?= 'livy123'
 
 ## Configuration
-      
+
       livy.conf ?= {}
-      livy.conf['livy.server.host'] ?= @config.host  
+      livy.conf['livy.server.host'] ?= @config.host
       livy.conf['livy.server.port'] ?= livy.port
       livy.conf['livy.keystore'] ?= livy.keystore
       livy.conf['livy.keystore.password'] ?= livy.keystorePassword
@@ -76,7 +76,7 @@ Configure Spark Livy Server and integrates it with the other components deployed
         livy.conf['livy.server.access_control.enabled'] ?= 'true'
 
 ## Environment
-      
+
       # Available properties
       # - JAVA_HOME       Java runtime to use. By default use "java" from PATH.
       # - HADOOP_CONF_DIR Directory containing the Hadoop / YARN configuration to use.

@@ -1,5 +1,6 @@
 
 # Start Docker Swarm Agent Container
+
 Start the docker container using docker start commande.
 
     module.exports = header: 'Swarm Agent Start', handler: ->
@@ -12,4 +13,3 @@ Start the docker container using docker start commande.
       @docker.start
         docker: @config.docker
         container: @config.ryba.swarm.agent.name
-      

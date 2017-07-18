@@ -224,7 +224,7 @@ rmr /rmstore/ZKRMStateRoot
       ryba.capacity_scheduler['yarn.scheduler.capacity.queue-mappings-override.enable'] ?= 'false' # Introduce by hadoop 2.7
 
 ## Node Labels
-      
+
       ryba.yarn.rm.site['yarn.node-labels.enabled'] ?= 'true'
       ryba.yarn.rm.site['yarn.node-labels.fs-store.root-dir'] ?= "#{ryba.yarn.rm.core_site['fs.defaultFS']}/apps/yarn/node-labels"
 

@@ -35,8 +35,6 @@
       options.producer ?= {}
       options.producer.config ?= {}
       options.producer.config['compression.codec'] ?= 'snappy'
-      
-      
       # for now the prop 'sasl.kerberos.service.name' has to be deleted because of
       # https://issues.apache.org/jira/browse/KAFKA-2974
       # http://mail-archives.apache.org/mod_mbox/kafka-commits/201512.mbox/%3Cacb73f26d3bd440ab8a9f33686db0020@git.apache.org%3E

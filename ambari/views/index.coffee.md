@@ -10,7 +10,7 @@ It uses the Apache Ambari REST Api.
         url = "#{protocol}://#{@config.host}:#{port}"
 
 ## Create the FILES View
-        
+
         @system.execute
           header: 'FILES View'
           if: options.views.files.enabled
@@ -72,7 +72,7 @@ It uses the Apache Ambari REST Api.
           #   """
 
 ## Create the TEZ View  
-        
+
         @system.execute
           header: 'TEZ View'
           if: options.views.tez.enabled

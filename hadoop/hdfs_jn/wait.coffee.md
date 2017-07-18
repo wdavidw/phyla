@@ -18,6 +18,6 @@ nikita.hadoop.hdfs_jn.wait({
       options.rpc = for jn_ctx in @contexts 'ryba/hadoop/hdfs_jn'
         [_, port] = jn_ctx.config.ryba.hdfs.site['dfs.journalnode.rpc-address'].split ':'
         host: jn_ctx.config.host, port: port
-      
+
       @connection.wait
         servers: options.rpc
