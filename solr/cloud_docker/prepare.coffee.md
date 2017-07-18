@@ -1,7 +1,8 @@
-  
+
 # Solr Cloud Docker Prepare
+
 Build container and save it.
-  
+
     module.exports = 
       header: 'Solr Cloud Docker Prepare'
       if: -> @contexts('ryba/solr/cloud_docker')[0]?.config.host is @config.host
@@ -25,4 +26,3 @@ Build container and save it.
         @docker.save
           image: "#{solr.cloud_docker.build.image}:#{solr.cloud_docker.version }"
           output: "#{solr.cloud_docker.build.dir}/#{solr.cloud_docker.build.tar}"
-        

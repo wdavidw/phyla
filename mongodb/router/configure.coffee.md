@@ -84,7 +84,6 @@ Each query router (mongos instance) is attributed to a config, and shard server 
       config.sharding ?= {}
       #autosplit option remove since 3.4
       #https://docs.mongodb.com/manual/reference/configuration-options/#mongos-only-options
-       
       if (parseInt(mongodb.version[2]) < 4) and (parseInt(mongodb.version[0]) <= 3)
         config.sharding.chunkSize ?= 64
         config.sharding.autoSplit ?= true
@@ -92,7 +91,6 @@ Each query router (mongos instance) is attributed to a config, and shard server 
         throw Error 'option not supported' if config.sharding.autoSplit? or config.sharding.chunkSize?
       config.sharding.configDB ?= "#{my_cfgsrv_repl_set}/#{cfsrv_connect}"
       # size of a chunk in MB
-      
 
 ## Shard to ConfigServer Mapping
 Get The Shard Server Replica Set to which the client request will be re-routed based

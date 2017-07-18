@@ -133,4 +133,3 @@ Example:
       druid.common_runtime['druid.emitter'] ?= 'logging'
       druid.common_runtime['druid.emitter.logging.logLevel'] ?= 'info'
       druid.common_runtime['druid.extensions.loadList'] = JSON.stringify druid.common_runtime['druid.extensions.loadList']
-      

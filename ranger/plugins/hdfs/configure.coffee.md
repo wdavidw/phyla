@@ -3,7 +3,7 @@
 
 For the HDFS plugin, the executed script already create the hdfs user to ranger admin
 as external.
-    
+
     module.exports = ->
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
       dn_ctxs = @contexts 'ryba/hadoop/hdfs_dn'

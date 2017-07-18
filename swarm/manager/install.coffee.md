@@ -1,6 +1,6 @@
 
 # Install Swarm Manager Node
-    
+
     module.exports = header: 'Swarm Manager Install', handler: ->
       {swarm} = @config.ryba
       tmp_dir  = swarm.tmp_dir ?= "/var/tmp/ryba/swarm"
@@ -19,7 +19,7 @@
 | Swarm Manager Engine    | 2375  | tcp         | port               |
 | Swarm Manager Engine    | 2376  | tcp - TLS   | port               |
 | Swarm Manager Advertise | 3376  | tcp         | port               |
-  
+
       @tools.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: swarm.manager.listen_port, protocol: 'tcp', state: 'NEW', comment: "Docker Engine Port" },
@@ -124,5 +124,5 @@ on the swarm cluster level
           mode: 0o750
 
 ## Dependencies
-    
+
     path = require 'path'

@@ -8,7 +8,7 @@
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
       version= null
       conf_dir = null
-      
+
       @call -> conf_dir = if @config.ryba.hbase_plugin_is_master then hbase.master.conf_dir else hbase.rs.conf_dir
 
 ## Dependencies

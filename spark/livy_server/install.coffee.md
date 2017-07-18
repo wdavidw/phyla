@@ -97,7 +97,6 @@ Write startup script to /etc/init.d/service-hue-docker
       @service.restart
         name: 'spark-livy-server'
         if: -> @status -1
-          
 
 ## Download Container
 
@@ -113,7 +112,7 @@ Write startup script to /etc/init.d/service-hue-docker
           input: "#{tmp}/#{spark.livy.build.tar}"
 
 ## kerberos
-  
+
       @krb5.addprinc krb5,
         if: spark.livy.conf['livy.server.auth.kerberos.principal']
         header: 'Livy Server principal'
@@ -123,7 +122,7 @@ Write startup script to /etc/init.d/service-hue-docker
         uid: spark.user.name
         gid: spark.group.name
         mode: 0o0600
-    
+
 ## SSL 
 
       @call if: spark.livy.ssl_enabled , handler: ->
@@ -162,7 +161,7 @@ Write startup script to /etc/init.d/service-hue-docker
           shy: true
 
 ## Docker run
-    
+
       @docker_service
         header: 'Livy Spark Server Run'
         label_true: 'RUNNED'

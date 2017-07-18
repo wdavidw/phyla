@@ -211,4 +211,3 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-        

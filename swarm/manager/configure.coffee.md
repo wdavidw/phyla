@@ -9,7 +9,6 @@ This host will be used when rendering default DOCKER_HOST ENV variable on swarm 
         ctx.config.ryba.zookeeper.config['peerType'] is 'participant'
       docker = @config.docker ?= {}
       ryba = @config.ryba ?= {}
-      
       ryba.swarm_primary ?= @contexts('ryba/swarm/manager')[0].config.host is @config.host
       swarm = ryba.swarm ?= {}
       swarm.image ?= 'swarm'
@@ -17,6 +16,7 @@ This host will be used when rendering default DOCKER_HOST ENV variable on swarm 
       swarm.conf_dir ?= '/etc/docker-swarm'
 
 ## Service Discovery
+
 Configures the docker daemon engine start options for swarm.
 For now only zookeeper is supported for discovery backend.
 
@@ -44,17 +44,20 @@ with the swarm manager's docker engine
           throw Error "Ryba does not support service discovery backend #{swarm.cluster.discovery} for swarm"
 
 ## Docker Deamon Configuration
+
 Pass docker start option to docker daemon to use it with swarm.
 
 ### TCP Socket
+
 Swarm manager uses the advertise address to communicate. It must be specified
 in the start option of the local daemon engine to enable it.
 
       tcp_socket = "#{@config.host}:#{swarm.manager.advertise_port}"
       if @config.docker.sockets.tcp.indexOf(tcp_socket) is -1
       then @config.docker.sockets.tcp.push tcp_socket
-      
+
 ### Swarm Cluster
+
 This starting options should be injected to @config.docker variable. For now 
 `ryba/swarm/manager` modify the starting options and restart docker engine.
 

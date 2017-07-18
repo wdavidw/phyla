@@ -182,7 +182,7 @@ Note: The Install scripts are separated for clarity purposes.
 ### Files View Configuration
 the files view correspond to the view of HDFS. For now Ryba does only configure HA enabled Namenodes
 Note: Ambari hardcodes the masters's name, ie for example `master01` must be named `nn1`
-        
+
       options.views ?= {}
       # variable used for changing install instruction for ambari/standalone
       options.views.enabled ?= false
@@ -268,7 +268,7 @@ It has only been tested with HIVe VIEW version 1.5.0 and 2.0.0
           properties['yarn.resourcemanager.url'] ?= if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
           then "http://" + rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"]
           else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
-          
+
 #### HIVE View to Ranger
 
           if options.views.hive.version in ['2.0.0']
@@ -357,5 +357,5 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
 [tez-view-resources]:(https://github.com/apache/ambari/blob/79cca1c7184f1661236971dac70d85a83fab6c11/contrib/views/tez/src/main/resources/view.xml)
 
 ## Dependencies
-      
+
     {merge} = require 'nikita/lib/misc'

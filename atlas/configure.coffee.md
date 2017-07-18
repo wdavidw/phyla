@@ -67,7 +67,7 @@ Atlas, when communicating with other components (Solr,HBase,Kafka) needs to auth
 itself as a client. It uses the JAAS mechanism.
 The JAAS informations can be set via a jaas file or the properties can be set directly
 from atlas-application.properties file.
-      
+
       atlas.application.properties['atlas.authentication.method'] ?= @config.ryba.security
       atlas.application.properties['atlas.authentication.principal'] ?= "#{atlas.user.name}/_HOST@#{realm}"
       atlas.application.properties['atlas.authentication.keytab'] ?= '/etc/security/keytabs/atlas.service.keytab'
@@ -85,7 +85,7 @@ from atlas-application.properties file.
       # atlas.application.properties['atlas.jaas.Client.option.principal'] ?= atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
 
 ## Kerberos Atlas Admin User
-      
+
       if atlas.application.properties['atlas.authentication.method'] is 'kerberos'
         match_princ = /^(.+?)[@\/]/.exec atlas.application.properties['atlas.authentication.principal']
         throw Error 'Invalid Atlas  principal' unless match_princ?
@@ -124,7 +124,7 @@ Forexample, `atlas.authentication.method.ldap.userDNpattern`=`cn=users\,cn=accou
 
 ## Authorization
 Atlas accepts only simple (file) or Ranger based [authorization](http://atlas.incubator.apache.org/Authentication-Authorization.html).
-      
+
       atlas.application.properties['atlas.authorizer.impl'] ?= if ranger_ctxs.length > 0 then 'ranger' else 'simple'
       if atlas.application.properties['atlas.authorizer.impl'] is 'simple'
         atlas.application.properties['atlas.auth.policy.file'] ?= "#{atlas.conf_dir}/policy-store.txt"
@@ -287,9 +287,9 @@ hard coded.
           server2.site['atlas.rest.address'] = add_prop server2.site['atlas.rest.address'], rest_address, ','
           server2.site['hive.exec.post.hooks'] = add_prop server2.site['hive.exec.post.hooks'], 'org.apache.atlas.hive.hook.HiveHook', ','
           # server2.aux_jars = add_prop server2.aux_jars, "/usr/hdp/current/atlas-client/hook/hive", ':'
-          
+
 ### Apache Hive Hook Kafka Notification
-          
+
           chanels = []
           chanels.push 'SASL_SSL' if @config.ryba.security is 'kerberos' and server2.site['hive.server2.use.SSL'] is 'true'
           chanels.push 'SASL_PLAINTEXT' if @config.ryba.security is 'kerberos'
@@ -385,7 +385,7 @@ hard coded.
       atlas.env['HBASE_CONF_DIR'] ?= "#{atlas.conf_dir}/hbase"
       
 ## Atlas Server Heap
-      
+
       atlas.min_heap ?= '512m'
       atlas.max_heap ?= '512m'
 
@@ -402,6 +402,7 @@ hard coded.
         'status': 1
 
 ## Titan MetaData Database
+
 Atlas uses Titan as its its metadata storage.
 The Titan database can be configured with HBase as its storage database, and
 Solr for its indexing backend
@@ -423,7 +424,7 @@ Solr for its indexing backend
 ### Indexing Engine
 Atlas support only solr on cloud mode. Atlas' Ryba installation support solrcoud 
 in or out of docker.
-      
+
       atlas.indexing_engine ?= 'solr'
       if atlas.indexing_engine is 'solr'
         atlas.solr_type ?= 'cloud_docker'
@@ -522,6 +523,7 @@ in or out of docker.
       return if value.indexOf(add) is -1 then "#{value}#{separator}#{add}" else value
 
 ## Dependencies
-  
+
     configure_solr_cluster = require '../solr/cloud_docker/clusterize'
+
 [titan]:(http://titan.thinkaurelius.com)

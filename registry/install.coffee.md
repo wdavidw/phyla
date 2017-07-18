@@ -3,7 +3,7 @@
 
     module.exports = header: 'Schema Registry Install', handler: ->
       {registry} = @config.ryba
-      
+
 ## Identities
 
       @system.group header: 'Group', registry.group

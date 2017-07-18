@@ -293,7 +293,7 @@ ryba/hue:3.9
 ## Startup Script
 
 Write startup script to /etc/init.d/service-hue-docker
-      
+
       @call (options) ->
         @service.init
           header: 'Startup Script'

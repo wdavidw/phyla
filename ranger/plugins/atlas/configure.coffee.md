@@ -53,7 +53,6 @@ The repository name should match the reposity name in web ui.
           atlas_plugin.service_repo['configs']['password'] ?= @config.ryba.atlas.admin_password
         else
           throw Error 'Authentication not support for ranger - atlas - plugin'
-          
 
 ### Atlas Plugin audit
 

@@ -210,7 +210,7 @@ to allow user to create none-determisitic functions.
 
 ## Java env
 This part of the setup is not documented. Deduce from launch scripts.
-      
+
       @call header: 'Ranger Admin Env', ->
         writes = [
           match: RegExp "JAVA_OPTS=.*", 'm'

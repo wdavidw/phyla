@@ -36,7 +36,7 @@ Example:
       {db_admin, realm} = @config.ryba
 
 ## Environment
-      
+
       hive.hcatalog ?= {}
       hive.hcatalog.conf_dir ?= '/etc/hive-hcatalog/conf'
       hive.hcatalog.log_dir ?= '/var/log/hive-hcatalog'

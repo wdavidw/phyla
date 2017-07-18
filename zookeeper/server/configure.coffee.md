@@ -60,7 +60,7 @@ Example :
       zookeeper.user.home ?= '/var/lib/zookeeper'
 
 ## Configuration
-      
+
       zookeeper.env ?= {}
       zookeeper.env['ZOOKEEPER_HOME'] ?= "/usr/hdp/current/zookeeper-client"
       zookeeper.env['ZOO_AUTH_TO_LOCAL'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"

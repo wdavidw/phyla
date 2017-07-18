@@ -5,12 +5,12 @@ For each given datanode, discover count of CPUs, total RAM and count of disks.
 
     module.exports = header: 'Benchmark - Discovery', handler: ->
       {benchmark} = @config.ryba
-      
+
       @each benchmark.datanodes, (options) ->
         datanode = options.key
-        
+
 ## Discover CPU & RAM
-          
+
         @system.execute
           header: 'JMX System'
           cmd: """
@@ -48,7 +48,7 @@ For each given datanode, discover count of CPUs, total RAM and count of disks.
           if Version.indexOf("cdh") != -1
             benchmark.jars.current = benchmark.jars.cloudera 
           else benchmark.jars.current = benchmark.jars.hortonworks
-        
+
 ## Prepare TeraSort benchmarks
 
 Generate the official GraySort input data set. The user 
@@ -109,4 +109,3 @@ the total of disks. Generated data size are: 1GB, 10GB, 100GB 1TB
 ## Imports
 
     each = require 'each'
-        

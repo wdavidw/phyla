@@ -39,7 +39,6 @@
         gid: hadoop_group.name
         mode: 0o0750
         if: ranger.knox_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
-        
 
 # Knox Service Repository creation
 Matchs step 1 in [kafka plugin configuration][kafka-plugin]. Instead of using the web ui

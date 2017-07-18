@@ -17,7 +17,7 @@ suite can be used to assess regularity, balance or workload on a cluster.
       job_output_header = "Number of maps,Number of rows,#{benchmark.terasort.stdout_value_names.join ","},Real time"
 
 ## Prepare job output files
-      
+
       @call header: 'Preparation', handler: ->
         @file
           ssh: null 
@@ -44,7 +44,7 @@ Run each jobs N times (defined by parameter `iterations`)
           iteration = options.key
 
 ## Clean HDFS directories 
-  
+
           @system.execute 
             header: "#{iteration} HDFS Cleanup"
             cmd: """
@@ -68,7 +68,7 @@ datanode using the node's JMX interface :
 * Blocks validated 
 
 These can be used to validate data repartition in the cluster.
-          
+
           @call header: "#{iteration} Collect Before", handler: ->
             @each benchmark.datanodes, (options, cb) ->
               node = options.key
@@ -110,8 +110,8 @@ These can be used to validate data repartition in the cluster.
                 content: parse_metrics stderr, parameters.maps, parameters.rows
                 append: true
 
-# ## TeraSort
-          
+## TeraSort
+
           @call header: "#{iteration} Terasort", handler: ->
             @system.execute
               cmd: """

@@ -145,7 +145,6 @@ and spark.metrics.conf=metrics.properties will tell all executors to load that f
           spark.metrics['*.sink.ganglia.class'] = 'org.apache.spark.metrics.sink.GangliaSink'
           spark.metrics['*.sink.ganglia.host'] = graphite_ctx.map( (ctx) -> ctx.config.host)
           spark.metrics['*.sink.ganglia.port'] = ganglia_ctx.spark_port
-      
       spark.conf['spark.yarn.dist.files'] ?= spark.dist_files.join(',') if spark.dist_files.length > 0
 
 ## Dynamic Resource Allocation
@@ -154,7 +153,6 @@ Spark mecanism to set up resources based on cluster availability
 
       #http://spark.apache.org/docs/1.6.0/job-scheduling.html#dynamic-resource-allocation
       spark.conf['spark.dynamicAllocation.enabled'] ?= 'false' #disable by default
-      
       spark.conf['spark.shuffle.service.enabled'] ?= spark.conf['spark.dynamicAllocation.enabled']
       if spark.conf['spark.dynamicAllocation.enabled'] is 'true'
         spark.conf['spark.shuffle.service.port'] ?= '56789'

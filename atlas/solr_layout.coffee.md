@@ -128,5 +128,5 @@
           """
 
 ## Dependecies
-    
+
     docker = require 'nikita/lib/misc/docker'

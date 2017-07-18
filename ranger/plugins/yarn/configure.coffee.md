@@ -117,7 +117,7 @@ The repository name should match the reposity name in web ui.
 
 ## Plugin SSL
 SSL can be configured to use SSL if ranger admin has SSL enabled.
-        
+
         if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
           @config.ryba.ranger.yarn_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
           @config.ryba.ranger.yarn_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
