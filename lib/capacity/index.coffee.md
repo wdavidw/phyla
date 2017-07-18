@@ -585,7 +585,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
                 ws.write "      " if i % 3 is 0
                 ws.write "#{v}"
                 if i % 3 is 2 and i isnt suggested_value.length - 1
-                  ws.write "\n" 
+                  ws.write "\n"
                 else if i isnt suggested_value.length - 1
                   ws.write ', '
               ws.write "\n    ]"
@@ -596,7 +596,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
                   ws.write "      " if i % 3 is 0
                   ws.write "#{v}"
                   if i % 3 is 2 and i isnt suggested_value.length# - 1
-                    ws.write "\n" 
+                    ws.write "\n"
                   else if i isnt suggested_value.length# - 1
                     ws.write ', '
                 else

@@ -71,7 +71,7 @@ an object containing a list of replica set  name and the associated hosts.
 By default Ryba deploys only one replica set for all the shard servers.
 
       config.replication ?= {}
-      mongodb.shard.replica_sets ?=  shardsrvRepSet1: 
+      mongodb.shard.replica_sets ?=  shardsrvRepSet1:
         hosts: mongodb_shards.map( (ctx)-> ctx.config.host)
       replSets = Object.keys(mongodb.shard.replica_sets)
       # we  check if every config server is maped to one and only one replica set.

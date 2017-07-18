@@ -24,7 +24,7 @@ Waiting for docker to deliver an net=host option for docker build command !
         @file.render
           source: spark.livy.build.dockerfile
           target: "#{spark.livy.build.directory}/Dockerfile"
-          context: 
+          context:
             source: "http://archive.cloudera.com/beta/livy/livy-server-#{spark.livy.build.version}.zip"
             version: spark.livy.build.version
             conf_dir: spark.livy.conf_dir

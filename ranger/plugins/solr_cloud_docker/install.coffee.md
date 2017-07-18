@@ -127,12 +127,12 @@
 Matchs step 1 in [Solr plugin configuration][solr-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
+      @call
         header: "Repository creation"
       , ->
         @system.execute
           unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \ 
+          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
             -u admin:#{password} \"#{solr_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{solr_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
@@ -182,7 +182,7 @@ loads the lib directory found in the `SOLR_HOME`.
             -keystore /etc/ranger/#{solr_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
           """
           code_skipped: 1
-        @call 
+        @call
           if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
         , ->
           @each files, (options, cb) ->

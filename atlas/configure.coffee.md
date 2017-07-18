@@ -117,7 +117,7 @@ Forexample, `atlas.authentication.method.ldap.userDNpattern`=`cn=users\,cn=accou
         atlas.admin_user ?= 'admin'
         atlas.admin_password ?= 'admin123'
         atlas.user_creds ?= {}
-        atlas.user_creds["#{atlas.admin_user}"] ?= 
+        atlas.user_creds["#{atlas.admin_user}"] ?=
           name: "#{atlas.admin_user}"
           password: "#{atlas.admin_password}"
           group: "ADMIN"
@@ -238,8 +238,8 @@ Required for Ranger integration or anytime there is a consumer of entity change 
         atlas.application.properties['atlas.kafka.security.protocol'] ?= chanels[0]
         atlas.application.kafka_chanel = atlas.application.properties['atlas.kafka.security.protocol']
         # `kafka.broker.protocols` are available client protocols for communicating with broker
-        if atlas.application.kafka_chanel in kafka_ctxs[0].config.ryba.kafka.broker.protocols 
-          brokers = kafka_ctxs.map( (ctx) => 
+        if atlas.application.kafka_chanel in kafka_ctxs[0].config.ryba.kafka.broker.protocols
+          brokers = kafka_ctxs.map( (ctx) =>
             "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports[atlas.application.kafka_chanel]}"
           ).join ','
           # construcut the bootstrap listeners string base on channel
@@ -313,7 +313,7 @@ hard coded.
           #Administators can choose a different protocol for Atlas Kafka Notification
           protocol = server2.atlas.application.properties['atlas.kafka.security.protocol']
           if protocol in kafka_ctxs[0].config.ryba.kafka.broker.protocols
-            brokers = kafka_ctxs.map( (ctx) => 
+            brokers = kafka_ctxs.map( (ctx) =>
               "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports[protocol]}"
             ).join ','
             # construcut the bootstrap listeners string base on channel
@@ -366,7 +366,7 @@ hard coded.
             'atlas.kafka.zookeeper.sync.time.ms'
             'atlas.kafka.auto.commit.interval.ms'
             'atlas.kafka.hook.group.id'
-          ] then do 
+          ] then do
             ctx.config.ryba.ranger.tagsync.atlas_properties[prop] ?= atlas.application.properties[prop]
 
 ## Atlas Metada Server Environment
@@ -383,7 +383,7 @@ hard coded.
       atlas.env['ATLAS_DATA_DIR'] ?= "#{atlas.user.home}/data"
       atlas.env['ATLAS_EXPANDED_WEBAPP_DIR'] ?= "#{atlas.user.home}/server/webapp"
       atlas.env['HBASE_CONF_DIR'] ?= "#{atlas.conf_dir}/hbase"
-      
+
 ## Atlas Server Heap
 
       atlas.min_heap ?= '512m'

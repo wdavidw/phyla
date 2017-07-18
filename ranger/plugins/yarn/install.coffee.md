@@ -46,8 +46,8 @@
 Matchs step 1 in [hdfs plugin configuration][yarn-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/hadoop/yarn_rm')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/hadoop/yarn_rm')[0].config.host is @config.host
         header: 'Ranger YARN Repository'
       , ->
         @system.execute
@@ -75,7 +75,7 @@ we execute this task using the rest api.
 
 # Plugin Scripts 
 
-      @call 
+      @call
         header: 'Plugin Activation'
       , ->
         @file.render

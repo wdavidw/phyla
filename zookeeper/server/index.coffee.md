@@ -15,7 +15,7 @@ differences.
         java: implicit: true, module: 'masson/commons/java'
         hdp: 'ryba/hdp'
         # zoo_client: implicit: true, module: 'ryba/zookeeper/client'
-      configure: 
+      configure:
         'ryba/zookeeper/server/configure'
       commands:
         # 'backup':

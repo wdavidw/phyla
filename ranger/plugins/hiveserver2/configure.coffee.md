@@ -63,13 +63,13 @@ The repository name should match the reposity name in web ui.
 
         hive_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         hive_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hive'
-        hive_plugin.service_repo ?=  
+        hive_plugin.service_repo ?=
           'description': 'Hive Repo'
           'isEnabled': true
           'name': hive_plugin.install['REPOSITORY_NAME']
           'type': 'hive'
           'configs':
-            'username': hive_plugin.principal 
+            'username': hive_plugin.principal
             'password': hive_plugin.password
             'jdbc.driverClassName': 'org.apache.hive.jdbc.HiveDriver'
             'jdbc.url': "#{hive_url}"

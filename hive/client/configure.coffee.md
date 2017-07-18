@@ -19,7 +19,7 @@ Example:
     module.exports = ->
       hcat_ctxs = @contexts 'ryba/hive/hcatalog'
       throw Error "No HCatalog server declared" unless hcat_ctxs[0]
-      {mapred, tez} = @config.ryba 
+      {mapred, tez} = @config.ryba
       {java_home} = @config.java
       hive = @config.ryba.hive ?= {}
       hive.client ?= {}
@@ -52,7 +52,7 @@ Example:
       # Hive 0.14.0 and later the default is 256 MB.
       # HDP set it to 64 MB which seems wrong
       # Don't know if this default value should be hardcoded or estimated based
-      # on cluster capacity 
+      # on cluster capacity
       hive.site['hive.exec.reducers.bytes.per.reducer'] ?= '268435456'
 
       # Import HCatalog properties

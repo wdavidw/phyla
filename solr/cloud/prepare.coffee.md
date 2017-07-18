@@ -1,5 +1,5 @@
 
-    module.exports = 
+    module.exports =
       header: 'Solr Cloud Download'
       if: -> @contexts('ryba/solr/cloud')[0]?.config.host is @config.host
       handler: ->

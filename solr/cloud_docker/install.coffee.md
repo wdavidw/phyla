@@ -270,11 +270,11 @@ configuration like solr.in.sh or solr.xml.
         , ->
           for node in [1..config.containers]
             config.service_def["node_#{node}"]['depends_on'] = ["node_#{config.master_node}"] if node != config.master_node
-        @call 
+        @call
           header: 'Solr xml config'
         , ->
           for host in config.hosts
-            root = builder.create('solr').dec '1.0', 'UTF-8', true 
+            root = builder.create('solr').dec '1.0', 'UTF-8', true
             solrcloud = root.ele 'solrcloud'
             solrcloud.ele 'str', {'name':'host'}, "#{@config.host}"
             solrcloud.ele 'str', {'name':'hostPort'}, "#{config.port}"

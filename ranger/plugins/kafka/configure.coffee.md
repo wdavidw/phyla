@@ -51,7 +51,7 @@ The properties can be found [here][kafka-repository]
         kafka_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         kafka_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-kafka'
         kafka_plugin.service_repo ?=
-          'configs': 
+          'configs':
             'password': kb_ctxs[0].config.ryba.kafka.admin.password
             'username': kb_ctxs[0].config.ryba.kafka.admin.principal
             'hadoop.security.authentication': core_site['hadoop.security.authentication']

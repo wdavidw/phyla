@@ -7,8 +7,8 @@ with actions that run Hadoop Map/Reduce and Pig jobs.
 The Oozie server installation includes the Oozie client. The Oozie client should
 be installed in remote machines only.
 
-    module.exports = 
-      use: 
+    module.exports =
+      use:
         java: implicit: true, module: 'masson/commons/java'
         krb5_client: implicit: true, module: 'masson/core/krb5_client'
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'

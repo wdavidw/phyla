@@ -21,7 +21,7 @@ Wait for the NodeManagers HTTP ports. It supports HTTPS and HA.
       @connection.wait
         header: 'TCP'
         quorum: 1
-        servers: options.wait_tcp 
+        servers: options.wait_tcp
 
 ## TCP Localizer Address
 

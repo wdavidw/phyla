@@ -44,7 +44,7 @@ directories.
 Update the file "server.properties" with the properties defined by the
 "ryba.kafka.server" configuration.
 
-      @file 
+      @file
         header: 'Producer Properties'
         target: "#{options.conf_dir}/producer.properties"
         write: for k, v of options.producer.config
@@ -53,7 +53,7 @@ Update the file "server.properties" with the properties defined by the
           append: true
         backup: true
         eof: true
-      @file 
+      @file
         header: 'Consumer Properties'
         target: "#{options.conf_dir}/consumer.properties"
         write: for k, v of options.consumer.config

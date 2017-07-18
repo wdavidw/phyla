@@ -373,7 +373,7 @@ Be carefull, notes from Ambari 2.4.2:
             throw err if err
             for k, v of data
               props[k] ?= {}
-              props[k].new = v 
+              props[k].new = v
             callback()
         @call (options, callback) ->
           status = false

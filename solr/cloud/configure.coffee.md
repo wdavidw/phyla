@@ -6,7 +6,7 @@ Solr accepts differents sources:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     source: 'HDP'
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
@@ -17,7 +17,7 @@ ryba:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
       'SOLR_JAVA_HOME': '/usr/java/jdk1.8.0_91'
@@ -184,7 +184,7 @@ solr zkCli script
         solr.cloud.hdfs.blockcache_direct_memory_allocation ?= 'false'
         solr.cloud.hdfs.blockcache_blocksperbank ?= 16384
         solr.cloud.hdfs.blockcache_read_enabled ?= 'true'
-        solr.cloud.hdfs.blockcache_write_enabled ?= false 
+        solr.cloud.hdfs.blockcache_write_enabled ?= false
         solr.cloud.hdfs.nrtcachingdirectory_enable ?= true
         solr.cloud.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
         solr.cloud.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'

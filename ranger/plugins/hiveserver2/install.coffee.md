@@ -2,7 +2,7 @@
 # Ranger HiveServer2 Plugin Install
 
     module.exports = header: 'Ranger Hive Plugin install', handler: ->
-      {ranger, hive, realm, hadoop_group, core_site} = @config.ryba 
+      {ranger, hive, realm, hadoop_group, core_site} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
       hive_plugin = @config.ryba.ranger.hive_plugin
@@ -100,13 +100,13 @@
 Matchs step 1 in [hive plugin configuration][hive-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/hive/server2')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/hive/server2')[0].config.host is @config.host
         header: 'Ranger HIVE Repository'
       , ->
         @system.execute
           unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \ 
+          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
             -u admin:#{password} \"#{hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{hive_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
@@ -148,7 +148,7 @@ we execute this task using the rest api.
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
               replace: "HCOMPONENT_CONF_DIR=#{hive.server2.conf_dir}"
-            ,   
+            ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/hive-server2"
             ,
@@ -170,8 +170,8 @@ we execute this task using the rest api.
               -storetype jceks \
               -keystore /etc/ranger/#{hive_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
-            code_skipped: 1 
-          @call 
+            code_skipped: 1
+          @call
             if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
           , ->
             @each files, (options, cb) ->
@@ -183,7 +183,7 @@ we execute this task using the rest api.
                 files_exists["#{file}"] = exists
                 properties.read options.ssh, target , (err, props) ->
                   return cb err if err
-                  sources_props["#{file}"] = props  
+                  sources_props["#{file}"] = props
                   cb()
           @system.execute
             header: 'Script Execution'
@@ -216,7 +216,7 @@ we execute this task using the rest api.
               properties.read options.ssh, target , (err, props) ->
                 return cb err if err
                 current_props["#{file}"] = props
-                cb()                
+                cb()
           @call
             header: 'Compare Current Config Files'
             shy: true

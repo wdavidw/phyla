@@ -2,7 +2,7 @@
 # Ranger Admin : SolR Bootstrap
 
     module.exports = header: 'Ranger Audit Solr Boostrap', handler: ->
-      {solr} = @config.ryba 
+      {solr} = @config.ryba
       ranger =  @contexts('ryba/ranger/admin')[0].config.ryba.ranger
       {password} = ranger.admin
       cluster_config = ranger.admin.cluster_config
@@ -30,7 +30,7 @@ depends on the solr cluster type. The files are provided by hortonworks version 
 only.That's why there are stored as resource, so they can be use when ryba installs
 solr apache version.
 
-      @call  
+      @call
         if: -> mode is 'standalone'
         header: 'Ranger Collection Solr Standalone'
       , ->

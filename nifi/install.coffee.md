@@ -118,7 +118,7 @@ var to work.
 Describe where to get the user authentication information from.
 
       @call header: 'Login identity provider', ->
-        providers = builder.create('loginIdentityProviders').dec '1.0', 'UTF-8', true 
+        providers = builder.create('loginIdentityProviders').dec '1.0', 'UTF-8', true
         {ldap_provider, krb5_provider} = nifi.config.login_providers
         if ldap_provider?
           ldap_node = providers.ele 'provider'

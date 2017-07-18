@@ -13,13 +13,13 @@ variables but also inject some function to be executed.
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
       ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
       ranger.plugins.yarn_enabled ?= if rm_ctxs.length > 0 then true else false
-      log_dir = if @config.ryba.yarn_plugin_is_master 
-      then @config.ryba.yarn.rm.log_dir 
+      log_dir = if @config.ryba.yarn_plugin_is_master
+      then @config.ryba.yarn.rm.log_dir
       else @config.ryba.yarn.nm.log_dir
-      if ranger.plugins.yarn_enabled 
+      if ranger.plugins.yarn_enabled
         throw Error 'Need YARN to enable ranger YARN Plugin' unless rm_ctxs.length > 0
         # Ranger Yarn User
-        ranger.users['yarn'] ?= 
+        ranger.users['yarn'] ?=
           "name": 'yarn'
           "firstName": 'yarn'
           "lastName": 'hadoop'
@@ -36,7 +36,7 @@ variables but also inject some function to be executed.
         # YARN Plugin configuration
         yarn_plugin = @config.ryba.ranger.yarn_plugin ?= {}
         yarn_plugin.principal ?= ranger.plugins.principal
-        yarn_plugin.password ?= ranger.plugins.password        
+        yarn_plugin.password ?= ranger.plugins.password
         yarn_plugin.install ?= {}
         yarn_plugin.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
 
@@ -49,7 +49,7 @@ The repository name should match the reposity name in web ui.
         yarn_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         yarn_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-yarn'
         yarn_plugin.service_repo ?=
-          'configs': 
+          'configs':
             'password': hdfs.krb5_user.password
             'username': hdfs.krb5_user.principal
             'yarn.url': yarn_url

@@ -191,7 +191,7 @@ mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @call header: 'Environment', ->
-        ryba.hdfs.dn.java_opts += " -D#{k}=#{v}" for k, v of ryba.hdfs.dn.opts 
+        ryba.hdfs.dn.java_opts += " -D#{k}=#{v}" for k, v of ryba.hdfs.dn.opts
         @file.render
           header: 'Environment'
           target: "#{hdfs.dn.conf_dir}/hadoop-env.sh"

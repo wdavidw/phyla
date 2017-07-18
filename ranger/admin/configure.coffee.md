@@ -75,7 +75,7 @@ User can be External and Internal. Only Internal users can be created from the r
       ranger.admin.password ?= 'rangerAdmin123'
       pass = ranger.admin.password
       if not (/^.*[a-zA-Z]/.test(pass) and /^.*[0-9]/.test(pass)  and pass.length > 8)
-       throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest" 
+       throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest"
       ranger.admin.conf_dir ?= '/etc/ranger/admin'
       ranger.admin.site ?= {}
       ranger.admin.site['ranger.service.http.port'] ?= '6080'

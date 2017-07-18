@@ -20,7 +20,7 @@ hdf-select package conflicts with hdp-select package (both provide /usr/bin/conf
 So we must manually force install of hdf-select outside of yum to handle it
 
       @call header: 'HDP/HDF Cohabitation', ->
-        @system.execute 
+        @system.execute
           unless_exec: 'yum list installed hdf-select'
           cmd: """
           yumdownloader --destdir=/tmp hdf-select

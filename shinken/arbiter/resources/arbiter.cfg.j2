@@ -4,7 +4,7 @@ define arbiter {
   host_name           {{ a.config.host }}{# WARNING SHOULD BE SET FOR DISTRIBUTED MODE !!! #}
   address             {{ a.config.host }}
   port                {{ a.config.ryba.shinken.arbiter.config.port }}
-  spare               {{ a.config.ryba.shinken.arbiter.config.spare }} 
+  spare               {{ a.config.ryba.shinken.arbiter.config.spare }}
   {#Uncomment these lines in a HA architecture so the master and slaves know
   # how long they may wait for each other.#}
   timeout             3{#   Ping timeout#}

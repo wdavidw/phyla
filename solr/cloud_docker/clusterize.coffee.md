@@ -18,7 +18,7 @@ network_mode: host (port collision).
     hosts: ['master1.ryba', 'master2.ryba', 'master3.ryba']
     env:
       'SOLR_JAVA_HOME': '/user/java/jre'
-    security: 
+    security:
       'authorization': 
         'class': 'solr.RuleBasedAuthorizationPlugin'
     data_dir: '/var/my_data_dir'

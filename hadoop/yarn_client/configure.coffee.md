@@ -53,7 +53,7 @@
           # 'yarn.log-aggregation.retain-seconds'
           'yarn.nodemanager.remote-app-log-dir'
         ]
-          ryba.yarn.site[property] ?= nm_ctx.config.ryba.yarn.site[property]    
+          ryba.yarn.site[property] ?= nm_ctx.config.ryba.yarn.site[property]
 
       for rm_ctx in rm_ctxs
         id = if rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''

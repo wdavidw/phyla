@@ -54,11 +54,11 @@ set it hosts will be constructed on it.
         ryba.db_admin.mysql.java ?= {}
         ryba.db_admin.mysql.java.driver = 'com.mysql.jdbc.Driver'
         ctxs = {}
-        if mysql_ctxs.length isnt 0 
+        if mysql_ctxs.length isnt 0
           ryba.db_admin.mysql.java.datasource = 'com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource'
           ctxs = mysql_ctxs
           use = 'mysql'
-        else 
+        else
           ryba.db_admin.mysql.java.datasource = 'org.mariadb.jdbc.MariaDbDataSource'
           ctxs = mariadb_ctxs
           use = 'mariadb'

@@ -13,7 +13,7 @@
 
 Check if Hive can authenticate and run a basic query to the database.
 
-      @call header: 'Check Database', label_true: 'CHECKED', ->  
+      @call header: 'Database', label_true: 'CHECKED', ->
         cmd = switch hive.metastore.db.engine
           when 'mysql' then 'SELECT * FROM VERSION'
           when 'postgres' then '\\dt'
@@ -24,7 +24,7 @@ Check if Hive can authenticate and run a basic query to the database.
 
 Check if the Hive HCatalog (Metastore) server is listening.
 
-      @call header: 'Check Port', label_true: 'CHECKED', ->
+      @call header: 'Port', label_true: 'CHECKED', ->
         uris = hive.hcatalog.site['hive.metastore.uris'].split ','
         [server] = for uri in uris
           {hostname, port} = url.parse uri

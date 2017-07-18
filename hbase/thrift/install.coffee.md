@@ -108,7 +108,7 @@ Environment passed to the HBase Rest Server before it starts.
         unlink: true
         write: for k, v of hbase.thrift.env
           match: RegExp "export #{k}=.*", 'm'
-          replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"  
+          replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
 
 # User limits
 

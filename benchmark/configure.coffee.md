@@ -66,13 +66,13 @@ Once normalized, the benchmark property looks like:
 
 ```json
 { iterations: 1,
-  datanodes_jmx_urls: 
+  datanodes_jmx_urls:
    [ 'https://worker1.ryba:50475/jmx',
      'https://worker2.ryba:50475/jmx' ],
   output: './benchmark/20170428174520',
-  datanodes: 
+  datanodes:
    [ { name: 'worker1.ryba',
-       urls: 
+       urls:
         { system: 'https://worker1.ryba:50475/jmx?qry=java.lang:type=OperatingSystem',
           disks: 'https://worker1.ryba:50475/jmx?qry=Hadoop:service=DataNode,name=DataNodeInfo',
           metrics: 'https://worker1.ryba:50475/jmx?qry=Hadoop:service=DataNode,name=DataNodeActivity-worker1.ryba-1004' } },
@@ -81,12 +81,12 @@ Once normalized, the benchmark property looks like:
         { system: 'https://worker2.ryba:50475/jmx?qry=java.lang:type=OperatingSystem',
           disks: 'https://worker2.ryba:50475/jmx?qry=Hadoop:service=DataNode,name=DataNodeInfo',
           metrics: 'https://worker2.ryba:50475/jmx?qry=Hadoop:service=DataNode,name=DataNodeActivity-worker2.ryba-1004' } } ],
-  jars: 
+  jars:
    { cloudera: { mapreduce: '/opt/cloudera/parcels/CDH/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar' },
      hortonworks: { mapreduce: '/usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar' },
      current: {} },
   terasort: 
-   { stdout_value_names: 
+   { stdout_value_names:
       [ 'HDFS: Number of bytes read',
         'HDFS: Number of bytes written',
         'HDFS: Number of large read operations',
@@ -94,7 +94,7 @@ Once normalized, the benchmark property looks like:
         'CPU time spent (ms)',
         'Physical memory (bytes)',
         'Virtual memory (bytes)' ] },
-  kerberos: 
+  kerberos:
    { password: 'test123',
      password_sync: true,
      principal: 'ryba@HADOOP.RYBA' } }

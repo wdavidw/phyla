@@ -6,7 +6,7 @@
 
 ## Check HTTP
 
-      @system.execute 
+      @system.execute
         header: 'Check HTTP'
         label_true: 'CHECKED'
         cmd: "curl http://#{@config.host}:#{opentsdb.config['tsd.network.port']}"
@@ -29,7 +29,7 @@
             metric: 'ryba.test'
             tags: api: 'http', host: @config.host
           ]
-        @system.execute 
+        @system.execute
           cmd: """
           curl --fail -X POST -d '#{put}' http://#{@config.host}:#{opentsdb.config['tsd.network.port']}/api/put
           """

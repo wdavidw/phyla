@@ -20,7 +20,7 @@
 ## Python Modules
 
         @call header: 'Python Modules', ->
-          for _, mod of scheduler.modules then for k,v of mod.python_modules 
+          for _, mod of scheduler.modules then for k,v of mod.python_modules
             @file.cache
                 source: v.url
                 cache_file: "#{v.archive}.#{v.format}"

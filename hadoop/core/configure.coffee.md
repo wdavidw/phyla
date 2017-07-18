@@ -305,7 +305,7 @@ how:
 
 ```json
 { "ryba": { "metrics": 
-  "*.sink.file.class": false, 
+  "*.sink.file.class": false,
   "*.sink.ganglia.class": false, 
   "*.sink.graphite.class": false
  } }
@@ -316,9 +316,9 @@ context. Here's an exemple:
 
 ```json
 { "ryba": { "hadoop_metrics": 
-  "*.sink.*.metrics_prefix": "default", 
+  "*.sink.*.metrics_prefix": "default",
   "*.sink.file.metrics_prefix": "file_prefix", 
-  "namenode.sink.ganglia.metrics_prefix": "master_prefix", 
+  "namenode.sink.ganglia.metrics_prefix": "master_prefix",
   "resourcemanager.sink.ganglia.metrics_prefix": "master_prefix"
  } }
 ```
@@ -395,7 +395,7 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
         hadoop_metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of sinks.graphite
         for mod, modlist of {
           'ryba/hadoop/hdfs_nn': ['namenode']
-          'ryba/hadoop/yarn_rm': ['resourcemanager'] 
+          'ryba/hadoop/yarn_rm': ['resourcemanager']
           'ryba/hadoop/hdfs_dn': ['datanode']
           'ryba/hadoop/yarn_nm': ['nodemanager', 'maptask', 'reducetask']
           'ryba/hadoop/hdfs_jn': ['journalnode']

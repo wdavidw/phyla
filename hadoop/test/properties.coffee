@@ -47,7 +47,7 @@ describe 'properties', ->
 
   it 'write', (next) ->
     fs.readFile "#{__dirname}/resources/core.xml", 'utf8', (err, expect) ->
-      content = 
+      content =
         'fs.defaultFS': 'hdfs://namenode:8020'
         'io.file.buffer.size': '65536'
       properties.write '/tmp/node-hadoop-properties.xml', content, (err) ->

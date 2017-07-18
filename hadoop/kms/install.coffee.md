@@ -58,7 +58,6 @@
             uid: kms.user.name
             gid: kms.group.name
             perm: '0755'
-        
 
 ## Layout
 

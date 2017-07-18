@@ -39,7 +39,7 @@ The repository name should match the reposity name in web ui.
 
         atlas_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         atlas_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-atlas'
-        atlas_plugin.service_repo ?=  
+        atlas_plugin.service_repo ?=
           'description': 'Atlas Repo'
           'isEnabled': true
           'name': atlas_plugin.install['REPOSITORY_NAME']
@@ -121,7 +121,7 @@ The repository name should match the reposity name in web ui.
           atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
           atlas_princ = @config.ryba.atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
           atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= atlas_princ
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= @config.ryba.atlas.application.properties['atlas.authentication.keytab'] 
+          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= @config.ryba.atlas.application.properties['atlas.authentication.keytab']
 
 ### Atlas Plugin SSL
 Used only if SSL is enabled between Policy Admin Tool and Plugin

@@ -11,7 +11,7 @@ Run `ryba prepare` to create the Docker container.
       {hue_docker, db_admin, realm} = @config.ryba
       {hadoop_group, hdfs, hive, hbase} = @config.ryba
       hadoop_conf_dir = hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir']
-      hive_conf_dir = hue_docker.ini['beeswax']['hive_conf_dir'] 
+      hive_conf_dir = hue_docker.ini['beeswax']['hive_conf_dir']
       hbase_conf_dir = hue_docker.ini['hbase']['hbase_conf_dir']
       krb5 = @config.krb5_client.admin[realm]
       machine = @config.nikita.machine
@@ -130,7 +130,7 @@ the default database while mysql is the recommanded choice.
           when 'mysql'
             {engine, host, user, password, name} = hue_docker.ini.desktop.database
             escape = (text) -> text.replace(/[\\"]/g, "\\$&")
-            properties = 
+            properties =
               'engine': engine
               'host': host
               'admin_username': db_admin[engine]['admin_username']
@@ -141,7 +141,7 @@ the default database while mysql is the recommanded choice.
               header: 'User'
             @db.database properties, database: name,
               header: 'Database'
-            @system.execute 
+            @system.execute
               cmd: db.cmd properties, """
                 grant all privileges on #{name}.* to '#{user}'@'localhost' identified by '#{password}';
                 grant all privileges on #{name}.* to '#{user}'@'%' identified by '#{password}';

@@ -26,7 +26,7 @@ Check if hadoop connector works and re-activate jar execution.
           hadoop fs -rm  -r /user/#{solr.user.name}/csv || true
           zookeeper-client -server #{solr.cloud.zk_connect} rmr #{solr.cloud.zk_node}/configs/#{collection}
           """
-        @call 
+        @call
           unless_exec:unless force_check then "test -f /tmp/#{check_dir}/checked"
         , ->
           @system.execute
@@ -77,7 +77,7 @@ This check is inspired [from HDP][search-hdp].
           #{solr.cloud.latest_dir}/bin/solr delete -c #{collection} || true
           zookeeper-client -server #{solr.cloud.zk_connect} rmr #{solr.cloud.zk_node}/configs/#{collection} 2&>1 || true
           """
-        @call 
+        @call
           unless_exec: unless force_check then "test -f /tmp/#{check_dir}/checked"
         , ->
           @system.execute
@@ -87,7 +87,7 @@ This check is inspired [from HDP][search-hdp].
             source: "#{__dirname}/../resources/cloud/solrconfig.xml.j2"
             target: "/tmp/#{check_dir}/solrconfig.xml"
             local: true
-            context: @config.ryba   
+            context: @config.ryba
             eof: true
           @system.execute
             cmd: """
@@ -99,7 +99,7 @@ This check is inspired [from HDP][search-hdp].
             if: -> @status -1
             cmd: """
             touch /tmp/#{check_dir}/checked
-            """          
+            """
 
 ## Dependencies
 

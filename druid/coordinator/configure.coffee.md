@@ -22,4 +22,3 @@ Example:
       druid.coordinator.jvm ?= {}
       druid.coordinator.jvm.xms ?= '3g'
       druid.coordinator.jvm.xmx ?= '3g'
-      

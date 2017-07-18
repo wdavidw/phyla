@@ -86,7 +86,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 ## Python Modules
 
       @call header: 'Python Modules', ->
-        install_dep = (k, v) => 
+        install_dep = (k, v) =>
           @call unless_exec: "pip list | grep #{k}", ->
             @file.download
               source: v.url

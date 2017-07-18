@@ -1,6 +1,6 @@
 
     module.exports = header: 'Ranger Knox Gateway Plugin install', handler: ->
-      {knox, ranger, realm, hadoop_group, core_site} = @config.ryba 
+      {knox, ranger, realm, hadoop_group, core_site} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
       krb5 = @config.krb5_client.admin[realm]
       version = null
@@ -44,13 +44,13 @@
 Matchs step 1 in [kafka plugin configuration][kafka-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/knox')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/knox')[0].config.host is @config.host
         header: 'Ranger Knox Repository'
       , ->
           @system.execute
             unless_exec: """
-            curl --fail -H \"Content-Type: application/json\"   -k -X GET  \ 
+            curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
               -u admin:#{password} \"#{ranger.knox_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.knox_plugin.install['REPOSITORY_NAME']}\"
             """
             cmd: """
@@ -100,8 +100,8 @@ we execute this task using the rest api.
           cmd: """
           export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec
           if /usr/hdp/#{version}/ranger-knox-plugin/enable-knox-plugin.sh ;
-          then exit 0 ; 
-          else exit 1 ; 
+          then exit 0 ;
+          else exit 1 ;
           fi;
           """
         @system.execute

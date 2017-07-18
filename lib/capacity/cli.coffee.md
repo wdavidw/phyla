@@ -46,7 +46,7 @@ node node_modules/ryba/bin/capacity \
   -o ./conf/capacity.coffee -w
 ```
 
-    exports.params = 
+    exports.params =
       name: 'capacity'
       description: 'Hadoop Tool for Capacity Planning'
       options: [

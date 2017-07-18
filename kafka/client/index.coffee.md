@@ -4,7 +4,7 @@
 Apache Kafka is publish-subscribe messaging rethought as a distributed commit
 log. It is fast, scalable, durable and distributed by design.
 
-    module.exports = 
+    module.exports =
       use:
         kafka_broker: 'ryba/kafka/broker'
         hdf: 'ryba/hdf'

@@ -39,7 +39,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service name: 'knox'
         @hdp_select name: 'knox-server'
         # Fix autogen of master secret
-        @call 
+        @call
           if: ->@status -2
         , ->
           @each  [
@@ -179,7 +179,7 @@ in the gateway.sh service script.
 
       @call header: 'Store Password', ->
         # Create alias to store password used in topology
-        for alias,password of knox.realm_passwords then do (alias,password) => 
+        for alias,password of knox.realm_passwords then do (alias,password) =>
           nameservice=alias.split("-")[0]
           @system.execute
             cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias #{alias} --cluster #{nameservice} --value #{password}"

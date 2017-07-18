@@ -43,7 +43,7 @@ directories.
 Update the file "server.properties" with the properties defined by the
 "ryba.kafka.server" configuration.
 
-      @file 
+      @file
         header: 'Producer Properties'
         target: "#{kafka.producer.conf_dir}/producer.properties"
         write: for k, v of kafka.producer.config

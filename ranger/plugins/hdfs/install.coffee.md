@@ -75,8 +75,8 @@ Not documented be taken from [github-source][hdfs-plugin-source]
             -storetype jceks \
             -keystore /etc/ranger/#{ranger.hdfs_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
           """
-          code_skipped: 1 
-        @call 
+          code_skipped: 1
+        @call
           if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
         , ->
           @each files, (options, cb) ->
@@ -88,15 +88,15 @@ Not documented be taken from [github-source][hdfs-plugin-source]
               files_exists["#{file}"] = exists
               properties.read options.ssh, target , (err, props) ->
                 return cb err if err
-                sources_props["#{file}"] = props  
-                cb()   
+                sources_props["#{file}"] = props
+                cb()
         @file
           header: 'Fix'
           target: "/usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
               replace: "HCOMPONENT_CONF_DIR=#{hdfs.nn.conf_dir}"
-            ,   
+            ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/hadoop-hdfs-namenode"
             ,
@@ -134,7 +134,7 @@ Not documented be taken from [github-source][hdfs-plugin-source]
             properties.read options.ssh, target , (err, props) ->
               return cb err if err
               current_props["#{file}"] = props
-              cb()                
+              cb()
         @call
           header: 'Diff'
           shy: true

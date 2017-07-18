@@ -53,7 +53,7 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
         @file.render
           source: hue_docker.build.dockerfile
           target: "#{hue_docker.build.directory}/Dockerfile"
-          context: 
+          context:
             source: 'hue'
             user: hue_docker.user.name
             uid: hue_docker.user.uid

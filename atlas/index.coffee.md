@@ -5,7 +5,7 @@ governance services – enabling enterprises to effectively and efficiently meet
 their compliance requirements within Hadoop and allows integration with the whole
 enterprise data ecosystem.
 
-    module.exports = 
+    module.exports =
       use:
         krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'

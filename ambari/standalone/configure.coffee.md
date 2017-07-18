@@ -333,7 +333,7 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
           else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
 
 ### Views Proxyusers
-        
+
         hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm', 'ryba/hadoop/core']
         for hadoop_ctx in hadoop_ctxs
           hadoop_ctx.config.ryba ?= {}

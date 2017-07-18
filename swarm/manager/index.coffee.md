@@ -10,7 +10,7 @@ to check how to configure it
 Once a machine is added to the swarm cluster (manager or agent), it will be configured
 to communicate by default with the `ryba/swarm/manager`.
 
-    module.exports = 
+    module.exports =
       use:
         docker: implicit:true, module: 'masson/commons/docker'
         zookeeper: module: 'ryba/zookeeper/server'

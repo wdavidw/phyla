@@ -57,7 +57,7 @@ This module check the Hive Server2 servers using the `beeline` command.
             \"#{install['POLICY_MGR_URL']}/service/public/api/policy\"
           """
           unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \ 
+          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/Ranger-Ryba-HIVE-Policy-#{@config.host}\"
           """

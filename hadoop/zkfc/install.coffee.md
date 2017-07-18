@@ -285,4 +285,4 @@ NameNode, we wait for the active NameNode to take leadership and start the ZKFC 
 
     fs = require 'fs'
     mkcmd = require '../../lib/mkcmd'
-    {merge} = require 'nikita/lib/misc' 
+    {merge} = require 'nikita/lib/misc'

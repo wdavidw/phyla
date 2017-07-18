@@ -9,7 +9,7 @@ All config servers must be available to deploy a sharded cluster or to make any
 changes to cluster metadata.
 
     module.exports =
-      use: 
+      use:
         core_local: implicit: true, module: 'masson/core/locale'
         iptables: implicit: true, module: 'masson/core/iptables'
         krb5_client: module: 'masson/core/krb5_client'

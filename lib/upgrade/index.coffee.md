@@ -104,7 +104,7 @@ Follow official instruction from [Hortonworks HDP 2.2 Manual Upgrade][upgrade]
       @system.execute
         cmd: mkcmd.hdfs @, 'hdfs dfsadmin -rollingUpgrade query | grep "Proceed with rolling upgrade"'
         code_skipped: 1
-      @call 
+      @call
         unless: -> @status -1
       , ->
         @registry.register 'kexecute', require '../kexecute'

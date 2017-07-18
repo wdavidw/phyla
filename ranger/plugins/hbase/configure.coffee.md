@@ -58,7 +58,7 @@ The repository name should match the reposity name in web ui.
         hbase_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         hbase_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
         hbase_plugin.service_repo ?=
-          'configs': 
+          'configs':
             'username': @config.ryba.hbase.admin.principal
             'password': @config.ryba.hbase.admin.password
             'hadoop.security.authorization': core_site['hadoop.security.authorization']

@@ -72,7 +72,7 @@ HA properties must be available to masters and regionservers.
         'hbase.regionserver.storefile.refresh.period'
         'hbase.regionserver.meta.storefile.refresh.period'
         'hbase.region.replica.replication.enabled'
-        'hbase.master.hfilecleaner.ttl' 
+        'hbase.master.hfilecleaner.ttl'
         'hbase.master.loadbalancer.class'
         'hbase.meta.replica.count'
         'hbase.region.replica.wait.for.primary.flush'

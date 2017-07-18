@@ -21,7 +21,7 @@ log. It is fast, scalable, durable and distributed by design.
         'ryba/kafka/broker/configure'
         'ryba/ranger/plugins/kafka/configure'
       ]
-      commands: 
+      commands:
         'install': [
           'ryba/kafka/broker/install'
           'ryba/kafka/broker/start'

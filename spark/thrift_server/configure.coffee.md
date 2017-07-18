@@ -123,7 +123,7 @@ Spark SQL thrift server is runned in yarn through the hive server user, and must
         nm_ctx.before
           type: 'service'
           name: 'hadoop-yarn-nodemanager'
-          handler: -> 
+          handler: ->
             @system.group header: 'Group', hs2_ctxs[0].config.ryba.hive.group
             @system.user header: 'User', hs2_ctxs[0].config.ryba.hive.user
             @system.mkdir

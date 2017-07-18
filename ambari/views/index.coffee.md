@@ -18,11 +18,11 @@ It uses the Apache Ambari REST Api.
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X POST \
             \"#{url}/api/v1/views/FILES/versions/#{options.views.files.version}/instances/RYBA_FILES_VIEW\" \
             --data '#{JSON.stringify ViewInstanceInfo:options.views.files.configuration}'
-            """ 
+            """
           unless_exec: """
-              curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
-              \"#{url}/api/v1/views/FILES/versions/#{options.views.files.version}/instances/RYBA_FILES_VIEW\"
-          """
+            curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
+            \"#{url}/api/v1/views/FILES/versions/#{options.views.files.version}/instances/RYBA_FILES_VIEW\"
+            """
 
 ## Create the HIVE View
 
@@ -33,11 +33,11 @@ It uses the Apache Ambari REST Api.
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X POST \
             \"#{url}/api/v1/views/HIVE/versions/#{options.views.hive.version}/instances/RYBA_HIVE_VIEW\" \
             --data '#{JSON.stringify ViewInstanceInfo:options.views.hive.configuration}'
-            """ 
+            """
           unless_exec: """
-              curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
-              \"#{url}/api/v1/views/HIVE/versions/#{options.views.hive.version}/instances/RYBA_HIVE_VIEW\"
-          """
+            curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
+            \"#{url}/api/v1/views/HIVE/versions/#{options.views.hive.version}/instances/RYBA_HIVE_VIEW\"
+            """
           #refers to hortonworks knowledge Base
           # when trying to instantiate a hive view. Some table might bemissing in ambari's database
           # its du to the fact that the page size for a row is to high (physical limit)
@@ -80,11 +80,11 @@ It uses the Apache Ambari REST Api.
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X POST \
             \"#{url}/api/v1/views/TEZ/versions/#{options.views.tez.version}/instances/RYBA_TEZ_VIEW\" \
             --data '#{JSON.stringify ViewInstanceInfo:options.views.tez.configuration}'
-            """ 
+            """
           unless_exec: """
-              curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
-              \"#{url}/api/v1/views/TEZ/versions/#{options.views.tez.version}/instances/RYBA_TEZ_VIEW\"
-          """
+            curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
+            \"#{url}/api/v1/views/TEZ/versions/#{options.views.tez.version}/instances/RYBA_TEZ_VIEW\"
+            """
 
 ## Create the Workflow Manager (Oozie) View
 
@@ -95,8 +95,8 @@ It uses the Apache Ambari REST Api.
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X POST \
             \"#{url}/api/v1/views/WORKFLOW_MANAGER/versions/#{options.views.wfmanager.version}/instances/RYBA_OOZIE_VIEW\" \
             --data '#{JSON.stringify ViewInstanceInfo:options.views.wfmanager.configuration}'
-            """ 
+            """
           unless_exec: """
-              curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
-              \"#{url}/api/v1/views/WORKFLOW_MANAGER/versions/#{options.views.wfmanager.version}/instances/RYBA_OOZIE_VIEW\"
-          """
+            curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
+            \"#{url}/api/v1/views/WORKFLOW_MANAGER/versions/#{options.views.wfmanager.version}/instances/RYBA_OOZIE_VIEW\"
+            """

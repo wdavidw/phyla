@@ -19,7 +19,7 @@ loop on topologies to provide missing values
         'oozie': 'ryba/oozie/server'
         'webhbase': 'ryba/hbase/rest'
       } then if @contexts(mod).length > 0
-        services[service] = true 
+        services[service] = true
       return "#{@config.ryba.nameservice}": services: services
 
 ## Configure
@@ -231,7 +231,7 @@ This mechanism can be used to configure a specific gateway without having to dec
         # Hive
         if topology.services['hive'] is true
           hs2_ctxs = @contexts 'ryba/hive/server2'
-          if hs2_ctxs.length > 1 
+          if hs2_ctxs.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['HIVE'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true;' + 
@@ -281,7 +281,7 @@ This mechanism can be used to configure a specific gateway without having to dec
               host = ctx.config.host
               port = ctx.config.ryba.hbase.rest.site['hbase.rest.port']
               if knox.config.webhbase?
-                topology.services['webhbase'] = 
+                topology.services['webhbase'] =
                   url: "#{protocol}://#{host}:#{port}"
                   params: knox.config.webhbase
               else
@@ -302,7 +302,7 @@ This mechanism can be used to configure a specific gateway without having to dec
               protocol = if ctx.config.ryba.hbase.master.site['hbase.ssl.enabled'] is 'true' then 'https' else 'http'
               host = ctx.config.host
               port = ctx.config.ryba.hbase.master.site['hbase.master.info.port']
-              topology.services['hbaseui'].push "#{protocol}://#{host}:#{port}" 
+              topology.services['hbaseui'].push "#{protocol}://#{host}:#{port}"
 
           else throw Error 'Cannot autoconfigure KNOX hbaseui service, no hbaseui declared'
 

@@ -46,7 +46,7 @@ For each given datanode, discover count of CPUs, total RAM and count of disks.
           {VolumeInfo, Version} = data.beans[0]
           datanode.disks = Object.keys(JSON.parse VolumeInfo).length
           if Version.indexOf("cdh") != -1
-            benchmark.jars.current = benchmark.jars.cloudera 
+            benchmark.jars.current = benchmark.jars.cloudera
           else benchmark.jars.current = benchmark.jars.hortonworks
 
 ## Prepare TeraSort benchmarks

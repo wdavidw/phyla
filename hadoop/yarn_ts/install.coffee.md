@@ -158,7 +158,7 @@ Update the "yarn-site.xml" configuration file.
         mode: 0o750
         backup: true
         eof: true
-        
+
 Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collector like Ganglia or Graphite.
 
       @file.properties

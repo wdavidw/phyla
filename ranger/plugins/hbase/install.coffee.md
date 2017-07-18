@@ -51,8 +51,8 @@
 Matchs step 1 in [hdfs plugin configuration][hbase-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/hbase/master')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/hbase/master')[0].config.host is @config.host
         header: 'Ranger HBase Repository & audit policy'
       , ->
         hbase_policy =
@@ -113,7 +113,7 @@ we execute this task using the rest api.
         @system.execute
           header: 'Ranger Admin Repository'
           unless_exec: """
-          curl --fail -H \"Content-Type: application/json\"   -k -X GET  \ 
+          curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
             -u admin:#{password} \"#{ranger.hbase_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
@@ -182,8 +182,8 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
               -storetype jceks \
               -keystore /etc/ranger/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
-            code_skipped: 1 
-          @call 
+            code_skipped: 1
+          @call
             if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
           , ->
             @each files, (options, cb) ->
@@ -195,7 +195,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
                 files_exists["#{file}"] = exists
                 properties.read options.ssh, target , (err, props) ->
                   return cb err if err
-                  sources_props["#{file}"] = props  
+                  sources_props["#{file}"] = props
                   cb()
           @system.execute
             header: 'Script Execution'
@@ -222,7 +222,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
               properties.read options.ssh, target , (err, props) ->
                 return cb err if err
                 current_props["#{file}"] = props
-                cb()                
+                cb()
           @call
             header: 'Compare Current Config Files'
             shy: true

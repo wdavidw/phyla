@@ -317,7 +317,7 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
           local: true
 
       @call header: 'War', ->
-        @call 
+        @call
           header: 'HBase'
           if: is_hbase_installed
         , ->
@@ -479,7 +479,7 @@ The `oozie admin -shareliblist` command can be used by the final user to list
 the ShareLib contents without having to go into HDFS.
 
       @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-      @call 
+      @call
         header: 'Share lib'
         if: @contexts('ryba/oozie/server')[0].config.host is @config.host
       , ->

@@ -53,7 +53,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Ryba support installing solr from apache official release or HDP Search repos.
 
       @call header: 'Packages', ->
-        @call 
+        @call
           if:  solr.cloud.source is 'HDP'
         , ->
           @service
@@ -69,27 +69,27 @@ Ryba support installing solr from apache official release or HDP Search repos.
           @file.download
             source: solr.cloud.source
             target: tmp_archive_location
-          @system.mkdir 
+          @system.mkdir
             target: solr.cloud.install_dir
           @tools.extract
             source: tmp_archive_location
             target: solr.cloud.install_dir
             preserve_owner: false
             strip: 1
-          @system.link 
+          @system.link
             source: solr.cloud.install_dir
             target: solr.cloud.latest_dir
 
 ## Configuration
 
       @call header: 'Configuration', (options) ->
-        @system.link 
+        @system.link
           source: "#{solr.cloud.latest_dir}/conf"
           target: solr.cloud.conf_dir
         @system.remove
           shy: true
           target: "#{solr.cloud.latest_dir}/bin/solr.in.sh"
-        @system.link 
+        @system.link
           source: "#{solr.cloud.conf_dir}/solr.in.sh"
           target: "#{solr.cloud.latest_dir}/bin/solr.in.sh"
         @service.init
@@ -237,7 +237,7 @@ Create HDFS solr user and its home directory
         header: 'Zookeeper bootstrap'
         cmd: """
         cd #{solr.cloud.latest_dir}
-        server/scripts/cloud-scripts/zkcli.sh -zkhost #{solr.cloud.zkhosts} \ 
+        server/scripts/cloud-scripts/zkcli.sh -zkhost #{solr.cloud.zkhosts} \
         -cmd bootstrap -solrhome #{solr.user.home}
         """
         unless_exec: "zookeeper-client -server #{solr.cloud.zk_connect} ls /#{solr.cloud.zk_node} | grep '#{solr.cloud.zk_node}'"

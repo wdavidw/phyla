@@ -60,13 +60,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 ## Configuration
 
       @call header: 'Configuration', ->
-        @system.link 
+        @system.link
           source: "#{solr.latest_dir}/conf"
           target: solr.conf_dir
         @system.remove
           shy: true
           target: "#{solr.latest_dir}/bin/solr.in.sh"
-        @system.link 
+        @system.link
           source: "#{solr.conf_dir}/solr.in.sh"
           target: "#{solr.latest_dir}/bin/solr.in.sh"
         @service.init

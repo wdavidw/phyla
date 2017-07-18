@@ -108,7 +108,7 @@ on the swarm cluster level
           target: '/etc/profile.d/docker.sh'
           write: [
             match: /^export DOCKER_HOST=.*$/mg
-            replace: "export DOCKER_HOST=tcp://#{@config.host}:#{@config.docker.default_port}" 
+            replace: "export DOCKER_HOST=tcp://#{@config.host}:#{@config.docker.default_port}"
             append: true
           ,
             match: /^export DOCKER_CERT_PATH=.*$/mg
@@ -116,7 +116,7 @@ on the swarm cluster level
             append: true
           ,
             match: /^export DOCKER_TLS_VERIFY=.*$/mg
-            replace: "export DOCKER_TLS_VERIFY=#{if @config.docker.ssl.enabled then 1 else 0}" 
+            replace: "export DOCKER_TLS_VERIFY=#{if @config.docker.ssl.enabled then 1 else 0}"
             append: true
           ]
           backup: true

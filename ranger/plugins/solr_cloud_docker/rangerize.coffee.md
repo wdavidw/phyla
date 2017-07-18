@@ -48,7 +48,7 @@ and library.
       solr_plugin.install['REPOSITORY_NAME'] ?= name
       solr_urls = cluster_config.hosts.map( (host) ->
        "#{if cluster_config.is_ssl_enabled  then 'https://' else 'http://'}#{host}:#{cluster_config.port}").join(',')
-      solr_plugin.service_repo ?=  
+      solr_plugin.service_repo ?=
         'description': "Ranger plugin Repo for:#{name}"
         'isEnabled': true
         'name': solr_plugin.install['REPOSITORY_NAME']

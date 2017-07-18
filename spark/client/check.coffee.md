@@ -40,7 +40,7 @@ In this mode the driver is the YARN application master (running inside YARN).
           return unless executed
           tracking_url_result = stdout.trim().split("/")
           applicationId = tracking_url_result[tracking_url_result.length - 2]
-        @call 
+        @call
           if: -> @status -1
           handler:->
             @system.execute

@@ -21,7 +21,7 @@ Wait for the HBase master to be started.
 ## Ranger Policy
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
-      @call 
+      @call
         if: -> ranger_ctx?
       , ->
         {install} = ranger_ctx.config.ryba.ranger.hbase_plugin
@@ -89,7 +89,7 @@ Wait for the HBase master to be started.
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
           """
           unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \ 
+          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/#{policy_name}\"
           """

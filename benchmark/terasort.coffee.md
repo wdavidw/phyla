@@ -20,24 +20,24 @@ suite can be used to assess regularity, balance or workload on a cluster.
 
       @call header: 'Preparation', handler: ->
         @file
-          ssh: null 
+          ssh: null
           target: teragen_output_file
           content: job_output_header
           unless_exists: true
         @file
-          ssh: null 
+          ssh: null
           target: terasort_output_file
           content: job_output_header
           unless_exists: true
         @file (
-          ssh: null 
+          ssh: null
           target: "#{benchmark.output}/#{node.name}.csv"
           content: node_output_header
           unless_exists: true
         ) for node in benchmark.datanodes
 
 Run each jobs N times (defined by parameter `iterations`)
-      
+
       @each benchmark.terasort.parameters, (options) ->
         parameters = options.key
         @each [0...benchmark.iterations], (options) ->
@@ -45,17 +45,17 @@ Run each jobs N times (defined by parameter `iterations`)
 
 ## Clean HDFS directories 
 
-          @system.execute 
+          @system.execute
             header: "#{iteration} HDFS Cleanup"
             cmd: """
             echo #{benchmark.kerberos.password} | kinit #{benchmark.kerberos.principal} >/dev/null 2>&1
             hdfs dfs -rm -r -skipTrash '#{teragen_output_dir}' '#{terasort_output_dir}'
-            """ 
-            code_skipped: 1 
+            """
+            code_skipped: 1
             trap: true
 
 ## DN Metrics Before 
-    
+
 Before (and after) each test, request the following information for every 
 datanode using the node's JMX interface :
 
@@ -72,7 +72,7 @@ These can be used to validate data repartition in the cluster.
           @call header: "#{iteration} Collect Before", handler: ->
             @each benchmark.datanodes, (options, cb) ->
               node = options.key
-              @system.execute 
+              @system.execute
                 cmd: """
                 echo #{benchmark.kerberos.password} | kinit #{benchmark.kerberos.principal} >/dev/null 2>&1
                 curl --fail -k --negotiate -u: \
@@ -83,17 +83,17 @@ These can be used to validate data repartition in the cluster.
                 throw err if err
                 data = JSON.parse stdout
                 throw Error "Invalid Response" unless new RegExp("Hadoop:service=DataNode,name=DataNodeActivity-#{node.name}-1004").test data?.beans[0]?.name
-                @file 
-                  ssh: null 
+                @file
+                  ssh: null
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
-                  append: true  
+                  append: true
               @then cb
 
 ## TeraGen 
-        
+
           @call header: "#{iteration} Teragen", handler: ->
-            @system.execute 
+            @system.execute
               cmd: """
               echo #{benchmark.kerberos.password} | kinit #{benchmark.kerberos.principal} >/dev/null 2>&1
               time hadoop jar #{benchmark.jars.current} \
@@ -131,7 +131,7 @@ These can be used to validate data repartition in the cluster.
                 append: true
 
 ## DN Metrics After
-          
+
           @call header: "#{iteration} Collect After", handler: ->
             @each benchmark.datanodes, (options, cb) ->
               node = options.key
@@ -145,8 +145,8 @@ These can be used to validate data repartition in the cluster.
                 throw err if err
                 data = JSON.parse stdout
                 throw Error "Invalid Response" unless new RegExp("Hadoop:service=DataNode,name=DataNodeActivity-#{node.name}-1004").test data?.beans[0]?.name
-                @file 
-                  ssh: null 
+                @file
+                  ssh: null
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
                   append: true
@@ -181,6 +181,6 @@ Parse the output of a teragen / terasort job to retrieve job metrics
           for name in benchmark.terasort.stdout_value_names
             unless line.indexOf(name) == -1
               metrics.push line.split("=")[1]
-          unless line.indexOf("real") == -1 # job duration 
+          unless line.indexOf("real") == -1 # job duration
             metrics.push line.substring line.lastIndexOf "\t"
         "\n#{metrics.join ','}"

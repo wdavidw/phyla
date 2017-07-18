@@ -77,7 +77,7 @@ Example
       nagios.user.gid = nagios.group.name
       nagios.user.comment ?= 'Nagios User'
       nagios.user.home = '/var/log/nagios'
-      nagios.user.shell = '/bin/sh' 
+      nagios.user.shell = '/bin/sh'
       # WebUI Users & Groups
       nagios.users ?= {}
       unless Object.keys(nagios.users).length

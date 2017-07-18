@@ -1,9 +1,9 @@
 
 # OpenTSDB Install
 
-    module.exports = header: 'OpenTSDB Install', handler: -> 
+    module.exports = header: 'OpenTSDB Install', handler: ->
       {opentsdb, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm] 
+      krb5 = @config.krb5_client.admin[realm]
 
 ## Register
 
@@ -168,7 +168,7 @@ Starting opentsdb: /etc/init.d/opentsdb: line 69: ulimit: open files: cannot mod
           create '#{tables['data']}',
             {NAME => 't', VERSIONS => 1, COMPRESSION => '#{opentsdb.hbase.compression}', BLOOMFILTER => '#{opentsdb.hbase.bloomfilter}'}
           create '#{tables['tree']}',
-            {NAME => 't', VERSIONS => 1, COMPRESSION => '#{opentsdb.hbase.compression}', BLOOMFILTER => '#{opentsdb.hbase.bloomfilter}'}    
+            {NAME => 't', VERSIONS => 1, COMPRESSION => '#{opentsdb.hbase.compression}', BLOOMFILTER => '#{opentsdb.hbase.bloomfilter}'}
           create '#{tables['meta']}',
             {NAME => 'name', COMPRESSION => '#{opentsdb.hbase.compression}', BLOOMFILTER => '#{opentsdb.hbase.bloomfilter}'}
           grant '#{opentsdb.user.name}', 'RWXCA', '#{tables['uid']}'

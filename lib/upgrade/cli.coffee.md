@@ -34,7 +34,7 @@
 node node_modules/ryba/bin/upgrade
 ```
 
-    exports.params = 
+    exports.params =
       name: 'upgrade'
       description: 'Upgrade your Hadoop Cluster'
       options: [

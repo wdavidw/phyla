@@ -61,7 +61,7 @@
           protocol = 'PLAINTEXT'
       brokers = for ks_ctx in ks_ctxs
         "#{ks_ctx.config.host}:#{ks_ctx.config.ryba.kafka.broker.ports[protocol]}"
-      options.protocols ?= protocols 
+      options.protocols ?= protocols
       #producer
       options.producer.config['security.protocol'] ?= options.protocols
       options.producer.config['metadata.broker.list'] ?= brokers.join ','

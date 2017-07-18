@@ -18,7 +18,7 @@ Solr accepts differents sources:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     source: 'HDP'
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
@@ -29,7 +29,7 @@ ryba:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
       'SOLR_JAVA_HOME': '/usr/java/jdk1.8.0_91'

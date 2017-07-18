@@ -10,7 +10,7 @@ to help you troubleshoot support cases.
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'
         smartsense_server: 'ryba/smartsense/server'
       configure: 'ryba/smartsense/agent/configure'
-      commands: 
+      commands:
         'install': [
           'ryba/smartsense/agent/install'
           'ryba/smartsense/agent/check'

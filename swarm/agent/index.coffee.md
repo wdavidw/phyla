@@ -1,7 +1,7 @@
 
 # Docker Swarm Agent
 
-    module.exports = 
+    module.exports =
       use:
         docker: implicit:true, module: 'masson/commons/docker'
         zookeeper: module: 'ryba/zookeeper/server'

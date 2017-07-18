@@ -209,7 +209,7 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
 
 Broker Server principal, keytab and JAAS
 
-      @call 
+      @call
         header: 'Kerberos'
         if: kafka.broker.config['zookeeper.set.acl'] is 'true'
         handler: ->
@@ -249,7 +249,7 @@ Kafka Superuser principal generation
 Upload and register the SSL certificate and private key.
 SSL is enabled at least for inter broker communication
 
-      @call 
+      @call
         header: 'SSL'
         handler: ->
           return if kafka.broker.config['replication.security.protocol'] is 'PLAINTEXT'

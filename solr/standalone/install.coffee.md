@@ -52,7 +52,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Ryba support installing solr from apache official release or HDP Search repos.
 
       @call header: 'Packages', ->
-        @call 
+        @call
           if:  solr.single.source is 'HDP'
         , ->
           @service
@@ -68,27 +68,27 @@ Ryba support installing solr from apache official release or HDP Search repos.
           @file.download
             source: solr.single.source
             target: tmp_archive_location
-          @system.mkdir 
+          @system.mkdir
             target: solr.single.install_dir
           @tools.extract
             source: tmp_archive_location
             target: solr.single.install_dir
             preserve_owner: false
             strip: 1
-          @system.link 
+          @system.link
             source: solr.single.install_dir
             target: solr.single.latest_dir
 
 ## Configuration
 
       @call header: 'Configuration', ->
-        @system.link 
+        @system.link
           source: "#{solr.single.latest_dir}/conf"
           target: solr.single.conf_dir
         @system.remove
           shy: true
           target: "#{solr.single.latest_dir}/bin/solr.in.sh"
-        @system.link 
+        @system.link
           source: "#{solr.single.conf_dir}/solr.in.sh"
           target: "#{solr.single.latest_dir}/bin/solr.in.sh"
         @service.init

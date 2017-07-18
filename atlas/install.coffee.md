@@ -28,7 +28,7 @@
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 
 ## Identities
-      
+
       @system.group header: 'Group',  atlas.group
       @system.user header: 'User', atlas.user
 
@@ -209,7 +209,8 @@ Install Atlas packages
         mode: 0o770
 
 ## Kerberos
-Add THe Kerberos Principal for atlas service and setup a JAAS configuration file
+
+Add The Kerberos Principal for atlas service and setup a JAAS configuration file
 for atlas to able to open client connection to solr for its indexing backend.
 
       @krb5.addprinc krb5,
@@ -261,8 +262,9 @@ for atlas to able to open client connection to solr for its indexing backend.
         password: atlas.admin_password
 
 ## Application Properties
+
 Writes `atlas-application.properties` file.
-      
+
       @file.properties
         header: 'Atlas Application Properties'
         target: "#{atlas.conf_dir}/atlas-application.properties"
@@ -274,8 +276,8 @@ Writes `atlas-application.properties` file.
         mode: 0o770
 
 ## Log4 Properties
-      
-      @download
+
+      @file.download
         header: 'Atlas Log4j Properties'
         target: "#{atlas.conf_dir}/atlas-log4j.xml"
         source: "#{__dirname}/resources/atlas-log4j.xml"
@@ -285,6 +287,7 @@ Writes `atlas-application.properties` file.
         mode: 0o770
 
 ## Environment
+
 Render the Atlas Environment file
 
       @call ->
@@ -311,9 +314,10 @@ Render the Atlas Environment file
           eof: true
 
 ## Deploy Atlas War
+
 Need to copy the atlas war file if `atlas.env['ATLAS_EXPANDED_WEBAPP_DIR']` is
 set to other than the default
-      
+
       @system.copy
         header: 'Atlas webapp war'
         source: '/usr/hdp/current/atlas-server/server/webapp/atlas.war'
@@ -358,9 +362,10 @@ set to other than the default
         if_exec: mkcmd.hbase @, "hbase shell 2>/dev/null <<< \"list_namespace_tables 'atlas'\" | grep 'ERROR: Unknown namespace atlas!'"
 
 ## HBase Permission
+
 Grant Permission to atlas for its titan' tables through ranger or from hbase shell.
 
-      @call 
+      @call
         if: -> ranger_admin?
         header: 'HBase Atlas Permissions'
       , ->
@@ -458,6 +463,7 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
           trap: true
 
 ## Setup Credentials File
+
 Convert the user_creds object into a file of credentials. See [how to generate][atlas-credential-file] atlas
 credential based on file.
 ```cson
@@ -513,6 +519,7 @@ credential based on file.
               gid: atlas.user.name
 
 ## Kafka Layout
+
 Create the kafka topics needed by Atlas, if the property `atlas.notification.create.topics`
 is false. Ryba create the topic base on the channel chosen for atlas. See configure options.
 kakfa client become an implicit dependance. Its properties can be used.
@@ -630,6 +637,7 @@ kakfa client become an implicit dependance. Its properties can be used.
               if: -> @status -1
 
 ### Add Simple ACL
+
 Need to put ACL, even when Ranger is not configured.
 Atlas and Hive users needs Authorization to topics.
 The commands a divided per user, as the hive bridge is not mandatory.
@@ -726,6 +734,7 @@ The commands a divided per user, as the hive bridge is not mandatory.
           if: -> @status -1
 
 ## Oozie Share Lib 
+
 Populates the Oozie directory with the Atlas server JAR files.
 
       # Server: import certificates, private and public keys to hosts with a server
@@ -766,7 +775,7 @@ Populates the Oozie directory with the Atlas server JAR files.
 
 ## Ranger Atlas Plugin Install
 
-      @call 
+      @call
         if: -> @contexts('ryba/ranger/admin').length > 0
       , -> @call 'ryba/ranger/plugins/atlas/install'
 

@@ -63,7 +63,7 @@ TODO: only work if WebHCat is running on the same server as Hue
       @hconfigure
         header: 'WebHCat'
         target: "#{webhcat.conf_dir}/webhcat-site.xml"
-        properties: 
+        properties:
           'webhcat.proxyuser.hue.hosts': '*'
           'webhcat.proxyuser.hue.groups': '*'
         merge: true
@@ -82,7 +82,7 @@ TODO: only work if Oozie is running on the same server as Hue
       @hconfigure
         header: 'Oozie'
         target: "#{oozie.conf_dir}/oozie-site.xml"
-        properties: 
+        properties:
           'oozie.service.ProxyUserService.proxyuser.hue.hosts': '*'
           'oozie.service.ProxyUserService.proxyuser.hue.groups': '*'
         merge: true
@@ -97,7 +97,7 @@ recommandations. Merge the configuration object from "hdp.hue.ini" with the prop
         target: "#{hue.conf_dir}/hue.ini"
         content: hue.ini
         merge: true
-        parse: misc.ini.parse_multi_brackets 
+        parse: misc.ini.parse_multi_brackets
         stringify: misc.ini.stringify_multi_brackets
         separator: '='
         comment: '#'
@@ -191,7 +191,7 @@ changes.
             ssl_certificate: "#{hue.conf_dir}/cert.pem"
             ssl_private_key: "#{hue.conf_dir}/key.pem"
           merge: true
-          parse: misc.ini.parse_multi_brackets 
+          parse: misc.ini.parse_multi_brackets
           stringify: misc.ini.stringify_multi_brackets
           separator: '='
           comment: '#'

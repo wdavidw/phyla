@@ -44,7 +44,7 @@ Example:
       hive.server2.pid_dir ?= '/var/run/hive-server2'
       hive.server2.opts ?= ''
       hive.server2.mode ?= 'local'
-      throw Error 'hive.server2.mode must be "local" or "remote"' unless hive.server2.mode in ['local', 'remote'] 
+      throw Error 'hive.server2.mode must be "local" or "remote"' unless hive.server2.mode in ['local', 'remote']
       hive.server2.heapsize ?= if hive.server2.mode is 'local' then 1536 else 1024
 
 ## Identities
@@ -55,7 +55,7 @@ Example:
 ## Configuration
 
       hive.server2.site ?= {}
-      hive.server2.site[k] ?= v for k, v of hive.metastore.site 
+      hive.server2.site[k] ?= v for k, v of hive.metastore.site
       properties = [ # Duplicate client, might remove
         'hive.metastore.sasl.enabled'
         'hive.security.authorization.enabled'

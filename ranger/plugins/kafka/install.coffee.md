@@ -1,6 +1,6 @@
 
     module.exports = header: 'Ranger Kafka Plugin install', handler: ->
-      {ranger, kafka, realm, hadoop_group, core_site} = @config.ryba 
+      {ranger, kafka, realm, hadoop_group, core_site} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
       krb5 = @config.krb5_client.admin[realm]
       version= null
@@ -54,13 +54,13 @@
 Matchs step 1 in [hdfs plugin configuration][hdfs-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/kafka/broker')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/kafka/broker')[0].config.host is @config.host
         header: 'Ranger Kafka Repository'
       , ->
         @system.execute
           unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \ 
+          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
             -u admin:#{password} \"#{ranger.kafka_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.kafka_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
@@ -95,13 +95,13 @@ we execute this task using the rest api.
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
               replace: "HCOMPONENT_CONF_DIR=#{kafka.broker.conf_dir}"
-            ,   
+            ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/kafka-broker"
             ,
               match: RegExp "^HCOMPONENT_LIB_DIR=.*$", 'mg'
               replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/kafka-broker/libs"
-            , 
+            ,
               match: RegExp "^HCOMPONENT_NAME=.*$", 'mg'
               replace: "HCOMPONENT_NAME=kafka-broker"
 
@@ -125,8 +125,8 @@ we execute this task using the rest api.
           header: 'Script Execution'
           cmd: """
           if /usr/hdp/#{version}/ranger-kafka-plugin/enable-kafka-plugin.sh ;
-          then exit 0 ; 
-          else exit 1 ; 
+          then exit 0 ;
+          else exit 1 ;
           fi;
           """
         @system.chmod

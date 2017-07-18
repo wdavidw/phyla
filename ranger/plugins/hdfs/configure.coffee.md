@@ -38,7 +38,7 @@ The properties can be found [here][hdfs-repository]
         hdfs_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
         hdfs_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
         hdfs_plugin.service_repo ?=
-          'configs': 
+          'configs':
             'password': hdfs.krb5_user.password
             'username': hdfs.krb5_user.principal
             'fs.default.name': core_site['fs.defaultFS']
@@ -47,7 +47,7 @@ The properties can be found [here][hdfs-repository]
             'dfs.datanode.kerberos.principal': dn_ctxs[0].config.ryba.hdfs.site['dfs.datanode.kerberos.principal']
             'hadoop.rpc.protection': core_site['hadoop.rpc.protection']
             'hadoop.security.authorization': core_site['hadoop.security.authorization']
-            'hadoop.security.auth_to_local': core_site['hadoop.security.auth_to_local']   
+            'hadoop.security.auth_to_local': core_site['hadoop.security.auth_to_local']
             'commonNameForCertificate': ''
             'policy.download.auth.users': "#{nn_ctxs[0].config.ryba.hdfs.user.name}" #from ranger 0.6
             'tag.download.auth.users': "#{nn_ctxs[0].config.ryba.hdfs.user.name}"

@@ -140,7 +140,7 @@ Example:
 
 ## Configure Database
 
-      hive.hcatalog.site[k] ?= v for k, v of hive.metastore.site 
+      hive.hcatalog.site[k] ?= v for k, v of hive.metastore.site
 
 ## Configure Transactions and Lock Manager
 

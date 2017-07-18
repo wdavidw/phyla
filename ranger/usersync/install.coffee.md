@@ -45,7 +45,7 @@ directories.
           gid: ranger.user.name
           perm: '0750'
         @system.mkdir
-          target: ranger.usersync.pid_dir 
+          target: ranger.usersync.pid_dir
 
 
 # ## IPTables

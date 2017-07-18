@@ -2,7 +2,7 @@
 # Ranger Atlas Metadata Server Ranger Plugin Install
 
     module.exports = header: 'Ranger Atlas Plugin install', handler: ->
-      {ranger, atlas, realm, hadoop_group, core_site} = @config.ryba 
+      {ranger, atlas, realm, hadoop_group, core_site} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
       krb5 = @config.krb5_client.admin[realm]
@@ -99,13 +99,13 @@
 Matchs step 1 in [atlas plugin configuration][atlas-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call 
-        if: @contexts('ryba/atlas')[0].config.host is @config.host 
+      @call
+        if: @contexts('ryba/atlas')[0].config.host is @config.host
         header: 'Ranger Atlas Repository'
       ,  ->
         @system.execute
           unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \ 
+          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
             -u admin:#{password} \"#{ranger.atlas_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.atlas_plugin.install['REPOSITORY_NAME']}\"
           """
           cmd: """
@@ -147,7 +147,7 @@ we execute this task using the rest api.
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
               replace: "HCOMPONENT_CONF_DIR=#{atlas.conf_dir}"
-            ,   
+            ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/atlas-server"
             ,
@@ -167,8 +167,8 @@ we execute this task using the rest api.
               -storetype jceks \
               -keystore /etc/ranger/#{ranger.atlas_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
-            code_skipped: 1 
-          @call 
+            code_skipped: 1
+          @call
             if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
           , ->
             @each files, (options, cb) ->

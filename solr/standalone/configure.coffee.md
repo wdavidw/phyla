@@ -4,7 +4,7 @@ Solr accepts differents sources:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     source: 'HDP'
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
@@ -15,7 +15,7 @@ ryba:
 
 ```cson
 ryba:
-  solr: 
+  solr:
     jre_home: '/usr/java/jdk1.8.0_91/jre'
     env:
       'SOLR_JAVA_HOME': '/usr/java/jdk1.8.0_91'
@@ -39,7 +39,7 @@ ryba:
       solr.group.name ?= 'solr'
       solr.group.system ?= true
       solr.user.gid ?= solr.group.name
-      solr.single ?= {} 
+      solr.single ?= {}
       solr.single.version ?= '6.3.0'
       solr.single.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.single.version}/solr-#{solr.single.version}.tgz"
       solr.single.root_dir ?= '/usr'
@@ -122,7 +122,7 @@ solr zkCli script
         solr.single.hdfs.blockcache_direct_memory_allocation ?= 'false'
         solr.single.hdfs.blockcache_blocksperbank ?= 16384
         solr.single.hdfs.blockcache_read_enabled ?= 'true'
-        solr.single.hdfs.blockcache_write_enabled ?= false 
+        solr.single.hdfs.blockcache_write_enabled ?= false
         solr.single.hdfs.nrtcachingdirectory_enable ?= true
         solr.single.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
         solr.single.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'
