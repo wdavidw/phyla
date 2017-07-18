@@ -141,7 +141,7 @@ be prepared in the nikita cache dir.
         keystore: solr.cloud_docker.ssl_keystore_path
         storepass: solr.cloud_docker.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
         keypass: solr.cloud_docker.ssl_keystore_pwd
@@ -154,7 +154,7 @@ be prepared in the nikita cache dir.
         keystore: solr.cloud_docker.ssl_truststore_path
         storepass: solr.cloud_docker.ssl_truststore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         local: true
         uid: solr.user.name
         gid: solr.group.name

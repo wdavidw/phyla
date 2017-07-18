@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ssl: refactor
 * shinken: ssl support
 * lib/capacity: fixed yarn.app.mapreduce.am.resource.mb calculation
 * phoenix/client: fixed check

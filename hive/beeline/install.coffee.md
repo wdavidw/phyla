@@ -56,8 +56,8 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
         keystore: hive.client.truststore_location
         storepass: hive.client.truststore_password
         caname: "hive_root_ca"
-        cacert: ssl.cacert
-        local: true
+        cacert: ssl.cacert.source
+        local: ssl.cacert.local
 
 ## Dependencies
 

@@ -324,8 +324,8 @@ Create the directories to store the logs and pid information. The properties
         keystore: hive.hcatalog.truststore_location
         storepass: hive.hcatalog.truststore_password
         caname: "hive_root_ca"
-        cacert: ssl.cacert
-        local: true
+        cacert: ssl.cacert.source
+        local: ssl.cacert.local
 
 ## Ulimit
 
