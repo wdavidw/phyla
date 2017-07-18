@@ -156,18 +156,18 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         keystore: solr.ssl_keystore_path
         storepass: solr.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        key: "#{ssl.key}"
-        cert: "#{ssl.cert}"
+        cacert: "#{ssl.cacert.source}"
+        key: "#{ssl.key.source}"
+        cert: "#{ssl.cert.source}"
         keypass: solr.ssl_keystore_pwd
         name: @config.shortname
-        local: true
+        local: ssl.cacert.local
       @java.keystore_add
         keystore: solr.ssl_trustore_path
         storepass: solr.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{ssl.cacert.source}"
+        local: ssl.cacert.local
 
 ## Start
 

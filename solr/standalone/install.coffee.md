@@ -190,7 +190,7 @@ Create HDFS solr user and its home directory
         keystore: solr.single.ssl_keystore_path
         storepass: solr.single.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
         keypass: solr.single.ssl_keystore_pwd
@@ -200,7 +200,7 @@ Create HDFS solr user and its home directory
         keystore: solr.single.ssl_trustore_path
         storepass: solr.single.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         local: true
 
 ## Dependencies

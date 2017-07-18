@@ -88,8 +88,8 @@ by setting a "heapsize" value equal to "4096".
         keystore: hive.client.truststore_location
         storepass: hive.client.truststore_password
         caname: "hive_root_ca"
-        cacert: ssl.cacert
-        local: true
+        cacert: ssl.cacert.source
+        local: ssl.cacert.local
 
 ## Dependencies
 

@@ -158,24 +158,24 @@ to allow user to create none-determisitic functions.
           keystore: ranger.admin.site['ranger.service.https.attrib.keystore.file']
           storepass: ranger.admin.site['ranger.service.https.attrib.keystore.pass']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
+          cacert: "#{ssl.cacert.source}"
+          key: "#{ssl.key.source}"
+          cert: "#{ssl.cert.source}"
           keypass: 'ryba123'
           name: ranger.admin.site['ranger.service.https.attrib.keystore.keyalias']
-          local: true
+          local: ssl.cacert.local
         @java.keystore_add
           keystore: ranger.admin.site['ranger.service.https.attrib.keystore.file']
           storepass: ranger.admin.site['ranger.service.https.attrib.keystore.pass']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{ssl.cacert.source}"
+          local: ssl.cacert.local
         @java.keystore_add
           keystore: '/usr/java/latest/jre/lib/security/cacerts'
           storepass: 'changeit'
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{ssl.cacert.source}"
+          local: ssl.cacert.local
         @hconfigure
           header: 'Admin site'
           target: '/etc/ranger/admin/conf/ranger-admin-site.xml'

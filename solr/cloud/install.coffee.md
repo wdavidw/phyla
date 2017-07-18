@@ -261,7 +261,7 @@ HDP has version 5.2.1 of solr, and security plugins are included from 5.3.0
         keystore: solr.cloud.ssl_keystore_path
         storepass: solr.cloud.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
         keypass: solr.cloud.ssl_keystore_pwd
@@ -271,7 +271,7 @@ HDP has version 5.2.1 of solr, and security plugins are included from 5.3.0
         keystore: solr.cloud.ssl_trustore_path
         storepass: solr.cloud.ssl_keystore_pwd
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         local: true
       # not documented but needed when SSL
       @system.execute

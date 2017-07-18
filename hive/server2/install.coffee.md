@@ -166,18 +166,18 @@ Create the directories to store the logs and pid information. The properties
           keystore: hive.server2.site['hive.server2.keystore.path']
           storepass: hive.server2.site['hive.server2.keystore.password']
           caname: "hive_root_ca"
-          cacert: ssl.cacert
-          key: ssl.key
-          cert: ssl.cert
+          cacert: ssl.cacert.source
+          key: ssl.key.source
+          cert: ssl.cert.source
           keypass: ssl_server['ssl.server.keystore.keypassword']
           name: @config.shortname
-          local: true
+          local: ssl.cacert.local
         # @java.keystore_add
         #   keystore: hive.server2.site['hive.server2.keystore.path']
         #   storepass: hive.server2.site['hive.server2.keystore.password']
         #   caname: "hadoop_root_ca"
-        #   cacert: ssl.cacert
-        #   local: true
+        #   cacert: ssl.cacert.source
+        #   local: ssl.cacert.local
         @service
           srv_name: 'hive-server2'
           action: 'restart'

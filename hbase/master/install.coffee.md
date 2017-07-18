@@ -236,14 +236,14 @@ Enable stats collection in Ganglia and Graphite
       #     keystore: ssl_client['ssl.client.truststore.location']
       #     storepass: ssl_client['ssl.client.truststore.password']
       #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
+      #     cacert: "#{ssl.cacert.source}"
       #     local: true
       #   # Server: import certificates, private and public keys to hosts with a server
       #   @java.keystore_add
       #     keystore: ssl_server['ssl.server.keystore.location']
       #     storepass: ssl_server['ssl.server.keystore.password']
       #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
+      #     cacert: "#{ssl.cacert.source}"
       #     key: "#{ssl.key}"
       #     cert: "#{ssl.cert}"
       #     keypass: ssl_server['ssl.server.keystore.keypassword']
@@ -253,7 +253,7 @@ Enable stats collection in Ganglia and Graphite
       #     keystore: ssl_server['ssl.server.keystore.location']
       #     storepass: ssl_server['ssl.server.keystore.password']
       #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
+      #     cacert: "#{ssl.cacert.source}"
       #     local: true
 
 ## SPNEGO

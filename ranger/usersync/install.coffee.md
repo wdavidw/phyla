@@ -148,13 +148,13 @@ Update the file "install.properties" with the properties defined by the
       #   keystore: ranger.usersync.site['ranger.usersync.truststore.file']
       #   storepass: 'ryba123'
       #   caname: "hadoop_root_ca"
-      #   cacert: "#{ssl.cacert}"
+      #   cacert: "#{ssl.cacert.source}"
       #   local: true
       # @java.keystore_add
       #   keystore: ranger.admin.site['ranger.https.attrib.keystore.file']
       #   storepass: ranger.admin.site['ranger.service.https.attrib.keystore.pass']
       #   caname: "hadoop_root_ca"
-      #   cacert: "#{ssl.cacert}"
+      #   cacert: "#{ssl.cacert.source}"
       #   key: "#{ssl.key}"
       #   cert: "#{ssl.cert}"
       #   keypass: 'ryba123'
@@ -164,7 +164,7 @@ Update the file "install.properties" with the properties defined by the
       #   keystore: ranger.admin.site['ranger.https.attrib.keystore.file']
       #   storepass: ranger.admin.site['ranger.service.https.attrib.keystore.pass']
       #   caname: "hadoop_root_ca"
-      #   cacert: "#{ssl.cacert}"
+      #   cacert: "#{ssl.cacert.source}"
       #   local: true
 
 ## Dependencies

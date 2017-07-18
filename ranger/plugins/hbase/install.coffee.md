@@ -141,8 +141,8 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
         keystore: '/usr/java/default/jre/lib/security/cacerts'
         storepass: 'changeit'
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{ssl.cacert.source}"
+        local: ssl.cacert.local
 
 ## Plugin Scripts 
 
