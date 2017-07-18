@@ -44,7 +44,7 @@ RUN sudo tar --strip-components 1 -xJf node-v* -C /usr/local
 # COPY jce_policy-7/US_export_policy.jar /usr/java/default/jre/lib/security/US_export_policy.jar
 COPY id_rsa /root/.ssh/id_rsa
 COPY id_rsa.pub /root/.ssh/id_rsa.pub
-RUN chmod 600 /root/.ssh/id_rsa*
+RUN chmod 600 /root/.ssh
 ### LAYOUT ###
 RUN useradd -ms /bin/bash {{ shinken.user.name }}
 RUN echo "{{ shinken.user.name }}        ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers

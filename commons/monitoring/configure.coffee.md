@@ -178,6 +178,7 @@ They must have register set to 0 to not be instanciated
         throw Error "Missing property: ryba.monitoring.contacts.admin.password"
       options.contacts['readonly-contact'] ?= {}
       options.contacts['readonly-contact'].use ?= 'generic-contact'
+      options.contacts['readonly-contact'].alias ?= 'Read-Only Users'
       options.contacts['readonly-contact'].contactgroups ?= ['readonly']
       options.contacts['readonly-contact'].host_notifications_enabled ?= '0'
       options.contacts['readonly-contact'].service_notifications_enabled ?= '0'
