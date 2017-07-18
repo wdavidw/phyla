@@ -92,7 +92,7 @@ opentsdb   - nproc  24576
 
 If not configured, the following message appear on startup:
 
-```
+```bash
 Starting opentsdb: /etc/init.d/opentsdb: line 69: ulimit: open files: cannot modify limit: Operation not permitted
 'ulimit -n' must be greater than or equal to 65535, is 1024
 ```
@@ -106,8 +106,8 @@ Starting opentsdb: /etc/init.d/opentsdb: line 69: ulimit: open files: cannot mod
 
       # Some config properties aren't honored, force JVM Arguments
       @file
-        header: 'Fix Service Init Script'
-        target: '/etc/init.d/opentsdb'
+        header: 'Fix Service Script'
+        target: "#{opentsdb.user.home}/etc/init.d/opentsdb"
         write: [
           match: /^USER=.*$/mg
           replace: "USER=#{opentsdb.user.name} # RYBA CONF `user`, DON'T OVERWRITE"
@@ -117,10 +117,17 @@ Starting opentsdb: /etc/init.d/opentsdb: line 69: ulimit: open files: cannot mod
           place_before: /^( *)export JVMARGS$/m
         ]
 
+## Startup Script
+
+      @service.init
+        header: 'Init Script'
+        target: "/etc/init.d/opentsdb"
+        source: "#{opentsdb.user.home}/etc/init.d/opentsdb"
+
 ## Configure
 
       @file.properties
-        header: 'opentsdb conf'
+        header: 'Configuration'
         target: '/etc/opentsdb/opentsdb.conf'
         content: opentsdb.config
         backup: true
