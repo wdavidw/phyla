@@ -165,37 +165,37 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         tmp_location = "/var/tmp/ryba/ssl"
         {httpfs} = @config.ryba
         @file.download
-          source: ssl.cacert
-          target: "#{tmp_location}/#{path.basename ssl.cacert}"
+          source: ssl.cacert.source
+          target: "#{tmp_location}/#{path.basename ssl.cacert.source}"
           mode: 0o0600
         @file.download
-          source: ssl.cert
-          target: "#{tmp_location}/#{path.basename ssl.cert}"
+          source: ssl.cert.source
+          target: "#{tmp_location}/#{path.basename ssl.cert.source}"
           mode: 0o0600
         @file.download
-          source: ssl.key
-          target: "#{tmp_location}/#{path.basename ssl.key}"
+          source: ssl.key.source
+          target: "#{tmp_location}/#{path.basename ssl.key.source}"
           mode: 0o0600
         @java.keystore_add
           keystore: httpfs.env.HTTPFS_SSL_KEYSTORE_FILE
           storepass: httpfs.env.HTTPFS_SSL_KEYSTORE_PASS
           caname: "httpfs_root_ca"
-          cacert: "#{tmp_location}/#{path.basename ssl.cacert}"
-          key: "#{tmp_location}/#{path.basename ssl.key}"
-          cert: "#{tmp_location}/#{path.basename ssl.cert}"
+          cacert: "#{tmp_location}/#{path.basename ssl.cacert.source}"
+          key: "#{tmp_location}/#{path.basename ssl.key.source}"
+          cert: "#{tmp_location}/#{path.basename ssl.cert.source}"
           keypass: ssl_server['ssl.server.keystore.keypassword']
           name: @config.shortname
           uid: httpfs.user.name
           gid: httpfs.group.name
           mode: 0o0640
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.cacert}"
+          target: "#{tmp_location}/#{path.basename ssl.cacert.source}"
           shy: true
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.cert}"
+          target: "#{tmp_location}/#{path.basename ssl.cert.source}"
           shy: true
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.key}"
+          target: "#{tmp_location}/#{path.basename ssl.key.source}"
           shy: true
 
 ## Configuration

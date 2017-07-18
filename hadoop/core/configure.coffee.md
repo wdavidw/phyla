@@ -71,6 +71,7 @@ Default configuration:
       zoo_ctxs = @contexts 'ryba/zookeeper/server'
       [ganglia_ctx] =  @contexts 'ryba/ganglia/collector'
       {realm, ganglia, graphite} = @config.ryba
+      {ssl} = @config
       ryba = @config.ryba ?= {}
       ryba.yarn ?= {}
       ryba.mapred ?= {}
@@ -443,12 +444,12 @@ keytool -list -v -keystore keystore -alias hadoop
 
 [hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
 
-      @config.ryba.ssl ?= {}
+      @config.ryba.ssl ?= ssl
       ssl_client = @config.ryba.ssl_client ?= {}
       ssl_server = @config.ryba.ssl_server ?= {}
-      throw new Error 'Required property "ryba.ssl.cacert"' unless @config.ryba.ssl.cacert
-      throw new Error 'Required property "ryba.ssl.cert"' unless @config.ryba.ssl.cert
-      throw new Error 'Required property "ryba.ssl.key"' unless @config.ryba.ssl.key
+      throw new Error 'Required property "ssl.cacert"' unless @config.ryba.ssl.cacert
+      throw new Error 'Required property "ssl.cert"' unless @config.ryba.ssl.cert
+      throw new Error 'Required property "ssl.key"' unless @config.ryba.ssl.key
       # SSL for HTTPS connection and RPC Encryption
       core_site['hadoop.ssl.require.client.cert'] ?= 'false'
       core_site['hadoop.ssl.hostname.verifier'] ?= 'DEFAULT'

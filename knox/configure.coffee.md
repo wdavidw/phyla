@@ -27,6 +27,7 @@ loop on topologies to provide missing values
     module.exports = ->
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
       knox = @config.ryba.knox ?= {}
+      {ssl} = @config
 
 ## Environment
 
@@ -70,7 +71,7 @@ loop on topologies to provide missing values
       knox.site['java.security.auth.login.config'] ?= "#{knox.conf_dir}/knox.jaas"
       knox.site['gateway.hadoop.kerberos.secured'] ?= 'true'
       knox.site['sun.security.krb5.debug'] ?= 'true'
-      knox.ssl ?= {}
+      knox.ssl ?= ssl
       knox.ssl.storepass ?= 'knox_master_secret_123'
       knox.ssl.cacert ?= @config.ryba.ssl?.cacert
       knox.ssl.cert ?= @config.ryba.ssl?.cert

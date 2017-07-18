@@ -118,9 +118,9 @@ Maintain the "kms-env.sh" file.
         keystore: "#{kms.conf_dir}/kms.keystore"
         storepass: 'lululu'
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        key: "#{ssl.key}"
-        cert: "#{ssl.cert}"
+        cacert: "#{ssl.cacert.source}"
+        key: "#{ssl.key.source}"
+        cert: "#{ssl.cert.source}"
         keypass: 'jijiji'
         name: @config.shortname
-        local: true
+        local: ssl.cacert.local
