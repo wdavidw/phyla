@@ -135,6 +135,7 @@ Starting opentsdb: /etc/init.d/opentsdb: line 69: ulimit: open files: cannot mod
 ## HBase Table
 
       @call once: true, 'ryba/hbase/master/wait'
+
       namespaces = []
       tables = {}
       for table in ['data', 'uid', 'tree', 'meta']

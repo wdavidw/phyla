@@ -4,6 +4,10 @@
     module.exports = header: 'OpenTSDB Check', label_true: 'CHECKED', handler: ->
       {opentsdb} = @config.ryba
 
+## Wait
+
+      @call once: true, 'ryba/opentsdb/wait'
+
 ## Check HTTP
 
       @system.execute

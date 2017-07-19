@@ -33,6 +33,8 @@ OpenTSDB does not seem to work without the hbase rights
           'ryba/opentsdb/status'
         'stop':
           'ryba/opentsdb/stop'
+        'wait':
+          'ryba/opentsdb/wait'
 
 ## Resources
 
