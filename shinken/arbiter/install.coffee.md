@@ -83,7 +83,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ### Shinken Config
 
-      @call header: 'Shinken Config', ->
+      @call header: 'Daemons Config', ->
         for subsrv in ['arbiter', 'broker', 'poller', 'reactionner', 'receiver', 'scheduler']
           @file.render
             header: subsrv
@@ -132,7 +132,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 Objects config
 
-      @call header: 'Objects Config', ->
+      @call header: 'Objects', ->
         # Un-templated objects
         ## Some commands need the lists of brokers (for their livestatus module)
         brokers = @contexts('ryba/shinken/broker').map( (ctx) -> ctx.config.host ).join ','

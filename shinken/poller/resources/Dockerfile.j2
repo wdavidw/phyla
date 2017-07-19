@@ -62,6 +62,7 @@ RUN rm -rf check_mysql_health-2.2.2
 WORKDIR /home/{{ shinken.user.name }}
 # Downloading shinken-plugins
 RUN git clone 'https://github.com/ryba-io/hadoop-monitoring-plugins' plugins
+RUN pip install -r plugins/py_requirements.txt
 RUN rm -rf plugins/.git*
 RUN mkdir -p plugins/mysql
 RUN mv libexec/check_mysql_health plugins/mysql/check_health
