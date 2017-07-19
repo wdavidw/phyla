@@ -91,5 +91,5 @@ Update the "hdfs-site.xml" configuration file with properties from the
           keystore: ssl_client['ssl.client.truststore.location']
           storepass: ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{ssl.cacert.source}"
+          local: ssl.cacert.local

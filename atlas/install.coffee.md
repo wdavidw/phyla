@@ -113,18 +113,18 @@ Install Atlas packages
         keystore: atlas.application.properties['keystore.file']
         storepass: atlas.keystore_password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
+        cacert: "#{ssl.cacert.source}"
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
         keypass: atlas.serverkey_password
         name: @config.shortname
-        local: true
+        local: ssl.cacert.local
       @java.keystore_add
         keystore: atlas.application.properties['truststore.file']
         storepass: atlas.truststore_password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{ssl.cacert.source}"
+        local: ssl.cacert.local
       @system.chown
         target: atlas.application.properties['keystore.file']
         uid: atlas.user.name

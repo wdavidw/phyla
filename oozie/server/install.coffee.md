@@ -296,9 +296,9 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
           keystore: oozie.keystore_file
           storepass: oozie.keystore_pass
           caname: 'hadoop_root_ca'
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
+          cacert: "#{ssl.cacert.source}"
+          key: "#{ssl.key.source}"
+          cert: "#{ssl.cert.source}"
           keypass: oozie.keystore_pass
           name: @config.shortname
           local: true
@@ -306,15 +306,15 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
           keystore: oozie.keystore_file
           storepass: oozie.keystore_pass
           caname: 'hadoop_root_ca'
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{ssl.cacert.source}"
+          local: ssl.cacert.local
         # fix oozie pkix build exceptionm when oozie server connects to hadoop mr
         @java.keystore_add
           keystore: oozie.truststore_file
           storepass: oozie.truststore_pass
           caname: 'hadoop_root_ca'
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{ssl.cacert.source}"
+          local: ssl.cacert.local
 
       @call header: 'War', ->
         @call

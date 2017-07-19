@@ -257,25 +257,25 @@ SSL is enabled at least for inter broker communication
             keystore: kafka.broker.config['ssl.keystore.location']
             storepass: kafka.broker.config['ssl.keystore.password']
             caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            key: "#{ssl.key}"
-            cert: "#{ssl.cert}"
+            cacert: "#{ssl.cacert.source}"
+            key: "#{ssl.key.source}"
+            cert: "#{ssl.cert.source}"
             keypass: kafka.broker.config['ssl.key.password']
             name: @config.shortname
-            local: true
+            local: ssl.cacert.local
           @java.keystore_add
             keystore: kafka.broker.config['ssl.keystore.location']
             storepass: kafka.broker.config['ssl.keystore.password']
             caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            local: true
+            cacert: "#{ssl.cacert.source}"
+            local: ssl.cacert.local
           # imports kafka broker server hadoop_root_ca CA trustore
           @java.keystore_add
             keystore: kafka.broker.config['ssl.truststore.location']
             storepass: kafka.broker.config['ssl.truststore.password']
             caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            local: true
+            cacert: "#{ssl.cacert.source}"
+            local: ssl.cacert.local
 
 
 ## Layout

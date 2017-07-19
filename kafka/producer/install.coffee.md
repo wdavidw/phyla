@@ -115,8 +115,8 @@ Update the file "server.properties" with the properties defined by the
         keystore: kafka.producer.config['ssl.truststore.location']
         storepass: kafka.producer.config['ssl.truststore.password']
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{ssl.cacert.source}"
+        local: ssl.cacert.local
 
 ## Dependencies
 
