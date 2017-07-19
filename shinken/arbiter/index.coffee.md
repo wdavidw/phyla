@@ -10,6 +10,11 @@ to its associated Scheduler.
       use:
         commons: implicit: true, module: 'ryba/shinken/commons'
         monitoring: implicit: true, module: 'ryba/commons/monitoring'
+        reactionner: 'ryba/shinken/poller'
+        receiver: 'ryba/shinken/poller'
+        scheduler: 'ryba/shinken/poller'
+        broker: 'ryba/shinken/broker'
+        poller: 'ryba/shinken/poller'
       configure:
         'ryba/shinken/arbiter/configure'
       commands:
