@@ -21,13 +21,13 @@ and a type if different from the name.
     module.exports =
       use:
         commons: implicit: true, module: 'ryba/shinken/commons'
+        nginx: implicit: true, module: 'masson/commons/nginx'
       configure:
         'ryba/shinken/broker/configure'
       commands:
         'check':
           'ryba/shinken/broker/check'
         'install': [
-          #'ryba/mongodb'
           'ryba/shinken/broker/install'
           'ryba/shinken/broker/start'
           'ryba/shinken/broker/check'

@@ -2,6 +2,7 @@
 # Shinken Broker Install
 
     module.exports = header: 'Shinken Broker Install', handler: ->
+      {nginx} = @config
       {shinken} = @config.ryba
       {broker} = @config.ryba.shinken
 
@@ -14,8 +15,13 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: broker.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Broker" }]
+      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: broker.config.port, protocol: 'tcp', state: 'NEW', comment: 'Shinken Broker' }]
+      if broker.config.use_ssl is '1'
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: broker.modules['webui2'].nginx.port, protocol: 'tcp', state: 'NEW', comment: 'NGINX Proxy for Shinken WebUI' }
+      else
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: broker.modules['webui2'].config.port, protocol: 'tcp', state: 'NEW', comment: 'Shinken WebUI' }
       for name, mod of broker.modules
+        continue if name is 'webui2'
         if mod.config?.port?
           rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: mod.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Broker #{name}" }
       @tools.iptables
@@ -91,3 +97,19 @@ Could also be natively corrected in the next shinken version. (actually 2.4)
               match: new RegExp "'#{object}group_name': StringProp.*,$", 'm'
               replace:  "'#{object}group_name': StringProp(fill_brok=['full_status']), # RYBA\n        '#{object}group_members': StringProp(fill_brok=['full_status']),"
             ]
+
+## NGINX
+
+      @call header: 'NGINX', handler: ->
+        @file.render
+          header: 'Configure'
+          target: "#{ nginx.conf_dir}/conf.d/shinken_webui.conf"
+          source: "#{__dirname}/resources/nginx.conf.j2"
+          local: true
+          context:
+            nginx: nginx
+            shinken: shinken
+        @service.restart
+          header: 'Restart'
+          if: -> @status -1
+          name: 'nginx'
