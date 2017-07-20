@@ -833,6 +833,26 @@ Theses functions are used to generate business rules
             options.services['Phoenix QueryServer - TCP'].use ?= 'process-service'
             options.services['Phoenix QueryServer - TCP']['_process_name'] ?= 'phoenix-queryserver'
             options.services['Phoenix QueryServer - TCP'].check_command ?= "check_tcp!#{ryba.phoenix.queryserver.site['phoenix.queryserver.http.port']}"
+          if 'ryba/spark/history_server' in ctx.services
+            w.modules.push 'spark_hs' unless 'spark_hs' in w.modules
+            h.hostgroups.push 'spark_hs' unless 'spark_hs' in h.hostgroups
+            options.services['Spark HistoryServer - WebUI'] ?= {}
+            options.services['Spark HistoryServer - WebUI'].hosts ?= []
+            options.services['Spark HistoryServer - WebUI'].hosts.push host
+            options.services['Spark HistoryServer - WebUI'].servicegroups ?= ['spark_hs']
+            options.services['Spark HistoryServer - WebUI'].use ?= 'process-service'
+            options.services['Spark HistoryServer - WebUI']['_process_name'] ?= 'spark-history-server'
+            options.services['Spark HistoryServer - WebUI'].check_command ?= "check_tcp!#{ryba.spark.history.conf['spark.history.ui.port']}"
+          if 'ryba/spark/history_server' in ctx.services
+            w.modules.push 'spark_ls' unless 'spark_ls' in w.modules
+            h.hostgroups.push 'spark_ls' unless 'spark_ls' in h.hostgroups
+            options.services['Spark LivyServer - WebService'] ?= {}
+            options.services['Spark LivyServer - WebService'].hosts ?= []
+            options.services['Spark LivyServer - WebService'].hosts.push host
+            options.services['Spark LivyServer - WebService'].servicegroups ?= ['spark_ls']
+            options.services['Spark LivyServer - WebService'].use ?= 'process-service'
+            options.services['Spark LivyServer - WebService']['_process_name'] ?= 'spark-livy-server'
+            options.services['Spark LivyServer - WebService'].check_command ?= "check_tcp!#{ryba.spark.livy.port}"
           if 'ryba/elasticsearch' in ctx.services
             w.modules.push 'elasticsearch' unless 'elasticsearch' in w.modules
             h.hostgroups.push 'elasticsearch' unless 'elasticsearch' in h.hostgroups
@@ -1162,7 +1182,6 @@ Theses functions are used to generate business rules
           options.services['HCatalog - Available'].servicegroups ?= ['hcatalog']
           options.services['HCatalog - Available'].use ?= 'bp-service'
           options.services['HCatalog - Available'].check_command ?= bp_has_one 'HCatalog - TCP', '$HOSTNAME$'
-          create_dependency 'HCatalog - Available', 'MySQL - Available', clustername
         if 'hiveserver2' in w.modules
           options.services['Hiveserver2 - Available'] ?= {}
           options.services['Hiveserver2 - Available'].hosts ?= []
@@ -1208,6 +1227,20 @@ Theses functions are used to generate business rules
           options.services['Phoenix QueryServer - Available'].use ?= 'bp-service'
           options.services['Phoenix QueryServer - Available'].check_command ?= bp_has_one 'Phoenix QueryServer - TCP', '$HOSTNAME$'
           create_dependency 'Phoenix QueryServer - Available', 'HBase - Available', clustername
+        if 'spark_hs' in w.modules
+          options.services['Spark HistoryServer - Available'] ?= {}
+          options.services['Spark HistoryServer - Available'].hosts ?= []
+          options.services['Spark HistoryServer - Available'].hosts.push clustername
+          options.services['Spark HistoryServer - Available'].servicegroups ?= ['spark_qs']
+          options.services['Spark HistoryServer - Available'].use ?= 'bp-service'
+          options.services['Spark HistoryServer - Available'].check_command ?= bp_has_one 'Spark HistoryServer - TCP', '$HOSTNAME$'
+        if 'spark_ls' in w.modules
+          options.services['Spark LivyServer - Available'] ?= {}
+          options.services['Spark LivyServer - Available'].hosts ?= []
+          options.services['Spark LivyServer - Available'].hosts.push clustername
+          options.services['Spark LivyServer - Available'].servicegroups ?= ['spark_ls']
+          options.services['Spark LivyServer - Available'].use ?= 'bp-service'
+          options.services['Spark LivyServer - Available'].check_command ?= bp_has_one 'Spark LivyServer - TCP', '$HOSTNAME$'  
         if 'elasticsearch' in w.modules
           options.services['ElasticSearch - Available'] ?= {}
           options.services['ElasticSearch - Available'].hosts ?= []
