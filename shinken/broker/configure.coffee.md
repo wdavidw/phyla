@@ -4,7 +4,41 @@
     module.exports = ->
       {shinken} = @config.ryba
       broker = shinken.broker ?= {}
-      # Additionnal modules to install
+
+## Config
+
+This configuration is used by arbiter to send the configuration when arbiter
+synchronize configuration through network. The generated file must be on the
+arbiter host.
+
+      broker.config ?= {}
+      broker.config.host ?= '0.0.0.0'
+      broker.config.port ?= 7772
+      broker.config.spare ?= '0'
+      broker.config.realm ?= 'All'
+      # There can be only one.... broker with manage_arbiters
+      broker.config.manage_arbiters ?= if @contexts('ryba/shinken/broker').map((ctx) -> ctx.config.host).indexOf(@config.host) is 0 then '1' else '0'
+      broker.config.modules = [broker.config.modules] if typeof broker.config.modules is 'string'
+      broker.config.modules ?= Object.keys broker.modules
+      broker.config.use_ssl ?= shinken.config.use_ssl
+      broker.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+
+## Ini
+
+This configuration is used by local service to load preconfiguration that cannot
+be set runtime by arbiter configuration synchronization.
+
+      broker.ini ?= {}
+      broker.ini[k] ?= v for k, v of shinken.ini
+      broker.ini.host = broker.config.host
+      broker.ini.port = broker.config.port
+      broker.ini.pidfile = '%(workdir)s/brokerd.pid'
+      broker.ini.local_log = '%(logdir)s/brokerd.log'
+      broker.ini.daemon_thread_pool_size ?= 16
+      broker.ini.max_queue_size ?= 100000
+
+## Modules
+
       broker.modules ?= {}
       # WebUI
       webui = broker.modules['webui2'] ?= {}
@@ -26,9 +60,11 @@
       # webui.python_modules['alignak-backend-client'].archive ?= "alignak_backend_client-#{webui.python_modules['alignak-backend-client'].version}"
       webui.python_modules.passlib ?= {}
       webui.python_modules.passlib.version ?= '1.7.1'
-      webui.modules ?= {}
       webui.config ?= {}
-      webui.config.host ?= '0.0.0.0'
+      webui.nginx ?= {}
+      webui.nginx.port ?= '7777'
+      webui.modules ?= {}
+      webui.config.host ?= if broker.config.use_ssl is '1' then 'localhost' else '0.0.0.0'
       webui.config.port ?= '7767'
       webui.config.auth_secret ?= 'rybashinken123'
       webui.config.htpasswd_file ?= '/etc/shinken/htpasswd.users'
@@ -100,35 +136,3 @@
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
       for name, mod of broker.modules then configmod name, mod
-
-## Config
-
-This configuration is used by arbiter to send the configuration when arbiter
-synchronize configuration through network. The generated file must be on the
-arbiter host.
-
-      broker.config ?= {}
-      broker.config.host ?= '0.0.0.0'
-      broker.config.port ?= 7772
-      broker.config.spare ?= '0'
-      broker.config.realm ?= 'All'
-      # There can be only one.... broker with manage_arbiters
-      broker.config.manage_arbiters ?= if @contexts('ryba/shinken/broker').map((ctx) -> ctx.config.host).indexOf(@config.host) is 0 then '1' else '0'
-      broker.config.modules = [broker.config.modules] if typeof broker.config.modules is 'string'
-      broker.config.modules ?= Object.keys broker.modules
-      broker.config.use_ssl ?= shinken.config.use_ssl
-      broker.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
-
-## Ini
-
-This configuration is used by local service to load preconfiguration that cannot
-be set runtime by arbiter configuration synchronization.
-
-      broker.ini ?= {}
-      broker.ini[k] ?= v for k, v of shinken.ini
-      broker.ini.host = broker.config.host
-      broker.ini.port = broker.config.port
-      broker.ini.pidfile = '%(workdir)s/brokerd.pid'
-      broker.ini.local_log = '%(logdir)s/brokerd.log'
-      broker.ini.daemon_thread_pool_size ?= 16
-      broker.ini.max_queue_size ?= 100000
