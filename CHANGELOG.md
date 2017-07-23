@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* druid: fix installation of packages
 * shinken: ssl support
 * lib/capacity: fixed yarn.app.mapreduce.am.resource.mb calculation
 * hdfs/dn: use nikita sysctl
