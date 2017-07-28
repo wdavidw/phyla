@@ -62,6 +62,7 @@
 
       for property in [
         'zookeeper.znode.parent'
+        'zookeeper.session.timeout'
         'hbase.cluster.distributed'
         'hbase.rootdir'
         'hbase.zookeeper.quorum'

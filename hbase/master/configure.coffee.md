@@ -85,6 +85,7 @@ Example
       # false: standalone and pseudo-distributed setups with managed Zookeeper
       # true: fully-distributed with unmanaged Zookeeper Quorum (see hbase-env.sh)
       hbase.master.site['hbase.cluster.distributed'] = 'true'
+      hbase.master.site['zookeeper.session.timeout'] ?= "#{20 * parseInt zk_ctxs[0].config.ryba.zookeeper.config['tickTime']}"
       # Enter the HBase NameNode server hostname
       # http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/latest/CDH4-High-Availability-Guide/cdh4hag_topic_2_6.html
       nn_host = if nn_ctxs.length > 1 then ryba.nameservice else "#{nn_ctxs[0].config.host}:8020"
