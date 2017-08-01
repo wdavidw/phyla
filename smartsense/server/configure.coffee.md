@@ -5,30 +5,39 @@
       {java, ryba} = @config
       {hadoop_conf_dir, core_site,realm} = ryba
       {smartsense} = ryba ?= {}
-      # User & Group
-      smartsense.user ?= {}
-      smartsense.user = name: smartsense.user if typeof smartsense.user is 'string'
-      smartsense.user.name ?= 'smartsense'
-      smartsense.user.system ?= true
-      smartsense.user.comment ?= 'Hortonworks SmartSense User'
-      smartsense.user.home ?= '/var/lib/smartsense'
-      smartsense.user.groups ?= 'hadoop'
+      server = smartsense.server ?= {}
+
+## Identities
+
       # Group
       smartsense.group ?= {}
       smartsense.group = name: smartsense.group if typeof smartsense.group is 'string'
       smartsense.group.name ?= 'smartsense'
       smartsense.group.system ?= true
+      # User & Group
+      smartsense.user ?= {}
+      smartsense.user = name: smartsense.user if typeof smartsense.user is 'string'
+      smartsense.user.name ?= 'smartsense'
       smartsense.user.gid ?= smartsense.group.name
-      # Source
-      smartsense.source ?= "#{__dirname}/../resources/smartsense-hst-1.3.0.0-1.x86_64.rpm"
-      server = smartsense.server ?= {}
-      # Configuration
-      server.conf_dir ?= '/etc/hst/conf'
+      smartsense.user.system ?= true
+      smartsense.user.comment ?= 'Hortonworks SmartSense User'
+      smartsense.user.home ?= '/var/lib/smartsense'
+      smartsense.user.groups ?= 'hadoop'
 
+## Environment
+
+      server.conf_dir ?= '/etc/hst/conf'
       server.tmp_dir ?= '/tmp'
       server.pid_dir ?= '/var/run/hst'
       server.log_dir ?= '/var/log/hst'
       server.ssl_pass ?= 'DEV'
+
+## Source
+
+      smartsense.source ?= "#{__dirname}/../resources/smartsense-hst-1.3.0.0-1.x86_64.rpm"
+      
+## Configuration
+      
       server.ini ?= {}
       server.ini['server'] ?= {}
       server.ini['server']['port'] ?= 9000

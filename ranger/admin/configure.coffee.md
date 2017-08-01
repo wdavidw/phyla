@@ -21,12 +21,15 @@ variables but also inject some function to be executed.
       # User
       ranger.user ?= {}
       ranger.user = name: ranger.user if typeof ranger.user is 'string'
-      ranger.user.name ?= ranger.group.name
+      ranger.user.name ?= 'ranger'
       ranger.user.system ?= true
       ranger.user.comment ?= 'Ranger User'
       ranger.user.home ?= "/var/lib/#{ranger.user.name}"
       ranger.user.gid ?= ranger.group.name
       ranger.user.groups ?= 'hadoop'
+      
+## Environment
+      
       ranger.admin ?= {}
       ranger.admin.conf_dir ?= '/etc/ranger/admin/conf'
       ranger.admin.pid_dir ?= '/var/run/ranger/admin'

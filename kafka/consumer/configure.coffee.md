@@ -3,7 +3,7 @@
 ## Configure
 
     module.exports = ->
-      {kafka} = @config.ryba ?= {}
+      kafka = @config.ryba.kafka ?= {}
       # ZooKeeper Quorum
       zoo_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
       zookeeper_quorum = for zoo_ctx in zoo_ctxs
@@ -12,6 +12,8 @@
       throw Error 'Cannot configure kafka consumer without broker' unless ks_ctxs.length > 0
 
 ## Identities
+
+By default, merge group and user from the Kafka broker configuration.
 
       kafka.group = merge ks_ctxs[0].config.ryba.kafka.group, kafka.group
       kafka.user = merge ks_ctxs[0].config.ryba.kafka.user, kafka.user

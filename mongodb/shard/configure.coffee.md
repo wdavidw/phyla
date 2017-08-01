@@ -8,22 +8,10 @@
 
 ## Identities
 
-      # User
-      mongodb.user = name: mongodb.user if typeof mongodb.user is 'string'
-      mongodb.user ?= {}
-      mongodb.user.name ?= 'mongod'
-      mongodb.user.system ?= true
-      mongodb.user.comment ?= 'MongoDB User'
-      mongodb.user.home ?= '/var/lib/mongod'
-      # Group
-      mongodb.group = name: mongodb.group if typeof mongodb.group is 'string'
-      mongodb.group ?= {}
-      mongodb.group.name ?= 'mongod'
-      mongodb.user.gid = mongodb.group.name
-      mongodb.group.system ?= true
-      mongodb.user.limits ?= {}
-      mongodb.user.limits.nofile ?= 64000
-      mongodb.user.limits.nproc ?= true
+By default, merge group and user from the MongoDb config server.
+
+      mongodb.group = merge mongodb_configsrvs[0].config.ryba.mongodb.group, mongodb.group
+      mongodb.user = merge mongodb_configsrvs[0].config.ryba.mongodb.user, mongodb.user
 
 ## Configuration
 

@@ -40,6 +40,15 @@ ryba:
     module.exports = ->
       {java, ryba} = @config
       {solr, realm} = ryba ?= {}
+
+## Identities
+
+      # Group
+      solr.group ?= {}
+      solr.group = name: solr.group if typeof solr.group is 'string'
+      solr.group.name ?= 'solr'
+      solr.group.system ?= true
+      # User
       solr.user ?= {}
       solr.user = name: solr.user if typeof solr.user is 'string'
       solr.user.name ?= 'solr'
@@ -47,16 +56,13 @@ ryba:
       solr.user.system ?= true
       solr.user.comment ?= 'Solr User'
       solr.user.groups ?= 'hadoop'
-      solr.user.gid ?= 'solr'
-      # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
-      # User Limits
+      solr.user.gid ?= solr.group.name
       solr.user.limits ?= {}
       solr.user.limits.nofile ?= 64000
       solr.user.limits.nproc ?= true
+
+## Environment
+
       solr.cloud_docker ?= {}
       solr.cloud_docker.version ?= '6.3.0'
       solr.cloud_docker.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.cloud_docker.version}/solr-#{solr.cloud_docker.version}.tgz"

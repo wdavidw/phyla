@@ -16,9 +16,6 @@ They can be installed and configured on their own.
       mongodb.group ?= {}
       mongodb.group.name ?= 'mongod'
       mongodb.group.system ?= true
-      mongodb.user.limits ?= {}
-      mongodb.user.limits.nofile ?= 64000
-      mongodb.user.limits.nproc ?= true
       # User
       mongodb.user = name: mongodb.user if typeof mongodb.user is 'string'
       mongodb.user ?= {}
@@ -27,6 +24,9 @@ They can be installed and configured on their own.
       mongodb.user.system ?= true
       mongodb.user.comment ?= 'MongoDB User'
       mongodb.user.home ?= '/var/lib/mongod'
+      mongodb.user.limits ?= {}
+      mongodb.user.limits.nofile ?= 64000
+      mongodb.user.limits.nproc ?= true
 
 # Configuration
 

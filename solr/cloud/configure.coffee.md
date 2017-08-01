@@ -30,6 +30,15 @@ ryba:
       [java_ctx] = @contexts 'masson/commons/java'
       java = java_ctx.config.java
       {solr, realm} = ryba ?= {}
+
+## Identities
+
+      # Group
+      solr.group ?= {}
+      solr.group = name: solr.group if typeof solr.group is 'string'
+      solr.group.name ?= 'solr'
+      solr.group.system ?= true
+      # User
       solr.user ?= {}
       solr.user = name: solr.user if typeof solr.user is 'string'
       solr.user.name ?= 'solr'
@@ -37,12 +46,13 @@ ryba:
       solr.user.system ?= true
       solr.user.comment ?= 'Solr User'
       solr.user.groups ?= 'hadoop'
-      # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
       solr.user.gid ?= solr.group.name
+      solr.user.limits ?= {}
+      solr.user.limits.nofile ?= 64000
+      solr.user.limits.nproc ?= true
+
+## Environment
+
       solr.cloud ?= {}
       solr.cloud.version ?= '6.3.0'
       solr.cloud.host ?= @config.host # need for rendering xml

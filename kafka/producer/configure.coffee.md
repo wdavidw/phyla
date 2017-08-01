@@ -2,7 +2,7 @@
 ## Configure
 
     module.exports = ->
-      {kafka} = @config.ryba ?= {}
+      kafka = @config.ryba.kafka ?= {}
       ks_ctxs = @contexts 'ryba/kafka/broker'
 
 ## Identities
@@ -11,6 +11,8 @@
       kafka.user = merge ks_ctxs[0].config.ryba.kafka.user, kafka.user
 
 ## Configuration
+
+By default, merge group and user from the Kafka broker configuration.
 
       kafka.producer ?= {}
       kafka.producer.conf_dir ?= '/etc/kafka/conf'

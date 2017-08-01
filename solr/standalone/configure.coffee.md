@@ -26,6 +26,15 @@ ryba:
     module.exports = ->
       {java, ryba} = @config
       {solr, realm} = ryba ?= {}
+
+## Identities
+
+      # Group
+      solr.group ?= {}
+      solr.group = name: solr.group if typeof solr.group is 'string'
+      solr.group.name ?= 'solr'
+      solr.group.system ?= true
+      # User
       solr.user ?= {}
       solr.user = name: solr.user if typeof solr.user is 'string'
       solr.user.name ?= 'solr'
@@ -33,12 +42,10 @@ ryba:
       solr.user.system ?= true
       solr.user.comment ?= 'Solr User'
       solr.user.groups ?= 'hadoop'
-      # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
       solr.user.gid ?= solr.group.name
+
+## Environment
+
       solr.single ?= {}
       solr.single.version ?= '6.3.0'
       solr.single.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.single.version}/solr-#{solr.single.version}.tgz"
@@ -49,7 +56,6 @@ ryba:
       solr.single.pid_dir ?= '/var/run/solr'
       solr.single.log_dir ?= '/var/log/solr'
       solr.single.conf_dir ?= '/etc/solr/conf'
-
 
 ## Core Conf
 Ryba installs solrcloud with a single instance (one core).

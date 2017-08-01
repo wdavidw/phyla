@@ -7,19 +7,16 @@
       ranger = @config.ryba.ranger ?= {}
       [ranger_admin_ctx] = @contexts 'ryba/ranger/admin'
       return throw new Error 'Needs Ranger Admin service' unless ranger_admin_ctx
-      # Group
-      ranger.group = name: ranger.group if typeof ranger.group is 'string'
-      ranger.group ?= {}
-      ranger.group.name ?= 'ranger'
-      ranger.group.system ?= true
-      # User
-      ranger.user ?= {}
-      ranger.user = name: ranger.user if typeof ranger.user is 'string'
-      ranger.user.name ?= ranger.group.name
-      ranger.user.system ?= true
-      ranger.user.comment ?= 'Ranger User'
-      ranger.user.home = "/var/lib/#{ranger.user.name}"
-      ranger.user.gid = ranger.group.name
+
+## Identities
+
+By default, merge group and user from the Ranger admin configuration.
+
+      ranger.group = merge ks_ctxs[0].config.ryba.ranger.group, ranger.group
+      ranger.user = merge ks_ctxs[0].config.ryba.ranger.user, ranger.user
+
+## Environment
+
       ranger.usersync ?= {}
       ranger.usersync.conf_dir ?= '/etc/ranger/usersync/conf'
       ranger.usersync.log_dir ?= '/var/log/ranger'
