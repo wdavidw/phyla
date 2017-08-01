@@ -891,7 +891,7 @@ Theses functions are used to generate business rules
               options.services['Swarm Containers - Status'].hosts.push host
               options.services['Swarm Containers - Status'].servicegroups ?= ['elasticsearch']
               options.services['Swarm Containers - Status'].use ?= 'unit-service'
-              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.ca_cert}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
+              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
               create_dependency 'Swarm Containers - Status', 'Swarm Containers - TCPs', host
           if 'ryba/rexster' in ctx.services
             w.modules.push 'rexster' unless 'rexster' in w.modules
