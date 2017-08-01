@@ -2,7 +2,7 @@
 # Shinken Poller Install
 
     module.exports = header: 'Shinken Poller Install', handler: ->
-      {shinken} = @config.ryba
+      {shinken, monitoring} = @config.ryba
       {poller} = @config.ryba.shinken
       {realm} = @config.ryba
       krb5 = @config.krb5_client.admin[realm]
@@ -110,6 +110,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           keytab: shinken.poller.executor.krb5.keytab
           mode: 0o644
 
+        @call
+          header: 'SSL'
+          if: shinken.poller.executor.ssl?
+        , ->
+          @file shinken.poller.executor.ssl.cert
+          @file shinken.poller.executor.ssl.key
+
         @call header: 'Docker', ->
           @file.download
             source: "#{@config.nikita.cache_dir or '.'}/shinken-poller-executor.tar"
@@ -118,25 +125,25 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             source: '/var/lib/docker_images/shinken-poller-executor.tar'
             if: -> @status -1
           @file
-            target: "#{shinken.poller.executor.resources_dir}/cronfile"
+            target: "#{shinken.user.home}/resources/cronfile"
             content: """
             01 */9 * * * #{shinken.user.name} /usr/bin/kinit #{shinken.poller.executor.krb5.principal} -kt #{shinken.poller.executor.krb5.keytab}
             """
             eof: true
+          volumes = [
+            "/etc/krb5.conf:/etc/krb5.conf:ro"
+            "/etc/localtime:/etc/localtime:ro"
+            "#{shinken.user.home}/resources/cronfile:/etc/cron.d/1cron"
+            "#{shinken.poller.executor.krb5.keytab}:#{shinken.poller.executor.krb5.keytab}"
+          ]
+          if shinken.poller.executor.ssl?
+            volumes.push "#{shinken.poller.executor.ssl.cert.target}:#{monitoring.credentials.swarm_user.cert}"
+            volumes.push "#{shinken.poller.executor.ssl.key.target}:#{monitoring.credentials.swarm_user.key}"
           @docker.service
             name: 'poller-executor'
             image: 'ryba/shinken-poller-executor'
             net: 'host'
-            volume: [
-              "/etc/krb5.conf:/etc/krb5.conf:ro"
-              "/etc/localtime:/etc/localtime:ro"
-              #"/usr/lib64/nagios/plugins:/usr/lib64/nagios/plugins"
-              #"#{shinken.poller.executor.krb5.privileged.keytab}:#{shinken.poller.executor.krb5.privileged.keytab}"
-              "#{shinken.poller.executor.resources_dir}:/home/#{shinken.user.name}/plugins/resources"
-              "#{shinken.poller.executor.resources_dir}/cronfile:/etc/cron.d/1cron"
-              "#{shinken.poller.executor.krb5.keytab}:#{shinken.poller.executor.krb5.keytab}"
-            ]
-
+            volume: volumes
 ## Dependencies
 
     path = require 'path'

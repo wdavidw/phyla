@@ -2,7 +2,8 @@
 # Shinken Poller Configure
 
     module.exports = ->
-      {docker} = @config
+      mon_ctxs = @contexts 'ryba/commons/monitoring'
+      {docker, ssl} = @config
       {shinken} = @config.ryba
       # Add shinken to docker group
       shinken.user.groups ?= []
@@ -13,7 +14,16 @@
       poller.executor.krb5 ?= {}
       poller.executor.krb5.principal ?= "#{shinken.user.name}@#{@config.ryba.realm}"
       poller.executor.krb5.keytab ?= "/etc/security/keytabs/shinken.test.keytab"
-      poller.executor.resources_dir ?= shinken.user.home
+      if ssl.cert? and ssl.key?
+        poller.executor.ssl = ssl
+        poller.executor.ssl.cert.target ?= "#{shinken.user.home}/resources/certs/cert.pem"
+        poller.executor.ssl.key.target ?= "#{shinken.user.home}/resources/certs/key.pem"
+        for ctx in mon_ctxs
+          ctx.config.ryba.monitoring ?= {}
+          ctx.config.ryba.monitoring.credentials ?= {}
+          ctx.config.ryba.monitoring.credentials.swarm_user ?= {}
+          ctx.config.ryba.monitoring.credentials.swarm_user.key ?= "/home/#{shinken.user.name}/plugins/certs/key.pem"
+          ctx.config.ryba.monitoring.credentials.swarm_user.cert ?= "/home/#{shinken.user.name}/plugins/certs/cert.pem"
       # Additionnal Modules to install
       poller.modules ?= {}
       configmod = (name, mod) =>

@@ -10,6 +10,7 @@ It supports:
     module.exports =
       use:
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
+        poller: 'ryba/shinken/poller'
         # List of monitored services
         mysql_server: 'masson/commons/mysql/server'
         elasticsearch: 'ryba/elasticsearch'
