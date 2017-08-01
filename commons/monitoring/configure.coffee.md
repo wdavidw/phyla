@@ -1147,6 +1147,7 @@ Theses functions are used to generate business rules
           options.services['HBase - Unavailable Regions'].servicegroups ?= ['hbase']
           options.services['HBase - Unavailable Regions'].use ?= 'functional-service'
           options.services['HBase - Unavailable Regions'].check_command ?= 'check_hbase_unavailable_regions!60010!-S'
+          create_dependency 'HBase - Unavailable Regions', 'HBase Master - Active Node'
           options.services['HBase - Replication logs'] ?= {}
           options.services['HBase - Replication logs'].hosts ?= []
           options.services['HBase - Replication logs'].hosts.push clustername
