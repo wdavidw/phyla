@@ -36,6 +36,8 @@ Example
       shinken.python_modules ?= {}
       shinken.python_modules.CherryPy ?= {}
       shinken.python_modules.CherryPy.version ?= '11.0.0'
+      shinken.python_modules.pycparser ?= {}
+      shinken.python_modules.pycparser.version ?= '2.18'
       shinken.python_modules.asn1crypto ?= {}
       shinken.python_modules.asn1crypto.version ?= '0.22.0'
       shinken.python_modules.cffi ?= {}
@@ -46,8 +48,6 @@ Example
       shinken.python_modules.idna.version ?= '2.5'
       shinken.python_modules.ipaddress ?= {}
       shinken.python_modules.ipaddress.version ?= '1.0.18'
-      shinken.python_modules.pycparser ?= {}
-      shinken.python_modules.pycparser.version ?= '2.18'
       shinken.python_modules.six ?= {}
       shinken.python_modules.six.version ?= '1.10.0'
       shinken.python_modules.cryptography ?= {}
