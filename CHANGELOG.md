@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* phoenix/client: stronger check
 * knox: improve proxyusers configuration for hdfs_nn and yarn_rm
 * druid: fix installation of packages
 * shinken: ssl support

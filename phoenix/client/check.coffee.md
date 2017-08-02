@@ -73,7 +73,7 @@ instructions.
           ../doc/examples/WEB_STAT.csv \
         >/dev/null 2>&1
         """
-        retry: 3
+        retry: 5
         interval: 10000
       @wait.execute
         cmd: mkcmd.hbase @, """
@@ -86,7 +86,8 @@ instructions.
           #{user.home}/check_phoenix/select.sql
         hdfs dfs -touchz check-#{@config.host}-phoenix
         """
-        retry: 3
+        retry: 5
+        interval: 10000
         trap: true
       , (err, check, data) ->
         throw err if err
