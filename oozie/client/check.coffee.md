@@ -618,6 +618,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
             echo "Print Status"
             oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
             """
+            retry: 3
             trap: false # or while loop will exit on first run
             unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -d /user/#{user.name}/#{db}/first_table"
 
