@@ -146,6 +146,7 @@ Objects config
             context:
               "#{obj}": monitoring[obj]
               brokers: brokers
+              credentials: monitoring.credentials
             backup: true
         # Templated objects
         for obj in ['hosts', 'services', 'contacts']

@@ -12,7 +12,7 @@
       # Executor
       poller.executor ?= {}
       poller.executor.krb5 ?= {}
-      poller.executor.krb5.principal ?= "#{shinken.user.name}@#{@config.ryba.realm}"
+      poller.executor.krb5.principal ?= "#{shinken.user.name}/#{@config.host}@#{@config.ryba.realm}"
       poller.executor.krb5.keytab ?= "/etc/security/keytabs/shinken.test.keytab"
       if ssl.cert? and ssl.key?
         poller.executor.ssl = ssl

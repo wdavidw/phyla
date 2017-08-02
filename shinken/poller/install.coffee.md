@@ -2,9 +2,9 @@
 # Shinken Poller Install
 
     module.exports = header: 'Shinken Poller Install', handler: ->
-      {shinken, monitoring} = @config.ryba
+      {shinken, realm} = @config.ryba
       {poller} = @config.ryba.shinken
-      {realm} = @config.ryba
+      {monitoring} = @contexts('ryba/commons/monitoring')[0].config.ryba
       krb5 = @config.krb5_client.admin[realm]
 
 ## IPTables

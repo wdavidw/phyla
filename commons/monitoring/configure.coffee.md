@@ -2,7 +2,6 @@
 # Configure Monitoring Objects
 
     module.exports = ->
-      {db_admin} = @config.ryba
       options = @config.ryba.monitoring ?= {}
 
 ## Credentials
@@ -336,8 +335,8 @@ Theses functions are used to generate business rules
 
 ###  Declare services
 
-          # TODO: put db_admin username/password
-          if 'masson/commons/mysql/server' in ctx.services or 'masson/commons/mariadb/server' in ctx.services
+          # TODO: put ryba.db_admin username/password
+          if 'masson/commons/mysql/server' in ctx.services
             w.modules.push 'mysql_server' unless 'mysql_server' in w.modules
             h.hostgroups.push 'mysql_server' unless 'mysql_server' in h.hostgroups
             options.services['MySQL - TCP'] ?= {}
@@ -346,43 +345,90 @@ Theses functions are used to generate business rules
             options.services['MySQL - TCP'].servicegroups ?= ['mysql_server']
             options.services['MySQL - TCP'].use ?= 'process-service'
             options.services['MySQL - TCP']['_process_name'] ?= 'mysqld'
-            options.services['MySQL - TCP'].check_command ?= "check_tcp!#{db_admin.mysql.port}"
+            options.services['MySQL - TCP'].check_command ?= "check_tcp!#{ryba.db_admin.mysql.port}"
             if options.credentials.sql_user.enabled
               options.services['MySQL - Connection time'] ?= {}
               options.services['MySQL - Connection time'].hosts ?= []
               options.services['MySQL - Connection time'].hosts.push host
               options.services['MySQL - Connection time'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Connection time'].use ?= 'unit-service'
-              options.services['MySQL - Connection time'].check_command ?= "check_mysql!#{db_admin.mysql.port}!connection-time!3!10"
+              options.services['MySQL - Connection time'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!connection-time!3!10"
               create_dependency 'MySQL - Connection time', 'MySQL - TCP', host
               options.services['MySQL - Slow queries'] ?= {}
               options.services['MySQL - Slow queries'].hosts ?= []
               options.services['MySQL - Slow queries'].hosts.push host
               options.services['MySQL - Slow queries'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Slow queries'].use ?= 'functional-service'
-              options.services['MySQL - Slow queries'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slow-queries!0,25!1"
+              options.services['MySQL - Slow queries'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slow-queries!0,25!1"
               create_dependency 'MySQL - Slow queries', 'MySQL - TCP', host
               options.services['MySQL - Slave lag'] ?= {}
               options.services['MySQL - Slave lag'].hosts ?= []
               options.services['MySQL - Slave lag'].hosts.push host
               options.services['MySQL - Slave lag'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Slave lag'].use ?= 'unit-service'
-              options.services['MySQL - Slave lag'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-lag!3!10"
+              options.services['MySQL - Slave lag'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-lag!3!10"
               create_dependency 'MySQL - Slave lag', 'MySQL - TCP', host
               options.services['MySQL - Slave IO running'] ?= {}
               options.services['MySQL - Slave IO running'].hosts ?= []
               options.services['MySQL - Slave IO running'].hosts.push host
               options.services['MySQL - Slave IO running'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Slave IO running'].use ?= 'unit-service'
-              options.services['MySQL - Slave IO running'].check_command ?= "check_mysql!#{db_admin.mysql.port}!slave-io-running!1!1"
+              options.services['MySQL - Slave IO running'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-io-running!1!1"
               create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', host
               options.services['MySQL - Connected Threads'] ?= {}
               options.services['MySQL - Connected Threads'].hosts ?= []
               options.services['MySQL - Connected Threads'].hosts.push host
               options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Connected Threads'].use ?= 'unit-service'
-              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{db_admin.mysql.port}!threads-connected!80!100"
+              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!80!100"
               create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
+          # TODO: put db_admin username/password
+          if 'masson/commons/mariadb/server' in ctx.services
+            w.modules.push 'mariadb_server' unless 'mariadb_server' in w.modules
+            h.hostgroups.push 'mariadb_server' unless 'mariadb_server' in h.hostgroups
+            options.services['MariaDB - TCP'] ?= {}
+            options.services['MariaDB - TCP'].hosts ?= []
+            options.services['MariaDB - TCP'].hosts.push host
+            options.services['MariaDB - TCP'].servicegroups ?= ['mysql_server']
+            options.services['MariaDB - TCP'].use ?= 'process-service'
+            options.services['MariaDB - TCP']['_process_name'] ?= 'mariadb'
+            options.services['MariaDB - TCP'].check_command ?= "check_tcp!#{ryba.db_admin.mysql.port}"
+            if options.credentials.sql_user.enabled
+              options.services['MariaDB - Connection time'] ?= {}
+              options.services['MariaDB - Connection time'].hosts ?= []
+              options.services['MariaDB - Connection time'].hosts.push host
+              options.services['MariaDB - Connection time'].servicegroups ?= ['mysql_server']
+              options.services['MariaDB - Connection time'].use ?= 'unit-service'
+              options.services['MariaDB - Connection time'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!connection-time!3!10"
+              create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', host
+              options.services['MariaDB - Slow queries'] ?= {}
+              options.services['MariaDB - Slow queries'].hosts ?= []
+              options.services['MariaDB - Slow queries'].hosts.push host
+              options.services['MariaDB - Slow queries'].servicegroups ?= ['mysql_server']
+              options.services['MariaDB - Slow queries'].use ?= 'functional-service'
+              options.services['MariaDB - Slow queries'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slow-queries!0,25!1"
+              create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', host
+              options.services['MariaDB - Slave lag'] ?= {}
+              options.services['MariaDB - Slave lag'].hosts ?= []
+              options.services['MariaDB - Slave lag'].hosts.push host
+              options.services['MariaDB - Slave lag'].servicegroups ?= ['mysql_server']
+              options.services['MariaDB - Slave lag'].use ?= 'unit-service'
+              options.services['MariaDB - Slave lag'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-lag!3!10"
+              create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', host
+              options.services['MariaDB - Slave IO running'] ?= {}
+              options.services['MariaDB - Slave IO running'].hosts ?= []
+              options.services['MariaDB - Slave IO running'].hosts.push host
+              options.services['MariaDB - Slave IO running'].servicegroups ?= ['mysql_server']
+              options.services['MariaDB - Slave IO running'].use ?= 'unit-service'
+              options.services['MariaDB - Slave IO running'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-io-running!1!1"
+              create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', host
+              options.services['MariaDB - Connected Threads'] ?= {}
+              options.services['MariaDB - Connected Threads'].hosts ?= []
+              options.services['MariaDB - Connected Threads'].hosts.push host
+              options.services['MariaDB - Connected Threads'].servicegroups ?= ['mysql_server']
+              options.services['MariaDB - Connected Threads'].use ?= 'unit-service'
+              options.services['MariaDB - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!80!100"
+              create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', host
           if 'ryba/zookeeper/server' in ctx.services
             w.modules.push 'zookeeper_server' unless 'zookeeper_server' in w.modules
             h.hostgroups.push 'zookeeper_server' unless 'zookeeper_server' in h.hostgroups
@@ -709,7 +755,7 @@ Theses functions are used to generate business rules
             options.services['HCatalog - TCP'].servicegroups ?= ['hcatalog']
             options.services['HCatalog - TCP'].use ?= 'process-service' #'unit-service'
             options.services['HCatalog - TCP']['_process_name'] ?= 'hive-hcatalog-server'
-            options.services['HCatalog - TCP'].check_command ?= "check_tcp!#{ryba.hive.server2.site['hive.metastore.uris'].split(',')[0].split(':')[2]}"
+            options.services['HCatalog - TCP'].check_command ?= "check_tcp!#{ryba.hive.hcatalog.site['hive.metastore.port']}"
           if 'ryba/hive/server2' in ctx.services
             w.modules.push 'hiveserver2' unless 'hiveserver2' in w.modules
             h.hostgroups.push 'hiveserver2' unless 'hiveserver2' in h.hostgroups
@@ -835,7 +881,7 @@ Theses functions are used to generate business rules
             options.services['Spark HistoryServer - WebUI'].use ?= 'process-service'
             options.services['Spark HistoryServer - WebUI']['_process_name'] ?= 'spark-history-server'
             options.services['Spark HistoryServer - WebUI'].check_command ?= "check_tcp!#{ryba.spark.history.conf['spark.history.ui.port']}"
-          if 'ryba/spark/history_server' in ctx.services
+          if 'ryba/spark/livy_server' in ctx.services
             w.modules.push 'spark_ls' unless 'spark_ls' in w.modules
             h.hostgroups.push 'spark_ls' unless 'spark_ls' in h.hostgroups
             options.services['Spark LivyServer - WebService'] ?= {}
@@ -876,14 +922,14 @@ Theses functions are used to generate business rules
               options.services['Swarm Containers - TCPs'].hosts.push host
               options.services['Swarm Containers - TCPs'].servicegroups ?= ['elasticsearch']
               options.services['Swarm Containers - TCPs'].use ?= 'unit-service'
-              options.services['Swarm Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
+              options.services['Swarm Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!-S"
               create_dependency 'Swarm Containers - TCPs', 'Swarm Manager - TCP', host
               options.services['Swarm Containers - Status'] ?= {}
               options.services['Swarm Containers - Status'].hosts ?= []
               options.services['Swarm Containers - Status'].hosts.push host
               options.services['Swarm Containers - Status'].servicegroups ?= ['elasticsearch']
               options.services['Swarm Containers - Status'].use ?= 'unit-service'
-              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!#{options.credentials.swarm_user.cert}!#{options.credentials.swarm_user.key}!-S"
+              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!-S"
               create_dependency 'Swarm Containers - Status', 'Swarm Containers - TCPs', host
           if 'ryba/rexster' in ctx.services
             w.modules.push 'rexster' unless 'rexster' in w.modules
@@ -968,6 +1014,7 @@ Theses functions are used to generate business rules
               options.services['Knox - HBase Write'].check_command ?= "check_hbase_write!#{ryba.knox.site['gateway.port']}!#{ryba.hbase.client.test.namespace}:monitoring!cf1!-S"
               create_dependency 'Knox - HBase Write', 'Knox - WebService', host
               options.services['Knox - HDFS Write'] ?= {}
+              options.services['Knox - HDFS Write'].hosts ?= []
               options.services['Knox - HDFS Write'].hosts.push host
               options.services['Knox - HDFS Write'].servicegroups ?= ['knox', 'hdfs']
               options.services['Knox - HDFS Write'].use ?= 'functional-service'
@@ -1012,6 +1059,13 @@ Theses functions are used to generate business rules
           options.services['MySQL - Available'].servicegroups ?= ['mysql_server']
           options.services['MySQL - Available'].use ?= 'bp-service'
           options.services['MySQL - Available'].check_command ?= bp_has_one 'MySQL - TCP', '$HOSTNAME$'
+        if 'mariadb_server' in w.modules
+          options.services['MariaDB - Available'] ?= {}
+          options.services['MariaDB - Available'].hosts ?= []
+          options.services['MariaDB - Available'].hosts.push clustername
+          options.services['MariaDB - Available'].servicegroups ?= ['mysql_server']
+          options.services['MariaDB - Available'].use ?= 'bp-service'
+          options.services['MariaDB - Available'].check_command ?= bp_has_one 'MariaDB - TCP', '$HOSTNAME$'
         if 'zookeeper_server' in w.modules
           options.services['Zookeeper Server - Available'] ?= {}
           options.services['Zookeeper Server - Available'].hosts ?= []
@@ -1139,7 +1193,7 @@ Theses functions are used to generate business rules
           options.services['HBase - Unavailable Regions'].servicegroups ?= ['hbase']
           options.services['HBase - Unavailable Regions'].use ?= 'functional-service'
           options.services['HBase - Unavailable Regions'].check_command ?= 'check_hbase_unavailable_regions!60010!-S'
-          create_dependency 'HBase - Unavailable Regions', 'HBase Master - Active Node'
+          create_dependency 'HBase - Unavailable Regions', 'HBase Master - Active Node', clustername
           options.services['HBase - Replication logs'] ?= {}
           options.services['HBase - Replication logs'].hosts ?= []
           options.services['HBase - Replication logs'].hosts.push clustername
@@ -1226,7 +1280,7 @@ Theses functions are used to generate business rules
           options.services['Spark HistoryServer - Available'].hosts.push clustername
           options.services['Spark HistoryServer - Available'].servicegroups ?= ['spark_qs']
           options.services['Spark HistoryServer - Available'].use ?= 'bp-service'
-          options.services['Spark HistoryServer - Available'].check_command ?= bp_has_one 'Spark HistoryServer - TCP', '$HOSTNAME$'
+          options.services['Spark HistoryServer - Available'].check_command ?= bp_has_one 'Spark HistoryServer - WebUI', '$HOSTNAME$'
         if 'spark_ls' in w.modules
           options.services['Spark LivyServer - Available'] ?= {}
           options.services['Spark LivyServer - Available'].hosts ?= []

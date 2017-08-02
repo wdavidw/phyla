@@ -128,11 +128,11 @@ define command {
 }
 define command {
   command_name    check_es_containers_tcps
-  command_line    $DOCKER_EXEC$ elasticsearch/containers_tcps.php -H $ARG1$ -p $ARG2$ -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG3$
+  command_line    $DOCKER_EXEC$ elasticsearch/containers_tcps.php -H $HOSTNAME$ -p $ARG1$ -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG2$
 }
 define command {
   command_name    check_es_containers_status
-  command_line    $DOCKER_EXEC$ elasticsearch/containers_status.php -H $ARG1$ -p $ARG2$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG5$
+  command_line    $DOCKER_EXEC$ elasticsearch/containers_status.py -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG2$
 }
 ## User/ryba-defined commands
 {% for name, command in commands %}
