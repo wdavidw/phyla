@@ -2,7 +2,7 @@
 # Configure Monitoring Objects
 
     module.exports = ->
-      {db_admin, krb5_user} = @config.ryba
+      {db_admin} = @config.ryba
       options = @config.ryba.monitoring ?= {}
 
 ## Credentials
@@ -11,12 +11,6 @@
 If a credential is disabled, tests that need this credential will be disabled.
 
       options.credentials ?= {}
-      options.credentials.krb5_user ?= {}
-      options.credentials.krb5_user.enabled ?= true
-      if options.credentials.krb5_user.enabled
-        options.credentials.krb5_user[k] ?= v for k,v of krb5_user
-        unless options.credentials.krb5_user.password? or options.credentials.krb5_user.keytab?
-          throw Error 'Required property: either ryba.monitoring.credentials.krb5_user.password or ryba.monitoring.credentials.krb5_user.keytab'
       options.credentials.knox_user ?= {}
       options.credentials.knox_user.enabled ?= true
       if options.credentials.knox_user.enabled
@@ -117,7 +111,7 @@ They must have register set to 0 to not be instanciated
       options.services['generic-service'].retain_nonstatus_information ?= '1'
       options.services['generic-service'].is_volatile ?= '0'
       options.services['generic-service'].check_period ?= 'everytime'
-      options.services['generic-service'].max_check_attempts ?= '2'
+      options.services['generic-service'].max_check_attempts ?= '3'
       options.services['generic-service'].check_interval ?= '300'
       options.services['generic-service'].retry_interval ?= '60'
       options.services['generic-service'].contactgroups ?= 'admins'
@@ -136,8 +130,6 @@ They must have register set to 0 to not be instanciated
       options.services['bp-service'].register ?= '0'
       options.services['process-service'] ?= {}
       options.services['process-service'].use ?= 'unit-service'
-      options.services['process-service'].event_handler_enabled ?= '1'
-      options.services['process-service'].event_handler ?= 'service_start!$_SERVICEPROCESS_NAME$'
       options.services['process-service'].register = '0'
       options.services['cert-service'] ?= {}
       options.services['cert-service'].use ?= 'unit-service'

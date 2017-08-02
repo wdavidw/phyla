@@ -16,9 +16,10 @@ is approximatively 1000 checks/s
 
     module.exports =
       use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
+        ssl: implicit: true, module: 'masson/core/ssl'
         docker: implicit: true, module: 'masson/commons/docker'
+        krb5_client: implicit: true, module: 'masson/core/krb5_client'
+        commons: implicit: true, module: 'ryba/shinken/commons'
       configure:
         'ryba/shinken/poller/configure'
       commands:
