@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* druid: various fixes
 * oozie/client: added retry in hive check
 * phoenix/client: stronger check
 * knox: improve proxyusers configuration for hdfs_nn and yarn_rm

@@ -28,6 +28,13 @@
         local: true
         backup: true
         mode: 0o0755
+      @call ->
+        @system.execute
+          cmd:  "hdp-select versions | tail -1"
+        , (err, executed, stdout, stderr) ->
+          return err if err
+          hdp_current_version = stdout.trim() if executed
+          druid.middlemanager.runtime['druid.indexer.runner.javaOpts'] = "-server -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhadoop.mapreduce.job.classloader=true -Dhdp.version=#{hdp_current_version}"
       @file.properties
         target: "/opt/druid-#{druid.version}/conf/druid/middleManager/runtime.properties"
         content: druid.middlemanager.runtime

@@ -14,6 +14,7 @@ Example:
     module.exports = ->
       [pg_ctx] = @contexts 'masson/commons/postgres/server'
       [my_ctx] = @contexts 'masson/commons/mysql/server'
+      [ma_ctx] = @contexts 'masson/commons/mariadb/server'
       zk_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
       [hadoop_ctx] = @contexts 'ryba/hadoop/core'
       # Get ZooKeeper Quorum
@@ -83,6 +84,7 @@ Example:
       druid.db ?= {}
       if pg_ctx then druid.db.engine ?= 'postgres'
       else if my_ctx then druid.db.engine ?= 'mysql'
+      else if ma_ctx then druid.db.engine ?= 'mysql'
       else druid.db.engine ?= 'derby'
       druid.db[k] ?= v for k, v of @config.ryba.db_admin[druid.db.engine]
       druid.db.database ?= 'druid'

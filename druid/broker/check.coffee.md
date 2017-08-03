@@ -48,11 +48,11 @@ service to be started.
             | sed 's/.*"task":"\\(.*\\)".*/\\1/'`
           echo "Current job is $job"
           sleep 5
-          while [ "RUNNING" == `curl -L -s http://worker1.ryba:8090/druid/indexer/v1/task/${job}/status | sed 's/.*"status":"\\([^"]*\\)".*/\\1/'` ]; do
+          while [ "RUNNING" == `curl -L -s #{overlord.config.host}:#{overlord.config.ryba.druid.overlord.runtime['druid.port']}/druid/indexer/v1/task/${job}/status | sed 's/.*"status":"\\([^"]*\\)".*/\\1/'` ]; do
             echo -n '.'
             sleep 5
           done
-          [ 'SUCCESS' == `curl -L -s http://worker1.ryba:8090/druid/indexer/v1/task/${job}/status | sed 's/.*"status":"\\([^"]*\\)".*/\\1/'` ]
+          [ 'SUCCESS' == `curl -L -s #{overlord.config.host}:#{overlord.config.ryba.druid.overlord.runtime['druid.port']}/druid/indexer/v1/task/${job}/status | sed 's/.*"status":"\\([^"]*\\)".*/\\1/'` ]
           """
           cwd: "/opt/druid-#{druid.version}"
           trap: true
