@@ -124,7 +124,7 @@ define command {
 }
 define command {
   command_name    check_webhcat_database
-  command_line    $DOCKER_EXEC$ hive/check_webhcat_database.sh $HOSTNAME$ $ARG1$
+  command_line    $DOCKER_EXEC$ hive/check_webhcat_database.sh $HOSTNAME$ $ARG1$ $ARG2$
 }
 define command {
   command_name    check_es_containers_tcps

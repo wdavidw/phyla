@@ -795,7 +795,7 @@ Theses functions are used to generate business rules
             options.services['WebHCat - Database'].hosts.push host
             options.services['WebHCat - Database'].servicegroups ?= ['webhcat']
             options.services['WebHCat - Database'].use ?= 'unit-service'
-            options.services['WebHCat - Database'].check_command ?= "check_webhcat_database!#{ryba.webhcat.site['templeton.port']}"
+            options.services['WebHCat - Database'].check_command ?= "check_webhcat_database!#{ryba.webhcat.site['templeton.port']}!default"
             create_dependency 'WebHCat - Database', 'WebHCat - WebService', host
           if 'ryba/oozie/server' in ctx.services
             w.modules.push 'oozie_server' unless 'oozie_server' in w.modules
