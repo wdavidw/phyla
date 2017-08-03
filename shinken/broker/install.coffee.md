@@ -66,8 +66,12 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 ## Python Modules
 
       @call header: 'Python Modules', ->
+        # We compute the module list only once because pip list can be very slow
+        @system.execute
+          cmd: "pip list > #{shinken.build_dir}/.piplist"
+          shy: true
         install_dep = (k, v) =>
-          @call header: k, unless_exec: "pip list | grep #{k}", ->
+          @call header: k, unless_exec: "grep #{k} #{shinken.build_dir}/.piplist", ->
             @file.download
               source: v.url
               target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
@@ -83,6 +87,9 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
         for _, mod of broker.modules then for k,v of mod.python_modules then install_dep k, v
+        @system.remove
+          target: "#{shinken.build_dir}/.piplist"
+          shy: true
 
 ## Fix Groups View
 

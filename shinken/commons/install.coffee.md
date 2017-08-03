@@ -67,11 +67,15 @@
 ## Python Modules
 
       @call header: 'Python Modules', ->
+        # We compute the module list only once because pip list can be very slow
+        @system.execute
+          cmd: "pip list > #{shinken.build_dir}/.piplist"
+          shy: true
         @each shinken.python_modules, (options, callback) ->
           v = options.value
           @call
             header: options.key
-            unless_exec: "pip list | grep #{options.key}"
+            unless_exec: "grep #{options.key} #{shinken.build_dir}/.piplist"
           , ->
             @file.download
               source: v.url
@@ -88,3 +92,6 @@
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
           @then callback
+        @system.remove
+          target: "#{shinken.build_dir}/.piplist"
+          shy: true
