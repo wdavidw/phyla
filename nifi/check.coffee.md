@@ -12,10 +12,12 @@
 
 ## Check TCP
 
-      @system.execute
+      @connection.assert
         header: 'Check WebUI port'
-        label_true: 'CHECKED'
-        cmd: "echo > /dev/tcp/#{@config.host}/#{webui}"
+        host: "#{@config.host}"
+        port: "#{webui}"
+        retry: 3
+        interval: 5000
       @system.execute
         header: 'Check Node port'
         if: nifi.config.properties['nifi.cluster.is.node'] is 'true'
