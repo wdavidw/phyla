@@ -380,7 +380,7 @@ Theses functions are used to generate business rules
               options.services['MySQL - Connected Threads'].hosts.push host
               options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
               options.services['MySQL - Connected Threads'].use ?= 'unit-service'
-              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!80!100"
+              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!100!120"
               create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
           # TODO: put db_admin username/password
           if 'masson/commons/mariadb/server' in ctx.services
@@ -427,7 +427,7 @@ Theses functions are used to generate business rules
               options.services['MariaDB - Connected Threads'].hosts.push host
               options.services['MariaDB - Connected Threads'].servicegroups ?= ['mysql_server']
               options.services['MariaDB - Connected Threads'].use ?= 'unit-service'
-              options.services['MariaDB - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!80!100"
+              options.services['MariaDB - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!100!120"
               create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', host
           if 'ryba/zookeeper/server' in ctx.services
             w.modules.push 'zookeeper_server' unless 'zookeeper_server' in w.modules
