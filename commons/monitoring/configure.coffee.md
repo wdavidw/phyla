@@ -529,7 +529,7 @@ Theses functions are used to generate business rules
             options.services['HDFS JN - Certificate'].hosts ?= []
             options.services['HDFS JN - Certificate'].hosts.push host
             options.services['HDFS JN - Certificate'].servicegroups ?= ['hdfs_jn']
-            options.services['HDFS JN - Certificate'].use ?= 'process-service'
+            options.services['HDFS JN - Certificate'].use ?= 'cert-service'
             options.services['HDFS JN - Certificate'].check_command ?= "check_cert!#{https}!120!60"
             create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', host
           if 'ryba/hadoop/hdfs_dn' in ctx.services
@@ -636,6 +636,29 @@ Theses functions are used to generate business rules
             options.services['YARN NM - Health'].use ?= 'unit-service'
             options.services['YARN NM - Health'].check_command ?= 'check_nm_info!8044!nodeHealthy!true!-S'
             create_dependency 'YARN NM - Health', 'YARN NM - WebService', host
+          if 'ryba/hadoop/mapred_jhs' in ctx.services
+            w.modules.push 'mapred_jhs' unless 'mapred_jhs' in w.modules
+            h.hostgroups.push 'mapred_jhs' unless 'mapred_jhs' in h.hostgroups
+            options.services['MapReduce JHS - TCP'] ?= {}
+            options.services['MapReduce JHS - TCP'].hosts ?= []
+            options.services['MapReduce JHS - TCP'].hosts.push host
+            options.services['MapReduce JHS - TCP'].servicegroups ?= ['mapred_jhs']
+            options.services['MapReduce JHS - TCP'].use ?= 'process-service'
+            options.services['MapReduce JHS - TCP']['_process_name'] ?= 'hadoop-mapreduce-historyserver'
+            options.services['MapReduce JHS - TCP'].check_command ?= "check_tcp!10020"
+            options.services['MapReduce JHS - WebService'] ?= {}
+            options.services['MapReduce JHS - WebService'].hosts ?= []
+            options.services['MapReduce JHS - WebService'].hosts.push host
+            options.services['MapReduce JHS - WebService'].servicegroups ?= ['mapred_jhs']
+            options.services['MapReduce JHS - WebService'].use ?= 'unit-service'
+            options.services['MapReduce JHS - WebService'].check_command ?= 'check_tcp!19889!-S'
+            options.services['MapReduce JHS - Certificate'] ?= {}
+            options.services['MapReduce JHS - Certificate'].hosts ?= []
+            options.services['MapReduce JHS - Certificate'].hosts.push host
+            options.services['MapReduce JHS - Certificate'].servicegroups ?= ['mapred_jhs']
+            options.services['MapReduce JHS - Certificate'].use ?= 'cert-service'
+            options.services['MapReduce JHS - Certificate'].check_command ?= 'check_cert!19889!120!60'
+            create_dependency 'MapReduce JHS - Certificate', 'MapReduce JHS - WebService', host
           if 'ryba/hadoop/yarn_ts' in ctx.services
             w.modules.push 'yarn_ts' unless 'yarn_ts' in w.modules
             h.hostgroups.push 'yarn_ts' unless 'yarn_ts' in h.hostgroups
@@ -917,20 +940,20 @@ Theses functions are used to generate business rules
             options.services['Swarm Manager - TCP'].use ?= 'unit-service'
             options.services['Swarm Manager - TCP'].check_command ?= "check_tcp!#{ryba.swarm.manager.listen_port}"
             if options.credentials.swarm_user.enabled
-              options.services['Swarm Containers - TCPs'] ?= {}
-              options.services['Swarm Containers - TCPs'].hosts ?= []
-              options.services['Swarm Containers - TCPs'].hosts.push host
-              options.services['Swarm Containers - TCPs'].servicegroups ?= ['elasticsearch']
-              options.services['Swarm Containers - TCPs'].use ?= 'unit-service'
-              options.services['Swarm Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!-S"
-              create_dependency 'Swarm Containers - TCPs', 'Swarm Manager - TCP', host
-              options.services['Swarm Containers - Status'] ?= {}
-              options.services['Swarm Containers - Status'].hosts ?= []
-              options.services['Swarm Containers - Status'].hosts.push host
-              options.services['Swarm Containers - Status'].servicegroups ?= ['elasticsearch']
-              options.services['Swarm Containers - Status'].use ?= 'unit-service'
-              options.services['Swarm Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!-S"
-              create_dependency 'Swarm Containers - Status', 'Swarm Containers - TCPs', host
+              options.services['ES Containers - TCPs'] ?= {}
+              options.services['ES Containers - TCPs'].hosts ?= []
+              options.services['ES Containers - TCPs'].hosts.push host
+              options.services['ES Containers - TCPs'].servicegroups ?= ['elasticsearch']
+              options.services['ES Containers - TCPs'].use ?= 'unit-service'
+              options.services['ES Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!-S"
+              create_dependency 'ES Containers - TCPs', 'Swarm Manager - TCP', host
+              options.services['ES Containers - Status'] ?= {}
+              options.services['ES Containers - Status'].hosts ?= []
+              options.services['ES Containers - Status'].hosts.push host
+              options.services['ES Containers - Status'].servicegroups ?= ['elasticsearch']
+              options.services['ES Containers - Status'].use ?= 'unit-service'
+              options.services['ES Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!-S"
+              create_dependency 'ES Containers - Status', 'ES Containers - TCPs', host
           if 'ryba/rexster' in ctx.services
             w.modules.push 'rexster' unless 'rexster' in w.modules
             h.hostgroups.push 'rexster' unless 'rexster' in h.hostgroups
@@ -1171,6 +1194,20 @@ Theses functions are used to generate business rules
           options.services['YARN NM - Available'].servicegroups ?= ['yarn_nm']
           options.services['YARN NM - Available'].use ?= 'bp-service'
           options.services['YARN NM - Available'].check_command ?= bp_miss 3, 'YARN NM - TCP', '$HOSTNAME$'
+        if 'mapred_jhs' in w.modules
+          options.services['MapReduce JHS - Available'] ?= {}
+          options.services['MapReduce JHS - Available'].hosts ?= []
+          options.services['MapReduce JHS - Available'].hosts.push clustername
+          options.services['MapReduce JHS - Available'].servicegroups ?= ['mapred_jhs']
+          options.services['MapReduce JHS - Available'].use ?= 'bp-service'
+          options.services['MapReduce JHS - Available'].check_command ?= bp_has_one 'MapReduce JHS - TCP', '$HOSTNAME$'
+        if 'yarn_ts' in w.modules
+          options.services['YARN TS - Available'] ?= {}
+          options.services['YARN TS - Available'].hosts ?= []
+          options.services['YARN TS - Available'].hosts.push clustername
+          options.services['YARN TS - Available'].servicegroups ?= ['yarn_ts']
+          options.services['YARN TS - Available'].use ?= 'bp-service'
+          options.services['YARN TS - Available'].check_command ?= bp_has_one 'YARN TS - TCP', '$HOSTNAME$'
         if 'hbase_master' in w.modules
           options.services['HBase Master - Available'] ?= {}
           options.services['HBase Master - Available'].hosts ?= []
