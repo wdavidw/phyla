@@ -484,7 +484,7 @@ Theses functions are used to generate business rules
             options.services['HDFS NN - Safe Mode'].hosts.push host
             options.services['HDFS NN - Safe Mode'].servicegroups ?= ['hdfs_nn']
             options.services['HDFS NN - Safe Mode'].use ?= 'unit-service'
-            options.services['HDFS NN - Safe Mode'].check_command ?= "check_safemode!#{https}!-S"
+            options.services['HDFS NN - Safe Mode'].check_command ?= "check_hdfs_safemode!#{https}!-S"
             create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', host
             options.services['HDFS NN - RPC latency'] ?= {}
             options.services['HDFS NN - RPC latency'].hosts ?= []

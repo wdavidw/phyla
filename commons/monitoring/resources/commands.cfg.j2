@@ -71,7 +71,7 @@ define command {
 }
 define command {
   command_name    check_hdfs_safemode
-  command_line    $DOCKER_EXEC$ hdfs/check_safemode.php -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
+  command_line    $DOCKER_EXEC$ hdfs/check_safemode.php -H $HOSTNAME$ -p $ARG1$ $ARG2$
 }
 define command {
   command_name    check_hdfs_state
