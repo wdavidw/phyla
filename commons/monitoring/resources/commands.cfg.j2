@@ -66,6 +66,14 @@ define command {
   command_line    $DOCKER_EXEC$ hdfs/check_content_summary.php -H `$DOCKER_EXEC$ ./service_status.php -H {{ brokers }} -p 50000 -d 'HDFS NN - Active Node' -f "host_groups >= $HOSTNAME$" -u` -p $ARG1$ -P $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
 }
 define command {
+  command_name    check_live_dn
+  command_line    $DOCKER_EXEC$ hdfs/check_live_dn.php -H `$DOCKER_EXEC$ ./service_status.php -H {{ brokers }} -p 50000 -d 'HDFS NN - Active Node' -f "host_groups >= $HOSTNAME$" -u` -p $ARG1$ $ARG2$
+}
+define command {
+  command_name    check_hdfs_safemode
+  command_line    $DOCKER_EXEC$ hdfs/check_safemode.php -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
+}
+define command {
   command_name    check_hdfs_state
   command_line    $DOCKER_EXEC$ hdfs/check_state.php -H $HOSTNAME$ -p $ARG1$ -j $ARG2$ -f $ARG3$ -w $ARG4$ -c $ARG5$ $ARG6$
 }

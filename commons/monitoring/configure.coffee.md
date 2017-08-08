@@ -479,6 +479,13 @@ Theses functions are used to generate business rules
             options.services['HDFS NN - Certificate'].use ?= 'cert-service'
             options.services['HDFS NN - Certificate'].check_command ?= "check_cert!#{https}!120!60"
             create_dependency 'HDFS NN - Certificate', 'HDFS NN - WebService', host
+            options.services['HDFS NN - Safe Mode'] ?= {}
+            options.services['HDFS NN - Safe Mode'].hosts ?= []
+            options.services['HDFS NN - Safe Mode'].hosts.push host
+            options.services['HDFS NN - Safe Mode'].servicegroups ?= ['hdfs_nn']
+            options.services['HDFS NN - Safe Mode'].use ?= 'unit-service'
+            options.services['HDFS NN - Safe Mode'].check_command ?= "check_safemode!#{https}!-S"
+            create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', host
             options.services['HDFS NN - RPC latency'] ?= {}
             options.services['HDFS NN - RPC latency'].hosts ?= []
             options.services['HDFS NN - RPC latency'].hosts.push host
@@ -1109,6 +1116,14 @@ Theses functions are used to generate business rules
           options.services['HDFS NN - Active Node'].servicegroups ?= ['hdfs_nn']
           options.services['HDFS NN - Active Node'].use ?= 'unit-service'
           options.services['HDFS NN - Active Node'].check_command ?= 'active_nn!50470!-S'
+          create_dependency 'HDFS NN - Active Node', 'HDFS NN - Available', clustername
+          options.services['HDFS NN - Live DNs'] ?= {}
+          options.services['HDFS NN - Live DNs'].hosts ?= []
+          options.services['HDFS NN - Live DNs'].hosts.push clustername
+          options.services['HDFS NN - Live DNs'].servicegroups ?= ['hdfs_nn']
+          options.services['HDFS NN - Live DNs'].use ?= 'unit-service'
+          options.services['HDFS NN - Live DNs'].check_command ?= 'check_live_dn!50470!-S'
+          create_dependency 'HDFS NN - Live DNs', 'HDFS NN - Active Node', clustername
         if 'hdfs_zkfc' in w.modules
           options.services['ZKFC - Available'] ?= {}
           options.services['ZKFC - Available'].hosts ?= []
@@ -1237,6 +1252,7 @@ Theses functions are used to generate business rules
           options.services['HBase - Replication logs'].servicegroups ?= ['hbase']
           options.services['HBase - Replication logs'].use ?= 'functional-service'
           options.services['HBase - Replication logs'].check_command ?= 'check_hdfs_content_summary!50470!/apps/hbase/data/oldWALs!spaceConsumed!824633720832!1099511627776!-S' # 768GiB | 1TiB
+          create_dependency 'HBase - Replication logs', 'HDFS NN - Active Node', clustername
         if 'hbase_regionserver' in w.modules
           options.services['HBase RegionServer - Available'] ?= {}
           options.services['HBase RegionServer - Available'].hosts ?= []
