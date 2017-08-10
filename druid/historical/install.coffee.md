@@ -44,6 +44,9 @@
         ,
           match: /^-XX:MaxDirectMemorySize=.*$/m
           replace: "-XX:MaxDirectMemorySize=#{druid.historical.jvm.max_direct_memory_size}"
+        ,
+          match: /^-Duser.timezone=.*$/m
+          replace: "-Duser.timezone=#{druid.timezone}"
         ]
       @system.mkdir (
         target: "#{path.resolve druid.dir, location.path}"

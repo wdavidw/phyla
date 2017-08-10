@@ -42,4 +42,7 @@
         ,
           match: /^-XX:MaxDirectMemorySize=.*$/m
           replace: "-XX:MaxDirectMemorySize=#{druid.broker.jvm.max_direct_memory_size}"
+        ,
+          match: /^-Duser.timezone=.*$/m
+          replace: "-Duser.timezone=#{druid.timezone}"
         ]

@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* druid: support for non-UTC timezone
 * druid: various fixes
 * oozie/client: added retry in hive check
 * phoenix/client: stronger check

@@ -34,19 +34,22 @@
         , (err, executed, stdout, stderr) ->
           return err if err
           hdp_current_version = stdout.trim() if executed
-          druid.middlemanager.runtime['druid.indexer.runner.javaOpts'] = "-server -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhadoop.mapreduce.job.classloader=true -Dhdp.version=#{hdp_current_version}"
+          druid.middlemanager.runtime['druid.indexer.runner.javaOpts'] = "-server -Xmx2g -Duser.timezone=Europe/Paris -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhadoop.mapreduce.job.classloader=true -Dhdp.version=#{hdp_current_version}"
       @file.properties
         target: "/opt/druid-#{druid.version}/conf/druid/middleManager/runtime.properties"
         content: druid.middlemanager.runtime
         backup: true
       @file
-        target: "#{druid.dir}/conf/druid/middlemanager/jvm.config"
+        target: "#{druid.dir}/conf/druid/middleManager/jvm.config"
         write: [
           match: /^-Xms.*$/m
           replace: "-Xms#{druid.middlemanager.jvm.xms}"
         ,
           match: /^-Xmx.*$/m
           replace: "-Xmx#{druid.middlemanager.jvm.xmx}"
+        ,
+          match: /^-Duser.timezone=.*$/m
+          replace: "-Duser.timezone=#{druid.timezone}"
         ]
       @system.mkdir
         target: "#{druid.middlemanager.runtime['druid.indexer.task.baseTaskDir']}"

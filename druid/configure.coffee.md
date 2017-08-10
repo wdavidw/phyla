@@ -66,6 +66,7 @@ Example:
 
 ## Configuration
 
+      druid.timezone ?= 'UTC'
       druid.common_runtime ?= {}
       # Extensions
       # Note, Mysql extension isnt natively supported due to licensing issues

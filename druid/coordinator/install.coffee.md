@@ -39,4 +39,7 @@
         ,
           match: /^-Xmx.*$/m
           replace: "-Xmx#{druid.coordinator.jvm.xmx}"
+        ,
+          match: /^-Duser.timezone=.*$/m
+          replace: "-Duser.timezone=#{druid.timezone}"
         ]
