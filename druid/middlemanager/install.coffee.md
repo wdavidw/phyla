@@ -34,7 +34,7 @@
         , (err, executed, stdout, stderr) ->
           return err if err
           hdp_current_version = stdout.trim() if executed
-          druid.middlemanager.runtime['druid.indexer.runner.javaOpts'] = "-server -Xmx2g -Duser.timezone=Europe/Paris -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhadoop.mapreduce.job.classloader=true -Dhdp.version=#{hdp_current_version}"
+          druid.middlemanager.runtime['druid.indexer.runner.javaOpts'] = "-server -Xmx2g -Duser.timezone=#{druid.timezone} -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhadoop.mapreduce.job.classloader=true -Dhdp.version=#{hdp_current_version}"
       @file.properties
         target: "/opt/druid-#{druid.version}/conf/druid/middleManager/runtime.properties"
         content: druid.middlemanager.runtime
