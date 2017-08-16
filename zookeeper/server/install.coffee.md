@@ -1,9 +1,7 @@
 
 # Zookeeper Server Install
 
-    module.exports = header: 'ZooKeeper Server Install', handler: ->
-      {zookeeper, hadoop_group, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'ZooKeeper Server Install', handler: (options) ->
 
 ## Register
 
@@ -12,7 +10,7 @@
 
 ## Wait
 
-      @call once: true, 'masson/core/krb5_client/wait'
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
 
 ## Users & Groups
 
@@ -25,9 +23,9 @@ cat /etc/group | grep hadoop
 hadoop:x:498:hdfs
 ```
 
-      @system.group zookeeper.group
-      @system.group hadoop_group
-      @system.user zookeeper.user
+      @system.group header: 'Group', options.group
+      @system.group header: 'Spnego Group', options.hadoop_group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -41,18 +39,18 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
       rules = [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: zookeeper.peer_port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Peer" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: zookeeper.leader_port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Leader" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.peer_port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Peer" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.leader_port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Leader" }
       ]
-      if zookeeper.env["JMXPORT"]?
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: parseInt(zookeeper.env["JMXPORT"],10), protocol: 'tcp', state: 'NEW', comment: "Zookeeper JMX" }
+      if options.env["JMXPORT"]?
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: parseInt(options.env["JMXPORT"],10), protocol: 'tcp', state: 'NEW', comment: "Zookeeper JMX" }
 
 We open the client port if:
 - the node is an observer
 - the node is participant but there is no other observer on the cluster
 
-      if zookeeper.config['peerType'] is 'observer' or @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'observer' ).length is 0
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: zookeeper.port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Client" }
+      if options.config['peerType'] is 'observer' or @contexts('ryba/zookeeper/server').filter( (ctx) -> options.config['peerType'] is 'observer' ).length is 0
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "Zookeeper Client" }
       @tools.iptables
         header: 'IPTables'
         rules: rules
@@ -63,7 +61,7 @@ We open the client port if:
 Follow the [HDP recommandations][install] to install the "zookeeper" package
 which has no dependency.
 
-      @call header: 'Packages', (options) ->
+      @call header: 'Packages', ->
         @service
           name: 'nc' # Used by check
         @service
@@ -88,30 +86,29 @@ which has no dependency.
             target: '/usr/lib/systemd/system/zookeeper-server.service'
             mode: 0o0644
           @system.tmpfs
-            mount: zookeeper.pid_dir
-            uid: zookeeper.user.name
-            gid: zookeeper.group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0750'
 
 ## Kerberos
 
-      @call once: true, 'masson/core/krb5_client/wait'
       @call header: 'Kerberos', ->
-        @krb5.addprinc krb5,
-          principal: "zookeeper/#{@config.host}@#{realm}"
+        @krb5.addprinc options.krb5.admin,
+          principal: options.krb5.principal
           randkey: true
-          keytab: '/etc/security/keytabs/zookeeper.service.keytab'
-          uid: zookeeper.user.name
-          gid: hadoop_group.name
+          keytab: options.krb5.keytab
+          uid: options.user.name
+          gid: options.hadoop_group.name
         @file.jaas
           target: '/etc/zookeeper/conf/zookeeper-server.jaas'
           content: Server:
-            principal: "zookeeper/#{@config.host}@#{realm}"
-            keyTab: '/etc/security/keytabs/zookeeper.service.keytab'
-          uid: zookeeper.user.name
-          gid: hadoop_group.name
+            principal: options.krb5.principal
+            keyTab: options.krb5.keytab
+          uid: options.user.name
+          gid: options.hadoop_group.name
         @file.jaas
-          target: "#{zookeeper.conf_dir}/zookeeper-client.jaas"
+          target: "#{options.conf_dir}/zookeeper-client.jaas"
           content: Client:
             useTicketCache: true
           mode: 0o0644
@@ -123,19 +120,19 @@ ownerships.
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: zookeeper.config['dataDir']
-          uid: zookeeper.user.name
-          gid: hadoop_group.name
+          target: options.config['dataDir']
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
         @system.mkdir
-          target: zookeeper.pid_dir
-          uid: zookeeper.user.name
-          gid: zookeeper.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o755
         @system.mkdir
-          target: zookeeper.log_dir
-          uid: zookeeper.user.name
-          gid: hadoop_group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
 
 ## Super User
@@ -152,17 +149,17 @@ Run "zkCli.sh" and enter `addauth digest super:EjV93vqJeB3wHqrx`
 
       @system.execute
         header: 'Generate Super User'
-        if: zookeeper.superuser.password
+        if: options.superuser.password
         cmd: """
         ZK_HOME=/usr/hdp/current/zookeeper-client/
-        java -cp $ZK_HOME/lib/*:$ZK_HOME/zookeeper.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider super:#{zookeeper.superuser.password}
+        java -cp $ZK_HOME/lib/*:$ZK_HOME/zookeeper.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider super:#{options.superuser.password}
         """
       , (err, generated, stdout) ->
         throw err if err
         return unless generated # probably because password not set
         digest = match[1] if match = /\->(.*)/.exec(stdout)
         throw Error "Failed to get digest: bad output" unless digest
-        zookeeper.env['SERVER_JVMFLAGS'] = "-Dzookeeper.DigestAuthenticationProvider.superDigest=#{digest} #{zookeeper.env['SERVER_JVMFLAGS']}"
+        options.env['SERVER_JVMFLAGS'] = "-Dzookeeper.DigestAuthenticationProvider.superDigest=#{digest} #{options.env['SERVER_JVMFLAGS']}"
 
 ## Environment
 
@@ -171,13 +168,13 @@ Note, environment is enriched at runtime if a super user is generated
 
       @file
         header: 'Environment'
-        target: "#{zookeeper.conf_dir}/zookeeper-env.sh"
-        content: ("export #{k}=\"#{v}\"" for k, v of zookeeper.env).join '\n'
+        target: "#{options.conf_dir}/zookeeper-env.sh"
+        content: ("export #{k}=\"#{v}\"" for k, v of options.env).join '\n'
         backup: true
         eof: true
         mode: 0o750
-        uid: zookeeper.user.name
-        gid: zookeeper.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## Configure
 
@@ -186,8 +183,8 @@ Update the file "zoo.cfg" with the properties defined by the
 
       @file.properties
         header: 'Configure'
-        target: "#{zookeeper.conf_dir}/zoo.cfg"
-        content: zookeeper.config
+        target: "#{options.conf_dir}/zoo.cfg"
+        content: options.config
         sort: true
         backup: true
 
@@ -197,8 +194,8 @@ Write the ZooKeeper logging configuration file.
 
       @file.properties
         header: 'Log4J'
-        target: "#{zookeeper.conf_dir}/log4j.properties"
-        content: zookeeper.log4j.config
+        target: "#{options.conf_dir}/log4j.properties"
+        content: options.log4j.config
         backup: true
 
 ## Schedule Purge Transaction Logs
@@ -222,14 +219,14 @@ parameters autopurge.snapRetainCount and autopurge.purgeInterval.
 
       @cron.add
         header: 'Schedule Purge'
-        if: zookeeper.purge
+        if: options.purge
         cmd: """
         /usr/bin/java -cp /usr/hdp/current/zookeeper-server/zookeeper.jar:/usr/hdp/current/zookeeper-server/lib/*:/usr/hdp/current/zookeeper-server/conf \
           org.apache.zookeeper.server.PurgeTxnLog \
-          #{zookeeper.config.dataLogDir or ''} #{zookeeper.config.dataDir} -n #{zookeeper.retention}
+          #{options.config.dataLogDir or ''} #{options.config.dataDir} -n #{options.retention}
         """
-        when: zookeeper.purge
-        user: zookeeper.user.name
+        when: options.purge
+        user: options.user.name
 
 ## Write myid
 
@@ -237,17 +234,12 @@ myid is a unique id that must be generated for each node of the zookeeper cluste
 
       @file
         header: 'Write id'
-        content: zookeeper.id
-        target: "#{zookeeper.config['dataDir']}/myid"
-        uid: zookeeper.user.name
-        gid: hadoop_group.name
+        content: options.id
+        target: "#{options.config['dataDir']}/myid"
+        uid: options.user.name
+        gid: options.hadoop_group.name
 
 ## Resources
 
-*   [ZooKeeper Resilience](http://blog.cloudera.com/blog/2014/03/zookeeper-resilience-at-pinterest/)
-
-[install]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_installing_manually_book/content/rpm-zookeeper-1.html
-
-## Dependencies
-
-    quote = require 'regexp-quote'
+* [ZooKeeper Resilience](http://blog.cloudera.com/blog/2014/03/zookeeper-resilience-at-pinterest/)
+* [HDP Install Instructions]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_installing_manually_book/content/rpm-zookeeper-1.html

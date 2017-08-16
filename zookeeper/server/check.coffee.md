@@ -1,8 +1,7 @@
 
 # Zookeeper Server Check
 
-    module.exports = header: 'ZooKeeper Server Check', label_true: 'CHECKED', handler: ->
-      {zookeeper} = @config.ryba
+    module.exports = header: 'ZooKeeper Server Check', handler: (options) ->
       zoo_ctxs = @contexts 'ryba/zookeeper/server'
 
 ## Wait
@@ -13,7 +12,7 @@
 
       @system.execute
         header: 'Healthy'
-        cmd: "nc #{@config.host} #{zookeeper.port} <<< ruok | grep imok"
+        cmd: "nc #{@config.host} #{options.port} <<< ruok | grep imok"
 
 ## Check Registration
 

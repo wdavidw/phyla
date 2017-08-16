@@ -29,6 +29,22 @@ Example:
       jn_ctxs = @contexts 'ryba/hadoop/hdfs_jn'
       dn_ctxs = @contexts 'ryba/hadoop/hdfs_dn'
       {ryba} = @config
+
+## Core Site
+
+      @config.ryba.core_site ?= {}
+      @config.ryba.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
+      if nn_ctxs.length is 1
+        @config.ryba.core_site['fs.defaultFS'] ?= "hdfs://#{nn_ctxs[0].config.host}:8020"
+      else if nn_ctxs.length is 2
+        @config.ryba.core_site['fs.defaultFS'] ?= "hdfs://#{@config.ryba.nameservice}"
+        @config.ryba.active_nn_host ?= nn_ctxs[0].config.host
+        [standby_nn_ctxs] = nn_ctxs.filter( (nn_ctx) => nn_ctx.config.host isnt @config.ryba.active_nn_host )
+        @config.ryba.standby_nn_host = standby_nn_ctxs.config.host
+      else throw Error "Invalid number of NanodeNodes, got #{nn_ctxs.length}, expecting 2"
+
+## Environment
+
       ryba.hdfs.nn ?= {}
       ryba.hdfs.nn.conf_dir ?= '/etc/hadoop-hdfs-namenode/conf'
       ryba.hdfs.nn.core_site ?= {}

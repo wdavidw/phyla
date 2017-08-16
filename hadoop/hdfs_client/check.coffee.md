@@ -4,7 +4,7 @@
 Check the access to the HDFS cluster.
 
     module.exports = header: 'HDFS Client Check', label_true: 'CHECKED', handler: ->
-      {core_site, user, krb5_user} = @config.ryba
+      {core_site, user, krb5} = @config.ryba
 
 Wait for the DataNode and NameNode.
 
@@ -38,10 +38,10 @@ the principal name as argument and print the converted user name.
       @system.execute
         header: 'Kerberos Mapping'
         label_true: 'CHECKED'
-        cmd: "hadoop org.apache.hadoop.security.HadoopKerberosName #{krb5_user.principal}"
+        cmd: "hadoop org.apache.hadoop.security.HadoopKerberosName #{krb5.user.principal}"
         if: core_site['hadoop.security.authentication'] is 'kerberos'
       , (err, _, stdout) ->
-        throw Error "Invalid mapping" if not err and stdout.indexOf("#{krb5_user.principal} to #{user.name}") is -1
+        throw Error "Invalid mapping" if not err and stdout.indexOf("#{krb5.user.principal} to #{user.name}") is -1
 
 ## Dependencies
 

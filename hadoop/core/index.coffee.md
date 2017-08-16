@@ -18,17 +18,17 @@ Managers, Web HDFS interactions, and others.
 
     module.exports =
       use:
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
-        zookeeper: 'ryba/zookeeper/server'
-        # hdp_repo: 'ryba/commons/repos'
-        hdp: 'ryba/hdp'
-        ganglia: 'ryba/ganglia'
-        graphite: 'ryba/graphite'
+        ssl: module: 'masson/core/ssl', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        hdp: module: 'ryba/hdp', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        ganglia: module: 'ryba/ganglia', single: true
+        graphite: module: 'ryba/graphite', single: true
       configure:
         'ryba/hadoop/core/configure'
       commands:
-        'install': [
-          'ryba/hadoop/core/install'
-        ]
+        'install': ->
+          options = @config.ryba
+          @call 'ryba/hadoop/core/install', options

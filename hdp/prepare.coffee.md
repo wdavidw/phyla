@@ -3,10 +3,11 @@
 
 Download the hdp.repo file if available
 
-    module.exports = header: 'HDP Repo Prepare', handler: ->
-      options = @config.ryba.hdp
-      @file.cache
-        if: @contexts('ryba/hdp')[0].config.host is @config.host
-        ssh: null
-        location: true
-        source: options.source
+    module.exports =
+      header: 'HDP Repo Prepare'
+      if: @contexts('ryba/hdp')[0].config.host is @config.host
+      ssh: null
+      handler: (options) ->
+        @file.cache
+          location: true
+          source: options.source

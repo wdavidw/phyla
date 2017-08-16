@@ -10,24 +10,25 @@ differences.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hdp: 'ryba/hdp'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        hdp: module: 'ryba/hdp', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
         # zoo_client: implicit: true, module: 'ryba/zookeeper/client'
       configure:
         'ryba/zookeeper/server/configure'
       commands:
         # 'backup':
         #   'ryba/zookeeper/server/backup'
-        'check': [
-          'ryba/zookeeper/server/check'
-        ]
-        'install': [
-          'ryba/zookeeper/server/install'
-          'ryba/zookeeper/server/start'
-          'ryba/zookeeper/server/check'
-        ]
+        'check': ->
+          options = @config.ryba.zookeeper
+          @call 'ryba/zookeeper/server/check', options
+        'install': ->
+          options = @config.ryba.zookeeper
+          @call 'ryba/zookeeper/server/install', options
+          @call 'ryba/zookeeper/server/start', options
+          @call 'ryba/zookeeper/server/check', options
         'start':
           'ryba/zookeeper/server/start'
         'status':

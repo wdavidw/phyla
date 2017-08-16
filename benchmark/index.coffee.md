@@ -12,6 +12,8 @@ and extract reporting informations :
   * TeraSort suite
 
     module.exports =
+      use:
+        test_user: module: 'ryba/commons/test_user', local: true, implicit: true
       configure:
         'ryba/benchmark/configure'
       commands:

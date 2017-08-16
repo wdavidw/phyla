@@ -9,8 +9,7 @@ earliest snapshot.
 
 Execute `./bin/ryba backup -m ryba/zookeeper/server` to run this module.
 
-    module.exports = header: 'ZooKeeper Server Backup', handler: ->
-      {zookeeper} = @config.ryba
+    module.exports = header: 'ZooKeeper Server Backup', handler: (options) ->
       now = Math.floor Date.now() / 1000
 
 ## Compress the data directory
@@ -23,14 +22,14 @@ TODO: Add the backup facility
       @system.execute
         header: 'Data'
         cmd: """
-        tar czf /var/tmp/ryba-zookeeper-data-#{now}.tgz -C #{zookeeper.config.dataDir} .
+        tar czf /var/tmp/ryba-zookeeper-data-#{now}.tgz -C #{options.config.dataDir} .
         """
       @system.execute
         header: 'Now'
         cmd: """
-        tar czf /var/tmp/ryba-zookeeper-log-#{now}.tgz -C #{zookeeper.config.dataLogDir} .
+        tar czf /var/tmp/ryba-zookeeper-log-#{now}.tgz -C #{options.config.dataLogDir} .
         """
-        if: zookeeper.config.dataLogDir
+        if: options.config.dataLogDir
 
 ## Purge Transaction Logs
 
@@ -39,7 +38,7 @@ TODO: Add the backup facility
         cmd: """
         java -cp /usr/hdp/current/zookeeper-server/zookeeper.jar:/usr/hdp/current/zookeeper-server/lib/*:/usr/hdp/current/zookeeper-server/conf \
           org.apache.zookeeper.server.PurgeTxnLog \
-          #{zookeeper.config.dataLogDir or ''} #{zookeeper.config.dataDir} -n #{zookeeper.retention}
+          #{options.config.dataLogDir or ''} #{options.config.dataDir} -n #{options.retention}
         """
 
 ## Resources

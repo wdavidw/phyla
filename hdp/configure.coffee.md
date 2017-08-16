@@ -2,7 +2,9 @@
 # HDP Repository Configure
 
     module.exports = ->
-      options = @config.ryba.hdp ?= {}
+      service = migration.call @, service, 'ryba/hdp', ['ryba', 'hdp'], {}
+      options = @config.ryba.hdp ?= service.options
+      
       options.source ?= null
       options.target ?= 'hdp.repo'
       options.target = path.resolve '/etc/yum.repos.d', options.target
@@ -11,3 +13,4 @@
 ## Dependencies
 
     path = require('path').posix
+    migration = require 'masson/lib/migration'

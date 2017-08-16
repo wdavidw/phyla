@@ -11,7 +11,7 @@ su - zookeeper -c "export ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf; expo
 
 The file storing the PID is "/var/run/zookeeper/zookeeper_server.pid".
 
-    module.exports = header: 'ZooKeeper Server Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'ZooKeeper Server Stop', label_true: 'STOPPED', handler: (options) ->
 
       @service.stop
         header: 'ZooKeeper Server Stop'
@@ -23,6 +23,6 @@ The file storing the PID is "/var/run/zookeeper/zookeeper_server.pid".
       @system.execute
         header: 'ZooKeeper Server Clean Logs'
         label_true: 'CLEANED'
-        if: @config.ryba.clean_logs
-        cmd: 'rm /var/log/zookeeper/*'
+        if: options.clean_logs
+        cmd: "rm #{options.log_dir}/*"
         code_skipped: 1
