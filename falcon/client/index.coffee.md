@@ -10,7 +10,7 @@ associated processing and management tasks on Hadoop clusters.
       use:
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'
         krb5_client: implicit: true, module: 'masson/core/krb5_client'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
+        test_user: implicit: true, module: 'ryba/commons/test_user'
       configure:
         'ryba/falcon/client/configure'
       commands:

@@ -67,9 +67,9 @@ Example:
       hue_docker.build.name ?= 'ryba/hue-build'
       hue_docker.build.version ?= 'latest'
       hue_docker.build.dockerfile ?= "#{__dirname}/resources/build/Dockerfile"
-      hue_docker.build.directory ?= "#{@config.nikita.cache_dir}/huedocker/cache/build" # was '/tmp/ryba/hue-build'
+      hue_docker.build.directory ?= "#{@options.cache_dir}/huedocker/cache/build" # was '/tmp/ryba/hue-build'
       hue_docker.prod ?= {}
-      hue_docker.prod.directory ?= "#{@config.nikita.cache_dir}/huedocker/cache/prod"
+      hue_docker.prod.directory ?= "#{@options.cache_dir}/huedocker/cache/prod"
       hue_docker.prod.dockerfile ?= "#{__dirname}/resources/prod/Dockerfile"
       hue_docker.prod.tar ?= 'hue_docker.tar'
       hue_docker.port ?= '8888'

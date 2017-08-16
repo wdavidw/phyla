@@ -2,7 +2,6 @@
 # HDF Repository Install
 
     module.exports = header: 'HDF Install', handler: (options) ->
-      options = @config.ryba.hdf
 
 ## Repository
 

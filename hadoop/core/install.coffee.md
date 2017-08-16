@@ -1,10 +1,7 @@
 
 # Hadoop Core Install
 
-    module.exports = header: 'Hadoop Core Install', retry: 0, handler: ->
-      {realm, hadoop_group, core_site, hdfs, yarn, mapred} = @config.ryba
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Hadoop Core Install', handler: (options) ->
 
 ## Register
 
@@ -50,9 +47,9 @@ mapred:x:494:
 Note, the package "hadoop" will also install the "dbus" user and group which are
 not handled here.
 
-      for group in [hadoop_group, hdfs.group, yarn.group, mapred.group]
+      for group in [options.hadoop_group, options.hdfs.group, options.yarn.group, options.mapred.group]
         @system.group header: "Group #{group.name}", group
-      for user in [hdfs.user, yarn.user, mapred.user]
+      for user in [options.hdfs.user, options.yarn.user, options.mapred.user]
         @system.user header: "user #{user.name}", user
 
 ## Topology
@@ -68,18 +65,18 @@ Configure the topology script to enable rack awareness to Hadoop.
           topology.push "#{h_ctx.config.ip}  #{rack}"
         topology = topology.join("\n")
         @file
-          target: "#{hadoop_conf_dir}/rack_topology.sh"
+          target: "#{options.hadoop_conf_dir}/rack_topology.sh"
           source: "#{__dirname}/../resources/rack_topology.sh"
           local: true
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.hdfs.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
           backup: true
         @file
-          target: "#{hadoop_conf_dir}/rack_topology.data"
+          target: "#{options.hadoop_conf_dir}/rack_topology.data"
           content: topology
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.hdfs.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
           backup: true
           eof: true
@@ -87,36 +84,17 @@ Configure the topology script to enable rack awareness to Hadoop.
 ## Configuration
 
 Update the "core-site.xml" configuration file with properties from the
-"ryba.core_site" configuration.
+"core_site" configuration.
 
-        @hconfigure
-          header: 'Core Configuration'
-          target: "#{hadoop_conf_dir}/core-site.xml"
-          source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
-          local: true
-          properties: core_site
-          backup: true
+      @hconfigure
+        header: 'Core Configuration'
+        target: "#{options.hadoop_conf_dir}/core-site.xml"
+        source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
+        local: true
+        properties: options.core_site
+        backup: true
 
-## Kerberos HDFS User
-
-Create the HDFS user principal. This will be the super administrator for the HDFS
-filesystem. Note, we do not create a principal with a keytab to allow HDFS login
-from multiple sessions with braking an active session.
-
-      @krb5.addprinc krb5, hdfs.krb5_user,
-        header: 'HDFS Kerberos User'
-
-## Test User
-
-Create a Unix and Kerberos test user, by default "ryba". Its HDFS home directory
-will be created by one of the datanode.
-
-      @call header: 'User Test', ->
-        # ryba group and user may already exist in "/etc/passwd" or in any sssd backend
-        {group, user, krb5_user} = @config.ryba
-        @system.group group
-        @system.user user
-        @krb5.addprinc krb5, krb5_user
+## Keytab Directory
 
       @system.mkdir
         header: 'Keytabs'
@@ -124,6 +102,18 @@ will be created by one of the datanode.
         uid: 'root'
         gid: 'root' # was hadoop_group.name
         mode: 0o0755
+
+## Kerberos HDFS User
+
+Create the HDFS user principal. This will be the super administrator for the HDFS
+filesystem. Note, we do not create a principal with a keytab to allow HDFS login
+from multiple sessions with braking an active session.
+
+      @krb5.addprinc
+        header: 'HDFS Kerberos User'
+      , options.hdfs.krb5_user
+      , options.krb5.admin
+        
 
 ## SPNEGO
 
@@ -133,15 +123,16 @@ and permissions set to "0660". We had to give read/write permission to the group
 same keytab file is for now shared between hdfs and yarn services.
 
       @call header: 'SPNEGO', ->
-        @krb5.addprinc krb5,
-          principal: "HTTP/#{@config.host}@#{realm}"
+        @krb5.addprinc
+          principal: options.spnego.principal
           randkey: true
-          keytab: '/etc/security/keytabs/spnego.service.keytab'
+          keytab: options.spnego.keytab
           uid: 'root'
-          gid: hadoop_group.name
+          gid: options.hadoop_group.name
           mode: 0o660 # need rw access for hadoop and mapred users
+        , options.krb5.admin
         @system.execute # Validate keytab access by the hdfs user
-          cmd: "su -l #{hdfs.user.name} -c \"klist -kt /etc/security/keytabs/spnego.service.keytab\""
+          cmd: "su -l #{options.hdfs.user.name} -c \"klist -kt /etc/security/keytabs/spnego.service.keytab\""
           if: -> @status -1
 
 ## Web UI
@@ -158,36 +149,32 @@ recommendations](http://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html).
 
       @call header: 'SSL', retry: 0, ->
         @hconfigure
-          target: "#{hadoop_conf_dir}/ssl-server.xml"
-          properties: ssl_server
+          target: "#{options.hadoop_conf_dir}/ssl-server.xml"
+          properties: options.ssl_server
         @hconfigure
-          target: "#{hadoop_conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.hadoop_conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
+          # caname: "hadoop_root_ca"
+          # cacert: "#{options.ssl.cacert}"
+          key: "#{options.ssl.key.source}"
+          cert: "#{options.ssl.cert.source}"
+          keypass: options.ssl_server['ssl.server.keystore.keypassword']
+          name: options.ssl.key.name
+          local: options.ssl.key.local
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
-
-## Dependencies
-
-    {merge} = require 'nikita/lib/misc'
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local

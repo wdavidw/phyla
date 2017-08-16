@@ -11,7 +11,7 @@ Please check Oozie page
         iptables: implicit: true, module: 'masson/core/iptables'
         krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
+        test_user: implicit: true, module: 'ryba/commons/test_user'
         mysql_server: 'masson/commons/mysql/server'
         zookeeper: 'ryba/zookeeper/server'
         hadoop_core: implicit: true, module: 'ryba/hadoop/core'

@@ -58,7 +58,7 @@ Example:
 
 ## Kerberos
 
-      benchmark.kerberos = @config.ryba.krb5_user ?= {}
+      benchmark.kerberos = @config.ryba.krb5.user ?= {}
 
 ## Normalization
 

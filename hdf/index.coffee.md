@@ -6,5 +6,9 @@
       configure:
         'ryba/hdf/configure'
       commands:
-        'install': 'ryba/hdf/install'
-        'prepare': 'ryba/hdf/prepare'
+        'install': ->
+          options = @config.ryba.hdf
+          @call 'ryba/hdf/install', options
+        'prepare': ->
+          options = @config.ryba.hdf
+          @call 'ryba/hdf/prepare', options

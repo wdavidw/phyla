@@ -11,7 +11,7 @@ associated processing and management tasks on Hadoop clusters.
         krb5_client: implicit: true, module: 'masson/core/krb5_client'
         iptables: implicit: true, module: 'masson/core/iptables'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
+        test_user: implicit: true, module: 'ryba/commons/test_user'
         hdfs_nn: 'ryba/hadoop/hdfs_nn'
         hdfs_dn: 'ryba/hadoop/hdfs_dn'
         hcatalog: 'ryba/hive/hcatalog'

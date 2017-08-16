@@ -6,5 +6,9 @@
       configure:
         'ryba/hdp/configure'
       commands:
-        'install': 'ryba/hdp/install'
-        'prepare': 'ryba/hdp/prepare'
+        'install': ->
+          options = @config.ryba.hdp
+          @call 'ryba/hdp/install', options
+        'prepare': ->
+          options = @config.ryba.hdp
+          @call 'ryba/hdp/prepare', options

@@ -19,7 +19,7 @@ beloaded to the target server
         iptables: implicit: true, module: 'masson/core/iptables'
         krb5_client: module: 'masson/core/krb5_client'
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
+        test_user: implicit: true, module: 'ryba/commons/test_user'
         docker: implicit: true, module: 'masson/commons/docker'
         mysql_server: 'masson/commons/mysql/server'
         hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'

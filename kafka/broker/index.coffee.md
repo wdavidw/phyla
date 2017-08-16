@@ -9,7 +9,7 @@ log. It is fast, scalable, durable and distributed by design.
         iptables: implicit: true, module: 'masson/core/iptables'
         krb5_client: module: 'masson/core/krb5_client'
         java: implicit: true, module: 'masson/commons/java'
-        krb5_user: implicit: true, module: 'ryba/commons/krb5_user'
+        test_user: implicit: true, module: 'ryba/commons/test_user'
         hdp: 'ryba/hdp'
         hdf: 'ryba/hdf'
         zookeeper: 'ryba/zookeeper/server'
