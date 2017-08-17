@@ -103,6 +103,16 @@ Install the "hbase-master" service, symlink the rc.d startup script inside
             gid: hbase.group.name
             perm: '0755'
 
+## Compression Libs
+
+Install compression libs as defined in HDP docs
+
+      @call header: 'Compression libs', ->
+        @service
+          name: 'hadooplzo'
+        @service
+          name: 'hadooplzo-native'
+
 ## Configure
 
 *   [New Security Features in Apache HBase 0.98: An Operator's Guide][secop].

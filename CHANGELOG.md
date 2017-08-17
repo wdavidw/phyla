@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* hbase/master: add compression libs
 * druid: support for non-UTC timezone
 * druid: various fixes
 * oozie/client: added retry in hive check
