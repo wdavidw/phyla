@@ -11,8 +11,7 @@ be written to a majority of JNs. To increase the number of failures a system
 can tolerate, deploy an odd number of JNs because the system can tolerate at
 most (N - 1) / 2 failures to continue to function normally.
 
-    module.exports = header: 'HDFS JN Install', handler: ->
-      {hdfs, hadoop_group, core_site, hadoop_metrics} = @config.ryba
+    module.exports = header: 'HDFS JN Install', handler: (options) ->
 
 ## Register
 
@@ -32,9 +31,9 @@ Note, "dfs.journalnode.rpc-address" is used by "dfs.namenode.shared.edits.dir".
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      rpc = hdfs.site['dfs.journalnode.rpc-address'].split(':')[1]
-      http = hdfs.site['dfs.journalnode.http-address'].split(':')[1]
-      https = hdfs.site['dfs.journalnode.https-address'].split(':')[1]
+      rpc = options.site['dfs.journalnode.rpc-address'].split(':')[1]
+      http = options.site['dfs.journalnode.http-address'].split(':')[1]
+      https = options.site['dfs.journalnode.https-address'].split(':')[1]
       @tools.iptables
         header: 'IPTables'
         rules: [
@@ -42,7 +41,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           { chain: 'INPUT', jump: 'ACCEPT', dport: http, protocol: 'tcp', state: 'NEW', comment: "HDFS JournalNode" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: https, protocol: 'tcp', state: 'NEW', comment: "HDFS JournalNode" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Layout
 
@@ -51,23 +50,23 @@ The JournalNode data are stored inside the directory defined by the
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: "#{hdfs.jn.conf_dir}"
+          target: "#{options.conf_dir}"
         @system.mkdir
-          target: for dir in hdfs.site['dfs.journalnode.edits.dir'].split ','
+          target: for dir in options.site['dfs.journalnode.edits.dir'].split ','
             if dir.indexOf('file://') is 0
             then dir.substr(7) else dir
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
         @system.mkdir
-          target: "#{hdfs.pid_dir}"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          target: "#{options.pid_dir}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0755
           parent: true
         @system.mkdir
-          target: "#{hdfs.log_dir}" #/#{hdfs.user.name}
-          uid: hdfs.user.name
-          gid: hdfs.group.name
+          target: "#{options.log_dir}"
+          uid: options.user.name
+          gid: options.group.name
           parent: true
 
 ## Service
@@ -75,7 +74,7 @@ The JournalNode data are stored inside the directory defined by the
 Install the "hadoop-hdfs-journalnode" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Packages', (options) ->
+      @call header: 'Packages', ->
         @service
           name: 'hadoop-hdfs-journalnode'
         @hdp_select
@@ -87,7 +86,7 @@ inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-journalnode'
           source: "#{__dirname}/../resources/hadoop-hdfs-journalnode.j2"
           local: true
-          context: @config
+          context: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -97,13 +96,13 @@ inside "/etc/init.d" and activate it on startup.
             target: '/usr/lib/systemd/system/hadoop-hdfs-journalnode.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-journalnode-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run Dir'
-            mount: "#{hdfs.pid_dir}"
-            uid: hdfs.user.name
-            gid: hadoop_group.name
+            mount: "#{options.pid_dir}"
+            uid: options.user.name
+            gid: options.group.name
             perm: '0755'
 
 ## Configure
@@ -121,22 +120,22 @@ NodeManagers.
       @call header: 'Configure', ->
         @hconfigure
           header: 'Core Site'
-          target: "#{hdfs.jn.conf_dir}/core-site.xml"
+          target: "#{options.conf_dir}/core-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
           local: true
-          properties: core_site
+          properties: options.core_site
           backup: true
         @hconfigure
-          target: "#{hdfs.jn.conf_dir}/hdfs-site.xml"
+          target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true
-          properties: hdfs.site
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          properties: options.site
+          uid: options.user.name
+          gid: options.group.name
           backup: true
         @file
           header: 'Log4j'
-          target: "#{hdfs.jn.conf_dir}/log4j.properties"
+          target: "#{options.conf_dir}/log4j.properties"
           source: "#{__dirname}/../resources/log4j.properties"
           local: true
 
@@ -148,18 +147,18 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
         @file.render
           header: 'Environment'
-          target: "#{hdfs.jn.conf_dir}/hadoop-env.sh"
+          target: "#{options.conf_dir}/hadoop-env.sh"
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
           context:
             HADOOP_HEAPSIZE: @config.ryba.hadoop_heap
-            HADOOP_LOG_DIR: @config.ryba.hdfs.log_dir
-            HADOOP_PID_DIR: @config.ryba.hdfs.pid_dir
-            HADOOP_OPTS: @config.ryba.hadoop_opts
-            HADOOP_CLIENT_OPTS: @config.ryba.hadoop_client_opts
-            java_home: @config.java.java_home
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+            HADOOP_LOG_DIR: options.log_dir
+            HADOOP_PID_DIR: options.pid_dir
+            HADOOP_OPTS: options.hadoop_opts
+            HADOOP_CLIENT_OPTS: ''
+            java_home: options.java_home
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o755
           backup: true
           eof: true
@@ -168,47 +167,45 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 
         @file.properties
           header: 'Metrics'
-          target: "#{hdfs.jn.conf_dir}/hadoop-metrics2.properties"
-          content: hadoop_metrics.config
+          target: "#{options.conf_dir}/hadoop-metrics2.properties"
+          content: options.hadoop_metrics.config
           backup: true
 
 ## SSL
 
       @call header: 'SSL', retry: 0, ->
-        {ssl, ssl_server, ssl_client, hdfs} = @config.ryba
-        ssl_client['ssl.client.truststore.location'] = "#{hdfs.jn.conf_dir}/truststore"
-        ssl_server['ssl.server.keystore.location'] = "#{hdfs.jn.conf_dir}/keystore"
-        ssl_server['ssl.server.truststore.location'] = "#{hdfs.jn.conf_dir}/truststore"
+        options.ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
+        options.ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
+        options.ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
         @hconfigure
-          target: "#{hdfs.jn.conf_dir}/ssl-server.xml"
-          properties: ssl_server
+          target: "#{options.conf_dir}/ssl-server.xml"
+          properties: options.ssl_server
         @hconfigure
-          target: "#{hdfs.jn.conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: "#{options.ssl.cacert.local}"
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
+          key: "#{options.ssl.key.source}"
+          cert: "#{options.ssl.cert.source}"
+          keypass: options.ssl_server['ssl.server.keystore.keypassword']
+          name: "#{options.ssl.key.name}"
+          local:  "#{options.ssl.key.local}"
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: "#{options.ssl.cacert.local}"
 
 ## Dependencies
 

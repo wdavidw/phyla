@@ -229,6 +229,5 @@ memory that you can lock than what you have configured.
 
 ## Dependencies
 
-    appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
     migration = require 'masson/lib/migration'

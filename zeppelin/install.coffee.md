@@ -117,7 +117,7 @@ Use the spark yarn assembly jar to execute spark aplication in yarn-client mode.
         header: 'Configuration'
         target: "#{zeppelin.conf_dir}/zeppelin-site.xml"
         default: "#{__dirname}/resources/zeppelin-site.xml"
-        local_default: true
+        # local_default: true
         properties: zeppelin.site
         merge: true
         backup: true
