@@ -16,23 +16,27 @@ information and heartbeats to both.
 
     module.exports =
       use:
-        krb5_client: module: 'masson/core/krb5_client'
-        iptables: implicit: true, module: 'masson/core/iptables'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        zoo_server: module: 'ryba/zookeeper/server'
+        ssl: module: 'masson/core/ssl', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
       configure:
         'ryba/hadoop/hdfs_dn/configure'
       commands:
-        'check':
-          'ryba/hadoop/hdfs_dn/check'
-        'install': [
-          'ryba/hadoop/hdfs_dn/install'
-          'ryba/hadoop/hdfs_dn/start'
-          'ryba/hadoop/hdfs_dn/check'
-        ]
-        'start':
-          'ryba/hadoop/hdfs_dn/start'
+        'check': ->
+          options = @config.ryba.hdfs.dn
+          @call 'ryba/hadoop/hdfs_dn/check', options
+        'install': ->
+          options = @config.ryba.hdfs.dn
+          @call 'ryba/hadoop/hdfs_dn/install', options
+          @call 'ryba/hadoop/hdfs_dn/start', options
+          @call 'ryba/hadoop/hdfs_dn/check', options
+        'start': ->
+          options = @config.ryba.hdfs.dn
+          @call 'ryba/hadoop/hdfs_dn/start', options
         'status':
           'ryba/hadoop/hdfs_dn/status'
         'stop':

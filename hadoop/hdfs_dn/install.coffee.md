@@ -14,10 +14,7 @@ information regarding the location of blocks in the cluster. In order
 to achieve this, the DataNodes are configured with the location of both
 NameNodes, and send block location information and heartbeats to both.
 
-    module.exports = header: 'HDFS DN Install', handler: ->
-      {ryba} = @config
-      {realm, core_site, hdfs, hadoop_group, hadoop_metrics} = ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'HDFS DN Install', handler: (options) ->
 
 ## Register
 
@@ -39,10 +36,10 @@ mode, it must be set to a value below "1024" and default to "1004".
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      [_, dn_address] = hdfs.site['dfs.datanode.address'].split ':'
-      [_, dn_http_address] = hdfs.site['dfs.datanode.http.address'].split ':'
-      [_, dn_https_address] = hdfs.site['dfs.datanode.https.address'].split ':'
-      [_, dn_ipc_address] = hdfs.site['dfs.datanode.ipc.address'].split ':'
+      [_, dn_address] = options.site['dfs.datanode.address'].split ':'
+      [_, dn_http_address] = options.site['dfs.datanode.http.address'].split ':'
+      [_, dn_https_address] = options.site['dfs.datanode.https.address'].split ':'
+      [_, dn_ipc_address] = options.site['dfs.datanode.ipc.address'].split ':'
       @tools.iptables
         header: 'IPTables'
         rules: [
@@ -51,7 +48,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           { chain: 'INPUT', jump: 'ACCEPT', dport: dn_https_address, protocol: 'tcp', state: 'NEW', comment: "HDFS DN HTTPS" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: dn_ipc_address, protocol: 'tcp', state: 'NEW', comment: "HDFS DN Meta" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
@@ -69,19 +66,17 @@ inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-datanode'
           source: "#{__dirname}/../resources/hadoop-hdfs-datanode.j2"
           local: true
-          context: @config
+          context: options
           mode: 0o0755
-        @call
+        @service.init
           if_os: name: ['redhat','centos'], version: '7'
-        , ->
-          @service.init
-            target: '/usr/lib/systemd/system/hadoop-hdfs-datanode.service'
-            source: "#{__dirname}/../resources/hadoop-hdfs-datanode-systemd.j2"
-            local: true
-            context: @config.ryba
-            mode: 0o0644
+          target: '/usr/lib/systemd/system/hadoop-hdfs-datanode.service'
+          source: "#{__dirname}/../resources/hadoop-hdfs-datanode-systemd.j2"
+          local: true
+          context: options
+          mode: 0o0644
 
-      @call header: 'Compression', retry: 2, (options) ->
+      @call header: 'Compression', retry: 2, ->
         @service.remove 'snappy', if: options.attempt is 1
         @service name: 'snappy'
         @service name: 'snappy-devel'
@@ -108,49 +103,49 @@ Create the DataNode data and pid directories. The data directory is set by the
 "hdp.hdfs.site['dfs.datanode.data.dir']" and default to "/var/hdfs/data". The
 pid directory is set by the "hdfs\_pid\_dir" and default to "/var/run/hadoop-hdfs"
 
-      @call header: 'Layout', (options) ->
+      @call header: 'Layout', ->
         # no need to restrict parent directory and yarn will complain if not accessible by everyone
-        pid_dir = hdfs.secure_dn_pid_dir
-        pid_dir = pid_dir.replace '$USER', hdfs.user.name
-        pid_dir = pid_dir.replace '$HADOOP_SECURE_DN_USER', hdfs.user.name
-        pid_dir = pid_dir.replace '$HADOOP_IDENT_STRING', hdfs.user.name
+        pid_dir = options.secure_dn_pid_dir
+        pid_dir = pid_dir.replace '$USER', options.user.name
+        pid_dir = pid_dir.replace '$HADOOP_SECURE_DN_USER', options.user.name
+        pid_dir = pid_dir.replace '$HADOOP_IDENT_STRING', options.user.name
         # TODO, in HDP 2.1, datanode are started as root but in HDP 2.2, we should
         # start it as HDFS and use JAAS
         @system.mkdir
-          target: "#{hdfs.dn.conf_dir}"
+          target: "#{options.conf_dir}"
         @system.mkdir
-          target: for dir in hdfs.site['dfs.datanode.data.dir'].split ','
+          target: for dir in options.site['dfs.datanode.data.dir'].split ','
             if dir.indexOf('file://') is 0
               dir.substr(7) 
             else if dir.indexOf('file://') is -1
               dir
             else 
               dir.substr(dir.indexOf('file://')+7)
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0750
           parent: true
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
           mount: pid_dir
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
           perm: '0750'
         @system.mkdir
           target: "#{pid_dir}"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0755
           parent: true
         @system.mkdir
-          target: "#{hdfs.log_dir}" #/#{hdfs.user.name}
-          uid: hdfs.user.name
-          gid: hdfs.group.name
+          target: "#{options.log_dir}" #/#{options.user.name}
+          uid: options.user.name
+          gid: options.group.name
           parent: true
         @system.mkdir
-          target: "#{path.dirname ryba.hdfs.site['dfs.domain.socket.path']}"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          target: "#{path.dirname options.site['dfs.domain.socket.path']}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o751
           parent: true
 
@@ -161,10 +156,10 @@ Update the "core-site.xml" configuration file with properties from the
 
       @hconfigure
         header: 'Core Site'
-        target: "#{hdfs.dn.conf_dir}/core-site.xml"
+        target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
-        properties: core_site
+        properties: options.core_site
         backup: true
 
 ## HDFS Site
@@ -174,12 +169,12 @@ present inside the "hdp.ha\_client\_config" object.
 
       @hconfigure
         header: 'HDFS Site'
-        target: "#{hdfs.dn.conf_dir}/hdfs-site.xml"
+        target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: hdfs.site
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+        properties: options.site
+        uid: options.user.name
+        gid: options.hadoop_group.name
         backup: true
 
 ## Environment
@@ -191,30 +186,30 @@ mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @call header: 'Environment', ->
-        ryba.hdfs.dn.java_opts += " -D#{k}=#{v}" for k, v of ryba.hdfs.dn.opts
+        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
         @file.render
           header: 'Environment'
-          target: "#{hdfs.dn.conf_dir}/hadoop-env.sh"
+          target: "#{options.conf_dir}/hadoop-env.sh"
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
           context:
-            HADOOP_ROOT_LOGGER: ryba.hdfs.dn.root_logger
-            HADOOP_SECURITY_LOGGER: ryba.hdfs.dn.security_logger
-            HDFS_AUDIT_LOGGER: ryba.hdfs.dn.audit_logger
-            HADOOP_HEAPSIZE: ryba.hadoop_heap
-            HADOOP_DATANODE_OPTS: ryba.hdfs.dn.java_opts
-            HADOOP_LOG_DIR: ryba.hdfs.log_dir
-            HADOOP_PID_DIR: ryba.hdfs.pid_dir
-            HADOOP_OPTS: ryba.hadoop_opts
-            HADOOP_CLIENT_OPTS: ryba.hadoop_client_opts
-            HADOOP_SECURE_DN_USER: ryba.hdfs.user.name
-            HADOOP_SECURE_DN_LOG_DIR: ryba.hdfs.log_dir
-            HADOOP_SECURE_DN_PID_DIR: ryba.hdfs.secure_dn_pid_dir
-            datanode_heapsize: ryba.hdfs.dn.heapsize
-            datanode_newsize: ryba.hdfs.dn.newsize
-            java_home: @config.java.java_home
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+            HADOOP_ROOT_LOGGER: options.root_logger
+            HADOOP_SECURITY_LOGGER: options.security_logger
+            HDFS_AUDIT_LOGGER: options.audit_logger
+            HADOOP_HEAPSIZE: options.hadoop_heap
+            HADOOP_DATANODE_OPTS: options.java_opts
+            HADOOP_LOG_DIR: options.log_dir
+            HADOOP_PID_DIR: options.pid_dir
+            HADOOP_OPTS: options.hadoop_opts
+            HADOOP_CLIENT_OPTS: ''
+            HADOOP_SECURE_DN_USER: options.user.name
+            HADOOP_SECURE_DN_LOG_DIR: options.log_dir
+            HADOOP_SECURE_DN_PID_DIR: options.secure_dn_pid_dir
+            datanode_heapsize: options.heapsize
+            datanode_newsize: options.newsize
+            java_home: options.java_home
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
           backup: true
           eof: true
@@ -223,10 +218,10 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @file
         header: 'Log4j'
-        target: "#{hdfs.dn.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-        write: for k, v of hdfs.dn.log4j
+        write: for k, v of options.log4j
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true
@@ -237,8 +232,8 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 
       @file.properties
         header: 'Metrics'
-        target: "#{hdfs.dn.conf_dir}/hadoop-metrics2.properties"
-        content: hadoop_metrics.config
+        target: "#{options.conf_dir}/hadoop-metrics2.properties"
+        content: options.hadoop_metrics.config
         backup: true
 
 # Configure Master
@@ -251,51 +246,49 @@ SecondaryNameNode service. It does not need to contain
 the hostname of the JobTracker/NameNode machine;
 Also some [interesting info about snn](http://blog.cloudera.com/blog/2009/02/multi-host-secondarynamenode-configuration/)
 
-      @file
-        header: 'SNN Master'
-        if: (-> @contexts('ryba/hadoop/hdfs_snn').length)
-        content: "#{@contexts('ryba/hadoop/hdfs_snn')?.config?.host}"
-        target: "#{hdfs.dn.conf_dir}/masters"
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+      # @file
+      #   header: 'SNN Master'
+      #   if: (-> @contexts('ryba/hadoop/hdfs_snn').length)
+      #   content: "#{@contexts('ryba/hadoop/hdfs_snn')?.config?.host}"
+      #   target: "#{options.conf_dir}/masters"
+      #   uid: options.user.name
+      #   gid: hadoop_group.name
 
 ## SSL
 
       @call header: 'SSL', retry: 0, ->
-        {ssl, ssl_server, ssl_client, hdfs} = @config.ryba
-        ssl_client['ssl.client.truststore.location'] = "#{hdfs.dn.conf_dir}/truststore"
-        ssl_server['ssl.server.keystore.location'] = "#{hdfs.dn.conf_dir}/keystore"
-        ssl_server['ssl.server.truststore.location'] = "#{hdfs.dn.conf_dir}/truststore"
+        options.ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
+        options.ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
+        options.ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
         @hconfigure
-          target: "#{hdfs.dn.conf_dir}/ssl-server.xml"
-          properties: ssl_server
+          target: "#{options.conf_dir}/ssl-server.xml"
+          properties: options.ssl_server
         @hconfigure
-          target: "#{hdfs.dn.conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: "#{options.ssl.cacert.local}"
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
+          key: "#{options.ssl.key.source}"
+          cert: "#{options.ssl.cert.source}"
+          keypass: options.ssl_server['ssl.server.keystore.keypassword']
+          name: "#{options.ssl.key.name}"
+          local: "#{options.ssl.key.local}"
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: "#{options.ssl.cacert.local}"
 
 ## Kerberos
 
@@ -303,14 +296,15 @@ Create the DataNode service principal in the form of "dn/{host}@{realm}" and pla
 keytab inside "/etc/security/keytabs/dn.service.keytab" with ownerships set to "hdfs:hadoop"
 and permissions set to "0600".
 
-        @krb5.addprinc krb5,
+        @krb5.addprinc
           header: 'Kerberos'
-          principal: hdfs.site['dfs.datanode.kerberos.principal'].replace '_HOST', @config.host
+          principal: options.krb5.principal
           randkey: true
-          keytab: "/etc/security/keytabs/dn.service.keytab"
-          uid: hdfs.user.name
-          gid: hdfs.group.name
+          keytab: options.krb5.keytab
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0600
+        , options.krb5.admin
 
 # Kernel
 
@@ -326,7 +320,7 @@ Note, we might move this middleware to Masson.
 
       @tools.sysctl
         header: 'Kernel'
-        properties: hdfs.sysctl
+        properties: options.sysctl
         merge: true
         comment: true
 
@@ -352,8 +346,8 @@ Note, a user must re-login for those changes to be taken into account.
 
       @system.limits
         header: 'Ulimit'
-        user: hdfs.user.name
-      , hdfs.user.limits
+        user: options.user.name
+      , options.user.limits
 
 This is a dirty fix of [this bug][jsvc-192].
 When launched with -user parameter, jsvc downgrades user via setuid() system call,
@@ -364,7 +358,7 @@ need to fix limits to root account, until Bigtop integrates jsvc 1.0.6
       @system.limits
         header: 'Ulimit to root'
         user: 'root'
-      , hdfs.user.limits
+      , options.user.limits
 
 ## Dependencies
 

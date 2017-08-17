@@ -66,8 +66,8 @@ Default configuration:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/commons/test_user', ['ryba'], require('nikita/lib/misc').merge require('.').use,
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hadoop/core', ['ryba'], require('nikita/lib/misc').merge require('.').use,
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
@@ -277,7 +277,7 @@ Configuration for proxy users
       options.core_site['hadoop.proxyuser.HTTP.hosts'] ?= '*'
       options.core_site['hadoop.proxyuser.HTTP.groups'] ?= '*'
 
-## Configuration for metrics
+## Metrics
 
 Configuration of Hadoop metrics system. 
 

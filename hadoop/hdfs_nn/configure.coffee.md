@@ -134,11 +134,13 @@ for distcp purpose.
         ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir'] = (for jn_ctx in jn_ctxs then "#{jn_ctx.config.host}:8485").join ';'
         ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir'] = "qjournal://#{ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir']}/#{ryba.hdfs.nn.site['dfs.nameservices']}"
 
+
 ### Fencing
 
-To prevent split-brain scenarii, in addition to the Journal Quorum Process for
+To prevent split-brain scenario, in addition to the Journal Quorum Process for
 write, sshfence allow ssh connection to the previous disfunctioning active
-namenode from the new one to "shoot it in the head" (STONITH)
+namenode from the new one to "shoot it in the head" (STONITH).
+
 If the previous master machine is dead, ssh connection will fail, so another
 fencing method should be configured to not block failover.
 
@@ -206,11 +208,14 @@ fencing method should be configured to not block failover.
 ## Export configuration
 
       for dn_ctx in dn_ctxs
-        dn_ctx.config ?= {}
-        dn_ctx.config.ryba.hdfs ?= {}
-        dn_ctx.config.ryba.hdfs.site ?= {}
-        dn_ctx.config.ryba.hdfs.site['fs.permissions.umask-mode'] ?= ryba.hdfs.nn.site['fs.permissions.umask-mode']
-        dn_ctx.config.ryba.hdfs.site['dfs.block.access.token.enable'] ?= ryba.hdfs.nn.site['dfs.block.access.token.enable']
+        # dn_ctx.config ?= {}
+        # dn_ctx.config.ryba.hdfs ?= {}
+        # dn_ctx.config.ryba.hdfs.dn ?= {}
+        # dn_ctx.config.ryba.hdfs.dn.site ?= {}
+        dn_ctx.config.ryba.hdfs.dn.site['fs.permissions.umask-mode'] ?= ryba.hdfs.nn.site['fs.permissions.umask-mode']
+        dn_ctx.config.ryba.hdfs.dn.site['dfs.block.access.token.enable'] ?= ryba.hdfs.nn.site['dfs.block.access.token.enable']
+        
+        dn_ctx.config.ryba.hdfs.dn.core_site['fs.defaultFS'] ?= @config.ryba.core_site['fs.defaultFS']
 
 ## Dependencies
 

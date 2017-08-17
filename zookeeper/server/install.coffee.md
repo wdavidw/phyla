@@ -54,7 +54,7 @@ We open the client port if:
       @tools.iptables
         header: 'IPTables'
         rules: rules
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
