@@ -12,7 +12,15 @@ service hadoop-hdfs-journalnode start
 su -l hdfs -c "/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs start journalnode"
 ```
 
-    module.exports = header: 'HDFS JN Start', label_true: 'STARTED', handler: ->
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
+    module.exports = header: 'HDFS JN Start', label_true: 'STARTED', handler: (options) ->
+
+## Wait
+
+Wait for the Kerberos server and Zookeeper server.
+
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper_server
+
+## Service
+
       @service.start name: 'hadoop-hdfs-journalnode'

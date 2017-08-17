@@ -3,17 +3,20 @@
 
 Check if the JournalNode is running as expected.
 
-    module.exports = header: 'HDFS JN Check', label_true: 'CHECKED', handler: ->
-      {hdfs} = @config.ryba
+    module.exports = header: 'HDFS JN Check', label_true: 'CHECKED', handler: (options) ->
 
 Wait for the JournalNodes.
 
-      @call once: true, 'ryba/hadoop/hdfs_jn/wait'
+      @connection.assert
+        header: 'RPC'
+        servers: options.wait.rpc
+        retry: 3
+        sleep: 3000
 
 Test the HTTP server with a JMX request.
 
-      protocol = if hdfs.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-      port = hdfs.site["dfs.journalnode.#{protocol}-address"].split(':')[1]
+      protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      port = options.site["dfs.journalnode.#{protocol}-address"].split(':')[1]
       @system.execute
         header: 'SPNEGO'
         cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=JournalNode,name=JournalNodeInfo"

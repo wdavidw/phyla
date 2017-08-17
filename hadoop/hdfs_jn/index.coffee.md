@@ -14,24 +14,28 @@ watching them for changes to the edit log.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        hdfs_jn: module: 'ryba/hadoop/hdfs_jn'
+        zookeeper_server: module: 'ryba/zookeeper/server'
       configure:
         'ryba/hadoop/hdfs_jn/configure'
       commands:
         # 'backup':
         #   'ryba/hadoop/hdfs_jn_backup'
-        'check':
-          'ryba/hadoop/hdfs_jn/check'
-        'install': [
-          'ryba/hadoop/hdfs_jn/install'
-          'ryba/hadoop/hdfs_jn/start'
-          'ryba/hadoop/hdfs_jn/check'
-        ]
-        'start': [
-          'ryba/hadoop/hdfs_jn/start'
-        ]
+        'check': ->
+          options = @config.ryba.hdfs.jn
+          @call 'ryba/hadoop/hdfs_jn/check', options
+        'install': ->
+          options = @config.ryba.hdfs.jn
+          @call 'ryba/hadoop/hdfs_jn/install', options
+          @call 'ryba/hadoop/hdfs_jn/start', options
+          @call 'ryba/hadoop/hdfs_jn/check', options
+        'start': ->
+          options = @config.ryba.hdfs.jn
+          @call 'ryba/hadoop/hdfs_jn/start', options
         'status':
           'ryba/hadoop/hdfs_jn/status'
         'stop':
