@@ -34,8 +34,8 @@
 NAME='HDFS Datanode'
 USER='hdfs'
 GROUP='hadoop'
-CONF_DIR='{{ryba.hdfs.dn.conf_dir}}'
-RUN_DIR='{{ryba.hdfs.pid_dir}}'
+CONF_DIR='{{conf_dir}}'
+RUN_DIR='{{pid_dir}}'
 PID_FILE="${RUN_DIR}/hadoop-hdfs-datanode.pid"
 CMD="HADOOP_SECURE_DN_USER=$USER /usr/hdp/current/hadoop-hdfs-datanode/../hadoop/sbin/hadoop-daemon.sh --config $CONF_DIR --script hdfs start datanode"
 KILL_FORCE=0

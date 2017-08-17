@@ -8,15 +8,35 @@ Run the command `./bin/ryba check -m ryba/hadoop/hdfs_dn` to check all the
 DataNodes.
 
 
-    module.exports = header: 'HDFS DN Check', label_true: 'CHECKED', handler: ->
-      {hdfs} = @config.ryba
+    module.exports = header: 'HDFS DN Check', label_true: 'CHECKED', handler: (options) ->
 
-      @call once: true, 'ryba/hadoop/hdfs_dn/wait'
+## Wait for all datanode IPC Ports
+
+Port is defined in the "dfs.datanode.address" property of hdfs-site. The default
+value is 50020.
+
+      @connection.assert
+        header: 'IPC'
+        servers: options.wait.ipc
+        retry: 3
+        sleep: 3000
+
+## Wait for all datanode HTTP Ports
+
+Port is defined in the "dfs.datanode.https.address" property of hdfs-site. The default
+value is 50475.
+
+      @connection.assert
+        header: 'HTTP'
+        label_true: 'READY'
+        servers: options.wait.http
+        retry: 3
+        sleep: 3000
 
 ## Check Disk Capacity
 
-      protocol = if hdfs.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-      port = hdfs.site["dfs.datanode.#{protocol}.address"].split(':')[1]
+      protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      port = options.site["dfs.datanode.#{protocol}.address"].split(':')[1]
       @system.execute
         header: 'SPNEGO'
         cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=DataNode,name=DataNodeInfo"

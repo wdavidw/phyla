@@ -41,6 +41,7 @@ Example :
       options.conf_dir ?= '/etc/zookeeper/conf'
       # Misc
       options.clean_logs ?= false
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 ## Identities
 
@@ -129,7 +130,6 @@ Example :
 ## Kerberos
 
       options.krb5 ?= {}
-      console.log 
       options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       options.krb5.principal ?= "zookeeper/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5.keytab ?= '/etc/security/keytabs/zookeeper.service.keytab'
