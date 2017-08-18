@@ -7,14 +7,17 @@ manually with the following command:
 service ranger-admin stop
 ```
 
-    module.exports = header: 'Ranger Admin Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Ranger Admin Stop', label_true: 'STOPPED', handler: (options) ->
+
+## Service
+
       @service.start
         name: 'ranger-admin'
 
 ## Clean Logs
 
-      @call header: 'Clean Logs', label_true: 'CLEANED', ->
-        return unless @config.ryba.clean_logs
-        @system.execute
-          cmd: 'rm /var/log/ranger/admin/*'
-          code_skipped: 1
+      @system.execute
+        header: 'Clean Logs'
+        if: options.clean_logs
+        cmd: 'rm /var/log/ranger/admin/*'
+        code_skipped: 1

@@ -8,7 +8,7 @@
       return unless ranger_admin_ctx?
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
+      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
       ranger.plugins.hbase_enabled ?= if hm_ctxs.length > 0 then true else false
       type = if @config.ryba.hbase_plugin_is_master then 'master' else 'rs'
       log_dir = @config.ryba.hbase["#{type}"].log_dir
@@ -55,7 +55,7 @@ configuration separation complete.
 ### HBase Policy Admin Tool
 The repository name should match the reposity name in web ui.
 
-        hbase_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
+        hbase_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
         hbase_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
         hbase_plugin.service_repo ?=
           'configs':
@@ -111,10 +111,10 @@ The repository name should match the reposity name in web ui.
           switch hbase_plugin.install['XAAUDIT.DB.FLAVOUR']
             when 'MYSQL'
               hbase_plugin.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
-              hbase_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.admin.install['db_host']
-              hbase_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.admin.install['audit_db_name']
-              hbase_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.admin.install['audit_db_user']
-              hbase_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.admin.install['audit_db_password']
+              hbase_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
+              hbase_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
+              hbase_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
+              hbase_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
             when 'ORACLE'
               throw Error 'Ryba does not support ORACLE Based Ranger Installation'
             else
@@ -128,18 +128,18 @@ The repository name should match the reposity name in web ui.
 
 ### HBase Audit (to SOLR)
 
-        if ranger.admin.install['audit_store'] is 'solr'
+        if ranger.install['audit_store'] is 'solr'
           hbase_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
           hbase_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          hbase_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.admin.install['audit_solr_urls']
-          hbase_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.admin.install['audit_solr_user']
-          hbase_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.admin.install['audit_solr_zookeepers']
-          hbase_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.admin.install['audit_solr_password']
+          hbase_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
+          hbase_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
+          hbase_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
+          hbase_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
           hbase_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{log_dir}/audit/solr/spool"
 
 ### HBase Plugin Execution
 
-      if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+      if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
         @config.ryba.ranger.hbase_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
         @config.ryba.ranger.hbase_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
         @config.ryba.ranger.hbase_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']

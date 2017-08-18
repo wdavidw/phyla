@@ -1,7 +1,8 @@
 
 # Ranger Admin : SolR Bootstrap
 
-    module.exports = header: 'Ranger Audit Solr Boostrap', handler: ->
+    module.exports = header: 'Ranger Audit Solr Boostrap', handler: (options) ->
+      # return unless options.solr_type is 'cloud'
       {solr} = @config.ryba
       ranger =  @contexts('ryba/ranger/admin')[0].config.ryba.ranger
       {password} = ranger.admin
@@ -25,6 +26,7 @@
         mode: 0o0755
 
 ## Prepare ranger_audits Collection/Core
+
 Upload files needed by ranger to display infos. The required layout of the folder
 depends on the solr cluster type. The files are provided by hortonworks version of solr
 only.That's why there are stored as resource, so they can be use when ryba installs
@@ -85,6 +87,7 @@ solr apache version.
         target: "#{tmp_dir}/ranger_audits/elevate.xml" #rem
 
 ## Create ranger_audits Collection/Core
+
 The solrconfig.xml file corresponding to ranger_audits collection/core is rendered from
 the resources, as it is not distributed in the apache community version.
 The syntax of the command depends also from the solr type installed.
@@ -121,6 +124,7 @@ We manage creating the ranger_audits core/collection in the three modes.
           unless_exec: "#{solr[ranger.admin.solr_type]['latest_dir']}/bin/solr healthcheck -c ranger_audits"
 
 ### Solr Cloud On Docker
+
 Mounth the ranger_audit collection folder to make it availble to the containers.
 Note: Compatible with every version of docker available at this time.
 

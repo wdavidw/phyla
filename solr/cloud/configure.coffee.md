@@ -185,6 +185,7 @@ solr zkCli script
 ### Configure HDFS
 [Configure][solr-hdfs] Solr to index document using hdfs, and document stored in HDFS.
 
+      # TODO: migration should use hadoop_core to avoid cycle in the service graph
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
       if nn_ctxs.length > 0
         solr.cloud.hdfs ?= {}

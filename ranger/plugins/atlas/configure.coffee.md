@@ -9,7 +9,7 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
       return unless ranger_admin_ctx?
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
+      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
       ranger.plugins.atlas_enabled ?= if atlas_ctxs.length > 0 then true else false
       if ranger.plugins.atlas_enabled
         throw Error 'Need Atlas to enable ranger Atlas Plugin' unless atlas_ctxs.length > 0
@@ -37,7 +37,7 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
 ### Atlas Policy Admin Tool
 The repository name should match the reposity name in web ui.
 
-        atlas_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
+        atlas_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
         atlas_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-atlas'
         atlas_plugin.service_repo ?=
           'description': 'Atlas Repo'
@@ -86,10 +86,10 @@ The repository name should match the reposity name in web ui.
           switch atlas_plugin.install['XAAUDIT.DB.FLAVOUR']
             when 'MYSQL'
               atlas_plugin.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
-              atlas_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.admin.install['db_host']
-              atlas_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.admin.install['audit_db_name']
-              atlas_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.admin.install['audit_db_user']
-              atlas_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.admin.install['audit_db_password']
+              atlas_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
+              atlas_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
+              atlas_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
+              atlas_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
             when 'ORACLE'
               throw Error 'Ryba does not support ORACLE Based Ranger Installation'
             else
@@ -102,14 +102,14 @@ The repository name should match the reposity name in web ui.
 
 ### Atlas Audit (to SOLR)
 
-        if ranger.admin.install['audit_store'] is 'solr'
+        if ranger.install['audit_store'] is 'solr'
           atlas_plugin.audit ?= {}
           atlas_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
           atlas_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          atlas_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.admin.install['audit_solr_urls']
-          atlas_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.admin.install['audit_solr_user']
-          atlas_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.admin.install['audit_solr_zookeepers']
-          atlas_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.admin.install['audit_solr_password']
+          atlas_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
+          atlas_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
+          atlas_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
+          atlas_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
           atlas_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{@config.ryba.atlas.log_dir}/audit/solr/spool"
           atlas_plugin.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
           atlas_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
@@ -126,7 +126,7 @@ The repository name should match the reposity name in web ui.
 ### Atlas Plugin SSL
 Used only if SSL is enabled between Policy Admin Tool and Plugin
 
-        if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
           atlas_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
           atlas_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
           atlas_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']
