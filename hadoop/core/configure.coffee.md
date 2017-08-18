@@ -427,7 +427,8 @@ keytool -list -v -keystore keystore -alias hadoop
 
 [hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
 
-      options.ssl ?= service.use.ssl?.options
+      options.ssl ?= service.use.ssl?.options or {}
+      options.ssl.enabled = !!service.use.ssl
       if options.ssl
         options.ssl_client ?= {}
         options.ssl_server ?= {}

@@ -1,33 +1,35 @@
 
 # Configure SolrCloud Clusters
+
 This module enable adminstrator to instantiate several solrcloud clusters.
 The clusters are described in `solr.cloud_docker.clusters` property.
 Example of config for a solr cluster.
 The Settings for each solr node in a solrcloud cluster will be the same.
 
-Note: We use the host network when running the container, because of hostname mapping 
-when spnego principal is created.
+Implementation details:
 
-Note-2: Can not start more than one container on the same host becausewe are using
+* We use the host network when running the container, because of hostname mapping 
+when spnego principal is created.
+* Can not start more than one container on the same host becausewe are using
 network_mode: host (port collision).
 
 ```cson
-  "ryba_snapshot":
-    containers: 2
-    master: 'master1.ryba'
-    hosts: ['master1.ryba', 'master2.ryba', 'master3.ryba']
-    env:
-      'SOLR_JAVA_HOME': '/user/java/jre'
-    security:
-      'authorization': 
-        'class': 'solr.RuleBasedAuthorizationPlugin'
-    data_dir: '/var/my_data_dir'
-    log_dir: '/var/log/solr/ryba_snapshot'
-    pid_dir: '/var/run/solr/solr.pid'
-    heap_size: '1024m'
-    port: 10000
-    zk_node: 'my_cluster'
-    only: true    
+"ryba_snapshot":
+  containers: 2
+  master: 'master1.ryba'
+  hosts: ['master1.ryba', 'master2.ryba', 'master3.ryba']
+  env:
+    'SOLR_JAVA_HOME': '/user/java/jre'
+  security:
+    'authorization': 
+      'class': 'solr.RuleBasedAuthorizationPlugin'
+  data_dir: '/var/my_data_dir'
+  log_dir: '/var/log/solr/ryba_snapshot'
+  pid_dir: '/var/run/solr/solr.pid'
+  heap_size: '1024m'
+  port: 10000
+  zk_node: 'my_cluster'
+  only: true    
 ```
 
 Makes this method public to let other services use its configuration logic (ranger for example)

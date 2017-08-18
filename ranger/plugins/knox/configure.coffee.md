@@ -7,7 +7,7 @@
       return unless ranger_admin_ctx?
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
+      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
       ranger.plugins.knox_enabled ?= if knox_ctxs.length > 0 then true else false
       if ranger.plugins.knox_enabled
         throw Error 'Need at least one Knox Server to enable ranger Knox Plugin' unless knox_ctxs.length > 0
@@ -35,7 +35,7 @@
 The repository name should match the reposity name in web ui.
 The properties can be found [here][hdfs-repository]
 
-        knox_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
+        knox_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
         knox_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-knox'
         {knox} = @config.ryba
         knox_protocol = if knox.ssl? then 'https' else 'http'
@@ -64,10 +64,10 @@ The properties can be found [here][hdfs-repository]
           knox_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
           switch knox_plugin.install['XAAUDIT.DB.FLAVOUR']
             when 'MYSQL'
-              knox_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.admin.install['db_host']
-              knox_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.admin.install['audit_db_name']
-              knox_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.admin.install['audit_db_user']
-              knox_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.admin.install['audit_db_password']
+              knox_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
+              knox_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
+              knox_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
+              knox_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
             when 'ORACLE'
               throw Error 'Ryba does not support ORACLE Based Ranger Installation'
             else
@@ -101,18 +101,18 @@ Configure Audit to HDFS
 ## Knox Plugin Audit (SOLR Storage)
 Configure Audit to SOLR
 
-        if ranger.admin.install['audit_store'] is 'solr'
+        if ranger.install['audit_store'] is 'solr'
           knox_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
           knox_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          knox_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.admin.install['audit_solr_urls']
-          knox_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.admin.install['audit_solr_user']
-          knox_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.admin.install['audit_solr_zookeepers']
-          knox_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.admin.install['audit_solr_password']
+          knox_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
+          knox_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
+          knox_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
+          knox_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
           knox_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= '/var/log/hadoop/knox/audit/solr/spool'
 
 ## Knox Plugin SSL
 
-        if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
           knox_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
           knox_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
           knox_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.truststore.location']

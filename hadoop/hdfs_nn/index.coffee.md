@@ -19,6 +19,7 @@ does not store the data of these files itself. It’s important that this metada
         # hdfs_nn: 'ryba/hadoop/hdfs_nn'
         hdfs_jn: 'ryba/hadoop/hdfs_jn'
         hdfs_dn: 'ryba/hadoop/hdfs_dn'
+        ranger_admin: 'ryba/ranger/admin'
       configure: [
         'ryba/hadoop/hdfs_nn/configure'
         'ryba/ranger/plugins/hdfs/configure'

@@ -9,23 +9,27 @@ Ranger permit access
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        mysql_client: implicit: true, module: 'masson/commons/mysql/client'
-        hadoop_core: module: 'ryba/hadoop/core'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        mysql_client: module: 'masson/commons/mysql/client', local: true
+        db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true
         solr_cloud_docker: module: 'ryba/solr/cloud_docker'
-        db_admin: implicit: true, module: 'ryba/commons/db_admin'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
+        solr_cloud: module: 'ryba/solr/cloud'
+        solr_standalone: module: 'ryba/solr/standalone'
       configure:
         'ryba/ranger/admin/configure'
       commands:
-        'install': [
-          'ryba/ranger/solr/install'
-          'ryba/ranger/admin/install'
-          'ryba/ranger/admin/start'
-          'ryba/ranger/admin/setup'
-        ]
+        'install': ->
+          options = @config.ryba.ranger.admin
+          # @call 'ryba/ranger/admin/solr_bootstrap', options
+          @call 'ryba/ranger/solr/install', options
+          @call 'ryba/ranger/admin/install', options
+          @call 'ryba/ranger/admin/start', options
+          @call 'ryba/ranger/admin/setup', options
         'start': 'ryba/ranger/admin/start'
         'status': 'ryba/ranger/admin/status'
-        'stop': 'ryba/ranger/admin/stop'
+        'stop': ->
+          options = @config.ryba.ranger.admin
+          @call 'ryba/ranger/admin/stop', options

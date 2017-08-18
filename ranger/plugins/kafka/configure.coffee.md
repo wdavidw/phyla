@@ -7,12 +7,12 @@
       return unless ranger_admin_ctx?
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
+      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
       #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
       ranger.plugins.kafka_enabled ?= if kb_ctxs.length > 0 then true else false
       if ranger.plugins.kafka_enabled
         throw Error 'Need at least one kafka broker to enable ranger kafka Plugin' unless kb_ctxs.length > 0
-        # Commun Configuration
+        # Common Configuration
         @config.ryba.ranger ?= {}
         @config.ryba.ranger.user = ranger.user
         @config.ryba.ranger.group = ranger.group
@@ -48,7 +48,7 @@
 The repository name should match the reposity name in web ui.
 The properties can be found [here][kafka-repository]
 
-        kafka_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
+        kafka_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
         kafka_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-kafka'
         kafka_plugin.service_repo ?=
           'configs':
@@ -72,10 +72,10 @@ The properties can be found [here][kafka-repository]
           kafka_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
           switch kafka_plugin.install['XAAUDIT.DB.FLAVOUR']
             when 'MYSQL'
-              kafka_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.admin.install['db_host']
-              kafka_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.admin.install['audit_db_name']
-              kafka_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.admin.install['audit_db_user']
-              kafka_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.admin.install['audit_db_password']
+              kafka_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
+              kafka_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
+              kafka_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
+              kafka_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
             when 'ORACLE'
               throw Error 'Ryba does not support ORACLE Based Ranger Installation'
             else
@@ -109,18 +109,18 @@ The properties can be found [here][kafka-repository]
 
 ## Kafka Audit (to SOLR)
 
-        if ranger.admin.install['audit_store'] is 'solr'
+        if ranger.install['audit_store'] is 'solr'
           kafka_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
           kafka_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          kafka_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.admin.install['audit_solr_urls']
-          kafka_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.admin.install['audit_solr_user']
-          kafka_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.admin.install['audit_solr_zookeepers']
-          kafka_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.admin.install['audit_solr_password']
+          kafka_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
+          kafka_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
+          kafka_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
+          kafka_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
           kafka_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{kb_ctxs[0].config.ryba.kafka.broker.log_dir}/audit/solr/spool"
 
 ## Kafka Plugin SSL
 
-        if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
           kafka_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
           kafka_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
           kafka_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']

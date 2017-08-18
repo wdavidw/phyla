@@ -11,7 +11,7 @@ as external.
       return unless ranger_admin_ctx?
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger ?= {}
+      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
       ranger.plugins.hdfs_enabled ?= if nn_ctxs.length > 0 then true else false
       ranger.plugins.hdfs_configured ?= false
       if ranger.plugins.hdfs_enabled and not ranger.plugins.hdfs_configured
@@ -35,7 +35,7 @@ as external.
 The repository name should match the reposity name in web ui.
 The properties can be found [here][hdfs-repository]
 
-        hdfs_plugin.install['POLICY_MGR_URL'] ?= ranger.admin.install['policymgr_external_url']
+        hdfs_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
         hdfs_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
         hdfs_plugin.service_repo ?=
           'configs':
@@ -65,10 +65,10 @@ The properties can be found [here][hdfs-repository]
           hdfs_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
           switch hdfs_plugin.install['XAAUDIT.DB.FLAVOUR']
             when 'MYSQL'
-              hdfs_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.admin.install['db_host']
-              hdfs_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.admin.install['audit_db_name']
-              hdfs_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.admin.install['audit_db_user']
-              hdfs_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.admin.install['audit_db_password']
+              hdfs_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
+              hdfs_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
+              hdfs_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
+              hdfs_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
             when 'ORACLE'
               throw Error 'Ryba does not support ORACLE Based Ranger Installation'
             else
@@ -106,13 +106,13 @@ Configure Audit to HDFS
 ### HDFS Plugin Audit (SOLR Storage)
 Configure Audit to SOLR
 
-        if ranger.admin.install['audit_store'] is 'solr'
+        if ranger.install['audit_store'] is 'solr'
           hdfs_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
           hdfs_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          hdfs_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.admin.install['audit_solr_urls']
-          hdfs_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.admin.install['audit_solr_user']
-          hdfs_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.admin.install['audit_solr_zookeepers']
-          hdfs_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.admin.install['audit_solr_password']
+          hdfs_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
+          hdfs_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
+          hdfs_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
+          hdfs_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
           hdfs_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{@config.ryba.hdfs.log_dir}/audit/solr/spool"
           hdfs_plugin.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
           hdfs_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
@@ -128,7 +128,7 @@ Configure Audit to SOLR
 
 ### HDFS Plugin SSL
 
-        if ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
           hdfs_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= "#{@config.ryba.hdfs.nn.conf_dir}/keystore"
           hdfs_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.hdfs.nn.ssl_server['ssl.server.keystore.password']
           hdfs_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= "#{@config.ryba.hdfs.nn.conf_dir}/truststore"

@@ -33,10 +33,10 @@
 #   update-rc.d solr enable
 
 # Where you extracted the Solr distribution bundle
-SOLR_INSTALL_DIR={{ryba.solr.latest_dir}}
-SOLR_CONF_DIR="{{ryba.solr.conf_dir}}"
-SOLR_ENV="{{ryba.solr.conf_dir}}/solr.in.sh"
-RUNAS={{ryba.solr.user.name}}
+SOLR_INSTALL_DIR={{latest_dir}}
+SOLR_CONF_DIR="{{conf_dir}}"
+SOLR_ENV="{{conf_dir}}/solr.in.sh"
+RUNAS={{user.name}}
 
 if [ ! -d "$SOLR_INSTALL_DIR" ]; then
   echo "$SOLR_INSTALL_DIR not found! Please check the SOLR_INSTALL_DIR setting in your $0 script."
@@ -75,7 +75,7 @@ case "$1" in
 esac
 
 if [ -n "$RUNAS" ]; then
-  su -c "SOLR_INCLUDE=\"$SOLR_ENV\" \"$SOLR_INSTALL_DIR/bin/solr\" $SOLR_CMD  -s {{ryba.solr.user.home}}" - "$RUNAS"
+  su -c "SOLR_INCLUDE=\"$SOLR_ENV\" \"$SOLR_INSTALL_DIR/bin/solr\" $SOLR_CMD  -s {{user.home}}" - "$RUNAS"
 else
-  SOLR_INCLUDE="$SOLR_ENV" "$SOLR_INSTALL_DIR/bin/solr  -s {{ryba.solr.user.home}}" "$SOLR_CMD"
+  SOLR_INCLUDE="$SOLR_ENV" "$SOLR_INSTALL_DIR/bin/solr  -s {{user.home}}" "$SOLR_CMD"
 fi
