@@ -1,10 +1,7 @@
 
 # Hadoop HDFS SecondaryNameNode Install
 
-    module.exports = header: 'HDFS SNN', handler: ->
-      {host} = @config
-      {realm, hdfs, hadoop_group} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'HDFS SNN', handler: (options) ->
 
 ## Register
 
@@ -23,15 +20,15 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      [_, http_port] = hdfs.site['dfs.namenode.secondary.http-address'].split ':'
-      [_, https_port] = hdfs.site['dfs.namenode.secondary.https-address'].split ':'
+      [_, http_port] = options.site['dfs.namenode.secondary.http-address'].split ':'
+      [_, https_port] = options.site['dfs.namenode.secondary.https-address'].split ':'
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: http_port, protocol: 'tcp', state: 'NEW', comment: "HDFS SNN HTTP" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: https_port, protocol: 'tcp', state: 'NEW', comment: "HDFS SNN HTTPS" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Service
 
@@ -63,46 +60,46 @@ script inside "/etc/init.d" and activate it on startup.
             context: @config.ryba
             mode: 0o0644
           @system.tmpfs
-            mount: "#{hdfs.pid_dir}"
-            uid: hdfs.user.name
-            gid: hadoop_group.name
+            mount: "#{options.pid_dir}"
+            uid: options.user.name
+            gid: options.hadoop_group.name
             perm: '0755'
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: for dir in hdfs.site['dfs.namenode.checkpoint.dir'].split ','
+          target: for dir in options.site['dfs.namenode.checkpoint.dir'].split ','
             if dir.indexOf('file://') is 0
             then dir.substr(7) else dir
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
         @system.mkdir
-          target: "#{hdfs.pid_dir.replace '$USER', hdfs.user.name}"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          target: "#{options.pid_dir.replace '$USER', options.user.name}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
         @system.mkdir
-          target: "#{hdfs.log_dir}" #/#{hdfs.user.name}
-          uid: hdfs.user.name
-          gid: hdfs.group.name
+          target: "#{options.log_dir}"
+          uid: options.user.name
+          gid: options.group.name
           parent: true
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: "nn/#{host}@#{realm}"
+        principal: options.site['dfs.secondary.namenode.kerberos.principal']
         randkey: true
-        keytab: hdfs.site['dfs.secondary.namenode.keytab.file']
-        uid: 'hdfs'
-        gid: 'hadoop'
+        keytab: options.site['dfs.secondary.namenode.keytab.file']
+        uid: options.user.name
+        gid: options.hadoop_group.name
 
 # Configure
 
       @hconfigure
         header: 'Configuration'
-        target: "#{hdfs.snn.conf_dir}/hdfs-site.xml"
+        target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: hdfs.site
-        uid: hdfs.user
-        gid: hadoop_group
+        properties: options.site
+        uid: options.user.name
+        gid: options.hadoop_group.name
         backup: true

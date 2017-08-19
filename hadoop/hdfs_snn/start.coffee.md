@@ -1,9 +1,7 @@
 
 # Hadoop HDFS SecondaryNameNode Start
 
-    module.exports = []
-    module.exports.push 'masson/bootstrap'
-    # module.exports.push require('./index').configure
+    module.exports = header: 'HDFS SNN Start', label_true: 'STARTED', handler: ->
 
 ## Start Service
 
@@ -14,7 +12,6 @@ following two commands:
 service hadoop-hdfs-secondarynamenode start
 su -l hdfs -c "/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs start secondarynamenode"
 ```
-
-    module.exports.push header: 'HDFS SNN Start', label_true: 'STARTED', handler: ->
+  
       @service.start
         name: 'hadoop-hdfs-secondarynamenode'
