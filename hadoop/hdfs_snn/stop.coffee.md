@@ -1,9 +1,7 @@
 
 # Hadoop HDFS SecondaryNameNode Stop
 
-    module.exports = []
-    module.exports.push 'masson/bootstrap'
-    # module.exports.push require('./index').configure
+    module.exports = header: 'HDFS SNN Stop', label_true: 'STOPPED', handler: (options) ->
 
 ## Stop Service
 
@@ -15,7 +13,6 @@ service hadoop-hdfs-secondarynamenode stop
 su -l hdfs -c "/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs stop secondarynamenode"
 ```
 
-    module.exports.push header: 'HDFS SNN Stop', label_true: 'STOPPED', handler: ->
       @service.stop
         header: 'Stop service'
         name: 'hadoop-hdfs-secondarynamenode'
@@ -29,4 +26,4 @@ activated.
         header: 'Clean Logs'
         cmd: 'rm /var/log/hadoop-hdfs/*/*-secondarynamenode-*'
         code_skipped: 1
-        if: @config.ryba.clean_logs
+        if: options.clean_logs
