@@ -151,7 +151,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
           context:
-            HADOOP_HEAPSIZE: @config.ryba.hadoop_heap
+            HADOOP_HEAPSIZE: options.hadoop_heap
             HADOOP_LOG_DIR: options.log_dir
             HADOOP_PID_DIR: options.pid_dir
             HADOOP_OPTS: options.hadoop_opts

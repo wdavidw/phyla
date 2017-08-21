@@ -110,11 +110,12 @@ Example :
       options.config['peerType'] ?= 'participant'
       connect_string = "#{@config.host}:#{options.peer_port}:#{options.leader_port}"
       connect_string += ":observer" if options.config['peerType'] is 'observer'
-      for srv in service.use.zookeeper_server
+      for srv, i in service.use.zookeeper_server
         srv.options.config ?= {}
         if srv.options.config["server.#{options.id}"]? and srv.options.config["server.#{options.id}"] isnt connect_string
           throw Error "Zk Server id '#{options.id}' is already registered on #{srv.node.fqdn}"
-        srv.options.config["server.#{options.id}"] = connect_string
+        srv.options.config["server.#{options.id}"] ?= connect_string
+      
       # SASL
       options.config['authProvider.1'] ?= 'org.apache.zookeeper.server.auth.SASLAuthenticationProvider'
       options.config['jaasLoginRenew'] ?= '3600000'

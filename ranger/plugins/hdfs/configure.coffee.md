@@ -5,131 +5,160 @@ For the HDFS plugin, the executed script already create the hdfs user to ranger 
 as external.
 
     module.exports = ->
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      dn_ctxs = @contexts 'ryba/hadoop/hdfs_dn'
-      [ranger_admin_ctx] = @contexts 'ryba/ranger/admin'
-      return unless ranger_admin_ctx?
-      {ryba} = @config
-      {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
-      ranger.plugins.hdfs_enabled ?= if nn_ctxs.length > 0 then true else false
-      ranger.plugins.hdfs_configured ?= false
-      if ranger.plugins.hdfs_enabled and not ranger.plugins.hdfs_configured
-        throw Error 'Need HDFS to enable ranger HDFS Plugin' unless nn_ctxs.length > 0
-        # for nn_ctx in nn_ctxs
-          # Commun Configuration
-        @config.ryba.hdfs.nn.site['dfs.namenode.inode.attributes.provider.class'] ?= 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'
-        @config.ryba.ranger ?= {}
-        @config.ryba.ranger.user = ranger.user
-        @config.ryba.ranger.group = ranger.group
-        @config.ryba.hdfs.namenode_opts ?= ''
-        @config.ryba.hdfs.namenode_opts += " -Djavax.net.ssl.trustStore=#{@config.ryba.hdfs.nn.conf_dir}/truststore "
-        @config.ryba.hdfs.namenode_opts += " -Djavax.net.ssl.trustStorePassword=#{@config.ryba.ssl_server['ssl.server.truststore.password']}"
-        # HDFS Plugin configuration
-        hdfs_plugin = @config.ryba.ranger.hdfs_plugin ?= {}
-        ranger_admin_ctx.config.ryba.ranger.hdfs_plugin = hdfs_plugin
-        hdfs_plugin.install ?= {}
-        hdfs_plugin.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
+      service = migration.call @, service, 'ryba/ranger/plugins/hdfs', ['ryba', 'ranger', 'hdfs_plugin'], require('nikita/lib/misc').merge require('.').use,
+        krb5_client: key: ['krb5_client']
+        hadoop_core: key: ['ryba']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_client: key: ['ryba', 'hdfs']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+      @config.ryba.ranger ?= {}
+      options = @config.ryba.ranger.hdfs_plugin = service.options
+
+## Environment
+
+      service.use.hdfs_nn.options.site['dfs.namenode.inode.attributes.provider.class'] ?= 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'
+      service.use.hdfs_nn.options.namenode_opts ?= ''
+      service.use.hdfs_nn.options.namenode_opts += " -Djavax.net.ssl.trustStore=#{service.use.hdfs_nn.options.ssl_client['ssl.server.truststore.location']}"
+      service.use.hdfs_nn.options.namenode_opts += " -Djavax.net.ssl.trustStorePassword=#{service.use.hdfs_nn.options.ssl_client['ssl.client.truststore.password']}"
+      options.hdfs_conf_dir = service.use.hdfs_nn.options.conf_dir
+
+## Identities
+
+      options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
+      options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
+      options.hdfs_user = service.use.hdfs_nn.options.user
+      options.hadoop_group = service.use.hdfs_nn.options.hadoop_group
+
+## Plugin Access`
+
+      options.admin_password ?= service.use.ranger_admin.options.plugins.password
+      # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
+      # options.plugins ?= {}
+      # options.plugins.principal ?= service.use.ranger_admin.options.plugins.principal
+      # options.plugins.password ?= service.use.ranger_admin.options.plugins.password
+
+## Setup
+
+Repository creating is only executed from one NameNode.
+
+      options.repo_create = service.use.hdfs_nn.options.active_nn_host is service.node.fqdn
+
+## HDFS Plugin configuration
+
+      options.install ?= {}
+      options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
 
 ### HDFS Plugin Policy Admin Tool
 The repository name should match the reposity name in web ui.
 The properties can be found [here][hdfs-repository]
 
-        hdfs_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
-        hdfs_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
-        hdfs_plugin.service_repo ?=
-          'configs':
-            'password': hdfs.krb5_user.password
-            'username': hdfs.krb5_user.principal
-            'fs.default.name': core_site['fs.defaultFS']
-            'hadoop.security.authentication': core_site['hadoop.security.authentication']
-            'dfs.namenode.kerberos.principal': nn_ctxs[0].config.ryba.hdfs.nn.site['dfs.namenode.kerberos.principal']
-            'dfs.datanode.kerberos.principal': dn_ctxs[0].config.ryba.hdfs.site['dfs.datanode.kerberos.principal']
-            'hadoop.rpc.protection': core_site['hadoop.rpc.protection']
-            'hadoop.security.authorization': core_site['hadoop.security.authorization']
-            'hadoop.security.auth_to_local': core_site['hadoop.security.auth_to_local']
-            'commonNameForCertificate': ''
-            'policy.download.auth.users': "#{nn_ctxs[0].config.ryba.hdfs.user.name}" #from ranger 0.6
-            'tag.download.auth.users': "#{nn_ctxs[0].config.ryba.hdfs.user.name}"
-          'description': 'HDFS Repo'
-          'isEnabled': true
-          'name': hdfs_plugin.install['REPOSITORY_NAME']
-          'type': 'hdfs'
+      options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
+      options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
+      options.service_repo ?=
+        'configs':
+          'username': service.use.hadoop_core.options.hdfs.krb5_user.principal
+          'password': service.use.hadoop_core.options.hdfs.krb5_user.password
+          'fs.default.name': service.use.hdfs_nn.options.core_site['fs.defaultFS']
+          'hadoop.security.authentication': service.use.hdfs_nn.options.core_site['hadoop.security.authentication']
+          'dfs.namenode.kerberos.principal': service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
+          'dfs.datanode.kerberos.principal': service.use.hdfs_dn[0].options.site['dfs.datanode.kerberos.principal']
+          'hadoop.rpc.protection': service.use.hdfs_nn.options.core_site['hadoop.rpc.protection']
+          'hadoop.security.authorization': service.use.hdfs_nn.options.core_site['hadoop.security.authorization']
+          'hadoop.security.auth_to_local': service.use.hdfs_nn.options.core_site['hadoop.security.auth_to_local']
+          'commonNameForCertificate': ''
+          'policy.download.auth.users': "#{service.use.hdfs_nn.options.user.name}" #from ranger 0.6
+          'tag.download.auth.users': "#{service.use.hdfs_nn.options.user.name}"
+        'description': 'HDFS Repo'
+        'isEnabled': true
+        'name': options.install['REPOSITORY_NAME']
+        'type': 'hdfs'
 
 ### HDFS Plugin Audit (database storage)
 
-        #Deprecated
-        hdfs_plugin.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
-        hdfs_plugin.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
-        if hdfs_plugin.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
-          hdfs_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
-          switch hdfs_plugin.install['XAAUDIT.DB.FLAVOUR']
-            when 'MYSQL'
-              hdfs_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
-              hdfs_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
-              hdfs_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
-              hdfs_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
-            when 'ORACLE'
-              throw Error 'Ryba does not support ORACLE Based Ranger Installation'
-            else
-              throw Error "Apache Ranger does not support chosen DB FLAVOUR"
-        else
-            # This properties are needed even if they are not user
-            # We set it to NONE to let the script execute
-            hdfs_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
-            hdfs_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
-            hdfs_plugin.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
-            hdfs_plugin.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
+      #Deprecated
+      options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
+      options.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
+      if options.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
+        switch options.install['XAAUDIT.DB.FLAVOUR']
+          when 'MYSQL'
+            options.install['XAAUDIT.DB.HOSTNAME'] ?= service.use.ranger_admin.options.install['db_host']
+            options.install['XAAUDIT.DB.DATABASE_NAME'] ?= service.use.ranger_admin.options.install['audit_db_name']
+            options.install['XAAUDIT.DB.USER_NAME'] ?= service.use.ranger_admin.options.install['audit_db_user']
+            options.install['XAAUDIT.DB.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_db_password']
+          when 'ORACLE'
+            throw Error 'Ryba does not support ORACLE Based Ranger Installation'
+          else
+            throw Error "Apache Ranger does not support chosen DB FLAVOUR"
+      else
+          # This properties are needed even if they are not user
+          # We set it to NONE to let the script execute
+          options.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
 
 ### HDFS Plugin Audit (HDFS Storage)
+
 Configure Audit to HDFS
 
-        hdfs_plugin.audit ?= {}
-        # V3 configuration
-        hdfs_plugin.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-        hdfs_plugin.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
-        hdfs_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{@config.ryba.hdfs.log_dir}/audit/hdfs/spool"
-        hdfs_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
-        if hdfs_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-          hdfs_plugin.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
-          hdfs_plugin.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
-          hdfs_plugin.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
-          hdfs_plugin.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
-          hdfs_plugin.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
-          hdfs_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
+      options.audit ?= {}
+      # V3 configuration
+      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
+      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.hdfs_nn.options.log_dir}/audit/hdfs/spool"
+      options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
+        options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
+        options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
+        options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
+        options.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
 ### HDFS Plugin Audit (SOLR Storage)
+
 Configure Audit to SOLR
 
-        if ranger.install['audit_store'] is 'solr'
-          hdfs_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
-          hdfs_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          hdfs_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
-          hdfs_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
-          hdfs_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
-          hdfs_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
-          hdfs_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{@config.ryba.hdfs.log_dir}/audit/solr/spool"
-          hdfs_plugin.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= @config.ryba.hdfs.nn.site['dfs.namenode.keytab.file']
-          nn_princ = @config.ryba.hdfs.nn.site['dfs.namenode.kerberos.principal'].replace '_HOST', @config.host
-          hdfs_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= nn_princ
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
+        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
+        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
+        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
+        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
+        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hdfs_nn.options.log_dir}/audit/solr/spool"
+        options.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
+        nn_princ = service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= nn_princ
 
 ### HDFS Plugin SSL
 
-        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-          hdfs_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= "#{@config.ryba.hdfs.nn.conf_dir}/keystore"
-          hdfs_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.hdfs.nn.ssl_server['ssl.server.keystore.password']
-          hdfs_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= "#{@config.ryba.hdfs.nn.conf_dir}/truststore"
-          hdfs_plugin.install['SSL_TRUSTSTORE_PASSWORD'] ?= @config.ryba.hdfs.nn.ssl_server['ssl.server.truststore.password']
+      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= "#{service.use.hdfs_nn.options.conf_dir}/keystore"
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= "#{service.use.hdfs_nn.options.conf_dir}/truststore"
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.password']
+
+## Wait
+
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

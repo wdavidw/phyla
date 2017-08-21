@@ -9,7 +9,7 @@ and some may be inactive.
 You can also start the server manually with the following two commands:
 
 ```
-service hadoop-hdfs-datanode start
+systemctl start hadoop-hdfs-datanode
 HADOOP_SECURE_DN_USER=hdfs /usr/hdp/current/hadoop-hdfs-datanode/../hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs start datanode
 ```
 

@@ -10,7 +10,7 @@ value is 50020.
 
       @connection.wait
         header: 'IPC'
-        servers: options.wait.ipc
+        servers: options.ipc
 
 ## Wait for all datanode HTTP Ports
 
@@ -20,4 +20,4 @@ value is 50475.
       @connection.wait
         header: 'HTTP'
         label_true: 'READY'
-        servers: options.wait.http
+        servers: options.http

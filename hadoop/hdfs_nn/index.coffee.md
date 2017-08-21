@@ -9,41 +9,40 @@ does not store the data of these files itself. It’s important that this metada
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        ranger_admin: 'ryba/ranger/admin'
-        zoo_server: module: 'ryba/zookeeper/server'
-        # zkfc: 'ryba/hadoop/zkfc'
-        # hdfs_nn: 'ryba/hadoop/hdfs_nn'
-        hdfs_jn: 'ryba/hadoop/hdfs_jn'
-        hdfs_dn: 'ryba/hadoop/hdfs_dn'
-        ranger_admin: 'ryba/ranger/admin'
-      configure: [
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: implicit: true, module: 'masson/commons/java', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hadoop_core: implicit: true, module: 'ryba/hadoop/core', local: true
+        hdfs_jn: module: 'ryba/hadoop/hdfs_jn'
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+      configure:
         'ryba/hadoop/hdfs_nn/configure'
-        'ryba/ranger/plugins/hdfs/configure'
-        ]
+        # 'ryba/ranger/plugins/hdfs/configure'
       commands:
         'backup':
           'ryba/hadoop/hdfs_nn/backup'
-        'check':
-          'ryba/hadoop/hdfs_nn/check'
-        'install': [
-          'masson/bootstrap/fs'
-          'ryba/hadoop/hdfs_nn/install'
-          'ryba/hadoop/hdfs_nn/start'
-          'ryba/hadoop/zkfc/install'
-          'ryba/hadoop/zkfc/start'
-          'ryba/hadoop/hdfs_nn/layout'
-          'ryba/hadoop/hdfs_nn/check'
-          'ryba/ranger/plugins/hdfs/setup'
-        ]
-        'start':
-          'ryba/hadoop/hdfs_nn/start'
+        'check': ->
+          options = @config.ryba.hdfs.nn
+          @call 'ryba/hadoop/hdfs_nn/check', options
+        'install': ->
+          options = @config.ryba.hdfs.nn
+          @call 'ryba/hadoop/hdfs_nn/install', options
+          @call 'ryba/hadoop/hdfs_nn/start', options
+          # @call 'ryba/hadoop/zkfc/install', options
+          # @call 'ryba/hadoop/zkfc/start', options
+          @call 'ryba/hadoop/hdfs_nn/layout', options
+          @call 'ryba/hadoop/hdfs_nn/check', options
+          # @call 'ryba/ranger/plugins/hdfs/setup', options
+        'start': ->
+          options = @config.ryba.hdfs.nn
+          @call 'ryba/hadoop/hdfs_nn/start', options
         'status':
           'ryba/hadoop/hdfs_nn/status'
-        'stop':
-          'ryba/hadoop/hdfs_nn/stop'
+        'stop': ->
+          options = @config.ryba.hdfs.nn
+          @call 'ryba/hadoop/hdfs_nn/stop', options
 
 [keys]: https://github.com/apache/hadoop-common/blob/trunk/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java

@@ -4,7 +4,7 @@
     module.exports = (service) ->
       service = migration.call @, service, 'ryba/commons/test_user', ['ryba'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
-      options = @config.ryba ?= service.options
+      options = @config.ryba = service.options
 
       options.force_check ?= false
       

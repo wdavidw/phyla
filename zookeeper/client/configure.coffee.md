@@ -8,7 +8,7 @@
         test_user: key: ['ryba']
         hdp: key: ['ryba', 'hdp']
         zookeeper_server: key: ['ryba', 'zookeeper']
-      options = @config.ryba.zookeeper_client ?= service.options
+      options = @config.ryba.zookeeper_client = service.options
       zookeeper_server_options = service.use.zookeeper_server[0].options
 
 ## Environnment

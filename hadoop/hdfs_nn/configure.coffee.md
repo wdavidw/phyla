@@ -4,9 +4,9 @@
 Look at the file [DFSConfigKeys.java][keys] for an exhaustive list of supported
 properties.
 
-*   `ryba.hdfs.nn.site` (object)
+*   `site` (object)
     Properties added to the "hdfs-site.xml" file.
-*   `ryba.hdfs.namenode_opts` (string)
+*   `opts` (string)
     NameNode options.
 
 Example:
@@ -25,75 +25,101 @@ Example:
 ```
 
     module.exports = ->
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      jn_ctxs = @contexts 'ryba/hadoop/hdfs_jn'
-      dn_ctxs = @contexts 'ryba/hadoop/hdfs_dn'
-      {ryba} = @config
+      service = migration.call @, service, 'ryba/hadoop/hdfs_nn', ['ryba', 'hdfs', 'nn'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hadoop_core: key: ['ryba']
+        hdfs_jn: key: ['ryba', 'hdfs', 'jn']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+      @config.ryba ?= {}
+      @config.ryba.hdfs ?= {}
+      @config.ryba.hdfs.nn ?= {}
+      options = @config.ryba.hdfs.nn = service.options
 
-## Core Site
+## Identities
 
-      @config.ryba.core_site ?= {}
-      @config.ryba.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
-      if nn_ctxs.length is 1
-        @config.ryba.core_site['fs.defaultFS'] ?= "hdfs://#{nn_ctxs[0].config.host}:8020"
-      else if nn_ctxs.length is 2
-        @config.ryba.core_site['fs.defaultFS'] ?= "hdfs://#{@config.ryba.nameservice}"
-        @config.ryba.active_nn_host ?= nn_ctxs[0].config.host
-        [standby_nn_ctxs] = nn_ctxs.filter( (nn_ctx) => nn_ctx.config.host isnt @config.ryba.active_nn_host )
-        @config.ryba.standby_nn_host = standby_nn_ctxs.config.host
-      else throw Error "Invalid number of NanodeNodes, got #{nn_ctxs.length}, expecting 2"
+      options.hadoop_group ?= merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group or {}
+      options.group ?= merge {}, service.use.hadoop_core.options.hdfs.group, options.group or {}
+      options.user ?= merge {}, service.use.hadoop_core.options.hdfs.user, options.user or {}
 
 ## Environment
 
-      ryba.hdfs.nn ?= {}
-      ryba.hdfs.nn.conf_dir ?= '/etc/hadoop-hdfs-namenode/conf'
-      ryba.hdfs.nn.core_site ?= {}
-      #Number of minutes after which the checkpoint gets deleted
-      ryba.hdfs.nn.core_site['fs.trash.interval'] ?= '10080' #1 week
-      ryba.hdfs.nn.site ?= {}
-      ryba.hdfs.nn.site['dfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
-      # throw Error "Missing \"ryba.zkfc_password\" property" unless ryba.zkfc_password
+      # Layout
+      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
+      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.conf_dir ?= '/etc/hadoop-hdfs-namenode/conf'
+      # Java
+      options.java_home ?= service.use.java.options.java_home
+      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
+      options.hadoop_namenode_init_heap ?= '-Xms1024m'
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
+      options.java_opts ?= ""
+      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
+      # Misc
+      options.clean_logs ?= false
+      options.fqdn ?= service.node.fqdn
+      options.hostname ?= service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.hadoop_policy ?= {}
+
+## Namenode Java Options
+
+      # opts will be rendered as -Dkey=value and appended to java_opts
+      options.opts ?= {}
+
+## Configuration
+
+      # Hadoop core-site.xml
+      options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
+      # Number of minutes after which the checkpoint gets deleted
+      options.core_site['fs.trash.interval'] ?= '10080' #1 week
+      # Hadoop hdfs-site.xml
+      options.site ?= {}
+      options.site['dfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
       # Data
       # Comma separated list of paths. Use the list of directories.
       # For example, /data/1/hdfs/nn,/data/2/hdfs/nn.
-      ryba.hdfs.nn.site['dfs.namenode.name.dir'] ?= ['file:///var/hdfs/name']
-      ryba.hdfs.nn.site['dfs.namenode.name.dir'] = ryba.hdfs.nn.site['dfs.namenode.name.dir'].join ',' if Array.isArray ryba.hdfs.nn.site['dfs.namenode.name.dir']
+      options.site['dfs.namenode.name.dir'] ?= ['file:///var/hdfs/name']
+      options.site['dfs.namenode.name.dir'] = options.site['dfs.namenode.name.dir'].join ',' if Array.isArray options.site['dfs.namenode.name.dir']
       # Network
-      ryba.hdfs.nn.site['dfs.hosts'] ?= "#{ryba.hdfs.nn.conf_dir}/dfs.include"
-      ryba.hdfs.include ?= dn_ctxs.map (context) -> context.config.host
-      ryba.hdfs.include = string.lines ryba.hdfs.include if typeof ryba.hdfs.include is 'string'
-      ryba.hdfs.nn.site['dfs.hosts.exclude'] ?= "#{ryba.hdfs.nn.conf_dir}/dfs.exclude"
-      ryba.hdfs.exclude ?= []
-      ryba.hdfs.exclude = string.lines ryba.hdfs.exclude if typeof ryba.hdfs.exclude is 'string'
-      ryba.hdfs.nn.heapsize ?= '1024m'
-      ryba.hdfs.nn.newsize ?= '200m'
-      ryba.hdfs.nn.site['fs.permissions.umask-mode'] ?= '026' # 0750
+      options.slaves = service.use.hdfs_dn.map (srv) -> srv.node.fqdn
+      options.site['dfs.hosts'] ?= "#{options.conf_dir}/dfs.include"
+      options.include ?= service.use.hdfs_dn.map (srv) -> srv.node.fqdn
+      options.include = string.lines options.include if typeof options.include is 'string'
+      options.site['dfs.hosts.exclude'] ?= "#{options.conf_dir}/dfs.exclude"
+      options.exclude ?= []
+      options.exclude = string.lines options.exclude if typeof options.exclude is 'string'
+      options.site['fs.permissions.umask-mode'] ?= '026' # 0750
       # If "true", access tokens are used as capabilities
       # for accessing datanodes. If "false", no access tokens are checked on
       # accessing datanodes.
-      ryba.hdfs.nn.site['dfs.block.access.token.enable'] ?= if ryba.core_site['hadoop.security.authentication'] is 'kerberos' then 'true' else 'false'
-      ryba.hdfs.nn.site['dfs.block.local-path-access.user'] ?= ''
-      ryba.hdfs.nn.site['dfs.namenode.safemode.threshold-pct'] ?= '0.99'
-      # Kerberos
-      ryba.hdfs.nn.site['dfs.namenode.kerberos.principal'] ?= "nn/_HOST@#{ryba.realm}"
-      ryba.hdfs.nn.site['dfs.namenode.keytab.file'] ?= '/etc/security/keytabs/nn.service.keytab'
-      ryba.hdfs.nn.site['dfs.namenode.kerberos.internal.spnego.principal'] ?= "HTTP/_HOST@#{ryba.realm}"
-      ryba.hdfs.nn.site['dfs.namenode.kerberos.https.principal'] = "HTTP/_HOST@#{ryba.realm}"
-      ryba.hdfs.nn.site['dfs.web.authentication.kerberos.principal'] ?= "HTTP/_HOST@#{ryba.realm}"
-      ryba.hdfs.nn.site['dfs.web.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
+      options.site['dfs.block.access.token.enable'] ?= if options.core_site['hadoop.security.authentication'] is 'kerberos' then 'true' else 'false'
+      options.site['dfs.block.local-path-access.user'] ?= ''
+      options.site['dfs.namenode.safemode.threshold-pct'] ?= '0.99'
       # Fix HDP Companion File bug
-      ryba.hdfs.nn.site['dfs.https.namenode.https-address'] = null
+      options.site['dfs.https.namenode.https-address'] = null
       # Activate ACLs
-      ryba.hdfs.nn.site['dfs.namenode.acls.enabled'] ?= 'true'
-      ryba.hdfs.nn.site['dfs.namenode.accesstime.precision'] ?= null
+      options.site['dfs.namenode.acls.enabled'] ?= 'true'
+      options.site['dfs.namenode.accesstime.precision'] ?= null
 
-## SSL
+## Kerberos
 
-      ryba.hdfs.nn.ssl_client = merge ryba.hdfs.nn.ssl_client, ryba.ssl_client,
-        'ssl.client.truststore.location': "#{ryba.hdfs.nn.conf_dir}/truststore"
-      ryba.hdfs.nn.ssl_server = merge ryba.hdfs.nn.ssl_server, ryba.ssl_server,
-        'ssl.server.keystore.location': "#{ryba.hdfs.nn.conf_dir}/keystore"
-        'ssl.server.truststore.location': "#{ryba.hdfs.nn.conf_dir}/truststore"
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      # Configuration in "hdfs-site.xml"
+      options.site['dfs.namenode.kerberos.principal'] ?= "nn/_HOST@#{options.krb5.realm}"
+      options.site['dfs.namenode.keytab.file'] ?= '/etc/security/keytabs/nn.service.keytab'
+      options.site['dfs.namenode.kerberos.internal.spnego.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
+      options.site['dfs.namenode.kerberos.https.principal'] = "HTTP/_HOST@#{options.krb5.realm}"
+      options.site['dfs.web.authentication.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
+      options.site['dfs.web.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
 
 ## Configuration for HDFS High Availability (HA)
 
@@ -105,35 +131,50 @@ The default configuration implement the "sshfence" fencing method. This method
 SSHes to the target node and uses fuser to kill the process listening on the
 service's TCP port.
 
-      if nn_ctxs.length is 1
-        ryba.hdfs.nn.site['dfs.ha.automatic-failover.enabled'] ?= 'false'
-        ryba.hdfs.nn.site['dfs.namenode.http-address'] ?= '0.0.0.0:50070'
-        ryba.hdfs.nn.site['dfs.namenode.https-address'] ?= '0.0.0.0:50470'
-      else
-        # HDFS HA configuration
-        for nn_ctx in nn_ctxs
-          nn_ctx.config.shortname ?= nn_ctx.config.host.split('.')[0]
-        for jn_ctx in jn_ctxs
-          ryba.hdfs.nn.site['dfs.journalnode.kerberos.principal'] ?= jn_ctx.config.ryba.hdfs.site['dfs.journalnode.kerberos.principal']
-        ryba.hdfs.nn.site['dfs.nameservices'] = ryba.nameservice
+      # HDFS Single Node configuration
+      if service.nodes.length is 1
+        options.core_site['fs.defaultFS'] ?= "hdfs://#{service.node.fqdn}:8020"
+        options.site['dfs.ha.automatic-failover.enabled'] ?= 'false'
+        options.site['dfs.namenode.http-address'] ?= '0.0.0.0:50070'
+        options.site['dfs.namenode.https-address'] ?= '0.0.0.0:50470'
+        options.site['dfs.nameservices'] = null
+      # HDFS HA configuration
+      else if service.nodes.length is 2
+        throw Error "Required Option: site['dfs.nameservices']" unless options.site['dfs.nameservices']
+        options.core_site['fs.defaultFS'] ?= "hdfs://#{options.site['dfs.nameservices']}"
+        options.active_nn_host ?= service.nodes[0].fqdn
+        options.standby_nn_host = service.nodes.filter( (node) -> node.fqdn isnt options.active_nn_host )[0].fqdn
+        for srv in service.use.hdfs_nn
+          srv.options.hostname ?= srv.node.hostname
+        for srv in service.use.hdfs_jn
+          options.site['dfs.journalnode.kerberos.principal'] ?= srv.options.site['dfs.journalnode.kerberos.principal']
+      else throw Error "Invalid number of NanodeNodes, got #{service.nodes.length}, expecting 2"
 
 Since [HDFS-6376](https://issues.apache.org/jira/browse/HDFS-6376), 
 Nameservice must be explicitely set as internal to provide other nameservices, 
 for distcp purpose.
 
-        ryba.hdfs.nn.site['dfs.internal.nameservices'] ?= ryba.nameservice
-        ryba.hdfs.nn.site["dfs.ha.namenodes.#{ryba.nameservice}"] = (for nn_ctx in nn_ctxs then nn_ctx.config.shortname).join ','
-        for nn_ctx in nn_ctxs
-          ryba.hdfs.nn.site['dfs.namenode.http-address'] = null
-          ryba.hdfs.nn.site['dfs.namenode.https-address'] = null
-          ryba.hdfs.nn.site["dfs.namenode.rpc-address.#{ryba.nameservice}.#{nn_ctx.config.shortname}"] ?= "#{nn_ctx.config.host}:8020"
-          ryba.hdfs.nn.site["dfs.namenode.http-address.#{ryba.nameservice}.#{nn_ctx.config.shortname}"] ?= "#{nn_ctx.config.host}:50070"
-          ryba.hdfs.nn.site["dfs.namenode.https-address.#{ryba.nameservice}.#{nn_ctx.config.shortname}"] ?= "#{nn_ctx.config.host}:50470"
-        ryba.hdfs.nn.site["dfs.client.failover.proxy.provider.#{ryba.nameservice}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
-        ryba.hdfs.nn.site['dfs.ha.automatic-failover.enabled'] ?= 'true'
-        ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir'] = (for jn_ctx in jn_ctxs then "#{jn_ctx.config.host}:8485").join ';'
-        ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir'] = "qjournal://#{ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir']}/#{ryba.hdfs.nn.site['dfs.nameservices']}"
+      options.site['dfs.internal.nameservices'] ?= options.site['dfs.nameservices']
+      options.site["dfs.ha.namenodes.#{options.site['dfs.nameservices']}"] = (for srv in service.use.hdfs_nn then srv.options.hostname).join ','
+      for srv in service.use.hdfs_nn
+        options.site['dfs.namenode.http-address'] = null
+        options.site['dfs.namenode.https-address'] = null
+        options.site["dfs.namenode.rpc-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:8020"
+        options.site["dfs.namenode.http-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50070"
+        options.site["dfs.namenode.https-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50470"
+        options.site["dfs.client.failover.proxy.provider.#{options.site['dfs.nameservices']}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
+      options.site['dfs.ha.automatic-failover.enabled'] ?= 'true'
+      options.site['dfs.namenode.shared.edits.dir'] = (for srv in service.use.hdfs_jn then "#{srv.node.fqdn}:#{srv.options.site['dfs.journalnode.rpc-address'].split(':')[1]}").join ';'
+      options.site['dfs.namenode.shared.edits.dir'] = "qjournal://#{options.site['dfs.namenode.shared.edits.dir']}/#{options.site['dfs.nameservices']}"
 
+## SSL
+
+      options.ssl = merge options.ssl or {}, service.use.hadoop_core.options.ssl
+      options.ssl_server = merge service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+        'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
+        'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
+      options.ssl_client = merge service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+        'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ### Fencing
 
@@ -144,81 +185,111 @@ namenode from the new one to "shoot it in the head" (STONITH).
 If the previous master machine is dead, ssh connection will fail, so another
 fencing method should be configured to not block failover.
 
-        ryba.hdfs.nn.site['dfs.ha.fencing.methods'] ?= """
-        sshfence(#{ryba.hdfs.user.name})
-        shell(/bin/true)
-        """
-        ryba.hdfs.nn.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
-        ryba.hdfs.nn.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{ryba.hdfs.user.home}/.ssh/id_rsa"
+      options.site['dfs.ha.fencing.methods'] ?= """
+      sshfence(#{options.user.name})
+      shell(/bin/true)
+      """
+      options.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
+      options.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
 
-      hdfs_ctxs = @contexts ['ryba/hadoop/hdfs_dn', 'ryba/hadoop/hdfs_snn', 'ryba/hadoop/httpfs']
-      for hdfs_ctx in hdfs_ctxs
-        hdfs_ctx.config ?= {}
-        hdfs_ctx.config.ryba.hdfs ?= {}
-        hdfs_ctx.config.ryba.hdfs.site ?= {}
-        hdfs_ctx.config.ryba.hdfs.site['dfs.http.policy'] ?= @config.ryba.hdfs.nn.site['dfs.http.policy']
+## Metrics
 
-## Namenode JAVA Virtual Machine Options
-
-      ryba.hdfs.nn.heapsize ?= '1024m'
-      ryba.hdfs.nn.newsize ?= '200m'
-      ryba.hdfs.nn.java_opts ?= ""
-
-## Namenode Java Options
-
-      # opts will be rendered as -Dkey=value and appended to java_opts
-      ryba.hdfs.nn.opts ?= {}
+      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
 
 ## Configuration for Log4J
 
-      ryba.hdfs.nn.log4j ?= {}
-      ryba.hdfs.nn.root_logger ?= 'INFO,RFA'
-      ryba.hdfs.nn.security_logger ?= 'INFO,DRFAS'
-      ryba.hdfs.nn.audit_logger ?= 'INFO,RFAAUDIT'
+      options.log4j ?= {}
+      options.root_logger ?= 'INFO,RFA'
+      options.security_logger ?= 'INFO,DRFAS'
+      options.audit_logger ?= 'INFO,RFAAUDIT'
       # adding SOCKET appender
       if @config.log4j?.services?
         if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hadoop/hdfs_nn' in @config.log4j?.services)
-          ryba.hdfs.nn.socket_client ?= "SOCKET"
+          options.socket_client ?= "SOCKET"
           # Root logger
-          if ryba.hdfs.nn.root_logger.indexOf(ryba.hdfs.nn.socket_client) is -1
-          then ryba.hdfs.nn.root_logger += ",#{ryba.hdfs.nn.socket_client}"
+          if options.root_logger.indexOf(options.socket_client) is -1
+          then options.root_logger += ",#{options.socket_client}"
           # Security Logger
-          if ryba.hdfs.nn.security_logger.indexOf(ryba.hdfs.nn.socket_client) is -1
-          then ryba.hdfs.nn.security_logger += ",#{ryba.hdfs.nn.socket_client}"
+          if options.security_logger.indexOf(options.socket_client) is -1
+          then options.security_logger += ",#{options.socket_client}"
           # Audit Logger
-          if ryba.hdfs.nn.audit_logger.indexOf(ryba.hdfs.nn.socket_client) is -1
-          then ryba.hdfs.nn.audit_logger += ",#{ryba.hdfs.nn.socket_client}"
+          if options.audit_logger.indexOf(options.socket_client) is -1
+          then options.audit_logger += ",#{options.socket_client}"
           # Adding Application name, remote host and port values in namenode's opts
-          ryba.hdfs.nn.opts['hadoop.log.application'] ?= 'namenode'
-          ryba.hdfs.nn.opts['hadoop.log.remote_host'] ?= @config.log4j.remote_host
-          ryba.hdfs.nn.opts['hadoop.log.remote_port'] ?= @config.log4j.remote_port
+          options.opts['hadoop.log.application'] ?= 'namenode'
+          options.opts['hadoop.log.remote_host'] ?= @config.log4j.remote_host
+          options.opts['hadoop.log.remote_port'] ?= @config.log4j.remote_port
 
-          ryba.hdfs.nn.socket_opts ?=
+          options.socket_opts ?=
             Application: '${hadoop.log.application}'
             RemoteHost: '${hadoop.log.remote_host}'
             Port: '${hadoop.log.remote_port}'
             ReconnectionDelay: '10000'
 
-          ryba.hdfs.nn.log4j = merge ryba.hdfs.nn.log4j, appender
+          options.log4j = merge options.log4j, appender
             type: 'org.apache.log4j.net.SocketAppender'
-            name: ryba.hdfs.nn.socket_client
-            logj4: ryba.hdfs.nn.log4j
-            properties: ryba.hdfs.nn.socket_opts
+            name: options.socket_client
+            logj4: options.log4j
+            properties: options.socket_opts
+
+## Ranger
+
+      options.ranger = true if service.use.ranger_admin
 
 ## Export configuration
 
-      for dn_ctx in dn_ctxs
-        # dn_ctx.config ?= {}
-        # dn_ctx.config.ryba.hdfs ?= {}
-        # dn_ctx.config.ryba.hdfs.dn ?= {}
-        # dn_ctx.config.ryba.hdfs.dn.site ?= {}
-        dn_ctx.config.ryba.hdfs.dn.site['fs.permissions.umask-mode'] ?= ryba.hdfs.nn.site['fs.permissions.umask-mode']
-        dn_ctx.config.ryba.hdfs.dn.site['dfs.block.access.token.enable'] ?= ryba.hdfs.nn.site['dfs.block.access.token.enable']
-        
-        dn_ctx.config.ryba.hdfs.dn.core_site['fs.defaultFS'] ?= @config.ryba.core_site['fs.defaultFS']
+      for srv in service.use.hdfs_dn
+        for property in [
+          'dfs.namenode.kerberos.principal'
+          'dfs.namenode.kerberos.internal.spnego.principal'
+          'dfs.namenode.kerberos.https.principal'
+          'dfs.web.authentication.kerberos.principal'
+          'dfs.ha.automatic-failover.enabled'
+          'dfs.nameservices'
+          'dfs.internal.nameservices'
+          'fs.permissions.umask-mode'
+          'dfs.block.access.token.enable'
+        ] then srv.options.site[property] ?= options.site[property]
+        for property of options.site
+          ok = false
+          ok = true if /^dfs\.namenode\.\w+-address/.test property
+          ok = true if property.indexOf('dfs.ha.namenodes.') is 0
+          ok = true if property.indexOf('dfs.namenode.rpc-address.') is 0
+          ok = true if property.indexOf('dfs.namenode.http-address.') is 0
+          ok = true if property.indexOf('dfs.namenode.https-address.') is 0
+          continue unless ok
+          srv.options.site[property] = options.site[property]
+
+## Wait
+
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_hdfs_jn = service.use.hdfs_jn[0].options.wait
+      options.wait_hdfs_dn = service.use.hdfs_dn[0].options.wait
+      options.wait = {}
+      options.wait.ipc = for srv in service.use.hdfs_nn
+        nameservice =  if options.site['dfs.nameservices'] then ".#{options.site['dfs.nameservices']}" or ''
+        hostname = if options.site['dfs.nameservices'] then ".#{srv.node.hostname}" else ''
+        if srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"]
+         [fqdn, port] = srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"].split(':')
+        else 
+          fqdn = srv.node.fqdn
+          port = 8020
+        host: fqdn, port: port
+      options.wait.http = for srv in service.use.hdfs_nn
+        protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        nameservice =  if options.site['dfs.nameservices'] then ".#{options.site['dfs.nameservices']}" or ''
+        hostname = if options.site['dfs.nameservices'] then ".#{srv.node.hostname}" else ''
+        if srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"]
+          [fqdn, port] = srv.options.site["dfs.namenode.#{protocol}-address#{nameservice}#{hostname}"].split(':')
+        else 
+          fqdn = srv.node.fqdn
+          port = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then '50070' else '50470'
+        host: fqdn, port: port
+      options.wait.krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Dependencies
 
     string = require 'nikita/lib/misc/string'
     {merge} = require 'nikita/lib/misc'
     appender = require '../../lib/appender'
+    migration = require 'masson/lib/migration'

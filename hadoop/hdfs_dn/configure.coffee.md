@@ -38,7 +38,7 @@ Example:
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.dn ?= {}
-      options = @config.ryba.hdfs.dn ?= service.options
+      options = @config.ryba.hdfs.dn = service.options
 
 ## Environment
 
@@ -47,7 +47,6 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
       options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
       options.secure_dn_pid_dir ?= service.use.hadoop_core.options.hdfs.secure_dn_pid_dir
       options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
-      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
       options.conf_dir ?= '/etc/hadoop-hdfs-datanode/conf'
       # Java
       options.opts ?= {}
@@ -57,18 +56,22 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
       options.heapsize ?= '1024m'
       options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
       # Misc
+      options.clean_logs ?= false
+      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
       options.sysctl ?= {}
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 ## Identities
 
-      options.hadoop_group ?= merge options.hadoop_group or {}, service.use.hadoop_core.options.hadoop_group
-      options.group ?= merge options.group or {}, service.use.hadoop_core.options.hdfs.group
-      options.user ?= merge options.user or {}, service.use.hadoop_core.options.hdfs.user
+      options.hadoop_group ?= merge {}, options.hadoop_group or {}, service.use.hadoop_core.options.hadoop_group
+      options.group ?= merge {}, options.group or {}, service.use.hadoop_core.options.hdfs.group
+      options.user ?= merge {}, options.user or {}, service.use.hadoop_core.options.hdfs.user
 
 ## Configuration
 
-      options.core_site = merge options.core_site or {}, service.use.hadoop_core.options.core_site
+      options.core_site = merge {}, options.core_site or {}, service.use.hadoop_core.options.core_site
+      # Note: moved during masson migration from nn to dn
+      options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
       options.site ?= {}
       # Comma separated list of paths. Use the list of directories from $DFS_DATA_DIR.
       # For example, /grid/hadoop/hdfs/dn,/grid1/hadoop/hdfs/dn.
@@ -110,16 +113,16 @@ memory that you can lock than what you have configured.
       options.krb5.principal ?= "dn/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5.keytab ?= '/etc/security/keytabs/dn.service.keytab'
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= @config.krb5_client.admin[options.krb5.realm]
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
       # Configuration in "core-site.xml"
       options.site['dfs.datanode.kerberos.principal'] ?= options.krb5.principal.replace service.node.fqdn, '_HOST'
       options.site['dfs.datanode.keytab.file'] ?= options.krb5.keytab
 
 ## SSL
 
-      options.ssl = merge options.ssl or {}, service.use.hadoop_core.options.ssl
-      options.ssl_server = merge options.ssl_server or {}, service.use.hadoop_core.options.ssl_server
-      options.ssl_client = merge options.ssl_client or {}, service.use.hadoop_core.options.ssl_client
+      options.ssl = merge service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl_server = merge service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Tuning
 

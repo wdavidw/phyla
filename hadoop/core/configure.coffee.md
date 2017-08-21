@@ -76,7 +76,7 @@ Default configuration:
         zookeeper_server: key: ['ryba', 'zookeeper']
         ganglia: key: ['ryba', 'ganglia']
         graphite: key: ['ryba', 'graphite']
-      options = @config.ryba ?= service.options
+      options = @config.ryba = service.options
       options.yarn ?= {}
       options.mapred ?= {}
 
@@ -101,17 +101,16 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.hdfs.pid_dir ?= '/var/run/hadoop-hdfs'
       options.hdfs.secure_dn_pid_dir ?= '/var/run/hadoop-hdfs' # /$HADOOP_SECURE_DN_USER
       options.hdfs.secure_dn_user ?= options.hdfs.user.name
+      # Java
       options.hadoop_opts ?= '-Djava.net.preferIPv4Stack=true'
       options.hadoop_classpath ?= ''
       options.hadoop_heap ?= '1024'
-      options.hadoop_namenode_init_heap ?= '-Xms1024m'
       options.hadoop_client_opts ?= '-Xmx2048m'
-      options.hadoop_policy ?= {}
 
 ## HA Configuration
 
-      options.nameservice ?= null
-      throw Error "Invalid Service Name" unless options.nameservice
+      # options.nameservice ?= null
+      # throw Error "Invalid Service Name" unless options.nameservice
 
 ## Identities
 
@@ -206,7 +205,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.krb5 ?= {}
       options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
       # Spnego
       options.spnego ?= {}
       options.spnego.principal ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"

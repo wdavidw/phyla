@@ -7,31 +7,24 @@ In HA mode, to ensure that the leadership is assigned to the desired active
 NameNode, the ZKFC daemons on the standy NameNodes wait for the one on the
 active NameNode to start first.
 
-    module.exports = header: 'HDFS ZKFC Start', label_true: 'STARTED', handler: ->
-      {hdfs, active_nn_host, standby_nn_host} = @config.ryba
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      active_shortname = nn_ctxs.filter( (nn) -> nn.config.host is active_nn_host )[0].config.shortname
-      standby_shortname = nn_ctxs.filter( (nn) -> nn.config.host is standby_nn_host )[0].config.shortname
+    module.exports = header: 'HDFS ZKFC Start', label_true: 'STARTED', handler: (options) ->
 
 ## Wait
 
 Wait for Kerberos, ZooKeeper and HDFS to be started.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/hadoop/hdfs_jn/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
+      # @call once: true, 'masson/core/krb5_client/wait'
+      # @call once: true, 'ryba/zookeeper/server/wait'
+      # @call once: true, 'ryba/hadoop/hdfs_jn/wait'
+      @call once: true, 'ryba/hadoop/hdfs_nn/wait', options.wait_hdfs_nn, conf_dir: options.nn_conf_dir
 
 ## Wait Active NN
 
       @wait.execute
         header: 'Wait Active NN'
         label_true: 'READY'
-        if: [
-          # nn_ctxs.length > 1
-          active_nn_host isnt @config.host
-        ]
-        cmd: mkcmd.hdfs @, "hdfs --config #{hdfs.nn.conf_dir} haadmin -getServiceState #{active_shortname}"
+        if: options.active_nn_host isnt options.fqdn
+        cmd: mkcmd.hdfs @, "hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname}"
         code_skipped: 255
 
 ## Start
@@ -46,9 +39,8 @@ su -l hdfs -c "/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /et
 ```
 
       @service.start
-        header: 'Daemon', label_true: 'STARTED'
+        header: 'Daemon'
         name: 'hadoop-hdfs-zkfc'
-        # if: nn_ctxs.length > 1
 
 ## Wait Failover
 
@@ -61,11 +53,9 @@ be executed on the same server as ZKFC.
       # before attempting to activate it.
       @system.execute
         header: 'Failover'
-        label_true: 'READY'
-        # if: nn_ctxs.length > 1
         cmd: mkcmd.hdfs @, """
-        if hdfs --config #{hdfs.nn.conf_dir} haadmin -getServiceState #{active_shortname} | grep standby;
-        then hdfs --config #{hdfs.nn.conf_dir} haadmin -ns #{@config.ryba.nameservice} -failover #{standby_shortname} #{active_shortname};
+        if hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname} | grep standby;
+        then hdfs --config #{options.nn_conf_dir} haadmin -ns #{options.dfs_nameservices} -failover #{options.standby_shortname} #{options.active_shortname};
         else exit 2; fi
         """
         code_skipped: 2

@@ -31,7 +31,7 @@
       options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
       # Admin Information
-      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
