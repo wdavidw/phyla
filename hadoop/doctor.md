@@ -173,6 +173,7 @@ Check heapsize memory settings: [HDP settings][namenode-java]
 [namenode-java]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_installing_manually_book/content/ref-80953924-1cbf-4655-9953-1e744290a6c3.1.html)
 
 ## Datanode fail to start
+
 message:
 namenode address dfs.namenode.servicerpc-address or dfs.namenode.rpc-address is not configured.
 

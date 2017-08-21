@@ -3,7 +3,7 @@
 
     module.exports = ->
       service = migration.call @, service, 'ryba/hdp', ['ryba', 'hdp'], {}
-      options = @config.ryba.hdp ?= service.options
+      options = @config.ryba.hdp = service.options
       
       options.source ?= null
       options.target ?= 'hdp.repo'

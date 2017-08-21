@@ -39,5 +39,6 @@ information and heartbeats to both.
           @call 'ryba/hadoop/hdfs_dn/start', options
         'status':
           'ryba/hadoop/hdfs_dn/status'
-        'stop':
-          'ryba/hadoop/hdfs_dn/stop'
+        'stop': ->
+          options = @config.ryba.hdfs.dn
+          @call 'ryba/hadoop/hdfs_dn/stop', options

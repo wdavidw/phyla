@@ -1,14 +1,7 @@
 
 # Hadoop ZKFC Install
 
-    module.exports = header: 'HDFS ZKFC Install', handler: ->
-      {ryba} = @config
-      {hdfs, zkfc, active_nn_host} = ryba
-      {hdfs, zkfc, core_site, hadoop_group} = ryba
-      {realm, hadoop_group, hdfs, zkfc} = ryba
-      krb5 = @config.krb5_client.admin[realm]
-      {hdfs, core_site, zkfc} = ryba
-      {hdfs, ssh_fencing, hadoop_group} = ryba
+    module.exports = header: 'HDFS ZKFC Install', handler: (options) ->
 
 ## Register
 
@@ -24,10 +17,10 @@
 
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hdfs.nn.site['dfs.ha.zkfc.port'], protocol: 'tcp', state: 'NEW', comment: "ZKFC IPC" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.site['dfs.ha.zkfc.port'], protocol: 'tcp', state: 'NEW', comment: "ZKFC IPC" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Packages
 
@@ -38,7 +31,6 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
         @service
           name: 'hadoop-hdfs-zkfc'
         @hdp_select
-          # name: 'hadoop-hdfs-client' # Not checked
           name: 'hadoop-hdfs-namenode'
         @service.init
           if_os: name: ['redhat','centos'], version: '6'
@@ -46,7 +38,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
           target: '/etc/init.d/hadoop-hdfs-zkfc'
           source: "#{__dirname}/../resources/hadoop-hdfs-zkfc.j2"
           local: true
-          context: @config
+          context: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -56,52 +48,52 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
             target: '/usr/lib/systemd/system/hadoop-hdfs-zkfc.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-zkfc-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
-            mount: hdfs.pid_dir
-            uid: hdfs.user.name
-            gid: hadoop_group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.hadoop_group.name
             perm: '0750'
 
 ## Configure
 
       @call header: 'Configure', ->
         @system.mkdir
-          target: "#{zkfc.conf_dir}"
+          target: "#{options.conf_dir}"
         @hconfigure
-          target: "#{zkfc.conf_dir}/core-site.xml"
-          properties: merge {}, core_site, zkfc.core_site
+          target: "#{options.conf_dir}/core-site.xml"
+          properties: options.core_site
           backup: true
         @hconfigure
-          target: "#{zkfc.conf_dir}/hdfs-site.xml"
+          target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true
-          properties: hdfs.nn.site
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          properties: options.site
+          uid: options.user.name
+          gid: options.hadoop_group.name
           backup: true
         @file.render
           header: 'Environment'
-          target: "#{zkfc.conf_dir}/hadoop-env.sh"
+          target: "#{options.conf_dir}/hadoop-env.sh"
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
           context:
-            HADOOP_HEAPSIZE: ryba.hadoop_heap
-            HADOOP_LOG_DIR: ryba.hdfs.log_dir
-            HADOOP_PID_DIR: ryba.hdfs.pid_dir
-            HADOOP_OPTS: ryba.hadoop_opts
-            ZKFC_OPTS: ryba.zkfc.opts
-            java_home: @config.java.java_home
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+            HADOOP_HEAPSIZE: options.hadoop_heap
+            HADOOP_LOG_DIR: options.log_dir
+            HADOOP_PID_DIR: options.pid_dir
+            HADOOP_OPTS: options.hadoop_opts
+            ZKFC_OPTS: options.opts
+            java_home: options.java_home
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
           backup: true
           eof: true
         @file
           header: 'Log4j'
-          target: "#{zkfc.conf_dir}/log4j.properties"
+          target: "#{options.conf_dir}/log4j.properties"
           source: "#{__dirname}/../resources/log4j.properties"
           local: true
 
@@ -115,28 +107,28 @@ The Jaas file is registered as an Java property inside 'hadoop-env.sh' and is
 stored as "/etc/hadoop/conf/zkfc.jaas"
 
       @call header: 'Kerberos', ->
-        zkfc_principal = zkfc.principal.replace '_HOST', @config.host
-        nn_principal = hdfs.nn.site['dfs.namenode.kerberos.principal'].replace '_HOST', @config.host
-        @krb5.addprinc krb5,
+        zkfc_principal = options.principal.replace '_HOST', @config.host
+        nn_principal = options.nn_principal.replace '_HOST', @config.host
+        @krb5.addprinc options.krb5.admin,
           principal: zkfc_principal
-          keytab: zkfc.keytab
+          keytab: options.keytab
           randkey: true
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
           if: zkfc_principal isnt nn_principal
-        @krb5.addprinc krb5,
+        @krb5.addprinc options.krb5.admin,
           principal: nn_principal
-          keytab: hdfs.nn.site['dfs.namenode.keytab.file']
+          keytab: options.nn_keytab
           randkey: true
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          uid: options.user.name
+          gid: options.hadoop_group.name
         @file.jaas
-          target: zkfc.jaas_file
+          target: options.jaas_file
           content: Client:
             principal: zkfc_principal
-            keyTab: zkfc.keytab
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+            keyTab: options.keytab
+          uid: options.user.name
+          gid: options.hadoop_group.name
 
 ## ZK Auth and ACL
 
@@ -166,21 +158,21 @@ setAcl /hadoop-ha sasl:zkfc:cdrwa,sasl:nn:cdrwa,digest:zkfc:ePBwNWc34ehcTu1FTNI7
       @call header: 'ZK Auth and ACL', ->
         acls = []
         # acls.push 'world:anyone:r'
-        jaas_user = /^(.*?)[@\/]/.exec(zkfc.principal)?[1]
-        acls.push "sasl:#{jaas_user}:cdrwa" if core_site['hadoop.security.authentication'] is 'kerberos'
+        jaas_user = /^(.*?)[@\/]/.exec(options.principal)?[1]
+        acls.push "sasl:#{jaas_user}:cdrwa" if options.core_site['hadoop.security.authentication'] is 'kerberos'
         @file
-          target: "#{zkfc.conf_dir}/zk-auth.txt"
-          content: if zkfc.digest.password then "digest:#{zkfc.digest.name}:#{zkfc.digest.password}" else ""
-          uid: hdfs.user.name
-          gid: hdfs.group.name
+          target: "#{options.conf_dir}/zk-auth.txt"
+          content: if options.digest.password then "digest:#{options.digest.name}:#{options.digest.password}" else ""
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0700
         @system.execute
           cmd: """
           export ZK_HOME=/usr/hdp/current/zookeeper-client/
-          java -cp $ZK_HOME/lib/*:$ZK_HOME/zookeeper.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider #{zkfc.digest.name}:#{zkfc.digest.password}
+          java -cp $ZK_HOME/lib/*:$ZK_HOME/zookeeper.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider #{options.digest.name}:#{options.digest.password}
           """
           shy: true
-          if: !!zkfc.digest.password
+          if: !!options.digest.password
         , (err, generated, stdout) ->
           throw err if err
           return unless generated
@@ -189,10 +181,10 @@ setAcl /hadoop-ha sasl:zkfc:cdrwa,sasl:nn:cdrwa,digest:zkfc:ePBwNWc34ehcTu1FTNI7
           acls.push "digest:#{digest}:cdrwa"
         @call ->
           @file
-            target: "#{zkfc.conf_dir}/zk-acl.txt"
+            target: "#{options.conf_dir}/zk-acl.txt"
             content: acls.join ','
-            uid: hdfs.user.name
-            gid: hdfs.group.name
+            uid: options.user.name
+            gid: options.group.name
             mode: 0o0600
 
 ## SSH Fencing
@@ -212,49 +204,50 @@ inserted if ALL users or the HDFS user access is denied.
 
       @call
         header: 'SSH Fencing'
-        # if: -> @contexts('ryba/hadoop/hdfs_nn').length > 1
       , ->
         @system.mkdir
-          target: "#{hdfs.user.home}/.ssh"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          target: "#{options.user.home}/.ssh"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o700
         @file.download
-          source: "#{ssh_fencing.private_key}"
-          target: "#{hdfs.user.home}/.ssh/id_rsa"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          source: "#{options.ssh_fencing.private_key}"
+          target: "#{options.user.home}/.ssh/id_rsa"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o600
         @file.download
-          source: "#{ssh_fencing.public_key}"
-          target: "#{hdfs.user.home}/.ssh/id_rsa.pub"
-          uid: hdfs.user.name
-          gid: hadoop_group.name
+          source: "#{options.ssh_fencing.public_key}"
+          target: "#{options.user.home}/.ssh/id_rsa.pub"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o644
         @call (_, callback) ->
-          fs.readFile "#{ssh_fencing.public_key}", (err, content) =>
+          fs.readFile "#{options.ssh_fencing.public_key}", (err, content) =>
             return callback err if err
             @file
-              target: "#{hdfs.user.home}/.ssh/authorized_keys"
+              target: "#{options.user.home}/.ssh/authorized_keys"
               content: content
               append: true
-              uid: hdfs.user.name
-              gid: hadoop_group.name
+              uid: options.user.name
+              gid: options.hadoop_group.name
               mode: 0o600
             , (err, written) =>
               return callback err if err
               @fs.readFile '/etc/security/access.conf', 'utf8', (err, source) =>
                 return callback err if err
                 content = []
-                exclude = ///^\-\s?:\s?(ALL|#{hdfs.user.name})\s?:\s?(.*?)\s*?(#.*)?$///
-                include = ///^\+\s?:\s?(#{hdfs.user.name})\s?:\s?(.*?)\s*?(#.*)?$///
+                # exclude = ///^\-\s?:\s?(ALL|#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$///
+                # include = ///^\+\s?:\s?(#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$///
+                exclude = /^\-\s?:\s?(ALL|#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$/
+                include = /^\+\s?:\s?(#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$/
                 included = false
                 for line, i in source = source.split /\r\n|[\n\r\u0085\u2028\u2029]/g
                   if match = include.exec line
                     included = true # we shall also check if the ip/fqdn match in origin
                   if not included and match = exclude.exec line
                     nn_hosts = @contexts('ryba/hadoop/hdfs_nn').map (ctx) -> ctx.config.host
-                    content.push "+ : #{hdfs.user.name} : #{nn_hosts.join ','}"
+                    content.push "+ : #{options.user.name} : #{nn_hosts.join ','}"
                   content.push line
                 return callback null, false if content.length is source.length
                 @file
@@ -271,14 +264,15 @@ The action start by enabling automatic failover in "hdfs-site.xml" and configuri
 If this is an active NameNode, we format ZooKeeper and start the ZKFC daemon. If this is a standby
 NameNode, we wait for the active NameNode to take leadership and start the ZKFC daemon.
 
-      @call once: true, 'ryba/zookeeper/server/wait'
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
+      
       @system.execute
         header: 'Format ZK'
         if: [
-          -> active_nn_host is @config.host
-          -> hdfs.nn.site['dfs.ha.automatic-failover.enabled'] = 'true'
+          -> options.active_nn_host is options.fqdn
+          -> options.automatic_failover
         ]
-        cmd: "yes n | hdfs --config #{zkfc.conf_dir} zkfc -formatZK"
+        cmd: "yes n | hdfs --config #{options.conf_dir} zkfc -formatZK"
         code_skipped: 2
 
 ## Dependencies

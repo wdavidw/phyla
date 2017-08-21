@@ -6,7 +6,7 @@
         mysql: key: ['mysql', 'server']
         mariadb: key: ['mariadb', 'server']
         postres: key: ['postgres', 'server']
-      options = @config.ryba.db_admin ?= service.options
+      options = @config.ryba.db_admin = service.options
       
       options.engine ?= 'mysql'
 

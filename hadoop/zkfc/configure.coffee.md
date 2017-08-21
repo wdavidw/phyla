@@ -19,30 +19,93 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 }
 ```
 
-    module.exports = ->
-      zkfc_ctxs = @contexts 'ryba/hadoop/zkfc'
-      zk_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant' )
-      throw Error "Require 2 ZKFCs" unless zkfc_ctxs.length is 2
-      {ryba, host} = @config
-      ryba.zkfc ?= {}
-      ryba.zkfc.conf_dir ?= '/etc/hadoop-hdfs-zkfc/conf'
-      ryba.zkfc.core_site ?= {}
-      ryba.zkfc.core_site['ha.zookeeper.quorum'] ?= zk_ctxs.map( (ctx)-> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.port}" ).join(',')
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hadoop/zkfc', ['ryba', 'zkfc'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+      options = @config.ryba.zkfc = service.options
+
+## Identities
+
+      options.hadoop_group ?= merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group or {}
+      options.group ?= merge {}, service.use.hadoop_core.options.hdfs.group, options.group or {}
+      options.user ?= merge {}, service.use.hadoop_core.options.hdfs.user, options.user or {}
+
+## Environment
+
+      # Layout
+      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
+      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.conf_dir ?= '/etc/hadoop-hdfs-zkfc/conf'
+      options.nn_conf_dir ?= service.use.hdfs_nn.options.conf_dir
+      # Java
+      options.java_home ?= service.use.java.options.java_home
+      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
+      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
+      options.opts ?= ''
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+
+## Configuration
+
+      options.core_site ?= merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site['ha.zookeeper.quorum'] ?= service.use.zookeeper_server
+      .filter (srv) -> srv.options.config['peerType'] is 'participant'
+      .map (srv)-> "#{srv.node.fqdn}:#{srv.options.port}"
+      .join(',')
       # Validation
-      ryba.zkfc.principal ?= ryba.hdfs.nn.site['dfs.namenode.kerberos.principal']
-      ryba.zkfc.keytab ?= ryba.hdfs.nn.site['dfs.namenode.keytab.file']
-      ryba.zkfc.jaas_file ?= "#{ryba.zkfc.conf_dir}/zkfc.jaas"
-      ryba.zkfc.digest ?= {}
-      ryba.zkfc.digest.name ?= 'zkfc'
-      ryba.zkfc.digest.password ?= null
+      options.principal ?= service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
+      options.nn_principal ?= service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
+      options.keytab ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
+      options.nn_keytab ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
+      options.jaas_file ?= "#{options.conf_dir}/zkfc.jaas"
+      options.digest ?= {}
+      options.digest.name ?= 'zkfc'
+      options.digest.password ?= null
       # Environment
-      ryba.zkfc.opts ?= ''
-      if ryba.core_site['hadoop.security.authentication'] is 'kerberos'
-        ryba.zkfc.opts = "-Djava.security.auth.login.config=#{ryba.zkfc.jaas_file} #{ryba.zkfc.opts}"
+      if options.core_site['hadoop.security.authentication'] is 'kerberos'
+        options.opts = "-Djava.security.auth.login.config=#{options.jaas_file} #{options.opts}"
       # Enrich "core-site.xml" with acl and auth
-      ryba.core_site['ha.zookeeper.acl'] ?= "@#{ryba.zkfc.conf_dir}/zk-acl.txt"
-      ryba.core_site['ha.zookeeper.auth'] = "@#{ryba.zkfc.conf_dir}/zk-auth.txt"
-      # ryba.hdfs.nn.site['hdfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
-      ryba.hdfs.nn.site['dfs.ha.zkfc.port'] ?= '8019'
-      # Import NameNode properties
-      # Note: need 'ha.zookeeper.quorum', 'dfs.ha.automatic-failover.enabled'
+      options.core_site['ha.zookeeper.acl'] ?= "@#{options.conf_dir}/zk-acl.txt"
+      options.core_site['ha.zookeeper.auth'] = "@#{options.conf_dir}/zk-auth.txt"
+      # Enrich "hdfs-site.xml"
+      options.site ?= {}
+      options.site['dfs.ha.zkfc.port'] ?= '8019'
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+
+## HA
+
+      options.dfs_nameservices ?= service.use.hdfs_nn.options.site['dfs.nameservices']
+      options.automatic_failover ?= service.use.hdfs_nn.options.site['dfs.ha.automatic-failover.enabled'] is 'true'
+      options.active_nn_host ?= service.use.hdfs_nn.options.active_nn_host
+      options.standby_nn_host ?= service.use.hdfs_nn.options.standby_nn_host
+      options.active_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.active_nn_host )[0].hostname
+      options.standby_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.standby_nn_host )[0].hostname
+      # options.active_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
+      # options.standby_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
+
+## SSH Fencing
+
+      throw Error "Required Option: ssh_fencing.private_key" unless options.ssh_fencing.private_key
+      throw Error "Required Option: ssh_fencing.public_key" unless options.ssh_fencing.public_key
+
+## Wait
+
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn.options.wait
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

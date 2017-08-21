@@ -4,7 +4,7 @@ This modules configures every hadoop plugin needed to enable Ranger. It configur
 variables but also inject some function to be executed.
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/hadoop/hdfs_jn', ['ryba', 'hdfs', 'jn'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ranger/admin', ['ryba', 'ranger', 'admin'], require('nikita/lib/misc').merge require('.').use,
         iptables: key: ['iptables']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
@@ -17,7 +17,7 @@ variables but also inject some function to be executed.
       @config.ryba.ranger ?= {}
       options = @config.ryba.ranger.admin ?= service.options
 
-# Ranger user & group
+## Identities
 
       # Group
       options.group ?= {}
@@ -95,6 +95,7 @@ User can be External and Internal. Only Internal users can be created from the r
       options.lock = "/etc/ranger/#{Date.now()}"
       # Ranger Admin configuration
       options.current_password ?= 'admin'
+      # TODO: wdavidw 10821, rename as admin_password
       options.password ?= 'rangerAdmin123'
       if not (/^.*[a-zA-Z]/.test(options.password) and /^.*[0-9]/.test(options.password) and options.password.length > 8)
        throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest"
@@ -484,7 +485,7 @@ Ryba injects function to the different contexts.
 
       options.plugins ?= {}
       options.plugins.principal ?= "#{options.user.name}@#{options.krb5.realm}"
-      options.plugins.password ?= 'ranger123'
+      options.plugins.password ?= 'rangerAdmin123'
 
 ## Wait
 

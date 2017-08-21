@@ -34,8 +34,8 @@
 NAME='HDFS ZKFC'
 USER='hdfs'
 GROUP='hadoop'
-CONF_DIR='{{ryba.zkfc.conf_dir}}'
-RUN_DIR='{{ryba.hdfs.pid_dir}}'
+CONF_DIR='{{conf_dir}}'
+RUN_DIR='{{pid_dir}}'
 PID_FILE="${RUN_DIR}/hadoop-hdfs-zkfc.pid"
 CMD="su -l $USER -c \"/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config $CONF_DIR --script hdfs start zkfc\""
 KILL_FORCE=0

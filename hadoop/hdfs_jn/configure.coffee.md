@@ -29,28 +29,29 @@ Example:
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.jn ?= {}
-      options = @config.ryba.hdfs.jn ?= service.options
+      options = @config.ryba.hdfs.jn = service.options
 
 ## Environment
 
       options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
-      options.conf_dir ?= '/etc/hadoop-hdfs-journalnode/conf'
       options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.conf_dir ?= '/etc/hadoop-hdfs-journalnode/conf'
       options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
       # Java
       options.java_home ?= service.use.java.options.java_home
+      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
       # Misc
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 ## Identities
 
-      options.hadoop_group ?= merge options.hadoop_group or {}, service.use.hadoop_core.options.hadoop_group
-      options.group ?= merge options.group or {}, service.use.hadoop_core.options.hdfs.group
-      options.user ?= merge options.user or {}, service.use.hadoop_core.options.hdfs.user
+      options.hadoop_group ?= merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group or {}
+      options.group ?= merge {}, service.use.hadoop_core.options.hdfs.group, options.group or {}
+      options.user ?= merge {}, service.use.hadoop_core.options.hdfs.user, options.user or {}
 
 ## Configuration
 
-      options.core_site = merge options.core_site or {}, service.use.hadoop_core.options.core_site
+      options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
       options.site ?= {}
       options.site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
       options.site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
@@ -66,7 +67,7 @@ Example:
       options.krb5 ?= {}
       options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      # options.krb5.admin ?= @config.krb5_client.admin[options.krb5.realm]
+      # options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
       # Kerberos
       # TODO: Principal should be "jn/{host}@{realm}", however, there is
       # no properties to have a separated keytab between jn and spnego principals

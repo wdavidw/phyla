@@ -7,27 +7,30 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: 'ryba/hadoop/core'
-        zookeeper: 'ryba/zookeeper/server'
-        hdfs_nn: implicit: true, module: 'ryba/hadoop/hdfs_nn'
+        iptables: module: 'masson/core/iptables', local: true # implicit: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true # implicit: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true # implicit: true
       configure:
         # 'ryba/hadoop/hdfs_nn/configure'
         'ryba/hadoop/zkfc/configure'
       commands:
-        'check':
-          'ryba/hadoop/zkfc/check'
-        'install': [
-          'masson/bootstrap/fs'
-          'ryba/hadoop/zkfc/install'
-          'ryba/hadoop/zkfc/start'
-          'ryba/hadoop/zkfc/check'
-        ]
-        'start':
-          'ryba/hadoop/zkfc/start'
-        'stop':
-          'ryba/hadoop/zkfc/stop'
+        'check': ->
+          options = @config.ryba.zkfc
+          @call 'ryba/hadoop/zkfc/check', options
+        'install': ->
+          options = @config.ryba.zkfc
+          # 'masson/bootstrap/fs'
+          @call 'ryba/hadoop/zkfc/install', options
+          @call 'ryba/hadoop/zkfc/start', options
+          @call 'ryba/hadoop/zkfc/check', options
+        'start': ->
+          options = @config.ryba.zkfc
+          @call 'ryba/hadoop/zkfc/start', options
+        'stop': ->
+          options = @config.ryba.zkfc
+          @call 'ryba/hadoop/zkfc/stop', options
         'status':
           'ryba/hadoop/zkfc/status'

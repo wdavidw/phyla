@@ -1,48 +1,52 @@
+
 # Ranger HDFS Plugin Install
 
-    module.exports = header: 'Ranger HDFS Plugin install', handler: ->
-      {ranger, hdfs, hadoop_group, realm, ssl_server} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5_client.admin[realm]
-      version=null
+    module.exports = header: 'Ranger HDFS Plugin install', handler: (options) ->
 
 ## HDFS Dependencies
 
-      @call 'ryba/ranger/admin/wait'
-      @call 'ryba/hadoop/hdfs_client/install'
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+      # @call 'ryba/hadoop/hdfs_client/install' #migation solved it with implicy hdfs_client requirement
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
 
-## Packages
+## HDP version
 
-      @call header: 'Packages', ->
-        @system.execute
-          header: 'Setup Execution'
-          shy:true
-          cmd: """
-          hdp-select versions | tail -1
-          """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
-        @service
-          name: "ranger-hdfs-plugin"
+      version = null
+      @system.execute
+        header: 'HDP Version'
+        shy: true
+        cmd: """
+        hdp-select versions | tail -1
+        """
+       , (err, executed,stdout, stderr) ->
+          return  err if err or not executed
+          version = stdout.trim() if executed
+
+## Package
+
+      @service
+        header: 'Package'
+        name: "ranger-hdfs-plugin"
 
 ## Layout
 
       @system.mkdir
-        target: ranger.hdfs_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+        header: 'HDFS Spool Dir'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        uid: options.hdfs_user.name
+        gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.hdfs_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
-        target: ranger.hdfs_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+        header: 'SOLR Spool Dir'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.hdfs_user.name
+        gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.hdfs_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
-## Plugin Scripts 
+## Plugin Scripts
+
 From HDP 2.5 (Ranger 0.6) hdfs plugin need a Client JAAS configuration file to
 talk with kerberized component.
 The JAAS configuration can be donne with a jaas file and the Namenonde Env property
@@ -51,7 +55,7 @@ Not documented be taken from [github-source][hdfs-plugin-source]
 
       @call
         header: 'HDFS Plugin'
-      , (options, callback) ->
+      , (_, callback) ->
         files = ['ranger-hdfs-audit.xml','ranger-hdfs-security.xml','ranger-policymgr-ssl.xml', 'hdfs-site.xml']
         sources_props = {}
         current_props = {}
@@ -65,7 +69,7 @@ Not documented be taken from [github-source][hdfs-plugin-source]
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.hdfs_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -73,15 +77,15 @@ Not documented be taken from [github-source][hdfs-plugin-source]
           cmd: """
           echo '' | keytool -list \
             -storetype jceks \
-            -keystore /etc/ranger/#{ranger.hdfs_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+            -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
           """
           code_skipped: 1
         @call
           if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
         , ->
-          @each files, (options, cb) ->
-            file = options.key
-            target = "#{hdfs.nn.conf_dir}/#{file}"
+          @each files, (file, cb) ->
+            file = file.key
+            target = "#{options.hdfs_conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return cb err if err
               return cb() unless exists
@@ -95,7 +99,7 @@ Not documented be taken from [github-source][hdfs-plugin-source]
           target: "/usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{hdfs.nn.conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.hdfs_conf_dir}"
             ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/hadoop-hdfs-namenode"
@@ -117,18 +121,18 @@ Not documented be taken from [github-source][hdfs-plugin-source]
           """
         @hconfigure
           header: 'Fix Conf'
-          target: "#{hdfs.nn.conf_dir}/ranger-hdfs-security.xml"
+          target: "#{options.hdfs_conf_dir}/ranger-hdfs-security.xml"
           merge: true
           properties:
-            'ranger.plugin.hdfs.policy.rest.ssl.config.file': "#{hdfs.nn.conf_dir}/ranger-policymgr-ssl.xml"
+            'ranger.plugin.hdfs.policy.rest.ssl.config.file': "#{options.hdfs_conf_dir}/ranger-policymgr-ssl.xml"
         @hconfigure
           header: 'Solr JAAS'
-          target: "#{hdfs.nn.conf_dir}/ranger-hdfs-audit.xml"
+          target: "#{options.hdfs_conf_dir}/ranger-hdfs-audit.xml"
           merge: true
-          properties: ranger.hdfs_plugin.audit
-        @each files, (options, cb) ->
-          file = options.key
-          target = "#{hdfs.nn.conf_dir}/#{file}"
+          properties: options.audit
+        @each files, (file, cb) ->
+          file = file.key
+          target = "#{options.hdfs_conf_dir}/#{file}"
           @fs.exists target, (err, exists) ->
             return callback err if err
             properties.read options.ssh, target , (err, props) ->
@@ -151,7 +155,6 @@ Not documented be taken from [github-source][hdfs-plugin-source]
 ## Dependencies
 
     quote = require 'regexp-quote'
-    path = require 'path'
     properties = require '../../../lib/properties'
 
 

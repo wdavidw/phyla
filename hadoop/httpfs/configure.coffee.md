@@ -49,6 +49,7 @@ The default configuration is located inside the source code in the location
       httpfs.env.HTTPFS_SSL_KEYSTORE_PASS ?= 'ryba123' # Default to "password"
       # Site
       httpfs.site ?= {}
+      httpfs.site['dfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
       httpfs.site['httpfs.hadoop.config.dir'] ?= '/etc/hadoop/conf'
       httpfs.site['kerberos.realm'] ?= "#{realm}"
       httpfs.site['httpfs.hostname'] ?= "#{@config.host}"
