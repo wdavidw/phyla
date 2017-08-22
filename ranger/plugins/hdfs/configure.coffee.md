@@ -18,9 +18,6 @@ as external.
 ## Environment
 
       service.use.hdfs_nn.options.site['dfs.namenode.inode.attributes.provider.class'] ?= 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'
-      service.use.hdfs_nn.options.namenode_opts ?= ''
-      service.use.hdfs_nn.options.namenode_opts += " -Djavax.net.ssl.trustStore=#{service.use.hdfs_nn.options.ssl_client['ssl.server.truststore.location']}"
-      service.use.hdfs_nn.options.namenode_opts += " -Djavax.net.ssl.trustStorePassword=#{service.use.hdfs_nn.options.ssl_client['ssl.client.truststore.password']}"
       options.hdfs_conf_dir = service.use.hdfs_nn.options.conf_dir
 
 ## Identities
