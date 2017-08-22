@@ -2,6 +2,10 @@
 
     module.exports = header: 'HDFS NN layout', handler: (options) ->
 
+## Register
+
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+
 ## Wait
 
 Wait for the DataNodes and NameNodes to be started.
@@ -52,7 +56,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           """
           code_skipped: 2
         , (err, executed, stdout) ->
-          options.log? 'Directory "/user" prepared' if executed
+          options.log? 'Directory "/user/{test_user}" prepared' if executed
         @system.execute
           cmd: mkcmd.hdfs @, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /apps; then exit 2; fi
@@ -88,15 +92,16 @@ Create a Unix and Kerberos test user, by default "test" and execute simple HDFS 
 the NameNode is properly working. Note, those commands are NameNode specific, meaning they only
 afect HDFS metadata.
 
-      @system.execute
+      @hdfs_mkdir
         header: 'User Test'
-        cmd: mkcmd.hdfs @, """
-        if hdfs --config '#{options.conf_dir}' dfs -test -d /user/#{options.user.name}; then exit 2; fi
-        hdfs --config '#{options.conf_dir}' dfs -mkdir /user/#{options.user.name}
-        hdfs --config '#{options.conf_dir}' dfs -chown #{options.user.name}:#{options.group.name} /user/#{options.user.name}
-        hdfs --config '#{options.conf_dir}' dfs -chmod 750 /user/#{options.user.name}
-        """
-        code_skipped: 2
+        target: "/user/#{options.test.user.name}"
+        user: options.test.user.name
+        group: options.test.group.name
+        mode: 0o0750
+        conf_dir: options.conf_dir
+        krb5_user:
+          principal: options.site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
+          keytab: options.site['dfs.namenode.keytab.file']
 
 ## Dependencies
 

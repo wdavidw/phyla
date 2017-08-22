@@ -34,14 +34,14 @@ Worth to investigate:
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      unless options.site['dfs.nameservices']
+      unless options.nameservice
         [_, port_rcp] = options.core_site['fs.defaultFS'].split ':'
         [_, port_rcp] = options.site['dfs.namenode.http-address'].split ':'
         [_, port_rcp] = options.site['dfs.namenode.https-address'].split ':'
       else
-        [_, port_rcp] = options.site["dfs.namenode.rpc-address.#{options.site['dfs.nameservices']}.#{options.hostname}"].split ':'
-        [_, port_http] = options.site["dfs.namenode.http-address.#{options.site['dfs.nameservices']}.#{options.hostname}"].split ':'
-        [_, port_https] = options.site["dfs.namenode.https-address.#{options.site['dfs.nameservices']}.#{options.hostname}"].split ':'
+        [_, port_rcp] = options.site["dfs.namenode.rpc-address.#{options.nameservice}.#{options.hostname}"].split ':'
+        [_, port_http] = options.site["dfs.namenode.http-address.#{options.nameservice}.#{options.hostname}"].split ':'
+        [_, port_https] = options.site["dfs.namenode.https-address.#{options.nameservice}.#{options.hostname}"].split ':'
       @tools.iptables
         header: 'IPTables'
         if: options.iptables
@@ -314,12 +314,12 @@ if the NameNode was formated.
         # For non HA mode
         @system.execute
           cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format\""
-          unless: options.site['dfs.nameservices']
+          unless: options.nameservice
           unless_exists: "#{any_dfs_name_dir}/current/VERSION"
         # For HA mode, on the leader namenode
         @system.execute
-          cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format -clusterId '#{options.site['dfs.nameservices']}'\""
-          if: options.site['dfs.nameservices'] and options.active_nn_host is options.fqdn
+          cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format -clusterId '#{options.nameservice}'\""
+          if: options.nameservice and options.active_nn_host is options.fqdn
           unless_exists: "#{any_dfs_name_dir}/current/VERSION"
 
 ## HA Init Standby NameNodes
@@ -330,7 +330,7 @@ is only executed on the standby NameNode.
 
       @call
         header: 'HA Init Standby'
-        if: -> options.site['dfs.nameservices']
+        if: -> options.nameservice
         unless: -> options.fqdn is options.active_nn_host
       , ->
         @connection.wait

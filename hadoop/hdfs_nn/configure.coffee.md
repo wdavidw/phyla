@@ -29,6 +29,7 @@ Example:
         iptables: key: ['iptables']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
         zookeeper_server: key: ['ryba', 'zookeeper']
         hadoop_core: key: ['ryba']
         hdfs_jn: key: ['ryba', 'hdfs', 'jn']
@@ -140,8 +141,10 @@ service's TCP port.
         options.site['dfs.nameservices'] = null
       # HDFS HA configuration
       else if service.nodes.length is 2
-        throw Error "Required Option: site['dfs.nameservices']" unless options.site['dfs.nameservices']
-        options.core_site['fs.defaultFS'] ?= "hdfs://#{options.site['dfs.nameservices']}"
+        throw Error "Required Option: options.nameservice" unless options.nameservice
+        options.site['dfs.nameservices'] ?= ''
+        options.site['dfs.nameservices'] += " #{options.nameservice}" unless options.nameservice in options.site['dfs.nameservices'].split ' '
+        options.core_site['fs.defaultFS'] ?= "hdfs://#{options.nameservice}"
         options.active_nn_host ?= service.nodes[0].fqdn
         options.standby_nn_host = service.nodes.filter( (node) -> node.fqdn isnt options.active_nn_host )[0].fqdn
         for srv in service.use.hdfs_nn
@@ -154,18 +157,19 @@ Since [HDFS-6376](https://issues.apache.org/jira/browse/HDFS-6376),
 Nameservice must be explicitely set as internal to provide other nameservices, 
 for distcp purpose.
 
-      options.site['dfs.internal.nameservices'] ?= options.site['dfs.nameservices']
-      options.site["dfs.ha.namenodes.#{options.site['dfs.nameservices']}"] = (for srv in service.use.hdfs_nn then srv.options.hostname).join ','
+      options.site['dfs.internal.nameservices'] ?= ''
+      options.site['dfs.internal.nameservices'] += " #{options.nameservice}" unless options.nameservice in options.site['dfs.internal.nameservices'].split ' '
+      options.site["dfs.ha.namenodes.#{options.nameservice}"] = (for srv in service.use.hdfs_nn then srv.options.hostname).join ','
       for srv in service.use.hdfs_nn
         options.site['dfs.namenode.http-address'] = null
         options.site['dfs.namenode.https-address'] = null
-        options.site["dfs.namenode.rpc-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:8020"
-        options.site["dfs.namenode.http-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50070"
-        options.site["dfs.namenode.https-address.#{options.site['dfs.nameservices']}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50470"
-        options.site["dfs.client.failover.proxy.provider.#{options.site['dfs.nameservices']}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
+        options.site["dfs.namenode.rpc-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:8020"
+        options.site["dfs.namenode.http-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50070"
+        options.site["dfs.namenode.https-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50470"
+        options.site["dfs.client.failover.proxy.provider.#{options.nameservice}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
       options.site['dfs.ha.automatic-failover.enabled'] ?= 'true'
       options.site['dfs.namenode.shared.edits.dir'] = (for srv in service.use.hdfs_jn then "#{srv.node.fqdn}:#{srv.options.site['dfs.journalnode.rpc-address'].split(':')[1]}").join ';'
-      options.site['dfs.namenode.shared.edits.dir'] = "qjournal://#{options.site['dfs.namenode.shared.edits.dir']}/#{options.site['dfs.nameservices']}"
+      options.site['dfs.namenode.shared.edits.dir'] = "qjournal://#{options.site['dfs.namenode.shared.edits.dir']}/#{options.nameservice}"
 
 ## SSL
 
@@ -176,21 +180,21 @@ for distcp purpose.
       options.ssl_client = merge service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
-### Fencing
-
-To prevent split-brain scenario, in addition to the Journal Quorum Process for
-write, sshfence allow ssh connection to the previous disfunctioning active
-namenode from the new one to "shoot it in the head" (STONITH).
-
-If the previous master machine is dead, ssh connection will fail, so another
-fencing method should be configured to not block failover.
-
-      options.site['dfs.ha.fencing.methods'] ?= """
-      sshfence(#{options.user.name})
-      shell(/bin/true)
-      """
-      options.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
-      options.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
+# ### Fencing
+# 
+# To prevent split-brain scenario, in addition to the Journal Quorum Process for
+# write, sshfence allow ssh connection to the previous disfunctioning active
+# namenode from the new one to "shoot it in the head" (STONITH).
+# 
+# If the previous master machine is dead, ssh connection will fail, so another
+# fencing method should be configured to not block failover.
+# 
+#       options.site['dfs.ha.fencing.methods'] ?= """
+#       sshfence(#{options.user.name})
+#       shell(/bin/true)
+#       """
+#       options.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
+#       options.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
 
 ## Metrics
 
@@ -254,11 +258,15 @@ fencing method should be configured to not block failover.
           ok = false
           ok = true if /^dfs\.namenode\.\w+-address/.test property
           ok = true if property.indexOf('dfs.ha.namenodes.') is 0
-          ok = true if property.indexOf('dfs.namenode.rpc-address.') is 0
-          ok = true if property.indexOf('dfs.namenode.http-address.') is 0
-          ok = true if property.indexOf('dfs.namenode.https-address.') is 0
+          # ok = true if property.indexOf('dfs.namenode.rpc-address.') is 0
+          # ok = true if property.indexOf('dfs.namenode.http-address.') is 0
+          # ok = true if property.indexOf('dfs.namenode.https-address.') is 0
           continue unless ok
           srv.options.site[property] = options.site[property]
+
+## Test
+
+      options.test = merge {}, service.use.test_user.options, options.test_user or {}
 
 ## Wait
 
@@ -266,9 +274,10 @@ fencing method should be configured to not block failover.
       options.wait_hdfs_jn = service.use.hdfs_jn[0].options.wait
       options.wait_hdfs_dn = service.use.hdfs_dn[0].options.wait
       options.wait = {}
+      options.wait.conf_dir = options.conf_dir
       options.wait.ipc = for srv in service.use.hdfs_nn
-        nameservice =  if options.site['dfs.nameservices'] then ".#{options.site['dfs.nameservices']}" or ''
-        hostname = if options.site['dfs.nameservices'] then ".#{srv.node.hostname}" else ''
+        nameservice =  if options.nameservice then ".#{options.nameservice}" or ''
+        hostname = if options.nameservice then ".#{srv.node.hostname}" else ''
         if srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"]
          [fqdn, port] = srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"].split(':')
         else 
@@ -277,8 +286,8 @@ fencing method should be configured to not block failover.
         host: fqdn, port: port
       options.wait.http = for srv in service.use.hdfs_nn
         protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-        nameservice =  if options.site['dfs.nameservices'] then ".#{options.site['dfs.nameservices']}" or ''
-        hostname = if options.site['dfs.nameservices'] then ".#{srv.node.hostname}" else ''
+        nameservice =  if options.nameservice then ".#{options.nameservice}" or ''
+        hostname = if options.nameservice then ".#{srv.node.hostname}" else ''
         if srv.options.site["dfs.namenode.rpc-address#{nameservice}#{hostname}"]
           [fqdn, port] = srv.options.site["dfs.namenode.#{protocol}-address#{nameservice}#{hostname}"].split(':')
         else 

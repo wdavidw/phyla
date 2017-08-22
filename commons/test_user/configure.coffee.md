@@ -2,9 +2,9 @@
 # Test User Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/commons/test_user', ['ryba'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/commons/test_user', ['ryba', 'test_user'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
-      options = @config.ryba = service.options
+      options = @config.ryba.test_user = service.options
 
       options.force_check ?= false
       
@@ -36,7 +36,7 @@
       options.krb5.user.principal ?= options.user.name
       options.krb5.user.password ?= options.user.password if options.user.password?
       throw Error "Required Option: krb5.user.password" unless options.krb5.user.password
-      options.krb5.user.principal = "#{options.krb5.user.principal}@#{options.realm}" unless /.+@.+/.test options.krb5.user.principal
+      options.krb5.user.principal = "#{options.krb5.user.principal}@#{options.krb5.realm}" unless /.+@.+/.test options.krb5.user.principal
 
 ## Dependencies
 

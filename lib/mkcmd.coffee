@@ -61,9 +61,9 @@ module.exports.hdfs = (ctx, cmd) ->
   else "su -l #{hdfs.user.name} -c \"#{cmd}\""
 
 module.exports.test = (ctx, cmd) ->
-  {security, user, krb5_user} = ctx.config.ryba
+  {security, user, test_user} = ctx.config.ryba
   if security is 'kerberos'
-  then "echo #{krb5_user.password} | kinit #{krb5_user.principal} >/dev/null && {\n#{cmd}\n}"
+  then "echo #{test_user.krb5.user.password} | kinit #{test_user.krb5.user.principal} >/dev/null && {\n#{cmd}\n}"
   else "su -l #{user.name} -c \"#{cmd}\""
 
 module.exports.kafka = (ctx, cmd) ->
