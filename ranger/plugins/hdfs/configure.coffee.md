@@ -27,6 +27,14 @@ as external.
       options.hdfs_user = service.use.hdfs_nn.options.user
       options.hadoop_group = service.use.hdfs_nn.options.hadoop_group
 
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+
 ## Plugin Access`
 
       options.admin_password ?= service.use.ranger_admin.options.plugins.password
@@ -54,8 +62,8 @@ The properties can be found [here][hdfs-repository]
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
       options.service_repo ?=
         'configs':
-          'username': service.use.hadoop_core.options.hdfs.krb5_user.principal
-          'password': service.use.hadoop_core.options.hdfs.krb5_user.password
+          'username': 'ranger_plugin_hdfs'
+          'password': 'RangerPluginHDS123!'
           'fs.default.name': service.use.hdfs_nn.options.core_site['fs.defaultFS']
           'hadoop.security.authentication': service.use.hdfs_nn.options.core_site['hadoop.security.authentication']
           'dfs.namenode.kerberos.principal': service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']

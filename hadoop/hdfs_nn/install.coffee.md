@@ -308,19 +308,20 @@ this NameNode isn't yet formated by detecting if the "current/VERSION" exists. T
 is only exected once all the JournalNodes are started. The NameNode is finally restarted
 if the NameNode was formated.
 
-      @call header: 'Format', ->
-        any_dfs_name_dir = options.site['dfs.namenode.name.dir'].split(',')[0]
-        any_dfs_name_dir = any_dfs_name_dir.substr(7) if any_dfs_name_dir.indexOf('file://') is 0
-        # For non HA mode
-        @system.execute
-          cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format\""
-          unless: options.nameservice
-          unless_exists: "#{any_dfs_name_dir}/current/VERSION"
-        # For HA mode, on the leader namenode
-        @system.execute
-          cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format -clusterId '#{options.nameservice}'\""
-          if: options.nameservice and options.active_nn_host is options.fqdn
-          unless_exists: "#{any_dfs_name_dir}/current/VERSION"
+      any_dfs_name_dir = options.site['dfs.namenode.name.dir'].split(',')[0]
+      any_dfs_name_dir = any_dfs_name_dir.substr(7) if any_dfs_name_dir.indexOf('file://') is 0
+      # For non HA mode
+      @system.execute
+        header: 'Format Active'
+        cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format\""
+        unless: options.nameservice
+        unless_exists: "#{any_dfs_name_dir}/current/VERSION"
+      # For HA mode, on the leader namenode
+      @system.execute
+        header: 'Format Standby'
+        cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -format -clusterId '#{options.nameservice}'\""
+        if: options.nameservice and options.active_nn_host is options.fqdn
+        unless_exists: "#{any_dfs_name_dir}/current/VERSION"
 
 ## HA Init Standby NameNodes
 

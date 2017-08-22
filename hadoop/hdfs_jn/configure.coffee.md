@@ -74,6 +74,7 @@ Example:
       options.site['dfs.journalnode.kerberos.internal.spnego.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
       options.site['dfs.journalnode.kerberos.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
       options.site['dfs.journalnode.keytab.file'] = '/etc/security/keytabs/spnego.service.keytab'
+      # options.site['dfs.namenode.kerberos.principal'] ?= "nn/_HOST@#{options.krb5.realm}"
 
 ## SSL
 
