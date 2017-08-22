@@ -7,30 +7,27 @@ In HA mode, we need to ensure both NameNodes are installed before testing SSH
 Fencing. Otherwise, a race condition may occur if a host attempt to connect
 through SSH over another one where the public key isn't yet deployed.
 
-    module.exports = header: 'HDFS NN Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
-      {user, hdfs, active_nn_host, nameservice, force_check, check_hdfs_fsck} = @config.ryba
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
+    module.exports = header: 'HDFS NN Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: (options) ->
 
 ## Wait
 
 Wait for the HDFS NameNode to be started.
 
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
+      # TODO: replaced wait with assertion
+      @call once: true, 'ryba/hadoop/hdfs_nn/wait', options.wait
 
 ## Check HTTP
 
-      is_ha = nn_ctxs.length > 1
-      # state = if not is_ha or active_nn_host is @config.host then 'active' else 'standby'
-      protocol = if hdfs.nn.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-      nameservice = if is_ha then ".#{@config.ryba.hdfs.nn.site['dfs.nameservices']}" else ''
-      shortname = if is_ha then ".#{@config.shortname}" else ''
-      address = hdfs.nn.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+      protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      nameservice = if options.nameservice then ".#{options.nameservice}" else ''
+      shortname = if options.nameservice then ".#{options.hostname}" else ''
+      address = options.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
       [_, port] = address.split ':'
       securityEnabled = protocol is 'https'
       @system.execute
         retry: 2
         header: 'HTTP'
-        cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+        cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
       , (err, executed, stdout) ->
         throw err if err
         data = JSON.parse stdout
@@ -51,8 +48,8 @@ See More http://hadoop.apache.org/docs/r2.0.2-alpha/hadoop-yarn/hadoop-yarn-site
 
       @system.execute
         header: 'HA Health'
-        if: -> nn_ctxs.length > 1
-        cmd: mkcmd.hdfs @, "hdfs --config '#{hdfs.nn.conf_dir}' haadmin -checkHealth #{@config.shortname}"
+        if: -> options.nameservice
+        cmd: mkcmd.hdfs @, "hdfs --config '#{options.conf_dir}' haadmin -checkHealth #{options.hostname}"
 
 ## Check FSCK
 
@@ -65,25 +62,25 @@ Additionnal information may be found on the [CentOS HowTos site][corblk].
 
 [corblk]: http://centoshowtos.org/hadoop/fix-corrupt-blocks-on-hdfs/
 
-      check_hdfs_fsck = if check_hdfs_fsck? then !!check_hdfs_fsck else true
+      check_hdfs_fsck = if options.check_hdfs_fsck? then !!options.check_hdfs_fsck else true
       @system.execute
         header: 'FSCK'
         retry: 3
         wait: 60000
-        cmd: mkcmd.hdfs @, "exec 5>&1; hdfs --config #{hdfs.nn.conf_dir} fsck / | tee /dev/fd/5 | tail -1 | grep HEALTHY 1>/dev/null"
-        if: force_check or check_hdfs_fsck
+        cmd: mkcmd.hdfs @, "exec 5>&1; hdfs --config #{options.conf_dir} fsck / | tee /dev/fd/5 | tail -1 | grep HEALTHY 1>/dev/null"
+        if: options.force_check or check_hdfs_fsck
 
 ## Check HDFS
 
 Attemp to place a file inside HDFS. the file "/etc/passwd" will be placed at
-"/user/{test\_user}/#{@config.host}\_dn".
+"/user/{test\_user}/{fqnd}\_dn".
 
       @system.execute
         header: 'HDFS'
         cmd: mkcmd.test @, """
-        if hdfs --config '#{hdfs.nn.conf_dir}' dfs -test -f /user/#{user.name}/#{@config.host}-nn; then exit 2; fi
+        if hdfs --config '#{options.conf_dir}' dfs -test -f /user/#{options.test.user.name}/#{options.hostname}-nn; then exit 2; fi
         echo 'Upload file to HDFS'
-        hdfs --config '#{hdfs.nn.conf_dir}' dfs -put /etc/passwd /user/#{user.name}/#{@config.host}-nn
+        hdfs --config '#{options.conf_dir}' dfs -put /etc/passwd /user/#{options.test.user.name}/#{options.hostname}-nn
         """
         code_skipped: 2
 
@@ -96,27 +93,44 @@ is not present on HDFS.
 Read [Delegation Tokens in Hadoop Security](http://www.kodkast.com/blogs/hadoop/delegation-tokens-in-hadoop-security)
 for more information.
 
-      @call header: 'WebHDFS', label_true: 'CHECKED', label_false: 'SKIPPED', ->
-        is_ha = nn_ctxs.length > 1
-        protocol = if hdfs.nn.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-        nameservice = if is_ha then ".#{@config.ryba.hdfs.nn.site['dfs.nameservices']}" else ''
-        shortname = if is_ha then ".#{nn_ctxs.filter( (ctx) -> ctx.config.host is active_nn_host )[0].config.shortname}" else ''
-        address = hdfs.nn.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+      @call
+        header: 'WebHDFS Passive'
+        if: options.active_nn_host isnt options.fqdn
+      , ->
         @system.execute
           cmd: mkcmd.test @, """
-          hdfs --config '#{hdfs.nn.conf_dir}' dfs -touchz check-#{@config.shortname}-webhdfs
-          kdestroy
-          """
-          code_skipped: 2
-        @system.execute
-          cmd: mkcmd.test @, """
-          curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{user.name}?op=LISTSTATUS"
+          curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
           kdestroy
           """
         , (err, executed, stdout) ->
           throw err if err
           try
-            count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{@config.shortname}-webhdfs").length
+            valid = JSON.parse(stdout).RemoteException.exception is 'StandbyException'
+          catch e then throw Error e
+          throw Error "Invalid result" unless valid
+      @call
+        header: 'WebHDFS Active'
+        if: options.active_nn_host is options.fqdn
+      , ->
+        protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        nameservice = if options.nameservice then ".#{options.nameservice}" else ''
+        shortname = if options.nameservice then ".#{options.hostname}" else ''
+        address = options.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+        @system.execute
+          cmd: mkcmd.test @, """
+          hdfs --config '#{options.conf_dir}' dfs -touchz check-#{options.hostname}-webhdfs
+          kdestroy
+          """
+          code_skipped: 2
+        @system.execute
+          cmd: mkcmd.test @, """
+          curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
+          kdestroy
+          """
+        , (err, executed, stdout) ->
+          throw err if err
+          try
+            count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
           catch e then throw Error e
           throw Error "Invalid result" unless count
         @system.execute
@@ -126,17 +140,17 @@ for more information.
           """
         , (err, executed, stdout) ->
           throw err if err
-          json = JSON.parse(stdout)
+          json = JSON.parse stdout
           return setTimeout do_tocken, 3000 if json.exception is 'RetriableException'
           token = json.Token.urlString
           @system.execute
             cmd: """
-            curl -s --insecure "#{protocol}://#{address}/webhdfs/v1/user/#{user.name}?delegation=#{token}&op=LISTSTATUS"
+            curl -s --insecure "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?delegation=#{token}&op=LISTSTATUS"
             """
           , (err, executed, stdout) ->
             throw err if err
             try
-              count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{@config.shortname}-webhdfs").length
+              count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
             catch e then throw Error e
             throw Error "Invalid result" unless count
 

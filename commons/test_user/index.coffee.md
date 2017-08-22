@@ -11,7 +11,7 @@ testing.
         'ryba/commons/test_user/configure'
       commands:
         'install': ->
-          options = @config.ryba
+          options = @config.ryba.test_user
           @call 'ryba/commons/test_user/install',
             group: options.group
             user: options.user

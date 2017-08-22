@@ -7,15 +7,11 @@ mechanism to connect to zookeeper using kerberos.
 Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ```json
-{
-"ryba": {
-"zkfc": {
+{ 
   "digest": {
     "name": "zkfc",
     "password": "hdfs123"
   }
-}
-}
 }
 ```
 
@@ -77,6 +73,25 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       options.site ?= {}
       options.site['dfs.ha.zkfc.port'] ?= '8019'
 
+      for property in [
+        'dfs.namenode.kerberos.principal'
+        'dfs.namenode.keytab.file'
+        # 'dfs.namenode.kerberos.internal.spnego.principal'
+        # 'dfs.namenode.kerberos.https.principal'
+        # 'dfs.web.authentication.kerberos.principal'
+        'dfs.ha.automatic-failover.enabled'
+        'dfs.nameservices'
+        'dfs.internal.nameservices'
+        'fs.permissions.umask-mode'
+      ] then options.site[property] ?= service.use.hdfs_nn.options.site[property]
+      for property, value of service.use.hdfs_nn.options.site
+        ok = false
+        ok = true if /^dfs\.namenode\.\w+-address/.test property
+        # ok = true if property.indexOf('dfs.client.failover.proxy.provider.') is 0
+        ok = true if property.indexOf('dfs.ha.namenodes.') is 0
+        continue unless ok
+        options.site[property] ?= value
+
 ## Kerberos
 
       options.krb5 ?= {}
@@ -95,8 +110,21 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       # options.active_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
       # options.standby_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
 
-## SSH Fencing
+### Fencing
 
+To prevent split-brain scenario, in addition to the Journal Quorum Process for
+write, sshfence allow ssh connection to the previous disfunctioning active
+namenode from the new one to "shoot it in the head" (STONITH).
+
+If the previous master machine is dead, ssh connection will fail, so another
+fencing method should be configured to not block failover.
+
+      options.site['dfs.ha.fencing.methods'] ?= """
+      sshfence(#{options.user.name})
+      shell(/bin/true)
+      """
+      options.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
+      options.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
       throw Error "Required Option: ssh_fencing.private_key" unless options.ssh_fencing.private_key
       throw Error "Required Option: ssh_fencing.public_key" unless options.ssh_fencing.public_key
 

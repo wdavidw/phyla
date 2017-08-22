@@ -71,7 +71,7 @@ Default configuration:
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
-        test_user: key: ['ryba']
+        test_user: key: ['ryba', 'test_user']
         hdp: key: ['ryba', 'hdp']
         zookeeper_server: key: ['ryba', 'zookeeper']
         ganglia: key: ['ryba', 'ganglia']
