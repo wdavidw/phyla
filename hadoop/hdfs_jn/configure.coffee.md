@@ -57,10 +57,10 @@ Example:
       options.site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
       options.site['dfs.journalnode.https-address'] ?= '0.0.0.0:8481'
       options.site['dfs.http.policy'] ?= 'HTTPS_ONLY'
-      # Recommandation is to ideally have dedicated disks to optmize fsyncs operation
+      # Recommandation is to ideally have dedicated disks to optimize fsyncs operation
       options.site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
       options.site['dfs.journalnode.edits.dir'] = options.site['dfs.journalnode.edits.dir'].join ',' if Array.isArray options.site['dfs.journalnode.edits.dir']
-      # ryba.hdfs.site['dfs.namenode.shared.edits.dir'] ?= nn_ctxs[0].config.ryba.hdfs.nn.site['dfs.namenode.shared.edits.dir']
+      
 
 ## Kerberos
 
@@ -74,7 +74,6 @@ Example:
       options.site['dfs.journalnode.kerberos.internal.spnego.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
       options.site['dfs.journalnode.kerberos.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
       options.site['dfs.journalnode.keytab.file'] = '/etc/security/keytabs/spnego.service.keytab'
-      # options.site['dfs.namenode.kerberos.principal'] ?= "nn/_HOST@#{options.krb5.realm}"
 
 ## SSL
 
