@@ -14,15 +14,21 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
         zookeeper_server: module: 'ryba/zookeeper/server'
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true # implicit: true
       configure:
-        # 'ryba/hadoop/hdfs_nn/configure'
         'ryba/hadoop/zkfc/configure'
+      plugin: ->
+        options = @config.ryba.zkfc
+        @before
+          type: ['service', 'start']
+          name: 'hadoop-hdfs-namenode'
+        , ->
+          @call 'ryba/hadoop/zkfc/install', options
+          @call 'ryba/hadoop/zkfc/start', options
       commands:
         'check': ->
           options = @config.ryba.zkfc
           @call 'ryba/hadoop/zkfc/check', options
         'install': ->
           options = @config.ryba.zkfc
-          # 'masson/bootstrap/fs'
           @call 'ryba/hadoop/zkfc/install', options
           @call 'ryba/hadoop/zkfc/start', options
           @call 'ryba/hadoop/zkfc/check', options
