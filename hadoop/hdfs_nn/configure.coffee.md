@@ -258,9 +258,21 @@ for distcp purpose.
           ok = false
           ok = true if /^dfs\.namenode\.\w+-address/.test property
           ok = true if property.indexOf('dfs.ha.namenodes.') is 0
-          # ok = true if property.indexOf('dfs.namenode.rpc-address.') is 0
-          # ok = true if property.indexOf('dfs.namenode.http-address.') is 0
-          # ok = true if property.indexOf('dfs.namenode.https-address.') is 0
+          continue unless ok
+          srv.options.site[property] = options.site[property]
+
+      for srv in service.use.hdfs_jn
+        for property in [
+          'dfs.namenode.kerberos.principal'
+          'dfs.nameservices'
+          'dfs.internal.nameservices'
+          'fs.permissions.umask-mode'
+          'dfs.block.access.token.enable'
+        ] then srv.options.site[property] ?= options.site[property]
+        for property of options.site
+          ok = false
+          ok = true if /^dfs\.namenode\.\w+-address/.test property
+          ok = true if property.indexOf('dfs.ha.namenodes.') is 0
           continue unless ok
           srv.options.site[property] = options.site[property]
 
