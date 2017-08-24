@@ -3,29 +3,27 @@
 
 Check the access to the HDFS cluster.
 
-    module.exports = header: 'HDFS Client Check', label_true: 'CHECKED', handler: ->
-      {core_site, user, krb5} = @config.ryba
+    module.exports = header: 'HDFS Client Check', handler: (options) ->
 
 Wait for the DataNode and NameNode.
 
-      @call once: true, 'ryba/hadoop/hdfs_dn/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
+      @call 'ryba/hadoop/hdfs_dn/wait', once: true, options.wait_hdfs_dn
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
 Run an HDFS command requiring a NameNode.
 
       @wait.execute
         header: 'NameNode'
         label_true: 'CHECKED',
-        cmd: mkcmd.test @, "hdfs dfs -test -d /user/#{user.name}"
+        cmd: mkcmd.test @, "hdfs dfs -test -d /user/#{options.test.user.name}"
 
 Run an HDFS command requiring a DataNode.
 
       @system.execute
         header: 'DataNode'
-        label_true: 'CHECKED',
         cmd: mkcmd.test @, """
-        if hdfs dfs -test -f /user/#{user.name}/#{@config.host}-hdfs; then exit 2; fi
-        hdfs dfs -touchz /user/#{user.name}/#{@config.host}-hdfs
+        if hdfs dfs -test -f /user/#{options.test.user.name}/#{options.hostname}-hdfs; then exit 2; fi
+        hdfs dfs -touchz /user/#{options.test.user.name}/#{options.hostname}-hdfs
         """
         code_skipped: 2
 
@@ -37,11 +35,10 @@ the principal name as argument and print the converted user name.
 
       @system.execute
         header: 'Kerberos Mapping'
-        label_true: 'CHECKED'
-        cmd: "hadoop org.apache.hadoop.security.HadoopKerberosName #{krb5.user.principal}"
-        if: core_site['hadoop.security.authentication'] is 'kerberos'
+        cmd: "hadoop org.apache.hadoop.security.HadoopKerberosName #{options.test.krb5.user.principal}"
+        if: options.core_site['hadoop.security.authentication'] is 'kerberos'
       , (err, _, stdout) ->
-        throw Error "Invalid mapping" if not err and stdout.indexOf("#{krb5.user.principal} to #{user.name}") is -1
+        throw Error "Invalid mapping" if not err and stdout.indexOf("#{options.test.krb5.user.principal} to #{options.test.user.name}") is -1
 
 ## Dependencies
 

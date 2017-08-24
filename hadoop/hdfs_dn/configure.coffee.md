@@ -69,7 +69,7 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
 
 ## Configuration
 
-      options.core_site = merge {}, options.core_site or {}, service.use.hadoop_core.options.core_site
+      options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
       # Note: moved during masson migration from nn to dn
       options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
       options.site ?= {}
@@ -120,9 +120,9 @@ memory that you can lock than what you have configured.
 
 ## SSL
 
-      options.ssl = merge service.use.hadoop_core.options.ssl, options.ssl or {}
-      options.ssl_server = merge service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
-      options.ssl_client = merge service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Tuning
 

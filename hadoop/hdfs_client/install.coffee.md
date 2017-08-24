@@ -1,8 +1,7 @@
 
 # Hadoop HDFS Client Install
 
-    module.exports = header: 'HDFS Client Install', handler: ->
-      {hadoop_conf_dir, hdfs, hadoop_group} = @config.ryba
+    module.exports = header: 'HDFS Client Install', handler: (options) ->
 
 ## Register
 
@@ -18,43 +17,55 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @file.render
         header: 'Env'
-        target: "#{hadoop_conf_dir}/hadoop-env.sh"
+        target: "#{options.conf_dir}/hadoop-env.sh"
         source: "#{__dirname}/../resources/hadoop-env.sh.j2"
         local: true
         context:
           HADOOP_ROOT_LOGGER: @config.ryba.hadoop_root_logger
           HADOOP_SECURITY_LOGGER: @config.ryba.hadoop_security_logger
           HDFS_AUDIT_LOGGER: @config.ryba.hadoop_audit_logger
-          HADOOP_HEAPSIZE: @config.ryba.hadoop_heap
-          HADOOP_LOG_DIR: @config.ryba.hdfs.log_dir
-          HADOOP_PID_DIR: @config.ryba.hdfs.pid_dir
-          HADOOP_OPTS: @config.ryba.hadoop_opts
-          HADOOP_CLIENT_OPTS: @config.ryba.hadoop_client_opts
-          java_home: @config.java.java_home
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+          HADOOP_HEAPSIZE: options.hadoop_heap
+          HADOOP_LOG_DIR: ''
+          HADOOP_PID_DIR: ''
+          HADOOP_OPTS: options.hadoop_opts
+          HADOOP_CLIENT_OPTS: options.hadoop_client_opts
+          java_home: options.java_home
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o755
         backup: true
         eof: true
 
-## Configuration
+## Hadoop Core Site
+
+Update the "core-site.xml" configuration file with properties from the
+"core_site" configuration.
+
+      @hconfigure
+        header: 'Core Site'
+        target: "#{options.conf_dir}/core-site.xml"
+        source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
+        local: true
+        properties: options.core_site
+        backup: true
+
+## Hadoop HDFS Site
 
 Update the "hdfs-site.xml" configuration file with properties from the
 "ryba.hdfs.site" configuration.
 
       @hconfigure
-        header: 'HDFS Configuration'
-        target: "#{hadoop_conf_dir}/hdfs-site.xml"
+        header: 'HDFS Site'
+        target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: hdfs.site
-        uid: hdfs.user.name
-        gid: hadoop_group.name
+        properties: options.site
+        uid: options.user.name
+        gid: options.group.name
         backup: true
 
       @call header: 'Jars', ->
-        {core_jars} = @config.ryba
-        core_jars = Object.keys(core_jars).map (k) -> core_jars[k]
+        core_jars = Object.keys(options.core_jars).map (k) -> options.core_jars[k]
         remote_files = null
         @call (_, callback) ->
           @fs.readdir '/usr/hdp/current/hadoop-hdfs-client/lib', (err, files) ->
@@ -81,15 +92,13 @@ Update the "hdfs-site.xml" configuration file with properties from the
 
 ## SSL
 
-      @call header: 'SSL', retry: 0, ->
-        {hadoop_conf_dir, ssl, ssl_server, ssl_client} = @config.ryba
-        ssl_client['ssl.client.truststore.location'] = "#{hadoop_conf_dir}/truststore"
+      @call header: 'SSL', ->
         @hconfigure
-          target: "#{hadoop_conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local

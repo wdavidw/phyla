@@ -81,19 +81,6 @@ Configure the topology script to enable rack awareness to Hadoop.
           backup: true
           eof: true
 
-## Configuration
-
-Update the "core-site.xml" configuration file with properties from the
-"core_site" configuration.
-
-      @hconfigure
-        header: 'Core Configuration'
-        target: "#{options.hadoop_conf_dir}/core-site.xml"
-        source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
-        local: true
-        properties: options.core_site
-        backup: true
-
 ## Keytab Directory
 
       @system.mkdir

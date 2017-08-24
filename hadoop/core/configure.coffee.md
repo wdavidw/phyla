@@ -169,36 +169,6 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.mapred.user.limits ?= {}
       options.mapred.user.limits.nofile ?= 64000
       options.mapred.user.limits.nproc ?= true
-      
-## Configuration
-
-      # Set the authentication for the cluster. Valid values are: simple or kerberos
-      options.core_site['hadoop.security.authentication'] ?= 'kerberos'
-      # Enable authorization for different protocols.
-      options.core_site['hadoop.security.authorization'] ?= 'true'
-      # A comma-separated list of protection values for secured sasl
-      # connections. Possible values are authentication, integrity and privacy.
-      # authentication means authentication only and no integrity or privacy;
-      # integrity implies authentication and integrity are enabled; and privacy
-      # implies all of authentication, integrity and privacy are enabled.
-      # hadoop.security.saslproperties.resolver.class can be used to override
-      # the hadoop.rpc.protection for a connection at the server side.
-      options.core_site['hadoop.rpc.protection'] ?= 'authentication'
-      # Default group mapping
-      options.core_site['hadoop.security.group.mapping'] ?= 'org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback'
-      # Core Jars
-      options.core_jars ?= {}
-      for k, v of options.core_jars
-        throw Error 'Invalid core_jars source' unless v.source
-        v.match ?= "#{k}-*.jar"
-        v.filename = path.basename v.source
-      # Get ZooKeeper Quorum
-      zookeeper_quorum = for srv in service.use.zookeeper_server
-        "#{srv.node.fqdn}:#{srv.options.port}"
-      options.core_site['ha.zookeeper.quorum'] ?= zookeeper_quorum
-      # Topology
-      # http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
-      options.core_site['net.topology.script.file.name'] ?= "#{options.hadoop_conf_dir}/rack_topology.sh"
 
 ## Kerberos
 
@@ -214,6 +184,31 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.hdfs.krb5_user ?= {}
       options.hdfs.krb5_user.principal ?= "#{options.hdfs.user.name}@#{options.krb5.realm}"
       throw Error "Required Property: hdfs.krb5_user.password" unless options.hdfs.krb5_user.password
+      
+## Configuration
+
+      options.core_site ?= {}
+      # Set the authentication for the cluster. Valid values are: simple or kerberos
+      options.core_site['hadoop.security.authentication'] ?= 'kerberos'
+      # Enable authorization for different protocols.
+      options.core_site['hadoop.security.authorization'] ?= 'true'
+      # A comma-separated list of protection values for secured sasl
+      # connections. Possible values are authentication, integrity and privacy.
+      # authentication means authentication only and no integrity or privacy;
+      # integrity implies authentication and integrity are enabled; and privacy
+      # implies all of authentication, integrity and privacy are enabled.
+      # hadoop.security.saslproperties.resolver.class can be used to override
+      # the hadoop.rpc.protection for a connection at the server side.
+      options.core_site['hadoop.rpc.protection'] ?= 'authentication'
+      # Default group mapping
+      options.core_site['hadoop.security.group.mapping'] ?= 'org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback'
+      # Get ZooKeeper Quorum
+      zookeeper_quorum = for srv in service.use.zookeeper_server
+        "#{srv.node.fqdn}:#{srv.options.port}"
+      options.core_site['ha.zookeeper.quorum'] ?= zookeeper_quorum
+      # Topology
+      # http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
+      options.core_site['net.topology.script.file.name'] ?= "#{options.hadoop_conf_dir}/rack_topology.sh"
 
 Configuration for HTTP
 

@@ -24,6 +24,6 @@ Clean up the log files related to the JournalNode
       @system.execute
         header: 'Clean Logs'
         label_true: 'CLEANED'
-        if: @config.ryba.clean_logs
+        if: options.clean_logs
         cmd: 'rm /var/log/hadoop-hdfs/*-journalnode-*'
         code_skipped: 1
