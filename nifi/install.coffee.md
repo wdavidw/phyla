@@ -346,7 +346,6 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
 
 ## Dependencies
 
-    glob = require 'glob'
     path = require 'path'
     quote = require 'regexp-quote'
     builder = require 'xmlbuilder'
