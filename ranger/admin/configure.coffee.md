@@ -54,7 +54,7 @@ variables but also inject some function to be executed.
 
 ## SSL
 
-      options.ssl = merge options.ssl or {}, service.use.hadoop_core.options.ssl
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
 
 ## Log4j
 

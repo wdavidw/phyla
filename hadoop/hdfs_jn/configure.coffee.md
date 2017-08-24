@@ -41,6 +41,7 @@ Example:
       options.java_home ?= service.use.java.options.java_home
       options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
       # Misc
+      options.clean_logs ?= false
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 ## Identities
@@ -77,9 +78,9 @@ Example:
 
 ## SSL
 
-      options.ssl = merge options.ssl or {}, service.use.hadoop_core.options.ssl
-      options.ssl_server = merge options.ssl_server or {}, service.use.hadoop_core.options.ssl_server
-      options.ssl_client = merge options.ssl_client or {}, service.use.hadoop_core.options.ssl_client
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Metrics
 

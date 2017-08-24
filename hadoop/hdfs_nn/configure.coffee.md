@@ -173,11 +173,11 @@ for distcp purpose.
 
 ## SSL
 
-      options.ssl = merge options.ssl or {}, service.use.hadoop_core.options.ssl
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
       options.ssl_server = merge service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 # ### Fencing
@@ -278,7 +278,7 @@ for distcp purpose.
 
 ## Test
 
-      options.test = merge {}, service.use.test_user.options, options.test_user or {}
+      options.test = merge {}, service.use.test_user.options, options.test or {}
 
 ## Wait
 
