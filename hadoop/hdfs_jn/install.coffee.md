@@ -114,7 +114,7 @@ Register the SPNEGO service principal in the form of "HTTP/{host}@{realm}" into
 the "hdfs-site.xml" file. The impacted properties are
 "dfs.journalnode.kerberos.internal.spnego.principal",
 "dfs.journalnode.kerberos.principal" and "dfs.journalnode.keytab.file". The
-SPNEGO tocken is stored inside the "/etc/security/keytabs/spnego.service.keytab"
+SPNEGO token is stored inside the "/etc/security/keytabs/spnego.service.keytab"
 keytab, also used by the NameNodes, DataNodes, ResourceManagers and
 NodeManagers.
 
