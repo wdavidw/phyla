@@ -61,6 +61,8 @@ Example:
       kafka.broker.config['log.dirs'] = kafka.broker['log.dirs'].join ',' if Array.isArray kafka.broker['log.dirs']
       kafka.broker.config['zookeeper.connect'] ?= zookeeper_quorum
       kafka.broker.config['log.retention.hours'] ?= '168'
+      # offset retention (in min) should be at least as big as log (in hour)
+      kafka.broker.config['offsets.retention.minutes'] ?= "#{60 * parseInt kafka.broker.config['log.retention.hours']}"
       kafka.broker.config['delete.topic.enable'] ?= 'true'
       kafka.broker.config['zookeeper.set.acl'] ?= 'true'
       kafka.broker.config['super.users'] ?= kafka.superusers.map( (user) -> "User:#{user}").join(',')
