@@ -13,18 +13,18 @@ and consumers to evolve at different speed.
           db_admin: implicit: true, module: 'ryba/commons/db_admin'
           hdf: 'ryba/hdf'
         configure:
-          'ryba/registry/configure'
+          'ryba/hdf/registry/configure'
         commands:
           'install': [
-            'ryba/registry/install'
-            'ryba/registry/start'
-            'ryba/registry/check'
+            'ryba/hdf/registry/install'
+            'ryba/hdf/registry/start'
+            'ryba/hdf/registry/check'
           ]
           'check':
-            'ryba/registry/check'
+            'ryba/hdf/registry/check'
           'status':
-            'ryba/registry/status'
+            'ryba/hdf/registry/status'
           'start':
-            'ryba/registry/start'
+            'ryba/hdf/registry/start'
           'stop':
-            'ryba/registry/stop'
+            'ryba/hdf/registry/stop'
