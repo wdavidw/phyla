@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* hbase: create tmp_dir config key
 * hbase/master: add compression libs
 * druid: support for non-UTC timezone
 * druid: various fixes

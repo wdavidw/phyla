@@ -65,6 +65,11 @@ hbase:x:492:
           uid: hbase.user.name
           gid: hbase.group.name
           mode: 0o0755
+        @system.mkdir
+          target: hbase.master.tmp_dir
+          uid: hbase.user.name
+          gid: hbase.group.name
+          mode: 0o0755
 
 ## Service
 
@@ -152,12 +157,6 @@ Environment passed to the Master before it starts.
             match: RegExp "export #{k}=.*", 'm'
             replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
             append: true
-          #  match: /^export HBASE_ROOT_LOGGER=.*$/mg
-          #  replace: "export HBASE_ROOT_LOGGER=#{hbase.master.log4j.root_logger}"
-          #  append: true
-          #  match: /^export HBASE_SECURITY_LOGGER=.*$/mg
-          #  replace: "export HBASE_SECURITY_LOGGER=#{hbase.master.log4j.security_logger}"
-          #  append: true
 
 ## RegionServers
 

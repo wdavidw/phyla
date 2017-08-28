@@ -65,21 +65,29 @@ Example
       hbase.master.conf_dir ?= '/etc/hbase-master/conf'
       hbase.master.log_dir ?= '/var/log/hbase'
       hbase.master.pid_dir ?= '/var/run/hbase'
+      hbase.master.tmp_dir ?= '/tmp/hbase'
       hbase.master.site ?= {}
       hbase.master.site['hbase.master.port'] ?= '60000'
       hbase.master.site['hbase.master.info.port'] ?= '60010'
       hbase.master.site['hbase.master.info.bindAddress'] ?= '0.0.0.0'
       hbase.master.site['hbase.ssl.enabled'] ?= 'true'
+      hbase.master.site['hbase.tmp.dir'] = hbase.master.tmp_dir
       hbase.master.env ?= {}
       hbase.master.env['JAVA_HOME'] ?= "#{java_home}"
       hbase.master.env['HBASE_LOG_DIR'] ?= "#{hbase.master.log_dir}"
       hbase.master.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
+      # renderer
+      hbase.master.heapsize ?= "1024m"
+      hbase.master.java_opts ?= ''
+      # Opts, rendered as HBASE_MASTER_OPTS=-D<k1>=<v1> -D<k2>=<v2> ...
+      hbase.master.opts ?= {}
+      hbase.master.opts['java.security.auth.login.config'] ?= "#{hbase.master.conf_dir}/hbase-master.jaas"
+      hbase.master.opts['java.io.tmpdir'] = hbase.master.tmp_dir
 
 ## Configuration Distributed mode
 
       zk_hosts = zk_ctxs.map( (ctx) -> ctx.config.host).join ','
       zk_port = zk_ctxs[0].config.ryba.zookeeper.port
-      hbase.master.site ?= {}
       hbase.master.site['zookeeper.znode.parent'] ?= '/hbase'
       # The mode the cluster will be in. Possible values are
       # false: standalone and pseudo-distributed setups with managed Zookeeper
@@ -130,11 +138,6 @@ job to HBase. Secure bulk loading is implemented by a coprocessor, named
       hbase.master.site['hbase.rpc.engine'] ?= 'org.apache.hadoop.hbase.ipc.SecureRpcEngine'
       hbase.master.site['hbase.superuser'] ?= hbase.admin.name
       hbase.master.site['hbase.bulkload.staging.dir'] ?= '/apps/hbase/staging'
-      # renderer
-      hbase.master.heapsize ?= "1024m"
-      hbase.master.java_opts ?= ""
-      hbase.master.opts ?= {}
-      hbase.master.opts['java.security.auth.login.config'] ?= "#{hbase.master.conf_dir}/hbase-master.jaas"
 
 ## Configuration for Local Access
 
@@ -215,11 +218,9 @@ job to HBase. Secure bulk loading is implemented by a coprocessor, named
           # Security Logger
           if hbase.master.env['HBASE_SECURITY_LOGGER'].indexOf(hbase.master.socket_client) is -1
           then hbase.master.env['HBASE_SECURITY_LOGGER']+= ",#{hbase.master.socket_client}"
-
           hbase.master.opts['hbase.log.application'] = 'hbase-master'
           hbase.master.opts['hbase.log.remote_host'] = @config.log4j.remote_host
           hbase.master.opts['hbase.log.remote_port'] = @config.log4j.remote_port
-
           hbase.master.socket_opts ?=
             Application: '${hbase.log.application}'
             RemoteHost: '${hbase.log.remote_host}'

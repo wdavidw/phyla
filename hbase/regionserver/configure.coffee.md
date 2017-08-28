@@ -22,11 +22,13 @@
       hbase.rs.conf_dir ?= '/etc/hbase-regionserver/conf'
       hbase.rs.log_dir ?= '/var/log/hbase'
       hbase.rs.pid_dir ?= '/var/run/hbase'
+      hbase.rs.tmp_dir ?= '/tmp/hbase'
       hbase.rs.site ?= {}
       hbase.rs.site['hbase.regionserver.port'] ?= '60020'
       hbase.rs.site['hbase.regionserver.info.port'] ?= '60030'
       hbase.rs.site['hbase.ssl.enabled'] ?= 'true'
       hbase.rs.site['hbase.regionserver.handler.count'] ?= 60 # HDP default
+      hbase.rs.site['hbase.tmp.dir'] = hbase.rs.tmp_dir
       hbase.rs.env ?= {}
       hbase.rs.env['JAVA_HOME'] ?= "#{java.java_home}"
       # http://blog.sematext.com/2012/07/16/hbase-memstore-what-you-should-know/
@@ -36,6 +38,7 @@
       hbase.rs.java_opts ?= "" #rs.java_opts is build at runtime from the rs.opts object
       hbase.rs.opts ?= {} #represent the java options obect
       hbase.rs.opts['java.security.auth.login.config'] ?= "#{hbase.rs.conf_dir}/hbase-regionserver.jaas"
+      hbase.rs.opts['java.io.tmpdir'] ?= hbase.rs.tmp_dir
 
 ## Configuration for Kerberos
 
