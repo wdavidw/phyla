@@ -74,7 +74,7 @@ variables but also inject some function to be executed.
       options.log4j['log4j.appender.hdfsAppender.encoding'] = 'UTF-8'
 
 # Ranger xusers
-Ranger eanble to create users with its REST API. Required user can be specified in the
+Ranger enable to create users with its REST API. Required user can be specified in the
 ranger config and ryba will create them.
 User can be External and Internal. Only Internal users can be created from the ranger webui.
 

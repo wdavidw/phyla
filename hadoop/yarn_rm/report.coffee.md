@@ -3,10 +3,13 @@
 
 ## Info Memory
 
-    module.exports = header: 'YARN RM Info Memory', label_true: 'INFO', handler: (_, callback) ->
-      {yarn} = @config.ryba
-      properties.read @ssh, "#{yarn.rm.conf_dir}/yarn-site.xml", (err, config) ->
-        return callback err if err
+    module.exports = header: 'YARN RM Info Memory', label_true: 'INFO', handler: (options) ->
+      config = null
+      @call (_, callback) ->
+        properties.read @ssh, "#{options.conf_dir}/yarn-site.xml", (err, config) =>
+          config = c unless err
+          callback err
+      @call ->
         @emit 'report',
           key: 'yarn.scheduler.minimum-allocation-mb'
           value: prink.filesize.from.megabytes config['yarn.scheduler.minimum-allocation-mb']
@@ -19,7 +22,6 @@
           raw: config['yarn.scheduler.maximum-allocation-mb']
           default: '8192'
           description: 'Higher memory allocated in MB for every container request.'
-        callback null, true
 
 ## Dependencies
 

@@ -36,10 +36,10 @@ mode, it must be set to a value below "1024" and default to "1004".
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      [_, dn_address] = options.site['dfs.datanode.address'].split ':'
-      [_, dn_http_address] = options.site['dfs.datanode.http.address'].split ':'
-      [_, dn_https_address] = options.site['dfs.datanode.https.address'].split ':'
-      [_, dn_ipc_address] = options.site['dfs.datanode.ipc.address'].split ':'
+      [_, dn_address] = options.hdfs_site['dfs.datanode.address'].split ':'
+      [_, dn_http_address] = options.hdfs_site['dfs.datanode.http.address'].split ':'
+      [_, dn_https_address] = options.hdfs_site['dfs.datanode.https.address'].split ':'
+      [_, dn_ipc_address] = options.hdfs_site['dfs.datanode.ipc.address'].split ':'
       @tools.iptables
         header: 'IPTables'
         rules: [
@@ -66,14 +66,14 @@ inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-datanode'
           source: "#{__dirname}/../resources/hadoop-hdfs-datanode.j2"
           local: true
-          context: options
+          context: options: options
           mode: 0o0755
         @service.init
           if_os: name: ['redhat','centos'], version: '7'
           target: '/usr/lib/systemd/system/hadoop-hdfs-datanode.service'
           source: "#{__dirname}/../resources/hadoop-hdfs-datanode-systemd.j2"
           local: true
-          context: options
+          context: options: options
           mode: 0o0644
 
       @call header: 'Compression', retry: 2, ->
@@ -114,7 +114,7 @@ pid directory is set by the "hdfs\_pid\_dir" and default to "/var/run/hadoop-hdf
         @system.mkdir
           target: "#{options.conf_dir}"
         @system.mkdir
-          target: for dir in options.site['dfs.datanode.data.dir'].split ','
+          target: for dir in options.hdfs_site['dfs.datanode.data.dir'].split ','
             if dir.indexOf('file://') is 0
               dir.substr(7) 
             else if dir.indexOf('file://') is -1
@@ -143,7 +143,7 @@ pid directory is set by the "hdfs\_pid\_dir" and default to "/var/run/hadoop-hdf
           gid: options.group.name
           parent: true
         @system.mkdir
-          target: "#{path.dirname options.site['dfs.domain.socket.path']}"
+          target: "#{path.dirname options.hdfs_site['dfs.domain.socket.path']}"
           uid: options.user.name
           gid: options.hadoop_group.name
           mode: 0o751
@@ -172,7 +172,7 @@ present inside the "hdp.ha\_client\_config" object.
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: options.site
+        properties: options.hdfs_site
         uid: options.user.name
         gid: options.hadoop_group.name
         backup: true

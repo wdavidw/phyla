@@ -46,21 +46,21 @@ Example:
 
 ## Identities
 
-      options.hadoop_group ?= merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group or {}
-      options.group ?= merge {}, service.use.hadoop_core.options.hdfs.group, options.group or {}
-      options.user ?= merge {}, service.use.hadoop_core.options.hdfs.user, options.user or {}
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
 
 ## Configuration
 
       options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
-      options.site ?= {}
-      options.site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
-      options.site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
-      options.site['dfs.journalnode.https-address'] ?= '0.0.0.0:8481'
-      options.site['dfs.http.policy'] ?= 'HTTPS_ONLY'
+      options.hdfs_site ?= {}
+      options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
+      options.hdfs_site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
+      options.hdfs_site['dfs.journalnode.https-address'] ?= '0.0.0.0:8481'
+      options.hdfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY'
       # Recommandation is to ideally have dedicated disks to optimize fsyncs operation
-      options.site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
-      options.site['dfs.journalnode.edits.dir'] = options.site['dfs.journalnode.edits.dir'].join ',' if Array.isArray options.site['dfs.journalnode.edits.dir']
+      options.hdfs_site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
+      options.hdfs_site['dfs.journalnode.edits.dir'] = options.hdfs_site['dfs.journalnode.edits.dir'].join ',' if Array.isArray options.hdfs_site['dfs.journalnode.edits.dir']
       
 
 ## Kerberos
@@ -72,9 +72,9 @@ Example:
       # Kerberos
       # TODO: Principal should be "jn/{host}@{realm}", however, there is
       # no properties to have a separated keytab between jn and spnego principals
-      options.site['dfs.journalnode.kerberos.internal.spnego.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
-      options.site['dfs.journalnode.kerberos.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
-      options.site['dfs.journalnode.keytab.file'] = '/etc/security/keytabs/spnego.service.keytab'
+      options.hdfs_site['dfs.journalnode.kerberos.internal.spnego.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
+      options.hdfs_site['dfs.journalnode.kerberos.principal'] = "HTTP/_HOST@#{options.krb5.realm }"
+      options.hdfs_site['dfs.journalnode.keytab.file'] = '/etc/security/keytabs/spnego.service.keytab'
 
 ## SSL
 
@@ -92,9 +92,9 @@ Example:
       options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
       options.wait = {}
       options.wait.rpc = for srv in service.use.hdfs_jn
-        srv.options.site ?= {}
-        srv.options.site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
-        [_, port] = srv.options.site['dfs.journalnode.rpc-address'].split ':'
+        srv.options.hdfs_site ?= {}
+        srv.options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
+        [_, port] = srv.options.hdfs_site['dfs.journalnode.rpc-address'].split ':'
         host: srv.node.fqdn, port: port
 
 ## Dependencies

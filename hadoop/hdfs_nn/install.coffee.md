@@ -36,12 +36,12 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       unless options.nameservice
         [_, port_rcp] = options.core_site['fs.defaultFS'].split ':'
-        [_, port_rcp] = options.site['dfs.namenode.http-address'].split ':'
-        [_, port_rcp] = options.site['dfs.namenode.https-address'].split ':'
+        [_, port_rcp] = options.hdfs_site['dfs.namenode.http-address'].split ':'
+        [_, port_rcp] = options.hdfs_site['dfs.namenode.https-address'].split ':'
       else
-        [_, port_rcp] = options.site["dfs.namenode.rpc-address.#{options.nameservice}.#{options.hostname}"].split ':'
-        [_, port_http] = options.site["dfs.namenode.http-address.#{options.nameservice}.#{options.hostname}"].split ':'
-        [_, port_https] = options.site["dfs.namenode.https-address.#{options.nameservice}.#{options.hostname}"].split ':'
+        [_, port_rcp] = options.hdfs_site["dfs.namenode.rpc-address.#{options.nameservice}.#{options.hostname}"].split ':'
+        [_, port_http] = options.hdfs_site["dfs.namenode.http-address.#{options.nameservice}.#{options.hostname}"].split ':'
+        [_, port_https] = options.hdfs_site["dfs.namenode.https-address.#{options.nameservice}.#{options.hostname}"].split ':'
       @tools.iptables
         header: 'IPTables'
         if: options.iptables
@@ -68,7 +68,7 @@ inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-namenode'
           source: "#{__dirname}/../resources/hadoop-hdfs-namenode.j2"
           local: true
-          context: options
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -78,7 +78,7 @@ inside "/etc/init.d" and activate it on startup.
             target: '/usr/lib/systemd/system/hadoop-hdfs-namenode.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-namenode-systemd.j2"
             local: true
-            context: options
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
@@ -97,7 +97,7 @@ file is usually stored inside the "/var/run/hadoop-hdfs/hdfs" directory.
         @system.mkdir
           target: "#{options.conf_dir}"
         @system.mkdir
-          target: for dir in options.site['dfs.namenode.name.dir'].split ','
+          target: for dir in options.hdfs_site['dfs.namenode.name.dir'].split ','
             if dir.indexOf('file://') is 0
             then dir.substr(7) else dir
           uid: options.user.name
@@ -129,7 +129,7 @@ file is usually stored inside the "/var/run/hadoop-hdfs/hdfs" directory.
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: options.site
+        properties: options.hdfs_site
         uid: options.user.name
         gid: options.hadoop_group.name
         backup: true
@@ -230,8 +230,8 @@ Create a service principal for this NameNode. The principal is named after
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: options.site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
-        keytab: options.site['dfs.namenode.keytab.file']
+        principal: options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
+        keytab: options.hdfs_site['dfs.namenode.keytab.file']
         randkey: true
         uid: options.user.name
         gid: options.hadoop_group.name
@@ -275,13 +275,13 @@ the file must be specified.  If the value is empty, no hosts are excluded.
       @file
         header: 'Include'
         content: "#{options.include.join '\n'}"
-        target: "#{options.site['dfs.hosts']}"
+        target: "#{options.hdfs_site['dfs.hosts']}"
         eof: true
         backup: true
       @file
         header: 'Exclude'
         content: "#{options.exclude.join '\n'}"
-        target: "#{options.site['dfs.hosts.exclude']}"
+        target: "#{options.hdfs_site['dfs.hosts.exclude']}"
         eof: true
         backup: true
 
@@ -308,7 +308,7 @@ this NameNode isn't yet formated by detecting if the "current/VERSION" exists. T
 is only exected once all the JournalNodes are started. The NameNode is finally restarted
 if the NameNode was formated.
 
-      any_dfs_name_dir = options.site['dfs.namenode.name.dir'].split(',')[0]
+      any_dfs_name_dir = options.hdfs_site['dfs.namenode.name.dir'].split(',')[0]
       any_dfs_name_dir = any_dfs_name_dir.substr(7) if any_dfs_name_dir.indexOf('file://') is 0
       # For non HA mode
       @system.execute

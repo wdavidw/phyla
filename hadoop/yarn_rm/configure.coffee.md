@@ -8,35 +8,72 @@
 } } } }
 ```
 
-    module.exports = ->
-      zk_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      [jhs_ctx] = @contexts 'ryba/hadoop/mapred_jhs'
-      [ats_ctx] = @contexts 'ryba/hadoop/yarn_ts'
-      rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
-      ats_ctx.config.ryba.yarn.site['yarn.admin.acl'] ?= "#{@config.ryba.yarn.user.name}"
-      {ryba} = @config
-      {core_site} = ryba
-      ryba.yarn.rm ?= {}
-      ryba.yarn.rm.home ?= '/usr/hdp/current/hadoop-yarn-client'
-      ryba.yarn.rm.log_dir ?= '/var/log/hadoop-yarn'
-      ryba.yarn.rm.pid_dir ?= '/var/run/hadoop-yarn'
-      ryba.yarn.rm.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
-      ryba.yarn.rm.core_site ?= {}
-      ryba.yarn.rm.core_site = merge {}, core_site, ryba.yarn.rm.core_site
-      # Enable JAAS/Kerberos connection between YARN RM and ZooKeeper
-      ryba.yarn.rm.opts ?= {}
-      ryba.yarn.rm.opts['java.security.auth.login.config'] ?= "#{ryba.yarn.rm.conf_dir}/yarn-rm.jaas"
-      ryba.yarn.rm.java_opts ?= ''
-      ryba.yarn.rm.heapsize ?= '1024'
-      ryba.yarn.rm.site ?= {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hadoop/yarn_rm', ['ryba', 'yarn', 'rm'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
+        yarn_ts: key: ['ryba', 'yarn', 'ats']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+      @config.ryba ?= {}
+      @config.ryba.yarn ?= {}
+      @config.ryba.yarn.rm ?= {}
+      options = @config.ryba.yarn.rm = service.options
+
+## Identities
+
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.use.hadoop_core.options.yarn.group, options.group
+      options.user = merge {}, service.use.hadoop_core.options.yarn.user, options.user
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+
+## Environnment
+
+      # Layout
+      options.home ?= '/usr/hdp/current/hadoop-yarn-client'
+      options.log_dir ?= '/var/log/hadoop-yarn'
+      options.pid_dir ?= '/var/run/hadoop-yarn'
+      options.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
+      # Java
+      options.opts ?= {}
+      options.java_home ?= service.use.java.options.java_home
+      options.java_opts ?= ''
+      options.heapsize ?= '1024'
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.clean_logs ?= false
+
+## Configuration
+
+      # Hadoop core "core-site.xml"
+      options.core_site = merge {}, service.use.hdfs_client[0].options.core_site, options.core_site or {}
+      # HDFS client "hdfs-site.xml"
+      options.hdfs_site = merge {}, service.use.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      # Yarn NodeManager "yarn-site.xml"
+      options.yarn_site ?= {}
       # Configuration
-      ryba.yarn.rm.site['yarn.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
-      ryba.yarn.rm.site['yarn.resourcemanager.ha.id'] ?= @config.shortname
-      ryba.yarn.rm.site['yarn.resourcemanager.nodes.include-path'] ?= "#{ryba.yarn.rm.conf_dir}/yarn.include"
-      ryba.yarn.rm.site['yarn.resourcemanager.nodes.exclude-path'] ?= "#{ryba.yarn.rm.conf_dir}/yarn.exclude"
-      ryba.yarn.rm.site['yarn.resourcemanager.keytab'] ?= '/etc/security/keytabs/rm.service.keytab'
-      ryba.yarn.rm.site['yarn.resourcemanager.principal'] ?= "rm/_HOST@#{ryba.realm}"
-      ryba.yarn.rm.site['yarn.resourcemanager.scheduler.class'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
+      options.yarn_site['yarn.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
+      options.yarn_site['yarn.resourcemanager.ha.id'] ?= service.node.hostname
+      options.yarn_site['yarn.resourcemanager.nodes.include-path'] ?= "#{options.conf_dir}/yarn.include"
+      options.yarn_site['yarn.resourcemanager.nodes.exclude-path'] ?= "#{options.conf_dir}/yarn.exclude"
+      options.yarn_site['yarn.resourcemanager.keytab'] ?= '/etc/security/keytabs/rm.service.keytab'
+      options.yarn_site['yarn.resourcemanager.principal'] ?= "rm/_HOST@#{options.krb5.realm}"
+      options.yarn_site['yarn.resourcemanager.scheduler.class'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
 
 ## Configuration for Memory and CPU
 
@@ -49,10 +86,10 @@ allocation limit and a container is eventually granted. Tests in version 2.4
 instead shows that the containers are never granted, and no progress is made by
 the application (zombie state).
 
-      ryba.yarn.rm.site['yarn.scheduler.minimum-allocation-mb'] ?= '256'
-      ryba.yarn.rm.site['yarn.scheduler.maximum-allocation-mb'] ?= '2048'
-      ryba.yarn.rm.site['yarn.scheduler.minimum-allocation-vcores'] ?= 1
-      ryba.yarn.rm.site['yarn.scheduler.maximum-allocation-vcores'] ?= 32
+      options.yarn_site['yarn.scheduler.minimum-allocation-mb'] ?= '256'
+      options.yarn_site['yarn.scheduler.maximum-allocation-mb'] ?= '2048'
+      options.yarn_site['yarn.scheduler.minimum-allocation-vcores'] ?= 1
+      options.yarn_site['yarn.scheduler.maximum-allocation-vcores'] ?= 32
 
 ## Zookeeper
 
@@ -62,10 +99,14 @@ with automatic failover stores information inside "yarn.resourcemanager.ha.autom
 information inside "yarn.resourcemanager.zk-state-store.parent-path" (default to
 "/rmstore").
 
-      quorum = for zk_ctx in zk_ctxs
-        "#{zk_ctx.config.host}:#{zk_ctx.config.ryba.zookeeper.config['clientPort']}"
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-address'] ?= quorum.join ','
+      options.yarn_site['yarn.resourcemanager.zk-address'] ?= service.use.zookeeper_server
+      .filter (srv) -> srv.options.config['peerType'] is 'participant'
+      .map (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
+      .join ','
 
+Enable JAAS/Kerberos connection between YARN RM and ZooKeeper.
+
+      options.opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/yarn-rm.jaas"
 
 ## High Availability with Manual Failover
 
@@ -75,48 +116,49 @@ about each configuration and where they should apply.
 Unless specified otherwise, the active ResourceManager is the first one defined
 inside the configuration.
 
-      rm_shortnames = for rm_ctx in rm_ctxs then rm_ctx.config.shortname
-      is_ha = rm_ctxs.length > 1
-      # ryba.yarn.active_rm_host ?= if is_ha then rm_ctxs[0].config.host else null
-      ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] ?= if is_ha then 'true' else 'false'
-      if ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true'
-        ryba.yarn.rm.site['yarn.resourcemanager.cluster-id'] ?= 'yarn_cluster_01'
-        ryba.yarn.rm.site['yarn.resourcemanager.ha.rm-ids'] ?= rm_shortnames.join ',' if is_ha
+      if service.nodes.length is 1
+        options.yarn_site['yarn.resourcemanager.ha.enabled'] = 'false'
+      else if service.nodes.length is 2
+        options.yarn_site['yarn.resourcemanager.ha.enabled'] = 'true'
+        options.yarn_site['yarn.resourcemanager.cluster-id'] ?= 'yarn_cluster_01'
+        options.yarn_site['yarn.resourcemanager.ha.rm-ids'] ?= service.nodes.map( (node) -> node.hostname ).join ','
         # Flag to enable override of the default kerberos authentication
         # filter with the RM authentication filter to allow authentication using
         # delegation tokens(fallback to kerberos if the tokens are missing)
-        ryba.yarn.rm.site["yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled"] ?= "true" # YARN default is "true"
-      for rm_ctx in rm_ctxs
-        rm_ctx.config.ryba.yarn ?= {}
-        rm_ctx.config.ryba.yarn.rm ?= {}
-        rm_ctx.config.ryba.yarn.rm.site ?= {}
-        rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id'] ?= rm_ctx.config.shortname
-        id = if ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''
-        ryba.yarn.rm.site["yarn.resourcemanager.address#{id}"] ?= "#{rm_ctx.config.host}:8050"
-        ryba.yarn.rm.site["yarn.resourcemanager.scheduler.address#{id}"] ?= "#{rm_ctx.config.host}:8030"
-        ryba.yarn.rm.site["yarn.resourcemanager.admin.address#{id}"] ?= "#{rm_ctx.config.host}:8141"
-        ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"] ?= "#{rm_ctx.config.host}:8088"
-        ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"] ?= "#{rm_ctx.config.host}:8090"
-        ryba.yarn.rm.site["yarn.resourcemanager.resource-tracker.address#{id}"] ?= "#{rm_ctx.config.host}:8025"
+        options.yarn_site["yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled"] ?= "true" # YARN default is "true"
+      else
+        throw Error "Invalid Number Of ResourceManager"
+      for srv in service.use.yarn_rm
+        # srv.config.ryba.yarn ?= {}
+        # srv.config.ryba.yarn.rm ?= {}
+        srv.options.yarn_site ?= {}
+        srv.options.yarn_site['yarn.resourcemanager.ha.id'] ?= srv.node.hostname
+        id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        options.yarn_site["yarn.resourcemanager.address#{id}"] ?= "#{srv.node.fqdn}:8050"
+        options.yarn_site["yarn.resourcemanager.scheduler.address#{id}"] ?= "#{srv.node.fqdn}:8030"
+        options.yarn_site["yarn.resourcemanager.admin.address#{id}"] ?= "#{srv.node.fqdn}:8141"
+        options.yarn_site["yarn.resourcemanager.webapp.address#{id}"] ?= "#{srv.node.fqdn}:8088"
+        options.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"] ?= "#{srv.node.fqdn}:8090"
+        options.yarn_site["yarn.resourcemanager.resource-tracker.address#{id}"] ?= "#{srv.node.fqdn}:8025"
 
 ## High Availability with optional automatic failover
 
-      ryba.yarn.rm.site['yarn.resourcemanager.ha.automatic-failover.enabled'] ?= 'true'
-      ryba.yarn.rm.site['yarn.resourcemanager.ha.automatic-failover.embedded'] ?= 'true'
-      ryba.yarn.rm.site['yarn.resourcemanager.ha.automatic-failover.zk-base-path'] ?= '/yarn-leader-election'
+      options.yarn_site['yarn.resourcemanager.ha.automatic-failover.enabled'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.ha.automatic-failover.embedded'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.ha.automatic-failover.zk-base-path'] ?= '/yarn-leader-election'
 
 ## MapReduce JobHistory Server
 
-      if jhs_ctx
-        ryba.yarn.rm.site['mapreduce.jobhistory.principal'] ?= jhs_ctx.config.ryba.mapred.site['mapreduce.jobhistory.principal']
-        ryba.yarn.rm.site['yarn.resourcemanager.bind-host'] ?= '0.0.0.0'
-        jhs_ctx.config.ryba.yarn.site['yarn.log-aggregation-enable'] ?= ryba.yarn.rm.site['yarn.log-aggregation-enable']
+      if service.use.mapred_jhs
+        options.yarn_site['mapreduce.jobhistory.principal'] ?= service.use.mapred_jhs.options.mapred_site['mapreduce.jobhistory.principal']
+        options.yarn_site['yarn.resourcemanager.bind-host'] ?= '0.0.0.0'
+        service.use.mapred_jhs.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
         # TODO: detect https and port, see "../mapred_jhs/check"
-        jhs_protocol = if jhs_ctx.config.ryba.mapred.site['mapreduce.jobhistory.address'] is 'HTTP_ONLY' then 'http' else 'https'
+        jhs_protocol = if service.use.mapred_jhs.options.mapred_site['mapreduce.jobhistory.address'] is 'HTTP_ONLY' then 'http' else 'https'
         jhs_protocol_key = if jhs_protocol is 'http' then '' else '.https'
-        jhs_address = jhs_ctx.config.ryba.mapred.site["mapreduce.jobhistory.webapp#{jhs_protocol_key}.address"]
-        ryba.yarn.site['yarn.log.server.url'] ?= "#{jhs_protocol}://#{jhs_address}/jobhistory/logs/"
-        ryba.yarn.rm.site['yarn.log.server.url'] ?= "#{jhs_protocol}://#{jhs_address}/jobhistory/logs/"
+        jhs_address = service.use.mapred_jhs.options.mapred_site["mapreduce.jobhistory.webapp#{jhs_protocol_key}.address"]
+        options.yarn_site['yarn.log.server.url'] ?= "#{jhs_protocol}://#{jhs_address}/jobhistory/logs/"
+        service.use.mapred_jhs.options.yarn_site['yarn.http.policy'] ?= options.yarn_site['yarn.http.policy']
 
 ## Preemption
 
@@ -126,15 +168,15 @@ wait for other queues' applications to finish running. Containers are only
 killed as a last resort.
 
       # Enables preemption
-      ryba.yarn.rm.site['yarn.resourcemanager.scheduler.monitor.enable'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.scheduler.monitor.enable'] ?= 'true'
       # List of SchedulingEditPolicy classes that interact with the scheduler.
-      ryba.yarn.rm.site['yarn.resourcemanager.scheduler.monitor.policies'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.monitor.capacity.ProportionalCapacityPreemptionPolicy'
+      options.yarn_site['yarn.resourcemanager.scheduler.monitor.policies'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.monitor.capacity.ProportionalCapacityPreemptionPolicy'
       # The time in milliseconds between invocations of this policy.
-      ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.monitoring_interval'] ?= '3000'
+      options.yarn_site['yarn.resourcemanager.monitor.capacity.preemption.monitoring_interval'] ?= '3000'
       # The time in milliseconds between requesting a preemption from an application and killing the container.
-      ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.max_wait_before_kill'] ?= '15000'
+      options.yarn_site['yarn.resourcemanager.monitor.capacity.preemption.max_wait_before_kill'] ?= '15000'
       # The maximum percentage of resources preempted in a single round.
-      ryba.yarn.rm.site['yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round'] ?= '0.1'
+      options.yarn_site['yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round'] ?= '0.1'
 
 ## [Work Preserving Recovery][restart]
 
@@ -171,19 +213,20 @@ RM2: yarncluster:shared-password:rwa,rm2:secret-password:cd
 ```
 
 To remove the entry (not tested) when transitioning from HA to normal mode:
+
 ```
 /usr/lib/zookeeper/bin/zkCli.sh -server master2.ryba:2181
 setAcl /rmstore/ZKRMStateRoot world:anyone:rwacd
 rmr /rmstore/ZKRMStateRoot
 ```
 
-      ryba.yarn.rm.site['yarn.resourcemanager.recovery.enabled'] ?= 'true'
-      ryba.yarn.rm.site['yarn.resourcemanager.work-preserving-recovery.enabled'] ?= 'true'
-      ryba.yarn.rm.site['yarn.resourcemanager.am.max-attempts'] ?= '2'
-      ryba.yarn.rm.site['yarn.resourcemanager.store.class'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore'
+      options.yarn_site['yarn.resourcemanager.recovery.enabled'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.work-preserving-recovery.enabled'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.am.max-attempts'] ?= '2'
+      options.yarn_site['yarn.resourcemanager.store.class'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore'
       # https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_ZooKeeperAccessControl
       # ACLs to be used for setting permissions on ZooKeeper znodes.
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-acl'] ?= 'sasl:rm:rwcda'
+      options.yarn_site['yarn.resourcemanager.zk-acl'] ?= 'sasl:rm:rwcda'
       # About 'yarn.resourcemanager.zk-state-store.root-node.acl'
       # See http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_hag_rm_ha_config.html
       # The ACLs used for the root node of the ZooKeeper state store. The ACLs
@@ -192,64 +235,112 @@ rmr /rmstore/ZKRMStateRoot
       # specified, the root node ACLs are automatically generated on the basis
       # of the ACLs specified through yarn.resourcemanager.zk-acl. But that
       # leaves a security hole in a secure setup. To configure automatic failover:
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-state-store.parent-path'] ?= '/rmstore'
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-num-retries'] ?= '500'
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-retry-interval-ms'] ?= '2000'
-      ryba.yarn.rm.site['yarn.resourcemanager.zk-timeout-ms'] ?= '10000'
+      options.yarn_site['yarn.resourcemanager.zk-state-store.parent-path'] ?= '/rmstore'
+      options.yarn_site['yarn.resourcemanager.zk-num-retries'] ?= '500'
+      options.yarn_site['yarn.resourcemanager.zk-retry-interval-ms'] ?= '2000'
+      options.yarn_site['yarn.resourcemanager.zk-timeout-ms'] ?= '10000'
 
 ## Capacity Scheduler
 
       # TODO Capacity Scheduler node_labels http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_yarn_resource_mgt/content/configuring_node_labels.html
-      ryba.capacity_scheduler ?= {}
-      ryba.capacity_scheduler['yarn.scheduler.capacity.default.minimum-user-limit-percent'] ?= '100'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.maximum-am-resource-percent'] ?= '0.2'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.maximum-applications'] ?= '10000'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.node-locality-delay'] ?= '40'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.resource-calculator'] ?= 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels'] ?= null
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels.default.capacity'] ?= null # was 100
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity'] ?= null # was 100
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.acl_administer_queue'] ?= '*'
-      # ryba.capacity_scheduler['yarn.scheduler.capacity.root.capacity'] ?= '100'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default-node-label-expression'] ?= ' '
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.acl_administer_jobs'] ?= '*'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.acl_submit_applications'] ?= '*'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.capacity'] ?= '100'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.maximum-capacity'] ?= '100'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.state'] ?= 'RUNNING'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.default.user-limit-factor'] ?= '1'
+      options.capacity_scheduler ?= {}
+      options.capacity_scheduler['yarn.scheduler.capacity.default.minimum-user-limit-percent'] ?= '100'
+      options.capacity_scheduler['yarn.scheduler.capacity.maximum-am-resource-percent'] ?= '0.2'
+      options.capacity_scheduler['yarn.scheduler.capacity.maximum-applications'] ?= '10000'
+      options.capacity_scheduler['yarn.scheduler.capacity.node-locality-delay'] ?= '40'
+      options.capacity_scheduler['yarn.scheduler.capacity.resource-calculator'] ?= 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels'] ?= null
+      options.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels.default.capacity'] ?= null # was 100
+      options.capacity_scheduler['yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity'] ?= null # was 100
+      options.capacity_scheduler['yarn.scheduler.capacity.root.acl_administer_queue'] ?= '*'
+      # options.capacity_scheduler['yarn.scheduler.capacity.root.capacity'] ?= '100'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default-node-label-expression'] ?= ' '
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.acl_administer_jobs'] ?= '*'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.acl_submit_applications'] ?= '*'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.capacity'] ?= '100'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.maximum-capacity'] ?= '100'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.state'] ?= 'RUNNING'
+      options.capacity_scheduler['yarn.scheduler.capacity.root.default.user-limit-factor'] ?= '1'
       # Defines root's child queue named 'default'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.root.queues'] ?= 'default'
-      ryba.capacity_scheduler['yarn.scheduler.capacity.queue-mappings'] ?= '' # Introduce by hadoop 2.7
-      ryba.capacity_scheduler['yarn.scheduler.capacity.queue-mappings-override.enable'] ?= 'false' # Introduce by hadoop 2.7
+      options.capacity_scheduler['yarn.scheduler.capacity.root.queues'] ?= 'default'
+      options.capacity_scheduler['yarn.scheduler.capacity.queue-mappings'] ?= '' # Introduce by hadoop 2.7
+      options.capacity_scheduler['yarn.scheduler.capacity.queue-mappings-override.enable'] ?= 'false' # Introduce by hadoop 2.7
 
 ## Node Labels
 
-      ryba.yarn.rm.site['yarn.node-labels.enabled'] ?= 'true'
-      ryba.yarn.rm.site['yarn.node-labels.fs-store.root-dir'] ?= "#{ryba.yarn.rm.core_site['fs.defaultFS']}/apps/yarn/node-labels"
+      options.yarn_site['yarn.node-labels.enabled'] ?= 'true'
+      options.yarn_site['yarn.node-labels.fs-store.root-dir'] ?= "#{options.core_site['fs.defaultFS']}/apps/yarn/node-labels"
 
 ## Admin Web UI
 
       #Current YARN web UI allows anyone to kill any application as long as the user can login to the web UI.
-      ryba.yarn.rm.site['yarn.resourcemanager.webapp.ui-actions.enabled'] ?= 'false'
+      options.yarn_site['yarn.resourcemanager.webapp.ui-actions.enabled'] ?= 'false'
 
 ## Logs Aggregation
 
-      ryba.yarn.rm.site['yarn.nodemanager.remote-app-log-dir'] ?= '/app-logs'
-      ryba.yarn.rm.site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= 'logs'
-      ryba.yarn.rm.site['yarn.log-aggregation-enable'] ?= 'true'
-      ats_ctx.config.ryba.yarn ?= {}
-      ats_ctx.config.ryba.yarn ?= {}
-      ats_ctx.config.ryba.yarn.site ?= {}
-      ats_ctx.config.ryba.yarn.site['yarn.nodemanager.remote-app-log-dir'] ?= ryba.yarn.rm.site['yarn.nodemanager.remote-app-log-dir']
-      ats_ctx.config.ryba.yarn.site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= ryba.yarn.rm.site['yarn.nodemanager.remote-app-log-dir-suffix']
-      ats_ctx.config.ryba.yarn.site['yarn.log-aggregation-enable'] ?= ryba.yarn.rm.site['yarn.log-aggregation-enable']
+      options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= '/app-logs'
+      options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= 'logs'
+      options.yarn_site['yarn.log-aggregation-enable'] ?= 'true'
 
-      # ryba.yarn.rm.site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
-      # ryba.yarn.rm.site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
+      # options.yarn_site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
+      # options.yarn_site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
 
-## Yarn Timeline Server
+## SSL
 
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+      'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
+      'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
+      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
+
+## Metrics
+
+      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+
+## Ranger Plugin Configuration
+
+      # @config.ryba.yarn_plugin_is_master = true
+
+## Configuration for Log4J
+
+      options.log4j ?= {}
+      options.root_logger ?= 'INFO,EWMA,RFA'
+      options.opts['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
+      options.opts['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
+      # adding SOCKET appender
+      if @config.log4j?.services?
+        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hadoop/yarn_rm' in @config.log4j?.services)
+          options.socket_client ?= "SOCKET"
+          # Root logger
+          if options.root_logger.indexOf(options.socket_client) is -1
+          then options.root_logger += ",#{options.socket_client}"
+          # Security Logger
+          if options.opts['yarn.server.resourcemanager.appsummary.logger'].indexOf(options.socket_client) is -1
+          then options.opts['yarn.server.resourcemanager.appsummary.logger'] += ",#{options.socket_client}"
+          # Audit Logger
+          if options.opts['yarn.server.resourcemanager.audit.logger'].indexOf(options.socket_client) is -1
+          then options.opts['yarn.server.resourcemanager.audit.logger'] += ",#{options.socket_client}"
+
+          options.opts['hadoop.log.application'] = 'resourcemanager'
+          options.opts['hadoop.log.remote_host'] = @config.log4j.remote_host
+          options.opts['hadoop.log.remote_port'] = @config.log4j.remote_port
+
+          options.socket_opts ?=
+            Application: '${hadoop.log.application}'
+            RemoteHost: '${hadoop.log.remote_host}'
+            Port: '${hadoop.log.remote_port}'
+            ReconnectionDelay: '10000'
+
+          options.log4j = merge options.log4j, appender
+            type: 'org.apache.log4j.net.SocketAppender'
+            name: options.socket_client
+            logj4: options.log4j
+            properties: options.socket_opts
+
+## Import/Export to Yarn Timeline Server
+
+      # Import
       for property in [
         'yarn.timeline-service.enabled'
         'yarn.timeline-service.address'
@@ -259,49 +350,94 @@ rmr /rmstore/ZKRMStateRoot
         'yarn.timeline-service.http-authentication.type'
         'yarn.timeline-service.http-authentication.kerberos.principal'
       ]
-        ryba.yarn.site[property] ?= if ats_ctx then ats_ctx.config.ryba.yarn.site[property] else null
+        options.yarn_site[property] ?= if service.use.yarn_ts then service.use.yarn_ts.options.yarn_site[property] else null
+      # Export
+      service.use.yarn_ts.options.yarn_site ?= {}
+      service.use.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
+      service.use.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir']
+      service.use.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix']
+      service.use.yarn_ts.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
 
-## Ranger Plugin Configuration
+## Export to Yarn NodeManager
 
-      @config.ryba.yarn_plugin_is_master = true
+      for srv in service.use.yarn_nm
+        id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        for property in [
+          'yarn.http.policy'
+          'yarn.log.server.url'
+          'yarn.resourcemanager.principal'
+          'yarn.resourcemanager.cluster-id'
+          'yarn.nodemanager.remote-app-log-dir'
+          'yarn.nodemanager.remote-app-log-dir-suffix'
+          'yarn.resourcemanager.ha.enabled'
+          'yarn.resourcemanager.ha.rm-ids'
+          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+          "yarn.resourcemanager.address#{id}"
+          "yarn.resourcemanager.scheduler.address#{id}"
+          "yarn.resourcemanager.admin.address#{id}"
+          "yarn.resourcemanager.webapp.address#{id}"
+          "yarn.resourcemanager.webapp.https.address#{id}"
+          "yarn.resourcemanager.resource-tracker.address#{id}"
+        ]
+          srv.options.yarn_site[property] ?= options.yarn_site[property]
+      for srv in service.use.mapred_jhs
+        id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        for property in [
+          'yarn.http.policy'
+          'yarn.log.server.url'
+          'yarn.resourcemanager.principal'
+          'yarn.resourcemanager.cluster-id'
+          'yarn.nodemanager.remote-app-log-dir'
+          'yarn.nodemanager.remote-app-log-dir-suffix'
+          'yarn.resourcemanager.ha.enabled'
+          'yarn.resourcemanager.ha.rm-ids'
+          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+          "yarn.resourcemanager.address#{id}"
+          "yarn.resourcemanager.scheduler.address#{id}"
+          "yarn.resourcemanager.admin.address#{id}"
+          "yarn.resourcemanager.webapp.address#{id}"
+          "yarn.resourcemanager.webapp.https.address#{id}"
+          "yarn.resourcemanager.resource-tracker.address#{id}"
+        ]
+          srv.options.yarn_site[property] ?= options.yarn_site[property]
 
-## Configuration for Log4J
+## Wait
 
-      ryba.yarn.rm.log4j ?= {}
-      ryba.yarn.rm.root_logger ?= 'INFO,EWMA,RFA'
-      ryba.yarn.rm.opts['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
-      ryba.yarn.rm.opts['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
-      # adding SOCKET appender
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hadoop/yarn_rm' in @config.log4j?.services)
-          ryba.yarn.rm.socket_client ?= "SOCKET"
-          # Root logger
-          if ryba.yarn.rm.root_logger.indexOf(ryba.yarn.rm.socket_client) is -1
-          then ryba.yarn.rm.root_logger += ",#{ryba.yarn.rm.socket_client}"
-          # Security Logger
-          if ryba.yarn.rm.opts['yarn.server.resourcemanager.appsummary.logger'].indexOf(ryba.yarn.rm.socket_client) is -1
-          then ryba.yarn.rm.opts['yarn.server.resourcemanager.appsummary.logger'] += ",#{ryba.yarn.rm.socket_client}"
-          # Audit Logger
-          if ryba.yarn.rm.opts['yarn.server.resourcemanager.audit.logger'].indexOf(ryba.yarn.rm.socket_client) is -1
-          then ryba.yarn.rm.opts['yarn.server.resourcemanager.audit.logger'] += ",#{ryba.yarn.rm.socket_client}"
-
-          ryba.yarn.rm.opts['hadoop.log.application'] = 'resourcemanager'
-          ryba.yarn.rm.opts['hadoop.log.remote_host'] = @config.log4j.remote_host
-          ryba.yarn.rm.opts['hadoop.log.remote_port'] = @config.log4j.remote_port
-
-          ryba.yarn.rm.socket_opts ?=
-            Application: '${hadoop.log.application}'
-            RemoteHost: '${hadoop.log.remote_host}'
-            Port: '${hadoop.log.remote_port}'
-            ReconnectionDelay: '10000'
-
-          ryba.yarn.rm.log4j = merge ryba.yarn.rm.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: ryba.yarn.rm.socket_client
-            logj4: ryba.yarn.rm.log4j
-            properties: ryba.yarn.rm.socket_opts
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_hdfs_dn = service.use.hdfs_dn[0].options.wait
+      options.wait_yarn_ts = service.use.yarn_ts.options.wait
+      options.wait_mapred_jhs = service.use.mapred_jhs.options.wait
+      options.wait = {}
+      options.wait.tcp = for srv in service.use.yarn_rm
+        [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
+        then srv.options.yarn_site["yarn.resourcemanager.address#{id}"].split(':')
+        else
+          id = ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id'] or srv.node.fqdn}"
+          srv.options.yarn_site["yarn.resourcemanager.address#{id}"] ?= "#{srv.node.fqdn}:8050"
+          srv.options.yarn_site["yarn.resourcemanager.address#{id}"].split(':')
+        host: fqdn, port: port
+      options.wait.admin = for srv in service.use.yarn_rm
+        [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
+        then srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"].split(':')
+        else
+          id = ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id'] or srv.node.fqdn}"
+          srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"] ?= "#{srv.node.fqdn}:8141"
+          srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"].split(':')
+        host: fqdn, port: port
+      options.wait.webapp = for srv in service.use.yarn_rm
+        protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else '.https'
+        default_http_port = if protocol is '' then '8088' else '8090'
+        [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
+        then srv.options.yarn_site["yarn.resourcemanager.webapp#{protocol}.address#{id}"].split(':')
+        else
+          id = ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id'] or srv.node.fqdn}"
+          srv.options.yarn_site["yarn.resourcemanager.webapp#{protocol}.address#{id}"] ?= "#{srv.node.fqdn}:#{default_http_port}"
+          srv.options.yarn_site["yarn.resourcemanager.webapp#{protocol}.address#{id}"].split(':')
+        host: fqdn, port: port
 
 ## Dependencies
 
     appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

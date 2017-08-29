@@ -1,22 +1,24 @@
 
 # YARN NodeManager Start
 
+    module.exports = header: 'YARN NM Start', label_true: 'STARTED', handler: (options) ->
+
+## Wait
+
+Wait for Kerberos, ZooKeeper and HDFS to be started.
+
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
+
+## Start Service
+
 Start the Yarn NodeManager service. You can also start the server manually with the
 following two commands:
 
 ```
 service hadoop-yarn-nodemanager start
-su -l yarn -c "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && /usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config /etc/hadoop-yarn-resourcemanager/conf start nodemanager"
+su -l yarn -c "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && /usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config /etc/hadoop-yarn-nodemanager/conf start nodemanager"
 ```
-
-    module.exports = header: 'YARN NM Start', label_true: 'STARTED', handler: ->
-
-Wait for Kerberos, ZooKeeper and HDFS to be started.
-
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-
-Start the service.
 
       @service.start header: 'Service', name: 'hadoop-yarn-nodemanager'

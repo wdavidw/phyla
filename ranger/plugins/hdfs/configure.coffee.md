@@ -17,7 +17,7 @@ as external.
 
 ## Environment
 
-      service.use.hdfs_nn.options.site['dfs.namenode.inode.attributes.provider.class'] ?= 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'
+      service.use.hdfs_nn.options.hdfs_site['dfs.namenode.inode.attributes.provider.class'] ?= 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'
       options.hdfs_conf_dir = service.use.hdfs_nn.options.conf_dir
 
 ## Identities
@@ -35,7 +35,7 @@ as external.
       # Admin Information
       options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
 
-## Plugin Access`
+## Access`
 
       options.admin_password ?= service.use.ranger_admin.options.plugins.password
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
@@ -49,12 +49,13 @@ Repository creating is only executed from one NameNode.
 
       options.repo_create = service.use.hdfs_nn.options.active_nn_host is service.node.fqdn
 
-## HDFS Plugin configuration
+## Configuration
 
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
 
-### HDFS Plugin Policy Admin Tool
+### Policy Admin Tool
+
 The repository name should match the reposity name in web ui.
 The properties can be found [here][hdfs-repository]
 
@@ -63,11 +64,11 @@ The properties can be found [here][hdfs-repository]
       options.service_repo ?=
         'configs':
           'username': 'ranger_plugin_hdfs'
-          'password': 'RangerPluginHDS123!'
+          'password': 'RangerPluginHDFS123!'
           'fs.default.name': service.use.hdfs_nn.options.core_site['fs.defaultFS']
           'hadoop.security.authentication': service.use.hdfs_nn.options.core_site['hadoop.security.authentication']
-          'dfs.namenode.kerberos.principal': service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
-          'dfs.datanode.kerberos.principal': service.use.hdfs_dn[0].options.site['dfs.datanode.kerberos.principal']
+          'dfs.namenode.kerberos.principal': service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
+          'dfs.datanode.kerberos.principal': service.use.hdfs_dn[0].options.hdfs_site['dfs.datanode.kerberos.principal']
           'hadoop.rpc.protection': service.use.hdfs_nn.options.core_site['hadoop.rpc.protection']
           'hadoop.security.authorization': service.use.hdfs_nn.options.core_site['hadoop.security.authorization']
           'hadoop.security.auth_to_local': service.use.hdfs_nn.options.core_site['hadoop.security.auth_to_local']
@@ -79,7 +80,7 @@ The properties can be found [here][hdfs-repository]
         'name': options.install['REPOSITORY_NAME']
         'type': 'hdfs'
 
-### HDFS Plugin Audit (database storage)
+### Audit (database storage)
 
       #Deprecated
       options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
@@ -104,7 +105,7 @@ The properties can be found [here][hdfs-repository]
           options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
 
-### HDFS Plugin Audit (HDFS Storage)
+### Audit (HDFS Storage)
 
 Configure Audit to HDFS
 
@@ -127,7 +128,7 @@ Configure Audit to HDFS
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
-### HDFS Plugin Audit (SOLR Storage)
+### Audit (SOLR Storage)
 
 Configure Audit to SOLR
 
@@ -147,16 +148,16 @@ Configure Audit to SOLR
         options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
         options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
         options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
-        nn_princ = service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
+        nn_princ = service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
         options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= nn_princ
 
-### HDFS Plugin SSL
+### SSL
 
       if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.install['SSL_KEYSTORE_FILE_PATH'] ?= "#{service.use.hdfs_nn.options.conf_dir}/keystore"
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.location']
         options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.password']
-        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= "#{service.use.hdfs_nn.options.conf_dir}/truststore"
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.location']
         options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.password']
 
 ## Wait

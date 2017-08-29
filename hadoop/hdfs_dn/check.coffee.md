@@ -35,8 +35,8 @@ value is 50475.
 
 ## Check Disk Capacity
 
-      protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-      port = options.site["dfs.datanode.#{protocol}.address"].split(':')[1]
+      protocol = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      port = options.hdfs_site["dfs.datanode.#{protocol}.address"].split(':')[1]
       @system.execute
         header: 'SPNEGO'
         cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=DataNode,name=DataNodeInfo"

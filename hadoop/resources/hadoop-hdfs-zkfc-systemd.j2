@@ -5,10 +5,10 @@ Description=HDFS ZKFC
 User=hdfs
 Group=hadoop
 Type=forking
-PIDFile={{pid_dir}}/hadoop-hdfs-zkfc.pid
-ExecStart=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs start zkfc
-ExecReload=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs restart zkfc
-ExecStop=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs stop zkfc
+PIDFile={{options.pid_dir}}/hadoop-hdfs-zkfc.pid
+ExecStart=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs start zkfc
+ExecReload=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs restart zkfc
+ExecStop=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs stop zkfc
 
 [Install]
 WantedBy=multi-user.target

@@ -2,10 +2,13 @@
 # Yarn ResourceManager Report
 
 
-    module.exports = header: 'YARN Client Report', label_true: 'INFO', handler: (_, next) ->
-      {hadoop_conf_dir} = @config.ryba
-      properties.read @ssh, "#{hadoop_conf_dir}/yarn-site.xml", (err, config) ->
-        return next err if err
+    module.exports = header: 'YARN Client Report', label_true: 'INFO', handler: (options) ->
+      config = null
+      @call (_, callback)
+        properties.read @ssh, "#{options.conf_dir}/yarn-site.xml", (err, c) ->
+          config = c unless err
+        callback err
+      @call ->
         @emit 'report',
           key: 'yarn.app.mapreduce.am.resource.mb'
           value:  prink.filesize.from.megabytes config['yarn.app.mapreduce.am.resource.mb']

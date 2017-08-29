@@ -3,14 +3,13 @@
 
 Check the health of the ResourceManager(s).
 
-    module.exports = header: 'YARN RM Check', label_true: 'CHECKED', handler: ->
-      {yarn} = @config.ryba
+    module.exports = header: 'YARN RM Check', label_true: 'CHECKED', handler: (options) ->
 
 ## Wait
 
 Wait for the ResourceManager.
 
-      @call once: true, 'ryba/hadoop/yarn_rm/wait'
+      @call once: true, 'ryba/hadoop/yarn_rm/wait', options.wait
 
 ## Check Health
 
@@ -21,8 +20,8 @@ mode.
 
       @system.execute
         header: 'HA Health'
-        if: @contexts('ryba/hadoop/yarn_rm').length > 1
-        cmd: mkcmd.hdfs @, "yarn --config #{yarn.rm.conf_dir} rmadmin -checkHealth #{@config.shortname}"
+        if: options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
+        cmd: mkcmd.hdfs @, "yarn --config #{options.conf_dir} rmadmin -checkHealth #{options.hostname}"
         retry: 3
         wait: 5000
 

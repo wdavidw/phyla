@@ -19,7 +19,7 @@
         header: 'IPTables'
         if: options.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: options.site['dfs.ha.zkfc.port'], protocol: 'tcp', state: 'NEW', comment: "ZKFC IPC" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hdfs_site['dfs.ha.zkfc.port'], protocol: 'tcp', state: 'NEW', comment: "ZKFC IPC" }
         ]
 
 ## Packages
@@ -38,7 +38,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
           target: '/etc/init.d/hadoop-hdfs-zkfc'
           source: "#{__dirname}/../resources/hadoop-hdfs-zkfc.j2"
           local: true
-          context: options
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -48,7 +48,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
             target: '/usr/lib/systemd/system/hadoop-hdfs-zkfc.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-zkfc-systemd.j2"
             local: true
-            context: options
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
@@ -70,7 +70,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
           target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true
-          properties: options.site
+          properties: options.hdfs_site
           uid: options.user.name
           gid: options.hadoop_group.name
           backup: true

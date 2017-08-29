@@ -20,7 +20,7 @@ information and heartbeats to both.
         krb5_client: module: 'masson/core/krb5_client', local: true
         iptables: module: 'masson/core/iptables', local: true
         java: module: 'masson/commons/java', local: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
       configure:

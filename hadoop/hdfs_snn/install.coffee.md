@@ -20,8 +20,8 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      [_, http_port] = options.site['dfs.namenode.secondary.http-address'].split ':'
-      [_, https_port] = options.site['dfs.namenode.secondary.https-address'].split ':'
+      [_, http_port] = options.hdfs_site['dfs.namenode.secondary.http-address'].split ':'
+      [_, https_port] = options.hdfs_site['dfs.namenode.secondary.https-address'].split ':'
       @tools.iptables
         header: 'IPTables'
         if: options.iptables
@@ -47,7 +47,7 @@ script inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-secondarynamenode'
           source: "#{__dirname}/../resources/secondarynamenode.j2"
           local: true
-          context: @config
+          context: context: context
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -57,7 +57,7 @@ script inside "/etc/init.d" and activate it on startup.
             target: '/usr/lib/systemd/system/hadoop-hdfs-secondarynamenode.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-secondarynamenode-systemd.j2"
             local: true
-            context: @config.ryba
+            context: context: context
             mode: 0o0644
           @system.tmpfs
             mount: "#{options.pid_dir}"
@@ -67,7 +67,7 @@ script inside "/etc/init.d" and activate it on startup.
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: for dir in options.site['dfs.namenode.checkpoint.dir'].split ','
+          target: for dir in options.hdfs_site['dfs.namenode.checkpoint.dir'].split ','
             if dir.indexOf('file://') is 0
             then dir.substr(7) else dir
           uid: options.user.name
@@ -86,9 +86,9 @@ script inside "/etc/init.d" and activate it on startup.
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: options.site['dfs.secondary.namenode.kerberos.principal']
+        principal: options.hdfs_site['dfs.secondary.namenode.kerberos.principal']
         randkey: true
-        keytab: options.site['dfs.secondary.namenode.keytab.file']
+        keytab: options.hdfs_site['dfs.secondary.namenode.keytab.file']
         uid: options.user.name
         gid: options.hadoop_group.name
 
@@ -99,7 +99,7 @@ script inside "/etc/init.d" and activate it on startup.
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: options.site
+        properties: options.hdfs_site
         uid: options.user.name
         gid: options.hadoop_group.name
         backup: true

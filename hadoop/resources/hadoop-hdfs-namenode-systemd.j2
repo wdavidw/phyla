@@ -2,12 +2,12 @@
 Description=HDFS NameNode
 
 [Service]
-User={{user.name}}
-Group={{group.name}}
-PIDFile={{pid_dir}}/hadoop-hdfs-namenode.pid
-ExecStart=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs start namenode
-ExecReload=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs restart namenode
-ExecStop=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{conf_dir}} --script hdfs stop namenode
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/hadoop-hdfs-namenode.pid
+ExecStart=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs start namenode
+ExecReload=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs restart namenode
+ExecStop=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs stop namenode
 
 [Install]
 WantedBy=multi-user.target

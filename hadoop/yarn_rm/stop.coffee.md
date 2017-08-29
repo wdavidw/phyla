@@ -1,8 +1,7 @@
 
 # Hadoop YARN ResourceManager Stop
 
-    module.exports = header: 'YARN RM Stop', label_true: 'STOPPED', handler: ->
-      {clean_logs, yarn} = @config.ryba
+    module.exports = header: 'YARN RM Stop', label_true: 'STOPPED', handler: (options) ->
 
 ## Stop
 
@@ -21,9 +20,14 @@ The file storing the PID is "/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager
         label_true: 'STOPPED'
         name: 'hadoop-yarn-resourcemanager'
 
+## Stop Clean Logs
+
+Remove the "\*-resourcemanager-\*" log files if the property "ryba.clean_logs" is
+activated.
+
       @system.execute
         header: 'Clean Logs'
         label_true: 'CLEANED'
-        if: clean_logs
-        cmd: 'rm #{yarn.log_dir}/*/*-resourcemanager-*'
+        if: options.clean_logs
+        cmd: 'rm #{options.log_dir}/*/*-resourcemanager-*'
         code_skipped: 1

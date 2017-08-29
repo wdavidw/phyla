@@ -222,6 +222,8 @@ We manage creating the ranger_audits core/collection in the three modes.
         #{options.solr.latest_dir}/bin/solr create_core -c ranger_audits \
         -d  #{options.solr.user.home}/ranger_audits
         """
+        retry: 3
+        sleep: 3000
 
 ## Dependencies
 

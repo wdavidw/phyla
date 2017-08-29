@@ -1,18 +1,16 @@
 
-    module.exports = header: 'Ranger YARN Plugin install', handler: ->
-      {ranger, yarn, realm, hadoop_group, core_site, ssl_server} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Ranger YARN Plugin install', handler: (options) ->
       version = null
-      conf_dir = null
-      @call -> conf_dir = if @config.ryba.yarn_plugin_is_master then yarn.rm.conf_dir else yarn.nm.conf_dir
 
-# HDFS Dependencies
+## Register
 
-      @call once: true, 'ryba/ranger/admin/wait'
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
 
-# Packages
+## Wait
+
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+
+## Packages
 
       @call header: 'Packages', ->
         @system.execute
@@ -27,22 +25,22 @@
         @service
           name: "ranger-yarn-plugin"
 
-# Layout
+## Layout
 
       @system.mkdir
-        target: ranger.yarn_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: yarn.user.name
-        gid: hadoop_group.name
+        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        uid: options.yarn_user.name
+        gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.yarn_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
-        target: ranger.yarn_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: yarn.user.name
-        gid: hadoop_group.name
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.yarn_user.name
+        gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.yarn_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
-# YARN Service Repository creation
+## YARN Service Repository creation
 Matchs step 1 in [hdfs plugin configuration][yarn-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
@@ -52,41 +50,45 @@ we execute this task using the rest api.
       , ->
         @system.execute
           unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{password} \"#{ranger.yarn_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.yarn_plugin.install['REPOSITORY_NAME']}\"
+          curl --fail -H "Content-Type: application/json" -k -X GET  \
+            -u admin:#{options.admin_password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
           """
           cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.yarn_plugin.service_repo}' \
-            -u admin:#{password} \"#{ranger.yarn_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
+          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
+            -u admin:#{options.admin_password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
           """
-        @krb5.addprinc krb5,
-          if: ranger.yarn_plugin.principal
+          
+        # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal
+        @krb5.addprinc options.krb5.admin,
           header: 'Ranger YARN Principal'
-          principal: ranger.yarn_plugin.principal
-          randkey: true
-          password: ranger.yarn_plugin.password
+          # if: options.plugins.principal
+          principal: "#{options.service_repo.configs.principal}@#{options.krb5.realm}"
+          password: options.service_repo.configs.password
+
+## HDFS Audit Layout
+
         @system.execute
-          header: 'Ranger Audit HDFS Layout'
+          header: 'HDFS Audit Layout'
           cmd: mkcmd.hdfs @, """
-          hdfs dfs -mkdir -p #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/yarn
-          hdfs dfs -chown -R #{yarn.user.name}:#{yarn.user.name} #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/yarn
-          hdfs dfs -chmod 750 #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/yarn
+          hdfs --config #{options.conf_dir} dfs -mkdir -p /#{options.user.name}/audit/yarn
+          hdfs --config #{options.conf_dir} dfs -chown -R #{options.yarn_user.name}:#{options.yarn_user.name} /#{options.user.name}/audit/yarn
+          hdfs --config #{options.conf_dir} dfs -chmod 750 /#{options.user.name}/audit/yarn
           """
 
-# Plugin Scripts 
+## Activation
 
       @call
-        header: 'Plugin Activation'
+        header: 'Activation'
       , ->
         @file.render
-          header: 'Scripts rendering'
+          header: 'Scripts Rendering'
           if: -> version?
           source: "#{__dirname}/../../resources/plugin-install.properties.j2"
           target: "/usr/hdp/#{version}/ranger-yarn-plugin/install.properties"
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.yarn_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -95,7 +97,7 @@ we execute this task using the rest api.
           target: "/usr/hdp/#{version}/ranger-yarn-plugin/enable-yarn-plugin.sh"
           write:[
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
             ,
               match: RegExp "\\^HCOMPONENT_LIB_DIR=.*$", 'mg'
               replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hadoop-yarn-resourcemanager/lib"
@@ -110,20 +112,20 @@ we execute this task using the rest api.
           ./enable-yarn-plugin.sh
           """
         @system.execute
-          header: "Fix repository "
-          cmd: "chown -R #{yarn.user.name}:#{hadoop_group.name} /etc/ranger/#{ranger.yarn_plugin.install['REPOSITORY_NAME']}"
+          header: 'Fix repository'
+          cmd: "chown -R #{options.yarn_user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
         @hconfigure
           header: 'Fix ranger-yarn-security conf'
-          target: "#{conf_dir}/ranger-yarn-security.xml"
+          target: "#{options.conf_dir}/ranger-yarn-security.xml"
           merge: true
           properties:
-            'ranger.plugin.yarn.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
+            'ranger.plugin.yarn.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
         @file
           header: 'Fix Ranger YARN Plugin Env'
-          target: "#{conf_dir}/yarn-env.sh"
+          target: "#{options.conf_dir}/yarn-env.sh"
           write: [
             match: RegExp "^export YARN_OPTS=.*", 'mg'
-            replace: "export YARN_OPTS=\"-Dhdp.version=$HDP_VERSION $YARN_OPTS -Djavax.net.ssl.trustStore=#{ssl_server['ssl.server.truststore.location']} -Djavax.net.ssl.trustStorePassword=#{ssl_server['ssl.server.truststore.password']} \" # RYBA, DONT OVERWRITE"
+            replace: "export YARN_OPTS=\"-Dhdp.version=$HDP_VERSION $YARN_OPTS -Djavax.net.ssl.trustStore=#{options.install['SSL_TRUSTSTORE_FILE_PATH']} -Djavax.net.ssl.trustStorePassword=#{options.install['SSL_TRUSTSTORE_PASSWORD']} \" # RYBA, DONT OVERWRITE"
             append: true
           ]
 

@@ -54,16 +54,33 @@
         version=`readlink $link | sed  's|.*/hdp/\\([^/]*\\)/.*|\\1|'`
         target=#{options.target}
         lock_file=#{options.lock}
+        timeout=240 # 4 minutes
+        # Not used but shown as a possible alternative:
+        # function get_leader {
+        #   hdfs dfs -mkdir -p $lock_file
+        #   hdfs dfs -touchz $lock_file/#{options.id}
+        #   oldest_time=''
+        #   oldest_file=''
+        #   for file in `hdfs dfs -ls -C $lock_file`; do
+        #     crdate=$((`hdfs dfs -stat "%Y" $file`/1000))
+        #     if [ -z $oldest_time ] || [ $oldest_time -lt $crdate ]; then
+        #       oldest_time=$crdate
+        #       oldest_file=$file
+        #     fi
+        #   done
+        #   echo $oldest_file
+        # }
+        # leader=`get_leader`
+        # echo '**** leader ' $leader
         function lock {
           if hdfs dfs -mkdir $lock_file; then
             echo "Lock created"
           else
             echo 'lock exist, check if valid'
-            timeout=240 # 4 minutes
             now=`date '+%s'`
             crdate=$((`hdfs dfs -stat "%Y" $lock_file`/1000))
             if [ $(($now - $crdate)) -le $timeout ]; then
-              sleep_time=$((240 - $crdate + $now + 5))
+              sleep_time=$(($timeout - $crdate + $now + 5))
               echo crdate $crdate
               echo now $now
               echo sleep_time $sleep_time
@@ -115,6 +132,7 @@
         hdfs dfs -rm -r $lock_file
         """
         trap: true
+        bash: true
         code_skipped: 3
         unless_exec: mkcmd.hdfs @, """
         source=#{options.source}

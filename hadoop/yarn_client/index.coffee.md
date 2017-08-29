@@ -6,23 +6,24 @@ The URI resources are grouped into APIs based on the type of information returne
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
-        yarn_rm: 'ryba/hadoop/yarn_rm'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        yarn_ts: 'ryba/hadoop/yarn_ts'
-        yc_ctxs: 'ryba/hadoop/yarn_client'
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
+        yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
+        yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
+        yarn_ts: module: 'ryba/hadoop/yarn_ts'
       configure:
         'ryba/hadoop/yarn_client/configure'
       commands:
-        'check':
-          'ryba/hadoop/yarn_client/check'
-        'install': [
-          'ryba/hadoop/yarn_client/install'
-          'ryba/hadoop/yarn_client/check'
-        ]
-        'report': [
-          'masson/bootstrap/report'
-          'ryba/hadoop/yarn_client/report'
-        ]
+        'check': ->
+          options = @config.ryba.yarn_client
+          @call 'ryba/hadoop/yarn_client/check', options
+        'install': ->
+          options = @config.ryba.yarn_client
+          @call 'ryba/hadoop/yarn_client/install', options
+          @call 'ryba/hadoop/yarn_client/check', options
+        'report': ->
+          options = @config.ryba.yarn_client
+          @call 'masson/bootstrap/report', options
+          @call 'ryba/hadoop/yarn_client/report', options

@@ -1,20 +1,25 @@
 
-# YARN Timeline Server Check
+# Hadoop YARN Timeline Server Check
 
 Check the Timeline Server.
 
-    module.exports = header: 'YARN ATS Check', label_true: 'CHECKED', handler: ->
-      {yarn} = @config.ryba
+    module.exports = header: 'YARN ATS Check', label_true: 'CHECKED', handler: (options) ->
 
-Wait for the server to be started.
+## Assert
 
-      @call once: true, 'ryba/hadoop/yarn_ts/wait'
+Ensure The the server to be started.
+
+      @connection.assert
+        header: 'Webapp'
+        servers: options.wait.webapp
+        retry: 3
+        sleep: 3000
 
 Check the HTTP server with a JMX request.
 
-      protocol = if yarn.site['yarn.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
       address_key = if protocol is 'http' then "address" else "https.address"
-      address = yarn.site["yarn.timeline-service.webapp.#{address_key}"]
+      address = options.yarn_site["yarn.timeline-service.webapp.#{address_key}"]
       @system.execute
         header: 'HTTP Port'
         cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{address}/jmx?qry=Hadoop:service=ApplicationHistoryServer,name=JvmMetrics"

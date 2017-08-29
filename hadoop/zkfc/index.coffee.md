@@ -7,17 +7,17 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
 
     module.exports =
       use:
-        iptables: module: 'masson/core/iptables', local: true # implicit: true
+        iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
-        java: module: 'masson/commons/java', local: true # implicit: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         zookeeper_server: module: 'ryba/zookeeper/server'
-        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true # implicit: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
       configure:
         'ryba/hadoop/zkfc/configure'
       plugin: ->
         options = @config.ryba.zkfc
-        @before
+        @after
           type: ['service', 'start']
           name: 'hadoop-hdfs-namenode'
         , ->

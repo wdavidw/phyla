@@ -4,70 +4,118 @@
 The default configuration is located inside the source code in the location
 "hadoop-hdfs-project/hadoop-hdfs-httpfs/src/main/resources/httpfs-default.xml".
 
-    module.exports = ->
-      {realm} = @config.ryba
-      hdfs_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn']
-      httpfs = @config.ryba.httpfs ?= {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hadoop/https', ['ryba', 'httpfs'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
+        hadoop_core: key: ['ryba']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        httpfs: key: ['ryba', 'httpfs']
+      @config.ryba ?= {}
+      options = @config.ryba.httpfs = service.options
 
 ## Environment
 
       # layout
-      httpfs.pid_dir ?= '/var/run/httpfs'
-      httpfs.conf_dir ?= '/etc/hadoop-httpfs/conf'
-      httpfs.log_dir ?= '/var/log/hadoop-httpfs'
-      httpfs.tmp_dir ?= '/var/tmp/hadoop-httpfs'
+      options.pid_dir ?= '/var/run/httpfs'
+      options.conf_dir ?= '/etc/hadoop-httpfs/conf'
+      options.hdfs_conf_dir ?= service.use.hdfs_client.options.conf_dir
+      options.log_dir ?= '/var/log/hadoop-httpfs'
+      options.tmp_dir ?= '/var/tmp/hadoop-httpfs'
       # Environment
-      httpfs.http_port ?= '14000'
-      httpfs.http_admin_port ?= '14001'
-      httpfs.catalina ?= {}
-      httpfs.catalina_home ?= '/etc/hadoop-httpfs/tomcat-deployment'
-      httpfs.catalina_opts ?= ''
-      httpfs.catalina.opts ?= {}
+      options.http_port ?= '14000'
+      options.http_admin_port ?= '14001'
+      options.catalina ?= {}
+      options.catalina_home ?= '/etc/hadoop-httpfs/tomcat-deployment'
+      # migration: wdavidw 170828, should we really have 2 options ?
+      # probably but we should document why
+      options.catalina_opts ?= ''
+      options.catalina.opts ?= {}
+      # Misc
+      options.fqdn ?= service.node.fqdn
 
 ## Identities
 
       # Group
-      httpfs.group = name: httpfs.group if typeof httpfs.group is 'string'
-      httpfs.group ?= {}
-      httpfs.group.name ?= 'httpfs'
-      httpfs.group.system ?= true
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'httpfs'
+      options.group.system ?= true
       # User
-      httpfs.user ?= {}
-      httpfs.user = name: httpfs.user if typeof httpfs.user is 'string'
-      httpfs.user.name ?= httpfs.group.name
-      httpfs.user.system ?= true
-      httpfs.user.comment ?= 'HttpFS User'
-      httpfs.user.home = "/var/lib/#{httpfs.user.name}"
-      httpfs.user.gid = httpfs.group.name
-      httpfs.user.groups ?= 'hadoop'
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= options.group.name
+      options.user.system ?= true
+      options.user.comment ?= 'HttpFS User'
+      options.user.home = "/var/lib/#{options.user.name}"
+      options.user.gid = options.group.name
+      options.user.groups ?= 'hadoop'
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
-      httpfs.env ?= {}
-      httpfs.env.HTTPFS_SSL_ENABLED ?= 'true' # Default is "false"
-      httpfs.env.HTTPFS_SSL_KEYSTORE_FILE ?= "#{httpfs.conf_dir}/keystore" # Default is "${HOME}/.keystore"
-      httpfs.env.HTTPFS_SSL_KEYSTORE_PASS ?= 'ryba123' # Default to "password"
+      # Hadoop core "core-site.xml"
+      options.core_site = merge {}, service.use.hdfs_client.options.core_site, options.core_site or {}
+      # Env
+      options.env ?= {}
+      options.env.HTTPFS_SSL_ENABLED ?= 'true' # Default is "false"
+      options.env.HTTPFS_SSL_KEYSTORE_FILE ?= "#{options.conf_dir}/keystore" # Default is "${HOME}/.keystore"
+      options.env.HTTPFS_SSL_KEYSTORE_PASS ?= 'ryba123' # Default to "password"
       # Site
-      httpfs.site ?= {}
-      httpfs.site['dfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
-      httpfs.site['httpfs.hadoop.config.dir'] ?= '/etc/hadoop/conf'
-      httpfs.site['kerberos.realm'] ?= "#{realm}"
-      httpfs.site['httpfs.hostname'] ?= "#{@config.host}"
-      httpfs.site['httpfs.authentication.type'] ?= 'kerberos'
-      httpfs.site['httpfs.authentication.kerberos.principal'] ?= "HTTP/#{@config.host}@#{realm}" # Default to "HTTP/${httpfs.hostname}@${kerberos.realm}"
-      httpfs.site['httpfs.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab' # Default to "${user.home}/httpfs.keytab"
-      httpfs.site['httpfs.hadoop.authentication.type'] ?= 'kerberos'
-      httpfs.site['httpfs.hadoop.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/httpfs.service.keytab' # Default to "${user.home}/httpfs.keytab"
-      httpfs.site['httpfs.hadoop.authentication.kerberos.principal'] ?= "#{httpfs.user.name}/#{@config.host}@#{realm}" # Default to "${user.name}/${httpfs.hostname}@${kerberos.realm}"
-      httpfs.site['httpfs.authentication.kerberos.name.rules'] ?= @config.ryba.core_site['hadoop.security.auth_to_local']
-      for hdfs_ctx in hdfs_ctxs
-        hdfs_ctx.config.ryba ?= {}
-        hdfs_ctx.config.ryba.core_site ?= {}
-        hdfs_ctx.config.ryba.core_site["hadoop.proxyuser.#{httpfs.user.name}.hosts"] ?= @contexts('ryba/hadoop/httpfs').map((ctx) -> ctx.config.host).join ','
-        hdfs_ctx.config.ryba.core_site["hadoop.proxyuser.#{httpfs.user.name}.groups"] ?= '*'
-      # Log4J
+      options.httpfs_site ?= {}
+      options.httpfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
+      options.httpfs_site['httpfs.hadoop.config.dir'] ?= '/etc/hadoop/conf'
+      options.httpfs_site['kerberos.realm'] ?= "#{options.krb5.realm}"
+      options.httpfs_site['httpfs.hostname'] ?= "#{service.node.fqdn}"
+      options.httpfs_site['httpfs.authentication.type'] ?= 'kerberos'
+      options.httpfs_site['httpfs.authentication.kerberos.principal'] ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}" # Default to "HTTP/${service.node.fqdn}@${kerberos.realm}"
+      options.httpfs_site['httpfs.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab' # Default to "${user.home}/httpfs.keytab"
+      options.httpfs_site['httpfs.hadoop.authentication.type'] ?= 'kerberos'
+      options.httpfs_site['httpfs.hadoop.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/httpfs.service.keytab' # Default to "${user.home}/httpfs.keytab"
+      options.httpfs_site['httpfs.hadoop.authentication.kerberos.principal'] ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}" # Default to "${user.name}/${httpfs.hostname}@${kerberos.realm}"
+      options.httpfs_site['httpfs.authentication.kerberos.name.rules'] ?= service.use.hadoop_core.options.core_site['hadoop.security.auth_to_local']
+
+## SSL
+
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+
+## Log4J
+
       if @config.log4j?.remote_host? && @config.log4j?.remote_port?
-        httpfs.catalina.opts['httpfs.log.server.logger'] = 'INFO,httpfs,socket'
-        httpfs.catalina.opts['httpfs.log.audit.logger'] = 'INFO,httpfsaudit,socket'
-        httpfs.catalina.opts['httpfs.log.remote_host'] = @config.log4j.remote_host
-        httpfs.catalina.opts['httpfs.log.remote_port'] = @config.log4j.remote_port
+        options.catalina.opts['httpfs.log.server.logger'] = 'INFO,httpfs,socket'
+        options.catalina.opts['httpfs.log.audit.logger'] = 'INFO,httpfsaudit,socket'
+        options.catalina.opts['httpfs.log.remote_host'] = @config.log4j.remote_host
+        options.catalina.opts['httpfs.log.remote_port'] = @config.log4j.remote_port
+
+## Export
+
+Export the proxy user to all DataNodes and NameNodes
+
+      for srv in [service.use.hdfs_dn..., service.use.hdfs_nn...]
+        srv.options.core_site ?= {}
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= @contexts('ryba/hadoop/httpfs').map((ctx) -> ctx.config.host).join ','
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+
+## Wait
+
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait = {}
+      options.wait.http = for srv in service.use.httpfs
+        host: srv.node.fqdn
+        port: srv.options.http_port or '14000'
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

@@ -4,7 +4,7 @@
     module.exports =
       use:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true

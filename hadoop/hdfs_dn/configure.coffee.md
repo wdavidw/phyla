@@ -63,23 +63,23 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
 
 ## Identities
 
-      options.hadoop_group ?= merge {}, options.hadoop_group or {}, service.use.hadoop_core.options.hadoop_group
-      options.group ?= merge {}, options.group or {}, service.use.hadoop_core.options.hdfs.group
-      options.user ?= merge {}, options.user or {}, service.use.hadoop_core.options.hdfs.user
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group 
+      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
 
 ## Configuration
 
       options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
       # Note: moved during masson migration from nn to dn
       options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
-      options.site ?= {}
+      options.hdfs_site ?= {}
       # Comma separated list of paths. Use the list of directories from $DFS_DATA_DIR.
       # For example, /grid/hadoop/hdfs/dn,/grid1/hadoop/hdfs/dn.
-      options.site['dfs.http.policy'] ?= 'HTTPS_ONLY'
-      options.site['dfs.datanode.data.dir'] ?= ['file:///var/hdfs/data']
-      options.site['dfs.datanode.data.dir'] = options.site['dfs.datanode.data.dir'].join ',' if Array.isArray options.site['dfs.datanode.data.dir']
-      # @config.options.site['dfs.datanode.data.dir.perm'] ?= '750'
-      options.site['dfs.datanode.data.dir.perm'] ?= '700'
+      options.hdfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY'
+      options.hdfs_site['dfs.datanode.data.dir'] ?= ['file:///var/hdfs/data']
+      options.hdfs_site['dfs.datanode.data.dir'] = options.hdfs_site['dfs.datanode.data.dir'].join ',' if Array.isArray options.hdfs_site['dfs.datanode.data.dir']
+      # options.hdfs_site['dfs.datanode.data.dir.perm'] ?= '750'
+      options.hdfs_site['dfs.datanode.data.dir.perm'] ?= '700'
       if options.core_site['hadoop.security.authentication'] is 'kerberos'
         # Default values are retrieved from the official HDFS page called
         # ["SecureMode"][hdfs_secure].
@@ -87,15 +87,15 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
         # mechanism to make it impossible for a user to run a map task which
         # impersonates a DataNode
         # TODO: Move this to 'ryba/hadoop/hdfs_dn'
-        options.site['dfs.datanode.address'] ?= '0.0.0.0:1004'
-        options.site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
-        options.site['dfs.datanode.http.address'] ?= '0.0.0.0:1006'
-        options.site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
+        options.hdfs_site['dfs.datanode.address'] ?= '0.0.0.0:1004'
+        options.hdfs_site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
+        options.hdfs_site['dfs.datanode.http.address'] ?= '0.0.0.0:1006'
+        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
       else
-        options.site['dfs.datanode.address'] ?= '0.0.0.0:50010'
-        options.site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
-        options.site['dfs.datanode.http.address'] ?= '0.0.0.0:50075'
-        options.site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
+        options.hdfs_site['dfs.datanode.address'] ?= '0.0.0.0:50010'
+        options.hdfs_site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
+        options.hdfs_site['dfs.datanode.http.address'] ?= '0.0.0.0:50075'
+        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
 
 ## Centralized Cache Management
 
@@ -115,8 +115,8 @@ memory that you can lock than what you have configured.
       throw Error 'Required Options: "realm"' unless options.krb5.realm
       options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
       # Configuration in "core-site.xml"
-      options.site['dfs.datanode.kerberos.principal'] ?= options.krb5.principal.replace service.node.fqdn, '_HOST'
-      options.site['dfs.datanode.keytab.file'] ?= options.krb5.keytab
+      options.hdfs_site['dfs.datanode.kerberos.principal'] ?= options.krb5.principal.replace service.node.fqdn, '_HOST'
+      options.hdfs_site['dfs.datanode.keytab.file'] ?= options.krb5.keytab
 
 ## SSL
 
@@ -126,13 +126,13 @@ memory that you can lock than what you have configured.
 
 ## Tuning
 
-      dataDirs = options.site['dfs.datanode.data.dir'].split(',')
+      dataDirs = options.hdfs_site['dfs.datanode.data.dir'].split(',')
       if dataDirs.length > 3
-        options.site['dfs.datanode.failed.volumes.tolerated'] ?= '1'
+        options.hdfs_site['dfs.datanode.failed.volumes.tolerated'] ?= '1'
       else
-        options.site['dfs.datanode.failed.volumes.tolerated'] ?= '0'
+        options.hdfs_site['dfs.datanode.failed.volumes.tolerated'] ?= '0'
       # Validation
-      if options.site['dfs.datanode.failed.volumes.tolerated'] >= dataDirs.length
+      if options.hdfs_site['dfs.datanode.failed.volumes.tolerated'] >= dataDirs.length
         throw Error 'Number of failed volumes must be less than total volumes'
       options.datanode_opts ?= ''
 
@@ -140,19 +140,19 @@ memory that you can lock than what you have configured.
 
       # http://gbif.blogspot.fr/2015/05/dont-fill-your-hdfs-disks-upgrading-to.html
       # http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/admin_dn_storage_balancing.html
-      options.site['dfs.datanode.fsdataset.volume.choosing.policy'] ?= 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'
-      options.site['dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold'] ?= '10737418240' # 10GB
-      options.site['dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction'] ?= '1.0'
+      options.hdfs_site['dfs.datanode.fsdataset.volume.choosing.policy'] ?= 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'
+      options.hdfs_site['dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold'] ?= '10737418240' # 10GB
+      options.hdfs_site['dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction'] ?= '1.0'
       # Note, maybe do a better estimation of du.reserved inside capacity
       # currently, 50GB throw DataXceiver exception inside vagrant vm
-      options.site['dfs.datanode.du.reserved'] ?= '1073741824' # 1GB, also default in ambari
+      options.hdfs_site['dfs.datanode.du.reserved'] ?= '1073741824' # 1GB, also default in ambari
 
 ## HDFS Balancer Performance increase (Fast Mode)
 
       # https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_hdfs-administration/content/configuring_balancer.html
       # https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_hdfs-administration/content/recommended_configurations.html
-      options.site['dfs.datanode.balance.max.concurrent.moves'] ?=  Math.max 5, dataDirs.length * 4
-      options.site['dfs.datanode.balance.bandwidthPerSec'] ?= 10737418240 #(10 GB/s) default is 1048576 (=1MB/s)
+      options.hdfs_site['dfs.datanode.balance.max.concurrent.moves'] ?=  Math.max 5, dataDirs.length * 4
+      options.hdfs_site['dfs.datanode.balance.bandwidthPerSec'] ?= 10737418240 #(10 GB/s) default is 1048576 (=1MB/s)
 
 ## HDFS Short-Circuit Local Reads
 
@@ -160,8 +160,8 @@ memory that you can lock than what you have configured.
 
 [Short Circuit]: https://hadoop.apache.org/docs/r2.4.1/hadoop-project-dist/hadoop-hdfs/ShortCircuitLocalReads.html
 
-      options.site['dfs.client.read.shortcircuit'] ?= if @has_service 'ryba/hadoop/hdfs_dn' then 'true' else 'false'
-      options.site['dfs.domain.socket.path'] ?= '/var/lib/hadoop-hdfs/dn_socket'
+      options.hdfs_site['dfs.client.read.shortcircuit'] ?= if @has_service 'ryba/hadoop/hdfs_dn' then 'true' else 'false'
+      options.hdfs_site['dfs.domain.socket.path'] ?= '/var/lib/hadoop-hdfs/dn_socket'
 
 ## Metrics
 
@@ -209,24 +209,24 @@ memory that you can lock than what you have configured.
       options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
       options.wait = {}
       options.wait.ipc = for srv in service.use.hdfs_dn
-        srv.options.site ?= {}
+        srv.options.hdfs_site ?= {}
         is_krb5 = options.core_site['hadoop.security.authentication'] is 'kerberos'
         property = if is_krb5 then else 
-        addr = if srv.options.site['dfs.datanode.address']?
-        then srv.options.site['dfs.datanode.address']
+        addr = if srv.options.hdfs_site['dfs.datanode.address']?
+        then srv.options.hdfs_site['dfs.datanode.address']
         else unless is_krb5 then '0.0.0.0:50010' else  '0.0.0.0:1004'
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
       options.wait.http = for srv in service.use.hdfs_dn
-        srv.options.site ?= {}
-        policy = srv.options.site['dfs.http.policy']
-        if srv.options.site['dfs.http.policy']?
-        then srv.options.site['dfs.http.policy']
-        else options.site['dfs.http.policy']
+        srv.options.hdfs_site ?= {}
+        policy = srv.options.hdfs_site['dfs.http.policy']
+        if srv.options.hdfs_site['dfs.http.policy']?
+        then srv.options.hdfs_site['dfs.http.policy']
+        else options.hdfs_site['dfs.http.policy']
         protocol = if policy is 'HTTP_ONLY' then 'http' else 'https'
-        addr = if srv.options.site["dfs.datanode.#{protocol}.address"]?
-        then srv.options.site["dfs.datanode.#{protocol}.address"]
-        else options.site["dfs.datanode.#{protocol}.address"]
+        addr = if srv.options.hdfs_site["dfs.datanode.#{protocol}.address"]?
+        then srv.options.hdfs_site["dfs.datanode.#{protocol}.address"]
+        else options.hdfs_site["dfs.datanode.#{protocol}.address"]
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
 

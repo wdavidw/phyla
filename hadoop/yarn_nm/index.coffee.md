@@ -11,34 +11,39 @@ applications.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        masson_cgroups: implicit: true, module: 'masson/core/cgroups'
-        hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        cgroups: module: 'masson/core/cgroups', local: true, required: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         ranger_admin: module: 'ryba/ranger/admin'
-      configure: [
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+      configure:
         'ryba/hadoop/yarn_nm/configure'
-        'ryba/ranger/plugins/yarn/configure'
-        ]
+        # 'ryba/ranger/plugins/yarn/configure'
       commands:
         # 'backup': 'ryba/hadoop/yarn_nm/backup'
-        # 'check': 'ryba/hadoop/yarn_nm/check'
-        'check':
-          'ryba/hadoop/yarn_nm/check'
-        'install': [
-          'masson/core/info'
-          'ryba/hadoop/yarn_nm/install'
-          'ryba/hadoop/yarn_nm/start'
-          'ryba/hadoop/yarn_nm/check'
-        ]
-        'report': [
-          'masson/bootstrap/report'
-          'ryba/hadoop/yarn_nm/report'
-        ]
-        'start':
-          'ryba/hadoop/yarn_nm/start'
+        'check': ->
+          options = @config.ryba.yarn.nm
+          @call 'ryba/hadoop/yarn_nm/check', options
+        'install': ->
+          options = @config.ryba.yarn.nm
+          @call 'masson/core/info'
+          @call 'ryba/hadoop/yarn_nm/install', options
+          @call 'ryba/hadoop/yarn_nm/start', options
+          @call 'ryba/hadoop/yarn_nm/check', options
+        'report': ->
+          options = @config.ryba.yarn.nm
+          @call 'masson/bootstrap/report'
+          @call 'ryba/hadoop/yarn_nm/report', options
+        'start': ->
+          options = @config.ryba.yarn.nm
+          @call 'ryba/hadoop/yarn_nm/start', options
         'status':
           'ryba/hadoop/yarn_nm/status'
-        'stop':
-          'ryba/hadoop/yarn_nm/stop'
+        'stop': ->
+          options = @config.ryba.yarn.nm
+          @call 'ryba/hadoop/yarn_nm/stop', options

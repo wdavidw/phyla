@@ -34,8 +34,8 @@
 NAME='HDFS Namenode'
 USER='hdfs'
 GROUP='hadoop'
-CONF_DIR='{{ryba.hdfs.snn.conf_dir}}'
-RUN_DIR='{{ryba.hdfs.pid_dir}}'
+CONF_DIR='{{options.conf_dir}}'
+RUN_DIR='{{options.pid_dir}}'
 PID_FILE="${RUN_DIR}/hadoop-hdfs-secondarynamenode.pid"
 CMD="su -l $USER -c \"/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config $CONF_DIR --script hdfs start secondarynamenode\""
 KILL_FORCE=0

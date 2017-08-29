@@ -100,8 +100,8 @@ afect HDFS metadata.
         mode: 0o0750
         conf_dir: options.conf_dir
         krb5_user:
-          principal: options.site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
-          keytab: options.site['dfs.namenode.keytab.file']
+          principal: options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
+          keytab: options.hdfs_site['dfs.namenode.keytab.file']
 
 ## Dependencies
 

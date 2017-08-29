@@ -10,7 +10,6 @@ su -l yarn -c "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec 
 ```
 
     module.exports = header: 'YARN RM Start', label_true: 'STARTED', retry: 3, handler: (options) ->
-      {yarn} = @config.ryba
 
 ## Wait
 
@@ -18,18 +17,18 @@ Wait for Kerberos, Zookeeper, HDFS, YARN and the MapReduce History Server. The
 History Server must be started because the ResourceManager will try to load
 the history of MR jobs from there.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/hadoop/hdfs_dn/wait'
-      @call once: true, 'ryba/hadoop/yarn_ts/wait'
-      @call once: true, 'ryba/hadoop/mapred_jhs/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
+      @call 'ryba/hadoop/hdfs_dn/wait', once: true, options.wait_hdfs_dn
+      @call 'ryba/hadoop/yarn_ts/wait', once: true, options.wait_yarn_ts
+      @call 'ryba/hadoop/mapred_jhs/wait', once: true, options.wait_mapred_jhs
 
 ## Cleanup
 
 Ensure the service pid is removed on retry.
 
       @system.remove
-        target: "#{yarn.pid_dir}/yarn-#{yarn.user.name}-resourcemanager.pid"
+        target: "#{options.pid_dir}/yarn-#{options.user.name}-resourcemanager.pid"
         if: options.attempt > 0
 
 ## Run

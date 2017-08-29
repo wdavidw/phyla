@@ -27,9 +27,9 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ## Identities
 
-      options.hadoop_group ?= merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group or {}
-      options.group ?= merge {}, service.use.hadoop_core.options.hdfs.group, options.group or {}
-      options.user ?= merge {}, service.use.hadoop_core.options.hdfs.user, options.user or {}
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
@@ -55,10 +55,10 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       .map (srv)-> "#{srv.node.fqdn}:#{srv.options.port}"
       .join(',')
       # Validation
-      options.principal ?= service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
-      options.nn_principal ?= service.use.hdfs_nn.options.site['dfs.namenode.kerberos.principal']
-      options.keytab ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
-      options.nn_keytab ?= service.use.hdfs_nn.options.site['dfs.namenode.keytab.file']
+      options.principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.nn_principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
+      options.nn_keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
       options.jaas_file ?= "#{options.conf_dir}/zkfc.jaas"
       options.digest ?= {}
       options.digest.name ?= 'zkfc'
@@ -70,8 +70,8 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       options.core_site['ha.zookeeper.acl'] ?= "@#{options.conf_dir}/zk-acl.txt"
       options.core_site['ha.zookeeper.auth'] = "@#{options.conf_dir}/zk-auth.txt"
       # Enrich "hdfs-site.xml"
-      options.site ?= {}
-      options.site['dfs.ha.zkfc.port'] ?= '8019'
+      options.hdfs_site ?= {}
+      options.hdfs_site['dfs.ha.zkfc.port'] ?= '8019'
 
       for property in [
         'dfs.namenode.kerberos.principal'
@@ -83,14 +83,14 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
         'dfs.nameservices'
         'dfs.internal.nameservices'
         'fs.permissions.umask-mode'
-      ] then options.site[property] ?= service.use.hdfs_nn.options.site[property]
-      for property, value of service.use.hdfs_nn.options.site
+      ] then options.hdfs_site[property] ?= service.use.hdfs_nn.options.hdfs_site[property]
+      for property, value of service.use.hdfs_nn.options.hdfs_site
         ok = false
         ok = true if /^dfs\.namenode\.\w+-address/.test property
         # ok = true if property.indexOf('dfs.client.failover.proxy.provider.') is 0
         ok = true if property.indexOf('dfs.ha.namenodes.') is 0
         continue unless ok
-        options.site[property] ?= value
+        options.hdfs_site[property] ?= value
 
 ## Kerberos
 
@@ -101,8 +101,8 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ## HA
 
-      options.dfs_nameservices ?= service.use.hdfs_nn.options.site['dfs.nameservices']
-      options.automatic_failover ?= service.use.hdfs_nn.options.site['dfs.ha.automatic-failover.enabled'] is 'true'
+      options.dfs_nameservices ?= service.use.hdfs_nn.options.hdfs_site['dfs.nameservices']
+      options.automatic_failover ?= service.use.hdfs_nn.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
       options.active_nn_host ?= service.use.hdfs_nn.options.active_nn_host
       options.standby_nn_host ?= service.use.hdfs_nn.options.standby_nn_host
       options.active_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.active_nn_host )[0].hostname
@@ -119,12 +119,12 @@ namenode from the new one to "shoot it in the head" (STONITH).
 If the previous master machine is dead, ssh connection will fail, so another
 fencing method should be configured to not block failover.
 
-      options.site['dfs.ha.fencing.methods'] ?= """
+      options.hdfs_site['dfs.ha.fencing.methods'] ?= """
       sshfence(#{options.user.name})
       shell(/bin/true)
       """
-      options.site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
-      options.site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
+      options.hdfs_site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
+      options.hdfs_site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
       throw Error "Required Option: ssh_fencing.private_key" unless options.ssh_fencing.private_key
       throw Error "Required Option: ssh_fencing.public_key" unless options.ssh_fencing.public_key
 

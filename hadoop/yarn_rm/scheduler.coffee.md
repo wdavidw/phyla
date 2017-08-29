@@ -13,25 +13,31 @@ only uses Memory while DominantResourceCalculator uses Dominant-resource to
 compare multi-dimensional resources such as Memory, CPU etc. A Java
 ResourceCalculator class name is expected.
 
-    module.exports = header: 'YARN RM Sheduler', handler: ->
-      {yarn, capacity_scheduler} = @config.ryba
+    module.exports = header: 'YARN RM Sheduler', handler: (options) ->
 
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
 
+## Write Configuration
+
       @hconfigure
         header: 'Capacity Scheduler'
-        if: yarn.rm.site['yarn.resourcemanager.scheduler.class'] is 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
-        target: "#{yarn.rm.conf_dir}/capacity-scheduler.xml"
+        if: options.yarn_site['yarn.resourcemanager.scheduler.class'] is 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
+        target: "#{options.conf_dir}/capacity-scheduler.xml"
         source: "#{__dirname}/../../resources/core_hadoop/capacity-scheduler.xml"
         local: true
-        properties: capacity_scheduler
+        properties: options.capacity_scheduler
         merge: false
         backup: true
+
+## Reload
+
       @system.execute
-        cmd: mkcmd.hdfs @, "service hadoop-yarn-resourcemanager status && yarn --config #{yarn.rm.conf_dir} rmadmin -refreshQueues || exit 0"
+        header: 'Reload'
         if: -> @status -1
+        cmd: mkcmd.hdfs @, "service hadoop-yarn-resourcemanager status && yarn --config #{options.conf_dir} rmadmin -refreshQueues || exit 0"
+
 
 ## Dependencies
 

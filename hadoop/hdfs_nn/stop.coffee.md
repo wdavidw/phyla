@@ -10,8 +10,9 @@ Stop the HDFS Namenode service. You can also stop the server manually with one o
 the following two commands:
 
 ```
+system hadoop-hdfs-namenode stop
 systemctl stop hadoop-hdfs-namenode
-su -l hdfs -c "/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf --script hdfs stop namenode"
+su -l hdfs -c "/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop-hdfs-namenode/conf --script hdfs stop namenode"
 ```
 
 The file storing the PID is "/var/run/hadoop-hdfs/hadoop-hdfs-namenode.pid".
