@@ -31,9 +31,9 @@ Note, "dfs.journalnode.rpc-address" is used by "dfs.namenode.shared.edits.dir".
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      rpc = options.site['dfs.journalnode.rpc-address'].split(':')[1]
-      http = options.site['dfs.journalnode.http-address'].split(':')[1]
-      https = options.site['dfs.journalnode.https-address'].split(':')[1]
+      rpc = options.hdfs_site['dfs.journalnode.rpc-address'].split(':')[1]
+      http = options.hdfs_site['dfs.journalnode.http-address'].split(':')[1]
+      https = options.hdfs_site['dfs.journalnode.https-address'].split(':')[1]
       @tools.iptables
         header: 'IPTables'
         rules: [
@@ -52,7 +52,7 @@ The JournalNode data are stored inside the directory defined by the
         @system.mkdir
           target: "#{options.conf_dir}"
         @system.mkdir
-          target: for dir in options.site['dfs.journalnode.edits.dir'].split ','
+          target: for dir in options.hdfs_site['dfs.journalnode.edits.dir'].split ','
             if dir.indexOf('file://') is 0
             then dir.substr(7) else dir
           uid: options.user.name
@@ -86,7 +86,7 @@ inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-hdfs-journalnode'
           source: "#{__dirname}/../resources/hadoop-hdfs-journalnode.j2"
           local: true
-          context: options
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -96,7 +96,7 @@ inside "/etc/init.d" and activate it on startup.
             target: '/usr/lib/systemd/system/hadoop-hdfs-journalnode.service'
             source: "#{__dirname}/../resources/hadoop-hdfs-journalnode-systemd.j2"
             local: true
-            context: options
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run Dir'
@@ -129,7 +129,7 @@ NodeManagers.
           target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true
-          properties: options.site
+          properties: options.hdfs_site
           uid: options.user.name
           gid: options.group.name
           backup: true

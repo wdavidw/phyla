@@ -95,7 +95,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
 ## Environnment
 
       # Layout
-      options.hadoop_conf_dir ?= '/etc/hadoop/conf'
+      options.conf_dir ?= '/etc/hadoop/conf'
       options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib' # refered by oozie-env.sh
       options.hdfs.log_dir ?= '/var/log/hadoop-hdfs'
       options.hdfs.pid_dir ?= '/var/run/hadoop-hdfs'
@@ -208,7 +208,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.core_site['ha.zookeeper.quorum'] ?= zookeeper_quorum
       # Topology
       # http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
-      options.core_site['net.topology.script.file.name'] ?= "#{options.hadoop_conf_dir}/rack_topology.sh"
+      options.core_site['net.topology.script.file.name'] ?= "#{options.conf_dir}/rack_topology.sh"
 
 Configuration for HTTP
 
@@ -435,15 +435,15 @@ keytool -list -v -keystore keystore -alias hadoop
         options.core_site['hadoop.ssl.keystores.factory.class'] ?= 'org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory'
         options.core_site['hadoop.ssl.server.conf'] ?= 'ssl-server.xml'
         options.core_site['hadoop.ssl.client.conf'] ?= 'ssl-client.xml'
-        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.hadoop_conf_dir}/truststore"
+        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_client['ssl.client.truststore.password'] ?= 'ryba123'
         throw Error "Required Option: ssl_client['ssl.client.truststore.password']" unless options.ssl_client['ssl.client.truststore.password']
         options.ssl_client['ssl.client.truststore.type'] ?= 'jks'
-        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.hadoop_conf_dir}/keystore"
+        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.conf_dir}/keystore"
         throw Error "Required Option: ssl_server['ssl.server.keystore.password']" unless options.ssl_server['ssl.server.keystore.password']
         options.ssl_server['ssl.server.keystore.type'] ?= 'jks'
         options.ssl_server['ssl.server.keystore.keypassword'] ?= options.ssl_server['ssl.server.keystore.password']
-        options.ssl_server['ssl.server.truststore.location'] ?= "#{options.hadoop_conf_dir}/truststore"
+        options.ssl_server['ssl.server.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_server['ssl.server.truststore.password'] ?= options.ssl_client['ssl.client.truststore.password']
         options.ssl_server['ssl.server.truststore.type'] ?= 'jks'
 

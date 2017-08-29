@@ -1,7 +1,7 @@
 
 # Hadoop HDFS Client Configure
 
-    module.exports = ->
+    module.exports = (service) ->
       service = migration.call @, service, 'ryba/hadoop/hdfs_client', ['ryba', 'hdfs_client'], require('nikita/lib/misc').merge require('.').use,
         java: key: ['java']
         test_user: key: ['ryba', 'test_user']
@@ -12,13 +12,13 @@
 
 ## Identities
 
-      options.group ?= merge {}, options.group or {}, service.use.hadoop_core.options.hdfs.group
-      options.user ?= merge {}, options.user or {}, service.use.hadoop_core.options.hdfs.user
+      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
       # Layout
-      options.conf_dir ?= '/etc/hadoop/conf'
+      options.conf_dir ?= service.use.hadoop_core.options.conf_dir
       # Java
       options.java_home ?= service.use.java.options.java_home
       options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
@@ -30,8 +30,8 @@
 ## Configuration
 
       options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
-      options.site ?= {}
-      options.site['dfs.http.policy'] ?= 'HTTPS_ONLY'
+      options.hdfs_site ?= {}
+      options.hdfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY'
 
 Since Hadoop 2.6, [SaslRpcClient](https://issues.apache.org/jira/browse/HDFS-7546) check
 that targetted server principal matches configured server principal.
@@ -39,7 +39,7 @@ To configure cross-realm communication (with distcp) you need to force a bash-li
 to match. By default any principal ('*') will be authorized, as cross-realm trust
 is already handled by kerberos
 
-      options.site['dfs.namenode.kerberos.principal.pattern'] ?= '*'
+      options.hdfs_site['dfs.namenode.kerberos.principal.pattern'] ?= '*'
 
 ## Core Jars
 
@@ -69,14 +69,14 @@ is already handled by kerberos
         'dfs.nameservices'
         'dfs.internal.nameservices'
         'fs.permissions.umask-mode'
-      ] then options.site[property] ?= service.use.hdfs_nn[0].options.site[property]
-      for property, value of service.use.hdfs_nn[0].options.site
+      ] then options.hdfs_site[property] ?= service.use.hdfs_nn[0].options.hdfs_site[property]
+      for property, value of service.use.hdfs_nn[0].options.hdfs_site
         ok = false
         ok = true if /^dfs\.namenode\.\w+-address/.test property
         ok = true if property.indexOf('dfs.client.failover.proxy.provider.') is 0
         ok = true if property.indexOf('dfs.ha.namenodes.') is 0
         continue unless ok
-        options.site[property] ?= value
+        options.hdfs_site[property] ?= value
 
 ## Import DataNode properties
 
@@ -84,7 +84,7 @@ is already handled by kerberos
         'dfs.datanode.kerberos.principal'
         'dfs.client.read.shortcircuit'
         'dfs.domain.socket.path'
-      ] then options.site[property] ?= service.use.hdfs_dn[0].options.site[property]
+      ] then options.hdfs_site[property] ?= service.use.hdfs_dn[0].options.hdfs_site[property]
 
 ## Test
 

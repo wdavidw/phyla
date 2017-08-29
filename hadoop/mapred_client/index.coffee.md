@@ -9,23 +9,42 @@ The output list can then be saved to the distributed filesystem, and the reducer
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: 'ryba/hadoop/core'
-        yarn_client: implicit: true, module: 'ryba/hadoop/yarn_client'
-        hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
-        hdfs_dn: 'ryba/hadoop/hdfs_dn'
-        yarn_rm: 'ryba/hadoop/yarn_rm'
-        mapred_jhs: 'ryba/hadoop/mapred_jhs'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
+        yarn_client: module: 'ryba/hadoop/yarn_client', required: true
+        yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
+        yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
+        yarn_ts: module: 'ryba/hadoop/yarn_ts', required: true, single: true
+        mapred_jhs: module: 'ryba/hadoop/mapred_jhs', single: true
       configure:
         'ryba/hadoop/mapred_client/configure'
+      plugin: (contexts)->
+        # for srv in service.use.yarn_nm
+        #   srv
+        #   .after
+        #     type: ['hconfigure']
+        #     target: "#{nm_ctx.config.ryba.yarn.nm.conf_dir}/yarn-site.xml"
+        #   , (options, callback) ->
+        #     @tools.iptables
+        #       ssh: options.ssh
+        #       header: 'Hadoop Mapred Ranger openging'
+        #       rules: [
+        #         { chain: 'INPUT', jump: 'ACCEPT', dport: options.mapred_site['yarn.app.mapreduce.am.job.client.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Mapred client Port Range" }
+        #       ]
+        #       if: nm_ctx.config.iptables.action is 'start'
+        #     @then callback
       commands:
-        'check':
-          'ryba/hadoop/mapred_client/check'
-        'report': [
-          'masson/bootstrap/report'
-          'ryba/hadoop/mapred_client/report'
-        ]
-        'install': [
-          'ryba/hadoop/mapred_client/install'
-          'ryba/hadoop/mapred_client/check'
-        ]
+        'check': ->
+          options = @config.ryba.mapred
+          @call 'ryba/hadoop/mapred_client/check', options
+        'report': ->
+          options = @config.ryba.mapred
+          @call 'masson/bootstrap/report'
+          @call 'ryba/hadoop/mapred_client/report', options
+        'install': ->
+          options = @config.ryba.mapred
+          @call 'ryba/hadoop/mapred_client/install', options
+          @call 'ryba/hadoop/mapred_client/check', options

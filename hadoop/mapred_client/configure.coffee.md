@@ -1,73 +1,74 @@
 
 # MapReduce Configure
 
-    module.exports = ->
-      yarn_rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
-      hdfs_dn_ctxs = @contexts 'ryba/hadoop/hdfs_dn'
-      nm_ctxs = @contexts 'ryba/hadoop/yarn_nm'
-      [jhs_context] = @contexts 'ryba/hadoop/mapred_jhs'
-      {realm, mapred} = @config.ryba
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hadoop/mapred_client', ['ryba', 'mapred'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        yarn_client: key: ['ryba', 'yarn']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        yarn_ts: key: ['ryba', 'yarn', 'ats']
+        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
+      @config.ryba ?= {}
+      options = @config.ryba.mapred = service.options
+
+## Identities
+
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.use.hadoop_core.options.mapred.group, options.group
+      options.user = merge {}, service.use.hadoop_core.options.mapred.user, options.user
+
+## Environment
+
       # Layout
-      mapred.log_dir ?= '/var/log/hadoop-mapreduce' # Default to "/var/log/hadoop-mapreduce/$USER"
-      mapred.pid_dir ?= '/var/run/hadoop-mapreduce'  # /etc/hadoop/conf/hadoop-env.sh#94
-      # Configuration
-      mapred.site['mapreduce.job.counters.max'] ?= 120
-      mapred.site['mapreduce.reduce.shuffle.parallelcopies'] ?= '50' #  Higher number of parallel copies run by reduces to fetch outputs from very large number of maps.
+      options.log_dir ?= '/var/log/hadoop-mapreduce' # Default to "/var/log/hadoop-mapreduce/$USER"
+      options.pid_dir ?= '/var/run/hadoop-mapreduce'  # /etc/hadoop/conf/hadoop-env.sh#94
+      options.conf_dir ?= service.use.hadoop_core.options.conf_dir
+      # Misc
+      options.force_check ?= false
+      options.hostname ?= service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+
+## Configuration
+
+      options.mapred_site ?= {}
+      options.mapred_site['mapreduce.job.counters.max'] ?= 120
+      options.mapred_site['mapreduce.reduce.shuffle.parallelcopies'] ?= '50' #  Higher number of parallel copies run by reduces to fetch outputs from very large number of maps.
       # http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.6.0/bk_installing_manually_book/content/rpm_chap3.html
       # Optional: Configure MapReduce to use Snappy Compression
       # Complement core-site.xml configuration
-      # mapred.site['mapreduce.admin.map.child.java.opts'] ?= "-server -XX:NewRatio=8 -Djava.library.path=/usr/lib/hadoop/lib/native/ -Djava.net.preferIPv4Stack=true"
-      mapred.site['mapreduce.admin.map.child.java.opts'] ?= "-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}"
-      mapred.site['mapreduce.admin.reduce.child.java.opts'] ?= null
-      mapred.site['mapreduce.task.io.sort.factor'] ?= 100 # Default to "TODO..." inside HPD and 100 inside ambari and 10 inside mapred-default.xml
-      # mapred.site['mapreduce.admin.reduce.child.java.opts'] ?= "-server -XX:NewRatio=8 -Djava.library.path=/usr/lib/hadoop/lib/native/ -Djava.net.preferIPv4Stack=true"
-      mapred.site['mapreduce.admin.user.env'] ?= "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64"
+      # options.mapred_site['mapreduce.admin.map.child.java.opts'] ?= "-server -XX:NewRatio=8 -Djava.library.path=/usr/lib/hadoop/lib/native/ -Djava.net.preferIPv4Stack=true"
+      options.mapred_site['mapreduce.admin.map.child.java.opts'] ?= "-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}"
+      options.mapred_site['mapreduce.admin.reduce.child.java.opts'] ?= null
+      options.mapred_site['mapreduce.task.io.sort.factor'] ?= 100 # Default to "TODO..." inside HPD and 100 inside ambari and 10 inside mapred-default.xml
+      # options.mapred_site['mapreduce.admin.reduce.child.java.opts'] ?= "-server -XX:NewRatio=8 -Djava.library.path=/usr/lib/hadoop/lib/native/ -Djava.net.preferIPv4Stack=true"
+      options.mapred_site['mapreduce.admin.user.env'] ?= "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64"
       # [Configurations for MapReduce JobHistory Server](http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/ClusterSetup.html#Configuring_the_Hadoop_Daemons_in_Non-Secure_Mode)
-      mapred.site['mapreduce.application.framework.path'] ?= "/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"
-      mapred.site['mapreduce.application.classpath'] ?= "$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar:/etc/hadoop/conf/secure"
-      if jhs_context
-        for property in [
-          'yarn.app.mapreduce.am.staging-dir'
-          'mapreduce.jobhistory.address'
-          'mapreduce.jobhistory.webapp.address'
-          'mapreduce.jobhistory.webapp.https.address'
-          'mapreduce.jobhistory.done-dir'
-          'mapreduce.jobhistory.intermediate-done-dir'
-          'mapreduce.jobhistory.principal'
-        ]
-          mapred.site[property] ?= jhs_context.config.ryba.mapred.site[property]
-        # mapred.site['yarn.app.mapreduce.am.staging-dir'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.address']
-        # mapred.site['mapreduce.jobhistory.address'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.address']
-        # mapred.site['mapreduce.jobhistory.webapp.address'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.webapp.address']
-        # mapred.site['mapreduce.jobhistory.webapp.https.address'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.webapp.https.address']
-        # mapred.site['mapreduce.jobhistory.done-dir'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.done-dir']
-        # mapred.site['mapreduce.jobhistory.intermediate-done-dir'] ?= jhs_context.config.ryba.mapred.site['mapreduce.jobhistory.intermediate-done-dir']
-        # # Important, JHS principal must be deployed on all mapreduce workers
-        # mapred.site['mapreduce.jobhistory.principal'] ?= "jhs/#{jhs_context.config.host}@#{realm}"
+      options.mapred_site['mapreduce.application.framework.path'] ?= "/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"
+      options.mapred_site['mapreduce.application.classpath'] ?= "$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar:/etc/hadoop/conf/secure"
+      for property in [
+        'yarn.app.mapreduce.am.staging-dir'
+        'mapreduce.jobhistory.address'
+        'mapreduce.jobhistory.webapp.address'
+        'mapreduce.jobhistory.webapp.https.address'
+        'mapreduce.jobhistory.done-dir'
+        'mapreduce.jobhistory.intermediate-done-dir'
+        'mapreduce.jobhistory.principal'
+      ]
+        options.mapred_site[property] ?= if service.use.mapred_jhs then service.use.mapred_jhs.options.mapred_site[property] else null
       # The value is set by the client app and the iptables are enforced on the worker nodes
-      mapred.site['yarn.app.mapreduce.am.job.client.port-range'] ?= '59100-59200'
-      for nm_ctx in nm_ctxs
-        nm_ctx
-        .after
-          type: ['hconfigure']
-          target: "#{nm_ctx.config.ryba.yarn.nm.conf_dir}/yarn-site.xml"
-        , (options, callback) ->
-          @tools.iptables
-            ssh: options.ssh
-            header: 'Hadoop Mapred Ranger openging'
-            rules: [
-              { chain: 'INPUT', jump: 'ACCEPT', dport: mapred.site['yarn.app.mapreduce.am.job.client.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Mapred client Port Range" }
-            ]
-            if: nm_ctx.config.iptables.action is 'start'
-          @then callback
-      mapred.site['mapreduce.framework.name'] ?= 'yarn' # Execution framework set to Hadoop YARN.
+      options.mapred_site['yarn.app.mapreduce.am.job.client.port-range'] ?= '59100-59200'
+      options.mapred_site['mapreduce.framework.name'] ?= 'yarn' # Execution framework set to Hadoop YARN.
       # Deprecated properties
-      mapred.site['mapreduce.cluster.local.dir'] = null # Now "yarn.nodemanager.local-dirs"
-      mapred.site['mapreduce.jobtracker.system.dir'] = null # JobTracker no longer used
+      options.mapred_site['mapreduce.cluster.local.dir'] = null # Now "yarn.nodemanager.local-dirs"
+      options.mapred_site['mapreduce.jobtracker.system.dir'] = null # JobTracker no longer used
       # The replication level for submitted job files should be around the square root of the number of nodes.
       # see https://issues.apache.org/jira/browse/MAPREDUCE-2845
-      dn_sqrt = Math.round Math.sqrt hdfs_dn_ctxs.length
-      mapred.site['mapreduce.client.submit.file.replication'] ?= Math.min dn_sqrt, 10
+      options.mapred_site['mapreduce.client.submit.file.replication'] ?= Math.min (Math.round Math.sqrt service.use.yarn_nm.length), 10
 
 # Configuration for Resource Allocation
 
@@ -92,44 +93,56 @@ Resources:
 *   [Understanding YARN MapReduce Memory Allocation](http://beadooper.com/?p=165)
 
       memory_per_container = 512
-      rm_memory_min_mb = yarn_rm_ctxs[0].config.ryba.yarn.rm.site['yarn.scheduler.minimum-allocation-mb']
-      rm_memory_max_mb = yarn_rm_ctxs[0].config.ryba.yarn.rm.site['yarn.scheduler.maximum-allocation-mb']
-      rm_cpu_min = yarn_rm_ctxs[0].config.ryba.yarn.rm.site['yarn.scheduler.minimum-allocation-vcores']
-      rm_cpu_max = yarn_rm_ctxs[0].config.ryba.yarn.rm.site['yarn.scheduler.maximum-allocation-mb']
-      yarn_mapred_am_memory_mb = mapred.site['yarn.app.mapreduce.am.resource.mb'] or if memory_per_container > 1024 then 2 * memory_per_container else memory_per_container
+      rm_memory_min_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
+      rm_memory_max_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_cpu_min = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-vcores']
+      rm_cpu_max = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      yarn_mapred_am_memory_mb = options.mapred_site['yarn.app.mapreduce.am.resource.mb'] or if memory_per_container > 1024 then 2 * memory_per_container else memory_per_container
       yarn_mapred_am_memory_mb = Math.min rm_memory_max_mb, yarn_mapred_am_memory_mb
-      mapred.site['yarn.app.mapreduce.am.resource.mb'] = "#{yarn_mapred_am_memory_mb}"
+      options.mapred_site['yarn.app.mapreduce.am.resource.mb'] = "#{yarn_mapred_am_memory_mb}"
 
-      yarn_mapred_opts = /-Xmx(.*?)m/.exec(mapred.site['yarn.app.mapreduce.am.command-opts'])?[1] or Math.floor(.8 * yarn_mapred_am_memory_mb)
+      yarn_mapred_opts = /-Xmx(.*?)m/.exec(options.mapred_site['yarn.app.mapreduce.am.command-opts'])?[1] or Math.floor(.8 * yarn_mapred_am_memory_mb)
       yarn_mapred_opts = Math.min rm_memory_max_mb, yarn_mapred_opts
-      mapred.site['yarn.app.mapreduce.am.command-opts'] = "-Xmx#{yarn_mapred_opts}m"
+      options.mapred_site['yarn.app.mapreduce.am.command-opts'] = "-Xmx#{yarn_mapred_opts}m"
 
-      map_memory_mb = mapred.site['mapreduce.map.memory.mb'] or memory_per_container
+      map_memory_mb = options.mapred_site['mapreduce.map.memory.mb'] or memory_per_container
       map_memory_mb = Math.min rm_memory_max_mb, map_memory_mb
       map_memory_mb = Math.max rm_memory_min_mb, map_memory_mb
-      mapred.site['mapreduce.map.memory.mb'] = "#{map_memory_mb}"
+      options.mapred_site['mapreduce.map.memory.mb'] = "#{map_memory_mb}"
 
-      reduce_memory_mb = mapred.site['mapreduce.reduce.memory.mb'] or memory_per_container #2 * memory_per_container
+      reduce_memory_mb = options.mapred_site['mapreduce.reduce.memory.mb'] or memory_per_container #2 * memory_per_container
       reduce_memory_mb = Math.min rm_memory_max_mb, reduce_memory_mb
       reduce_memory_mb = Math.max rm_memory_min_mb, reduce_memory_mb
-      mapred.site['mapreduce.reduce.memory.mb'] = "#{reduce_memory_mb}"
+      options.mapred_site['mapreduce.reduce.memory.mb'] = "#{reduce_memory_mb}"
 
-      map_memory_xmx = /-Xmx(.*?)m/.exec(mapred.site['mapreduce.map.java.opts'])?[1] or Math.floor .8 * map_memory_mb
+      map_memory_xmx = /-Xmx(.*?)m/.exec(options.mapred_site['mapreduce.map.java.opts'])?[1] or Math.floor .8 * map_memory_mb
       map_memory_xmx = Math.min rm_memory_max_mb, map_memory_xmx
-      mapred.site['mapreduce.map.java.opts'] ?= "-Xmx#{map_memory_xmx}m"
+      options.mapred_site['mapreduce.map.java.opts'] ?= "-Xmx#{map_memory_xmx}m"
 
-      reduce_memory_xmx = /-Xmx(.*?)m/.exec(mapred.site['mapreduce.reduce.java.opts'])?[1] or Math.floor .8 * reduce_memory_mb
+      reduce_memory_xmx = /-Xmx(.*?)m/.exec(options.mapred_site['mapreduce.reduce.java.opts'])?[1] or Math.floor .8 * reduce_memory_mb
       reduce_memory_xmx = Math.min rm_memory_max_mb, reduce_memory_xmx
-      mapred.site['mapreduce.reduce.java.opts'] ?= "-Xmx#{reduce_memory_xmx}m"
+      options.mapred_site['mapreduce.reduce.java.opts'] ?= "-Xmx#{reduce_memory_xmx}m"
 
-      mapred.site['mapreduce.task.io.sort.mb'] ?= "#{Math.floor .4 * memory_per_container}"
+      options.mapred_site['mapreduce.task.io.sort.mb'] ?= "#{Math.floor .4 * memory_per_container}"
 
-      map_cpu = mapred.site['mapreduce.map.cpu.vcores'] or 1
+      map_cpu = options.mapred_site['mapreduce.map.cpu.vcores'] or 1
       map_cpu = Math.min rm_cpu_max, map_cpu
       map_cpu = Math.max rm_cpu_min, map_cpu
-      mapred.site['mapreduce.map.cpu.vcores'] = "#{map_cpu}"
+      options.mapred_site['mapreduce.map.cpu.vcores'] = "#{map_cpu}"
 
-      reduce_cpu = mapred.site['mapreduce.reduce.cpu.vcores'] or 1
+      reduce_cpu = options.mapred_site['mapreduce.reduce.cpu.vcores'] or 1
       reduce_cpu = Math.min rm_cpu_max, reduce_cpu
       reduce_cpu = Math.max rm_cpu_min, reduce_cpu
-      mapred.site['mapreduce.reduce.cpu.vcores'] = "#{reduce_cpu}"
+      options.mapred_site['mapreduce.reduce.cpu.vcores'] = "#{reduce_cpu}"
+
+## Wait
+
+      options.wait_mapred_jhs = service.use.mapred_jhs.options.wait
+      options.wait_yarn_ts = service.use.yarn_ts.options.wait
+      options.wait_yarn_nm = service.use.yarn_nm[0].options.wait
+      options.wait_yarn_rm = service.use.yarn_rm[0].options.wait
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

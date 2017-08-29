@@ -59,7 +59,7 @@ Update the "hdfs-site.xml" configuration file with properties from the
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
         local: true
-        properties: options.site
+        properties: options.hdfs_site
         uid: options.user.name
         gid: options.group.name
         backup: true

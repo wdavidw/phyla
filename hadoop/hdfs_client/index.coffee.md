@@ -6,9 +6,9 @@ and perform actual file I/O directly with the DataNodes.
 
     module.exports =
       use:
-        java: module: 'masson/commons/java', local: true, recommended: true # implicit: true
+        java: module: 'masson/commons/java', local: true, recommended: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true # implicit: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
       configure:

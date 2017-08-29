@@ -5,39 +5,44 @@
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
-        # yarn_client: 'ryba/hadoop/yarn_client/install'
-        zoo_server: 'ryba/zookeeper/server'
-        mapred_jhs: 'ryba/hadoop/mapred_jhs'
-        yarn_ts: 'ryba/hadoop/yarn_ts'
-        ranger_admin: 'ryba/ranger/admin'
-      configure: [
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
+        mapred_jhs: module: 'ryba/hadoop/mapred_jhs', single: true
+        yarn_ts: module: 'ryba/hadoop/yarn_ts', single: true
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        ranger_admin: module: 'ryba/ranger/admin'
+      configure:
         'ryba/hadoop/yarn_rm/configure'
-        'ryba/ranger/plugins/yarn/configure'
-        ]
+        # 'ryba/ranger/plugins/yarn/configure'
       commands:
         # 'backup': 'ryba/hadoop/yarn_rm/backup'
-        'check':
+        'check': ->
+          options = @config.ryba.yarn.rm
           'ryba/hadoop/yarn_rm/check'
-        'report': [
-          'masson/bootstrap/report'
-          'ryba/hadoop/yarn_rm/report'
-        ]
-        'install': [
-          'ryba/hadoop/yarn_rm/install'
-          'ryba/hadoop/yarn_rm/scheduler'
-          'ryba/hadoop/yarn_rm/start'
-          'ryba/hadoop/yarn_rm/check'
-        ]
-        'start':
-          'ryba/hadoop/yarn_rm/start'
+        'report': ->
+          options = @config.ryba.yarn.rm
+          @call 'masson/bootstrap/report'
+          @call 'ryba/hadoop/yarn_rm/report', options
+        'install': ->
+          options = @config.ryba.yarn.rm
+          @call 'ryba/hadoop/yarn_rm/install', options
+          @call 'ryba/hadoop/yarn_rm/scheduler', options
+          @call 'ryba/hadoop/yarn_rm/start', options
+          @call 'ryba/hadoop/yarn_rm/check', options
+        'start': ->
+          options = @config.ryba.yarn.rm
+          @call 'ryba/hadoop/yarn_rm/start', options
         'status':
           'ryba/hadoop/yarn_rm/status'
-        'stop':
-          'ryba/hadoop/yarn_rm/stop'
+        'stop': ->
+          options = @config.ryba.yarn.rm
+          @call 'ryba/hadoop/yarn_rm/stop', options
 
 
 [restart]: http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/ResourceManagerRestart.html

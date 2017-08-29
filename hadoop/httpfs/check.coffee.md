@@ -1,23 +1,29 @@
 
 # HDFS HttpFS Check
 
-    module.exports = header: 'HDFS HttpFS Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
-      {user} = @config.ryba
+    module.exports = header: 'HDFS HttpFS Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: (options) ->
 
-Wait for HttpFs to be started.
+## Assert Connection
 
-      @call once: true, 'ryba/hadoop/httpfs/wait'
+      @connection.assert
+        header: 'HTTP'
+        servers: options.wait.http.filter (srv) -> srv.host is options.fqdn
+        retry: 3
+        sleep: 3000
 
-Test the HTTP server with a JMX request.
+TODO: Test the HTTP server with a JMX request.
 
-      protocol = if @config.ryba.httpfs.env.HTTPFS_SSL_ENABLED is 'true' then 'https' else 'http'
+List the files and diretory from the HDFS root.
+
+      protocol = if options.env.HTTPFS_SSL_ENABLED is 'true' then 'https' else 'http'
       @system.execute
+        header: 'List Files'
         cmd: mkcmd.test @, """
         curl --fail -k --negotiate -u: \
-          #{protocol}://#{@config.host}:#{@config.ryba.httpfs.http_port}/webhdfs/v1/user/#{user.name}?op=GETFILESTATUS
+          #{protocol}://#{options.fqdn}:#{options.http_port}/webhdfs/v1?op=GETFILESTATUS
         """
       , (err, _, stdout, stderr) ->
-        throw Error "Invalid output" unless JSON.parse(stdout).FileStatus.owner is user.name
+        throw Error "Invalid output" unless JSON.parse(stdout).FileStatus.type is 'DIRECTORY'
 
 # Dependencies
 

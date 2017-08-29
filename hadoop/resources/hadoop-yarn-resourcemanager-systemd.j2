@@ -2,13 +2,13 @@
 Description=Yarn ResourceManager
 
 [Service]
-User={{yarn.user.name}}
-Group={{yarn.group.name}}
-PIDFile={{yarn.rm.pid_dir}}/yarn-yarn-resourcemanager.pid
-ExecStart=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{yarn.rm.conf_dir}} start resourcemanager
-ExecReload=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{yarn.rm.conf_dir}} restart resourcemanager
-ExecStop=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{yarn.rm.conf_dir}} stop resourcemanager
-LimitNOFILE={{yarn.user.limits.nofile}}
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/yarn-yarn-resourcemanager.pid
+ExecStart=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} start resourcemanager
+ExecReload=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} restart resourcemanager
+ExecStop=/usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} stop resourcemanager
+LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

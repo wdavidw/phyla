@@ -18,10 +18,10 @@ Wait for the HDFS NameNode to be started.
 
 ## Check HTTP
 
-      protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      protocol = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
       nameservice = if options.nameservice then ".#{options.nameservice}" else ''
       shortname = if options.nameservice then ".#{options.hostname}" else ''
-      address = options.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+      address = options.hdfs_site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
       [_, port] = address.split ':'
       securityEnabled = protocol is 'https'
       @system.execute
@@ -112,10 +112,10 @@ for more information.
         header: 'WebHDFS Active'
         if: options.active_nn_host is options.fqdn
       , ->
-        protocol = if options.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        protocol = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
         nameservice = if options.nameservice then ".#{options.nameservice}" else ''
         shortname = if options.nameservice then ".#{options.hostname}" else ''
-        address = options.site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+        address = options.hdfs_site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
         @system.execute
           cmd: mkcmd.test @, """
           hdfs --config '#{options.conf_dir}' dfs -touchz check-#{options.hostname}-webhdfs

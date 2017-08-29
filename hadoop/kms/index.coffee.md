@@ -9,15 +9,17 @@ REST API.
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        zoo_servers: 'ryba/zookeeper/server'
+        iptables: module: 'masson/core/iptables', local: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
       configure:
         'ryba/hadoop/kms/configure'
       commands:
-        'check':
-          'ryba/hadoop/kms/check'
-        'install': [
-          'ryba/hadoop/kms/install'
-          'ryba/hadoop/kms/check'
-        ]
+        'check': ->
+          options = @config.ryba.kms
+          @call 'ryba/hadoop/kms/check', options
+        'install': ->
+          options = @config.ryba.kms
+          @call 'ryba/hadoop/kms/install', options
+          @call 'ryba/hadoop/kms/check', options

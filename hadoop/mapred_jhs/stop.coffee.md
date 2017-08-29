@@ -6,7 +6,8 @@ with one of the following two commands:
 
 ```
 service hadoop-mapreduce-historyserver stop
-su -l mapred -c "export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec/ && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf stop historyserver"
+systemctl stop hadoop-mapreduce-historyserver
+su -l mapred -c "/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop-mapreduce-historyserver/conf stop historyserver"
 ```
 
 The file storing the PID is "/var/run/hadoop-mapreduce/mapred-mapred-historyserver.pid".

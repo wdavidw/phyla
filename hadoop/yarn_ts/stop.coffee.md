@@ -1,5 +1,5 @@
 
-# YARN Timeline Server Stop
+# Hadoop YARN Timeline Server Stop
 
 Stop the HDFS Namenode service. You can also stop the server manually with one of
 the following two commands:

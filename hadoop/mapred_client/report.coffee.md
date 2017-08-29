@@ -1,9 +1,8 @@
 
 # MapReduce Client Report
 
-    module.exports = header: 'MapReduce Client Report', label_true: 'INFO', handler: (ctx, next) ->
-      {hadoop_conf_dir} = ctx.config.ryba
-      properties.read ctx.ssh, "#{hadoop_conf_dir}/mapred-site.xml", (err, config) ->
+    module.exports = header: 'MapReduce Client Report', label_true: 'INFO', handler: (options) ->
+      properties.read ctx.ssh, "#{options.conf_dir}/mapred-site.xml", (err, config) ->
         return next err if err
         ctx.emit 'report',
           key: 'mapreduce.map.memory.mb'

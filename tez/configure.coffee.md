@@ -25,8 +25,8 @@
 ## Configuration for Resource Allocation
 
       memory_per_container = 512
-      rm_memory_max_mb = rm_context.config.ryba.yarn.rm.site['yarn.scheduler.maximum-allocation-mb']
-      rm_memory_min_mb = rm_context.config.ryba.yarn.rm.site['yarn.scheduler.minimum-allocation-mb']
+      rm_memory_max_mb = rm_context.config.ryba.yarn.rm.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_memory_min_mb = rm_context.config.ryba.yarn.rm.yarn_site['yarn.scheduler.minimum-allocation-mb']
       am_memory_mb = tez.site['tez.am.resource.memory.mb'] or memory_per_container
       am_memory_mb = Math.min rm_memory_max_mb, am_memory_mb
       am_memory_mb = Math.max rm_memory_min_mb, am_memory_mb
@@ -116,13 +116,13 @@ Convert [deprecated values][dep] between HDP 2.1 and HDP 2.2.
         throw Error 'Cannot install Tez UI without YARN RM' unless yarn_rm_ctxs.length
         ats_ctx = yarn_ts_ctxs[0]
         rm_ctx = yarn_rm_ctxs[0]
-        id = if rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.site['yarn.resourcemanager.ha.id']}" else ''
-        tez.ui.env.hosts.timeline ?= if ats_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.address']
-        else "https://"+ ats_ctx.config.ryba.yarn.site['yarn.timeline-service.webapp.https.address']
-        tez.ui.env.hosts.rm ?= if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.address#{id}"]
-        else "https://"+ rm_ctx.config.ryba.yarn.rm.site["yarn.resourcemanager.webapp.https.address#{id}"]
+        id = if rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        tez.ui.env.hosts.timeline ?= if ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.timeline-service.webapp.address']
+        else "https://"+ ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.timeline-service.webapp.https.address']
+        tez.ui.env.hosts.rm ?= if rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
+        else "https://"+ rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
         ## Tez Site when UI is enabled
         tez.site['tez.runtime.convert.user-payload.to.history-text'] ?= 'true'
         tez.site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'

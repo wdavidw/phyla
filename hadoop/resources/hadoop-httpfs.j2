@@ -32,11 +32,11 @@
 ### END INIT INFO
 
 NAME='HDFS Httpfs'
-USER='{{ryba.httpfs.user.name}}'
-GROUP='{{ryba.httpfs.group.name}}'
-RUN_DIR='{{ryba.httpfs.pid_dir}}'
+USER='{{options.user.name}}'
+GROUP='{{options.group.name}}'
+RUN_DIR='{{options.pid_dir}}'
 PID_FILE="${RUN_DIR}/httpfs.pid"
-CONF_DIR='{{ryba.httpfs.conf_dir}}'
+CONF_DIR='{{options.conf_dir}}'
 CMD="su - $USER -c \"/usr/hdp/current/hadoop-httpfs/sbin/httpfs.sh start\""
 
 KILL_FORCE=0

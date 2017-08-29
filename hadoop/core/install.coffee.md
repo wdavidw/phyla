@@ -65,7 +65,7 @@ Configure the topology script to enable rack awareness to Hadoop.
           topology.push "#{h_ctx.config.ip}  #{rack}"
         topology = topology.join("\n")
         @file
-          target: "#{options.hadoop_conf_dir}/rack_topology.sh"
+          target: "#{options.conf_dir}/rack_topology.sh"
           source: "#{__dirname}/../resources/rack_topology.sh"
           local: true
           uid: options.hdfs.user.name
@@ -73,7 +73,7 @@ Configure the topology script to enable rack awareness to Hadoop.
           mode: 0o755
           backup: true
         @file
-          target: "#{options.hadoop_conf_dir}/rack_topology.data"
+          target: "#{options.conf_dir}/rack_topology.data"
           content: topology
           uid: options.hdfs.user.name
           gid: options.hadoop_group.name
@@ -136,10 +136,10 @@ recommendations](http://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html).
 
       @call header: 'SSL', retry: 0, ->
         @hconfigure
-          target: "#{options.hadoop_conf_dir}/ssl-server.xml"
+          target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
         @hconfigure
-          target: "#{options.hadoop_conf_dir}/ssl-client.xml"
+          target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add

@@ -1,14 +1,14 @@
 
 # Yarn Client Check
 
-    module.exports = header: 'YARN Client Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'YARN Client Check', label_true: 'CHECKED', handler: (options) ->
 
 ## Wait
 
 Wait for all YARN services to be started.
 
-      @call once: true, 'ryba/hadoop/yarn_ts/wait'
-      @call once: true, 'ryba/hadoop/yarn_rm/wait'
+      @call once: true, 'ryba/hadoop/yarn_ts/wait', options.wait_yarn_ts
+      @call once: true, 'ryba/hadoop/yarn_rm/wait', options.wait_yarn_rm
 
 ## Check CLI
 

@@ -1,23 +1,34 @@
 
-# YARN Timeline Server Install
+# Hadoop YARN Timeline Server Install
 
 The Timeline Server is a stand-alone server daemon and doesn't need to be
 co-located with any other service.
 
-    module.exports = header: 'YARN ATS Install', handler: ->
-      {java} = @config
-      {realm, hadoop_group, hadoop_metrics, core_site, hdfs, yarn, hadoop_libexec_dir} = @config.ryba
-      {ssl, ssl_server, ssl_client, yarn} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'YARN ATS Install', handler: (options) ->
 
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
 
+## Identities
+
+By default, the "hadoop-yarn-timelineserver" package create the following entries:
+
+```bash
+cat /etc/passwd | grep yarn
+yarn:x:2403:2403:Hadoop YARN User:/var/lib/hadoop-yarn:/bin/bash
+cat /etc/group | grep hadoop
+hadoop:x:499:hdfs
+```
+
+      @system.group header: 'Hadoop Group', options.hadoop_group
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
+
 ## Wait
 
-      @call once: true, 'masson/core/krb5_client/wait'
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
 
 ## IPTables
 
@@ -30,24 +41,24 @@ co-located with any other service.
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      [_, rpc_port] = yarn.site['yarn.timeline-service.address'].split ':'
-      [_, http_port] = yarn.site['yarn.timeline-service.webapp.address'].split ':'
-      [_, https_port] = yarn.site['yarn.timeline-service.webapp.https.address'].split ':'
+      [_, rpc_port] = options.yarn_site['yarn.timeline-service.address'].split ':'
+      [_, http_port] = options.yarn_site['yarn.timeline-service.webapp.address'].split ':'
+      [_, https_port] = options.yarn_site['yarn.timeline-service.webapp.https.address'].split ':'
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: rpc_port, protocol: 'tcp', state: 'NEW', comment: "Yarn Timeserver RPC" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: http_port, protocol: 'tcp', state: 'NEW', comment: "Yarn Timeserver HTTP" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: https_port, protocol: 'tcp', state: 'NEW', comment: "Yarn Timeserver HTTPS" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Service
 
 Install the "hadoop-yarn-timelineserver" service, symlink the rc.d startup script
 in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hadoop-yarn-timelineserver'
         @hdp_select
@@ -59,7 +70,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
           target: '/etc/init.d/hadoop-yarn-timelineserver'
           source: "#{__dirname}/../resources/hadoop-yarn-timelineserver.j2"
           local: true
-          context: @config
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -69,34 +80,34 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
             target: '/usr/lib/systemd/system/hadoop-yarn-timelineserver.service'
             source: "#{__dirname}/../resources/hadoop-yarn-timelineserver-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
-            mount: "#{yarn.ats.pid_dir}"
-            uid: yarn.user.name
-            gid: hadoop_group.name
+            mount: "#{options.pid_dir}"
+            uid: options.user.name
+            gid: options.hadoop_group.name
             perm: '0755'
 
 # Layout
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: "#{yarn.ats.conf_dir}"
+          target: "#{options.conf_dir}"
         @system.mkdir
-          target: "#{yarn.ats.pid_dir}"
-          uid: yarn.user.name
-          gid: hadoop_group.name
+          target: "#{options.pid_dir}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
         @system.mkdir
-          target: "#{yarn.ats.log_dir}"
-          uid: yarn.user.name
-          gid: yarn.group.name
+          target: "#{options.log_dir}"
+          uid: options.user.name
+          gid: options.group.name
           parent: true
         @system.mkdir
-          target: yarn.site['yarn.timeline-service.leveldb-timeline-store.path']
-          uid: yarn.user.name
-          gid: hadoop_group.name
+          target: options.yarn_site['yarn.timeline-service.leveldb-timeline-store.path']
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0750
           parent: true
 
@@ -106,55 +117,55 @@ Update the "yarn-site.xml" configuration file.
 
       @hconfigure
         header: 'Core Site'
-        target: "#{yarn.ats.conf_dir}/core-site.xml"
+        target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
-        properties: core_site
+        properties: options.core_site
         backup: true
       @hconfigure
         header: 'HDFS Site'
-        target: "#{yarn.ats.conf_dir}/hdfs-site.xml"
-        properties: hdfs.site
+        target: "#{options.conf_dir}/hdfs-site.xml"
+        properties: options.hdfs_site
         backup: true
       @hconfigure
         header: 'YARN Site'
-        target: "#{yarn.ats.conf_dir}/yarn-site.xml"
-        properties: yarn.site
+        target: "#{options.conf_dir}/yarn-site.xml"
+        properties: options.yarn_site
         backup: true
       @file
         header: 'Log4j'
-        target: "#{yarn.ats.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
       @file.render
-        target: "#{yarn.ats.conf_dir}/yarn-env.sh"
+        target: "#{options.conf_dir}/yarn-env.sh"
         source: "#{__dirname}/../resources/yarn-env.sh.j2"
         local: true
-        context: #@config
-          JAVA_HOME: java.java_home
-          HADOOP_YARN_HOME: yarn.ats.home
-          YARN_LOG_DIR: yarn.ats.log_dir
-          YARN_PID_DIR: yarn.ats.pid_dir
-          HADOOP_LIBEXEC_DIR: hadoop_libexec_dir
-          YARN_HEAPSIZE: yarn.heapsize
-          YARN_HISTORYSERVER_HEAPSIZE: yarn.ats.heapsize
-          YARN_HISTORYSERVER_OPTS: yarn.ats.opts
-          YARN_OPTS: yarn.opts
-        uid: yarn.user.name
-        gid: hadoop_group.name
+        context:
+          JAVA_HOME: options.java_home
+          HADOOP_YARN_HOME: options.home
+          YARN_LOG_DIR: options.log_dir
+          YARN_PID_DIR: options.pid_dir
+          HADOOP_LIBEXEC_DIR: ''
+          YARN_HEAPSIZE: options.heapsize
+          YARN_HISTORYSERVER_HEAPSIZE: options.heapsize
+          YARN_HISTORYSERVER_OPTS: options.opts
+          YARN_OPTS: options.opts
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0755
         backup: true
       @file.render
         header: 'Env'
-        target: "#{yarn.ats.conf_dir}/hadoop-env.sh"
+        target: "#{options.conf_dir}/hadoop-env.sh"
         source: "#{__dirname}/../resources/hadoop-env.sh.j2"
         local: true
         context:
-          HADOOP_LOG_DIR: yarn.ats.log_dir
-          HADOOP_PID_DIR: yarn.ats.pid_dir
-          java_home: @config.java.java_home
-        uid: yarn.user.name
-        gid: hadoop_group.name
+          HADOOP_LOG_DIR: options.log_dir
+          HADOOP_PID_DIR: options.pid_dir
+          java_home: options.java_home
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o750
         backup: true
         eof: true
@@ -163,8 +174,8 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 
       @file.properties
         header: 'Metrics'
-        target: "#{yarn.ats.conf_dir}/hadoop-metrics2.properties"
-        content: hadoop_metrics.config
+        target: "#{options.conf_dir}/hadoop-metrics2.properties"
+        content: options.hadoop_metrics.config
         backup: true
 
 # HDFS Layout
@@ -177,54 +188,49 @@ See:
 Note, this is not documented anywhere and might not be considered as a best practice.
 
       @call header: 'HDFS layout', ->
-        return unless yarn.site['yarn.timeline-service.generic-application-history.store-class'] is "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
-        dir = yarn.site['yarn.timeline-service.fs-history-store.uri']
+        return unless options.yarn_site['yarn.timeline-service.generic-application-history.store-class'] is "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
+        dir = options.yarn_site['yarn.timeline-service.fs-history-store.uri']
         @wait.execute
-          cmd: mkcmd.hdfs @, "hdfs dfs -test -d #{path.dirname dir}"
+          cmd: mkcmd.hdfs @, "hdfs --config #{options.conf_dir} dfs -test -d #{path.dirname dir}"
         @system.execute
           cmd: mkcmd.hdfs @, """
-          hdfs dfs -mkdir -p #{dir}
-          hdfs dfs -chown #{yarn.user.name} #{dir}
-          hdfs dfs -chmod 1777 #{dir}
+          hdfs --config #{options.conf_dir} dfs -mkdir -p #{dir}
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} #{dir}
+          hdfs --config #{options.conf_dir} dfs -chmod 1777 #{dir}
           """
-          unless_exec: "[[ hdfs dfs -d #{dir} ]]"
+          unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{dir} ]]"
 
 ## SSL
 
-      @call header: 'SSL', retry: 0, ->
-        ssl_client['ssl.client.truststore.location'] = "#{yarn.ats.conf_dir}/truststore"
-        ssl_server['ssl.server.keystore.location'] = "#{yarn.ats.conf_dir}/keystore"
-        ssl_server['ssl.server.truststore.location'] = "#{yarn.ats.conf_dir}/truststore"
+      @call header: 'SSL', ->
         @hconfigure
-          target: "#{yarn.ats.conf_dir}/ssl-server.xml"
-          properties: ssl_server
+          target: "#{options.conf_dir}/ssl-server.xml"
+          properties: options.ssl_server
         @hconfigure
-          target: "#{yarn.ats.conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.ssl_server['ssl.server.keystore.keypassword']
+          name: options.ssl.key.name
+          local: options.ssl.key.local
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 ## Kerberos
 
@@ -233,13 +239,13 @@ Create the Kerberos service principal by default in the form of
 "/etc/security/keytabs/ats.service.keytab" with ownerships set to
 "mapred:hadoop" and permissions set to "0600".
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: yarn.site['yarn.timeline-service.principal'].replace '_HOST', @config.host
+        principal: options.yarn_site['yarn.timeline-service.principal'].replace '_HOST', options.fqdn
         randkey: true
-        keytab: yarn.site['yarn.timeline-service.keytab']
-        uid: yarn.user.name
-        gid: yarn.group.name
+        keytab: options.yarn_site['yarn.timeline-service.keytab']
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0600
 
 ## Dependencies

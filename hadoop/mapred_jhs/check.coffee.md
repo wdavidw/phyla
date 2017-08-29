@@ -2,14 +2,13 @@
 
 # MapReduce JHS Check
 
-    module.exports = header: 'MapReduce JHS Check ', label_true: 'CHECKED', handler: ->
-      {mapred} = @config.ryba
+    module.exports = header: 'MapReduce JHS Check ', label_true: 'CHECKED', handler: (options) ->
 
 ## Wait
 
 Wait for the server to be started before executing the tests.
 
-      @call once: true, 'ryba/hadoop/mapred_jhs/wait'
+      @call once: true, 'ryba/hadoop/mapred_jhs/wait', options.wait
 
 ## Check HTTP
 
@@ -17,10 +16,10 @@ Check if the JobHistoryServer is started with an HTTP REST command. Once
 started, the server take some time before it can correctly answer HTTP request.
 For this reason, the "retry" property is set to the high value of "10".
 
-      protocol = if mapred.site['mapreduce.jobhistory.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      protocol = if options.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
       [host, port] = if protocol is 'http'
-      then mapred.site['mapreduce.jobhistory.webapp.address'].split ':'
-      else mapred.site['mapreduce.jobhistory.webapp.https.address'].split ':'
+      then options.mapred_site['mapreduce.jobhistory.webapp.address'].split ':'
+      else options.mapred_site['mapreduce.jobhistory.webapp.https.address'].split ':'
       @system.execute
         header: 'HTTP'
         retry: 200

@@ -2,13 +2,13 @@
 Description=MapReduce JobHistoryServer
 
 [Service]
-User={{mapred.user.name}}
-Group={{mapred.group.name}}
-PIDFile={{mapred.pid_dir}}/mapred-mapred-historyserver.pid
-ExecStart=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} start historyserver
-ExecReload=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} restart historyserver
-ExecStop=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} stop historyserver
-LimitNOFILE={{mapred.user.limits.nofile}}
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/mapred-mapred-historyserver.pid
+ExecStart=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} start historyserver
+ExecReload=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} restart historyserver
+ExecStop=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} stop historyserver
+LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

@@ -1,5 +1,5 @@
 
-# YARN Timeline Server Start
+# Hadoop YARN Timeline Server Start
 
 Start the Yarn Application History Server. You can also start the server
 manually with the following command:
@@ -12,14 +12,14 @@ su -l yarn -c "/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh -
 The ATS requires HDFS to be operationnal or an exception is trown: 
 "java.lang.IllegalArgumentException: java.net.UnknownHostException: {cluster name}".
 
-    module.exports = header: 'YARN ATS Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'YARN ATS Start', label_true: 'STARTED', handler: (options) ->
 
 ## Wait
 
 Wait for Kerberos and the HDFS NameNode.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
 ## Run
 

@@ -1,9 +1,7 @@
 
 # MapReduce Install
 
-    module.exports = header: 'MapReduce Client Install', handler: ->
-      {iptables} = @config
-      {hadoop_group, hadoop_conf_dir, mapred} = @config.ryba
+    module.exports = header: 'MapReduce Client Install', handler: (options) ->
 
 ## Register
 
@@ -21,19 +19,19 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      jobclient = mapred.site['yarn.app.mapreduce.am.job.client.port-range']
+      jobclient = options.mapred_site['yarn.app.mapreduce.am.job.client.port-range']
       jobclient = jobclient.replace '-', ':'
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: jobclient, protocol: 'tcp', state: 'NEW', comment: "MapRed Client Range" }
         ]
-        if: iptables.action is 'start'
 
 ## Identities
 
-      @system.group header: 'Group', hadoop_group
-      @system.user header: 'User', mapred.user
+      @system.group header: 'Group', options.hadoop_group
+      @system.user header: 'User', options.user
 
 ## Service
 
@@ -45,13 +43,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @hconfigure
         header: 'Configuration'
-        target: "#{hadoop_conf_dir}/mapred-site.xml"
+        target: "#{options.conf_dir}/mapred-site.xml"
         source: "#{__dirname}/../resources/mapred-site.xml"
         local: true
-        properties: mapred.site
+        properties: options.mapred_site
         backup: true
-        uid: mapred.user.name
-        gid: mapred.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## HDFS Tarballs
 
@@ -64,6 +62,7 @@ HDFS directory. Note, the parent directories are created by the
         wait: 60*1000
         source: '/usr/hdp/current/hadoop-client/mapreduce.tar.gz'
         target: '/hdp/apps/$version/mapreduce/mapreduce.tar.gz'
+        id: options.hostname
         lock: '/tmp/ryba-mapreduce.lock'
 
 ## Ulimit
@@ -82,8 +81,8 @@ the "ryba/hadoop/hdfs" module for additional information.
 
       @system.limits
         header: 'Ulimit'
-        user: mapred.user.name
-      , mapred.user.limits
+        user: options.user.name
+      , options.user.limits
 
 ## Dependencies
 

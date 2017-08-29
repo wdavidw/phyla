@@ -34,8 +34,8 @@
 NAME='Yarn Node Manager'
 USER='yarn'
 GROUP='hadoop'
-CONF_DIR='{{ryba.yarn.nm.conf_dir}}'
-RUN_DIR='{{ryba.yarn.nm.pid_dir}}'
+CONF_DIR='{{conf_dir}}'
+RUN_DIR='{{pid_dir}}'
 PID_FILE="${RUN_DIR}/yarn-yarn-nodemanager.pid"
 CMD="su -l $USER -c \"export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && /usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config $CONF_DIR start nodemanager\""
 KILL_FORCE=0

@@ -1,29 +1,27 @@
 
 # MapReduce Client Check
 
-    module.exports = header: 'MapReduce Client Check', label_true: 'CHECKED', handler: ->
-      {shortname} = @config
-      {force_check, user} = @config.ryba
+    module.exports = header: 'MapReduce Client Check', label_true: 'CHECKED', handler: (options) ->
 
 ## Wait
 
 Wait for the MapReduce History Server as well as all YARN services to be 
 started.
 
-      @call once: true, 'ryba/hadoop/mapred_jhs/wait'
-      @call once: true, 'ryba/hadoop/yarn_ts/wait'
-      @call once: true, 'ryba/hadoop/yarn_nm/wait'
-      @call once: true, 'ryba/hadoop/yarn_rm/wait'
+      @call 'ryba/hadoop/mapred_jhs/wait', once: true, options.wait_mapred_jhs
+      @call 'ryba/hadoop/yarn_ts/wait', once: true, options.wait_yarn_ts
+      @call 'ryba/hadoop/yarn_nm/wait', once: true, options.wait_yarn_nm
+      @call 'ryba/hadoop/yarn_rm/wait', once: true, options.wait_yarn_rm
 
 ## Check Distributed Shell
 
 The distributed shell is a yarn client application which submit a command or a
 Shell script to be executed inside one or multiple YARN containers.
 
-      # Note: should be moved to mapred since it requires mapred-site with memory settings
+      # Note: yarn functionnality moved to mapred since it requires mapred-site with memory settings
       @call header: 'Distributed Shell', label_true: 'CHECKED', handler: ->
-        appname = "ryba_check_#{shortname}_distributed_cache_#{Date.now()}"
-        scriptpath = "#{user.home}/check_distributed_shell.sh"
+        appname = "ryba_check_#{options.hostname}_distributed_cache_#{Date.now()}"
+        scriptpath = "#{options.user.home}/check_distributed_shell.sh"
         @file
           target: "#{scriptpath}"
           content: """
@@ -48,7 +46,7 @@ Shell script to be executed inside one or multiple YARN containers.
           rm=`yarn logs -applicationId $application 2>/dev/null | grep 'Ryba NM hostname' | sed 's/Ryba NM hostname: \\(.*\\)/\\1/'`
           [ "$rm" ]
           """
-          unless_exists: unless force_check then scriptpath
+          unless_exists: unless options.force_check then scriptpath
 
 ## Check
 
@@ -62,12 +60,12 @@ to re-execute the check.
       @system.execute
         header: 'Teragen & Terasort'
         cmd: mkcmd.test @, """
-        hdfs dfs -rm -r check-#{shortname}-mapred || true
-        hdfs dfs -mkdir -p check-#{shortname}-mapred
-        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar teragen 100 check-#{shortname}-mapred/input
-        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar terasort check-#{shortname}-mapred/input check-#{shortname}-mapred/output
+        hdfs dfs -rm -r check-#{options.hostname}-mapred || true
+        hdfs dfs -mkdir -p check-#{options.hostname}-mapred
+        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar teragen 100 check-#{options.hostname}-mapred/input
+        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar terasort check-#{options.hostname}-mapred/input check-#{options.hostname}-mapred/output
         """
-        unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -d check-#{shortname}-mapred/output"
+        unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d check-#{options.hostname}-mapred/output"
         trap: true
 
 ## Dependencies

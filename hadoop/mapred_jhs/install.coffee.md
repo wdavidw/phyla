@@ -6,11 +6,7 @@ Install and configure the MapReduce Job History Server (JHS).
 Run the command `./bin/ryba install -m ryba/hadoop/mapred_jhs` to install the
 Job History Server.
 
-    module.exports = header: 'MapReduce JHS Install', handler: ->
-      {yarn, mapred} = @config.ryba
-      {ssl, ssl_server, ssl_client, mapred} = @config.ryba
-      {mapred, hadoop_group, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'MapReduce JHS Install', handler: (options) ->
 
 ## Register
 
@@ -19,24 +15,25 @@ Job History Server.
 
 ## IPTables
 
-| Service    | Port  | Proto | Parameter                           |
-|------------|-------|-------|-------------------------------------|
-| jobhistory | 10020 | tcp   | mapreduce.jobhistory.address        |
-| jobhistory | 19888 | http  | mapreduce.jobhistory.webapp.address |
+| Service    | Port  | Proto | Parameter                                 |
+|------------|-------|-------|-------------------------------------------|
+| jobhistory | 10020 | tcp   | mapreduce.jobhistory.address              |
+| jobhistory | 19888 | http  | mapreduce.jobhistory.webapp.address       |
 | jobhistory | 19889 | https | mapreduce.jobhistory.webapp.https.address |
-| jobhistory | 13562 | tcp   | mapreduce.shuffle.port              |
-| jobhistory | 10033 | tcp   | mapreduce.jobhistory.admin.address  |
+| jobhistory | 13562 | tcp   | mapreduce.shuffle.port                    |
+| jobhistory | 10033 | tcp   | mapreduce.jobhistory.admin.address        |
 
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      jhs_shuffle_port = mapred.site['mapreduce.shuffle.port']
-      jhs_port = mapred.site['mapreduce.jobhistory.address'].split(':')[1]
-      jhs_webapp_port = mapred.site['mapreduce.jobhistory.webapp.address'].split(':')[1]
-      jhs_webapp_https_port = mapred.site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
-      jhs_admin_port = mapred.site['mapreduce.jobhistory.admin.address'].split(':')[1]
+      jhs_shuffle_port = options.mapred_site['mapreduce.shuffle.port']
+      jhs_port = options.mapred_site['mapreduce.jobhistory.address'].split(':')[1]
+      jhs_webapp_port = options.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
+      jhs_webapp_https_port = options.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
+      jhs_admin_port = options.mapred_site['mapreduce.jobhistory.admin.address'].split(':')[1]
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: jhs_port, protocol: 'tcp', state: 'NEW', comment: "MapRed JHS Server" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: jhs_webapp_port, protocol: 'tcp', state: 'NEW', comment: "MapRed JHS WebApp" }
@@ -44,14 +41,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           { chain: 'INPUT', jump: 'ACCEPT', dport: jhs_shuffle_port, protocol: 'tcp', state: 'NEW', comment: "MapRed JHS Shuffle" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: jhs_admin_port, protocol: 'tcp', state: 'NEW', comment: "MapRed JHS Admin Server" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Service
 
 Install the "hadoop-mapreduce-historyserver" service, symlink the rc.d startup
 script inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hadoop-mapreduce-historyserver'
         @hdp_select
@@ -63,7 +59,7 @@ script inside "/etc/init.d" and activate it on startup.
           target: '/etc/init.d/hadoop-mapreduce-historyserver'
           source: "#{__dirname}/../resources/hadoop-mapreduce-historyserver.j2"
           local: true
-          context: @config
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -73,13 +69,13 @@ script inside "/etc/init.d" and activate it on startup.
             target: '/usr/lib/systemd/system/hadoop-mapreduce-historyserver.service'
             source: "#{__dirname}/../resources/hadoop-mapreduce-historyserver-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             header: 'Run dir'
-            mount: "#{mapred.pid_dir}"
-            uid: mapred.user.name
-            gid: hadoop_group.name
+            mount: "#{options.pid_dir}"
+            uid: options.user.name
+            gid: options.hadoop_group.name
             perm: '0755'
 
 ## Layout
@@ -87,24 +83,23 @@ script inside "/etc/init.d" and activate it on startup.
 Create the log and pid directories.
 
       @call header: 'Layout', ->
-        {mapred, hadoop_group} = @config.ryba
         @system.mkdir
-          target: "#{mapred.log_dir}"
-          uid: mapred.user.name
-          gid: hadoop_group.name
+          target: "#{options.log_dir}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0755
         @system.mkdir
-          target: "#{mapred.pid_dir}"
-          uid: mapred.user.name
-          gid: hadoop_group.name
+          target: "#{options.pid_dir}"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0755
         @system.mkdir
-          target: mapred.site['mapreduce.jobhistory.recovery.store.leveldb.path']
-          uid: mapred.user.name
-          gid: hadoop_group.name
+          target: options.mapred_site['mapreduce.jobhistory.recovery.store.leveldb.path']
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0750
           parent: true
-          if: mapred.site['mapreduce.jobhistory.recovery.store.class'] is 'org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService'
+          if: options.mapred_site['mapreduce.jobhistory.recovery.store.class'] is 'org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService'
 
 ## Configure
 
@@ -113,67 +108,66 @@ directory with the location of the directory storing the process pid.
 
 Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
 
-      {core_site, mapred, hdfs, yarn, hadoop_metrics, hadoop_group} = @config.ryba
       @hconfigure
         header: 'Core Site'
-        target: "#{mapred.jhs.conf_dir}/core-site.xml"
+        target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
-        properties: core_site
+        properties: options.core_site
         backup: true
       @hconfigure
         header: 'HDFS Site'
-        target: "#{mapred.jhs.conf_dir}/hdfs-site.xml"
-        properties: hdfs.site
+        target: "#{options.conf_dir}/hdfs-site.xml"
+        properties: options.hdfs_site
         backup: true
       @hconfigure
         header: 'YARN Site'
-        target: "#{mapred.jhs.conf_dir}/yarn-site.xml"
-        properties: yarn.site
+        target: "#{options.conf_dir}/yarn-site.xml"
+        properties: options.yarn_site
         backup: true
       @hconfigure
         header: 'MapRed Site'
-        target: "#{mapred.jhs.conf_dir}/mapred-site.xml"
-        properties: mapred.site
+        target: "#{options.conf_dir}/mapred-site.xml"
+        properties: options.mapred_site
         backup: true
       @file
         header: 'Log4j'
-        target: "#{mapred.jhs.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
       @file.render
         header: 'Mapred Env'
-        target: "#{mapred.jhs.conf_dir}/mapred-env.sh"
+        target: "#{options.conf_dir}/mapred-env.sh"
         source: "#{__dirname}/../resources/mapred-env.sh.j2"
-        context: @config
+        context: options: options
         local: true
         backup: true
       @file.render
         header: 'Hadoop Env'
-        target: "#{mapred.jhs.conf_dir}/hadoop-env.sh"
+        target: "#{options.conf_dir}/hadoop-env.sh"
         source: "#{__dirname}/../resources/hadoop-env.sh.j2"
         local: true
         context:
-          HADOOP_HEAPSIZE: @config.ryba.hadoop_heap
-          HADOOP_LOG_DIR: @config.ryba.hdfs.log_dir
-          HADOOP_PID_DIR: @config.ryba.hdfs.pid_dir
-          HADOOP_OPTS: @config.ryba.hadoop_opts
-          HADOOP_CLIENT_OPTS: @config.ryba.hadoop_client_opts
-          HADOOP_MAPRED_LOG_DIR: @config.ryba.mapred.log_dir
-          HADOOP_MAPRED_PID_DIR: @config.ryba.mapred.pid_dir
-          java_home: @config.java.java_home
-        uid: mapred.user.name
-        gid: hadoop_group.name
+          HADOOP_HEAPSIZE: options.hadoop_heap
+          HADOOP_LOG_DIR: ''
+          HADOOP_PID_DIR: ''
+          HADOOP_OPTS: options.hadoop_opts
+          HADOOP_CLIENT_OPTS: options.hadoop_client_opts
+          HADOOP_MAPRED_LOG_DIR: options.log_dir
+          HADOOP_MAPRED_PID_DIR: options.pid_dir
+          java_home: options.java_home
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0755
         backup: true
       @file.render
         header: 'MapRed Env'
-        target: "#{mapred.jhs.conf_dir}/mapred-env.sh"
+        target: "#{options.conf_dir}/mapred-env.sh"
         source: "#{__dirname}/../resources/mapred-env.sh.j2"
         local: true
         context: @config
-        uid: mapred.user.name
-        gid: hadoop_group.name
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0755
         backup: true
 
@@ -181,46 +175,41 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 
       @file.properties
         header: 'Metrics'
-        target: "#{mapred.jhs.conf_dir}/hadoop-metrics2.properties"
-        content: hadoop_metrics.config
+        target: "#{options.conf_dir}/hadoop-metrics2.properties"
+        content: options.hadoop_metrics.config
         backup: true
 
 ## SSL
 
-      @call header: 'SSL', retry: 0, ->
-        ssl_client['ssl.client.truststore.location'] = "#{mapred.jhs.conf_dir}/truststore"
-        ssl_server['ssl.server.keystore.location'] = "#{mapred.jhs.conf_dir}/keystore"
-        ssl_server['ssl.server.truststore.location'] = "#{mapred.jhs.conf_dir}/truststore"
+      @call header: 'SSL', ->
         @hconfigure
-          target: "#{mapred.jhs.conf_dir}/ssl-server.xml"
-          properties: ssl_server
+          target: "#{options.conf_dir}/ssl-server.xml"
+          properties: options.ssl_server
         @hconfigure
-          target: "#{mapred.jhs.conf_dir}/ssl-client.xml"
-          properties: ssl_client
+          target: "#{options.conf_dir}/ssl-client.xml"
+          properties: options.ssl_client
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: ssl_client['ssl.client.truststore.location']
-          storepass: ssl_client['ssl.client.truststore.password']
+          keystore: options.ssl_client['ssl.client.truststore.location']
+          storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.ssl_server['ssl.server.keystore.keypassword']
+          name: options.ssl.key.name
+          local: options.ssl.key.local
         @java.keystore_add
-          keystore: ssl_server['ssl.server.keystore.location']
-          storepass: ssl_server['ssl.server.keystore.password']
+          keystore: options.ssl_server['ssl.server.keystore.location']
+          storepass: options.ssl_server['ssl.server.keystore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 ## Kerberos
 
@@ -229,13 +218,13 @@ Create the Kerberos service principal by default in the form of
 "/etc/security/keytabs/jhs.service.keytab" with ownerships set to
 "mapred:hadoop" and permissions set to "0600".
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: "jhs/#{@config.host}@#{realm}"
+        principal: options.mapred_site['mapreduce.jobhistory.principal']
         randkey: true
-        keytab: "/etc/security/keytabs/jhs.service.keytab"
-        uid: mapred.user.name
-        gid: hadoop_group.name
+        keytab: options.mapred_site['mapreduce.jobhistory.keytab']
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0600
 
 ## HDFS Layout
@@ -245,16 +234,16 @@ Layout is inspired by [Hadoop recommandation](http://hadoop.apache.org/docs/r2.1
       @system.execute
         header: 'HDFS Layout'
         cmd: mkcmd.hdfs @, """
-        if ! hdfs dfs -test -d #{mapred.site['yarn.app.mapreduce.am.staging-dir']}/history; then
-          hdfs dfs -mkdir -p #{mapred.site['yarn.app.mapreduce.am.staging-dir']}/history
-          hdfs dfs -chmod 0755 #{mapred.site['yarn.app.mapreduce.am.staging-dir']}/history
-          hdfs dfs -chown #{mapred.user.name}:#{hadoop_group.name} #{mapred.site['yarn.app.mapreduce.am.staging-dir']}/history
+        if ! hdfs --config #{options.conf_dir} dfs -test -d #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history; then
+          hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history
+          hdfs --config #{options.conf_dir} dfs -chmod 0755 #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name}:#{options.hadoop_group.name} #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history
           modified=1
         fi
-        if ! hdfs dfs -test -d /app-logs; then
-          hdfs dfs -mkdir -p /app-logs
-          hdfs dfs -chmod 1777 /app-logs
-          hdfs dfs -chown #{yarn.user.name} /app-logs
+        if ! hdfs --config #{options.conf_dir} dfs -test -d /app-logs; then
+          hdfs --config #{options.conf_dir} dfs -mkdir -p /app-logs
+          hdfs --config #{options.conf_dir} dfs -chmod 1777 /app-logs
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} /app-logs
           modified=1
         fi
         if [ $modified != "1" ]; then exit 2; fi
