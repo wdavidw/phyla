@@ -64,6 +64,10 @@ Example:
       # offset retention (in min) should be at least as big as log (in hour)
       kafka.broker.config['offsets.retention.minutes'] ?= "#{60 * parseInt kafka.broker.config['log.retention.hours']}"
       kafka.broker.config['delete.topic.enable'] ?= 'true'
+      kafka.broker.config['min.insync.replicas'] ?= '1'
+      kafka.broker.config['default.replication.factor'] ?= '1'
+      kafka.broker.config['unclean.leader.election.enable'] ?= 'false'
+      kafka.broker.config['compression.type'] ?= 'snappy'
       kafka.broker.config['zookeeper.set.acl'] ?= 'true'
       kafka.broker.config['super.users'] ?= kafka.superusers.map( (user) -> "User:#{user}").join(',')
       hosts = @contexts('ryba/kafka/broker').map (ctx) -> ctx.config.host
