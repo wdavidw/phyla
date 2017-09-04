@@ -12,7 +12,7 @@ Now the jobHistory Server tends to be replace by the Yarn timeline server.
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         mapred_jhs: module: 'ryba/hadoop/mapred_jhs'

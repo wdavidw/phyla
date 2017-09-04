@@ -1,18 +1,25 @@
 
 ## Hbase Thrift server check
 
-    module.exports = header: 'HBase Thrift Check', label_true: 'CHECKED', handler: ->
-      {hbase} = @config.ryba
+    module.exports = header: 'HBase Thrift Check', label_true: 'CHECKED', handler: (options) ->
 
-## Wait
+## Assert HTTP Port
 
-      @call once: true, 'ryba/hbase/thrift/wait'
+      @connection.assert
+        header: 'HTTP'
+        servers: options.wait.http.filter (server) -> server.host is options.fqdn
+
+## Assert HTTP Info Port
+
+      @connection.assert
+        header: 'HTTP Info'
+        servers: options.wait.http_info.filter (server) -> server.host is options.fqdn
 
 ## Check Shell
 
       @system.execute
         header: 'TCP'
-        cmd: "echo > /dev/tcp/#{@config.host}/#{hbase.thrift.site['hbase.thrift.port']}"
+        cmd: "echo > /dev/tcp/#{options.fqdn}/#{options.hbase_site['hbase.thrift.port']}"
 
 # TODO: Novembre 2015 check Thrift  server by interacting with hbase
 

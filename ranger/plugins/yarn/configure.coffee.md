@@ -15,7 +15,7 @@ variables but also inject some function to be executed.
       @config.ryba.ranger ?= {}
       options = @config.ryba.ranger.yarn_plugin = service.options
 
-## Ranger Yarn User
+## Plugin User
 
 migration: wdavidw 170828, please explain its usage.It is an admin user here 
 for conveniency or an internal application user to communicate with between the 
@@ -52,7 +52,7 @@ REST request.
 
 ## Access`
 
-      options.admin_password ?= service.use.ranger_admin.options.plugins.password
+      options.ranger_admin ?= service.use.ranger_admin.options.admin
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
       # options.plugins ?= {}
       # options.plugins.principal ?= service.use.ranger_admin.options.plugins.principal

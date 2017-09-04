@@ -11,26 +11,35 @@ From 1.0 thrift can enable impersonation for other service
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: 'ryba/hadoop/core'
-        hbase_master: 'ryba/hbase/master'
-        hbase_regionserver: 'ryba/hbase/regionserver'
-        hbase_client: implicit: true, module: 'ryba/hbase/client'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true
+        hbase_master: module: 'ryba/hbase/master', required: true
+        hbase_regionserver: module: 'ryba/hbase/regionserver', required: true
+        hbase_client: module: 'ryba/hbase/client', local: true
+        hbase_thrift: module: 'ryba/hbase/thrift'
       configure:
         'ryba/hbase/thrift/configure'
       commands:
-        'install': [
-           'ryba/hbase/thrift/install'
-           'ryba/hbase/thrift/start'
-           'ryba/hbase/thrift/check'
-        ]
-        'start':
-          'ryba/hbase/thrift/start'
+        'check': ->
+          options = @config.ryba.hbase.thrift
+          @call 'ryba/hbase/thrift/check', options
+        'install': ->
+          options = @config.ryba.hbase.thrift
+          @call 'ryba/hbase/thrift/install', options
+          @call 'ryba/hbase/thrift/start', options
+          @call 'ryba/hbase/thrift/check', options
+        'start': ->
+          options = @config.ryba.hbase.thrift
+          @call 'ryba/hbase/thrift/start', options
         'status':
           'ryba/hbase/thrift/status'
-        'stop':
-          'ryba/hbase/thrift/stop'
+        'stop': ->
+          options = @config.ryba.hbase.thrift
+          @call 'ryba/hbase/thrift/stop', options
 
   [hue-hbase-impersonation]:(http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/)
   [hbase-configuration]:(http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/cdh_sg_hbase_authentication.html/)

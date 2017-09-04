@@ -24,7 +24,6 @@
         yarn_nm: key: ['ryba', 'yarn', 'nm']
       @config.ryba ?= {}
       @config.ryba.yarn ?= {}
-      @config.ryba.yarn.nm ?= {}
       options = @config.ryba.yarn.nm = service.options
 
 ## Identities

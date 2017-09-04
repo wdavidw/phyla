@@ -11,7 +11,7 @@ HTTP API.
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true # local: true, 

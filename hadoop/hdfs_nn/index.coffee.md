@@ -14,7 +14,7 @@ does not store the data of these files itself. It’s important that this metada
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         zookeeper_server: module: 'ryba/zookeeper/server'
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_jn: module: 'ryba/hadoop/hdfs_jn'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'

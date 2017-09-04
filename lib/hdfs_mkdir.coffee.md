@@ -33,6 +33,7 @@ Options include:
       options.parent.group ?= options.group
       wrap = (cmd) ->
         return cmd unless options.krb5_user
+        throw Error "Required Options: krb5_user.principal" unless options.krb5_user.principal
         if options.krb5_user.password
           "echo '#{options.krb5_user.password}' | kinit #{options.krb5_user.principal} >/dev/null && {\n#{cmd}\n}"
         else if options.krb5_user.keytab

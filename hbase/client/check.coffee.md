@@ -4,25 +4,22 @@
 Check the HBase client installation by creating a table, inserting a cell and
 scanning the table.
 
-    module.exports =  header: 'HBase Client Check', label_true: 'CHECKED', handler: ->
-      {shortname} = @config
-      {force_check, hbase, user} = @config.ryba
-      hbase_ctxs = @contexts 'ryba/hbase/master'
-      {admin} = hbase_ctxs[0].config.ryba.hbase
+    module.exports =  header: 'HBase Client Check', label_true: 'CHECKED', handler: (options) ->
+      {, hbase, user} = @config.ryba
       [ranger_ctx] = @contexts 'ryba/ranger/admin'
 
 ## Wait
 
 Wait for the HBase master to be started.
 
-      @call once: true, 'ryba/hbase/master/wait'
-      @call once: true, 'ryba/hbase/regionserver/wait'
+      @call once: true, 'ryba/hbase/master/wait', options.wait_hbase_master
+      @call once: true, 'ryba/hbase/regionserver/wait', options.wait_hbase_regionserver
 
 ## Ranger Policy
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
       @call
-        if: -> ranger_ctx?
+        if: -> options.ranger_admin
       , ->
         {install} = ranger_ctx.config.ryba.ranger.hbase_plugin
         policy_name = "Ranger-Ryba-HBase-Policy-#{@config.host}"
@@ -41,8 +38,8 @@ Wait for the HBase master to be started.
             "table":
               "values": [
                 "#{hbase.client.test.namespace}:#{hbase.client.test.table}",
-                "#{hbase.client.test.namespace}:check_#{@config.shortname}_test_splits",
-                "#{hbase.client.test.namespace}:check_#{@config.shortname}_ha"
+                "#{hbase.client.test.namespace}:check_#{options.hostname}_test_splits",
+                "#{hbase.client.test.namespace}:check_#{options.hostname}_ha"
                 ]
               "isExcludes": false
               "isRecursive": false
@@ -111,9 +108,9 @@ namespaces are prefixed with an '@' character.
 
       @system.execute
         header: 'Grant Permissions'
-        cmd: mkcmd.hbase @, """
+        cmd: mkcmd.hbase options.admin, """
         if hbase shell 2>/dev/null <<< "list_namespace_tables '#{hbase.client.test.namespace}'" | egrep '[0-9]+ row'; then
-          if [ ! -z '#{force_check or ''}' ]; then
+          if [ ! -z '#{options.force_check or ''}' ]; then
             echo [DEBUG] Cleanup existing table and namespace
             hbase shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
               disable '#{hbase.client.test.namespace}:#{hbase.client.test.table}'
@@ -149,14 +146,14 @@ Note, we are re-using the namespace created above.
         @system.execute
           cmd: mkcmd.test @, """
           hbase shell 2>/dev/null <<-CMD
-            alter '#{hbase.client.test.namespace}:#{hbase.client.test.table}', {NAME => '#{shortname}'}
-            put '#{hbase.client.test.namespace}:#{hbase.client.test.table}', 'my_row', '#{shortname}:my_column', 10
-            scan '#{hbase.client.test.namespace}:#{hbase.client.test.table}',  {COLUMNS => '#{shortname}'}
+            alter '#{hbase.client.test.namespace}:#{hbase.client.test.table}', {NAME => '#{options.hostname}'}
+            put '#{hbase.client.test.namespace}:#{hbase.client.test.table}', 'my_row', '#{options.hostname}:my_column', 10
+            scan '#{hbase.client.test.namespace}:#{hbase.client.test.table}',  {COLUMNS => '#{options.hostname}'}
           CMD
           """
-          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{hbase.client.test.namespace}:#{hbase.client.test.table}', {COLUMNS => '#{shortname}'}\" | egrep '[0-9]+ row'"
+          unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{hbase.client.test.namespace}:#{hbase.client.test.table}', {COLUMNS => '#{options.hostname}'}\" | egrep '[0-9]+ row'"
         , (err, executed, stdout) ->
-          isRowCreated = RegExp("column=#{shortname}:my_column, timestamp=\\d+, value=10").test stdout
+          isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test stdout
           throw Error 'Invalid command output' if executed and not isRowCreated
 
 ## Check MapReduce
@@ -169,20 +166,19 @@ Note, we are re-using the namespace created above.
           hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=, -Dimporttsv.columns=HBASE_ROW_KEY,family1:value #{hbase.client.test.namespace}:#{hbase.client.test.table} /user/ryba/test_import.csv
           hdfs dfs -touchz check-#{@config.host}-hbase-mapred
           """
-          unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f check-#{@config.host}-hbase-mapred"
+          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{@config.host}-hbase-mapred"
 
 ## Check Splits
 
       @call header: 'Splits', label_true: 'CHECKED', ->
-        {force_check} = @config.ryba
-        table = "#{hbase.client.test.namespace}:check_#{@config.shortname}_test_splits"
+        table = "#{hbase.client.test.namespace}:check_#{options.hostname}_test_splits"
         @system.execute
-          cmd: mkcmd.hbase @, """
+          cmd: mkcmd.hbase options.admin, """
           if hbase shell 2>/dev/null <<< "list_namespace_tables '#{hbase.client.test.namespace}'" | grep 'test_splits'; then echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null; fi
           echo "create '#{table}', 'cf1', SPLITS => ['1', '2', '3']" | hbase shell 2>/dev/null;
           echo "scan 'hbase:meta',  {COLUMNS => 'info:regioninfo', FILTER => \\"PrefixFilter ('#{table}')\\"}" | hbase shell 2>/dev/null
           """
-          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{hbase.client.test.namespace}'\" | grep -w 'test_splits'"
+          unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{hbase.client.test.namespace}'\" | grep -w 'test_splits'"
         , (err, executed, stdout) ->
           throw err if err
           return unless executed
@@ -201,9 +197,9 @@ Note, we are re-using the namespace created above.
       #     cmd: mkcmd.test @, """
       #     if hbase shell 2>/dev/null <<< "list_namespace_tables 'ryba'" | egrep '[0-9]+ row'; then exit 2; fi
       #     hbase shell 2>/dev/null <<-CMD
-      #       create 'ryba.#{shortname}', 'family1'
-      #       put 'ryba.#{shortname}', 'my_row', 'family1:my_column', 10
-      #       scan 'ryba.#{shortname}'
+      #       create 'ryba.#{options.hostname}', 'family1'
+      #       put 'ryba.#{options.hostname}', 'my_row', 'family1:my_column', 10
+      #       scan 'ryba.#{options.hostname}'
       #     CMD
       #     """
       #     code_skipped: 2
@@ -217,11 +213,10 @@ Note, we are re-using the namespace created above.
 
 This check is only executed if more than two HBase Master are declared.
 
-      @call header: 'Check HA', label_true: 'CHECKED', ->
-        return unless hbase_ctxs.length > 1
-        table = "#{hbase.client.test.namespace}:check_#{@config.shortname}_ha"
+      @call header: 'Check HA', if: options.is_ha, ->
+        table = "#{hbase.client.test.namespace}:check_#{options.hostname}_ha"
         @system.execute
-          cmd: mkcmd.hbase @, """
+          cmd: mkcmd.hbase options.admin, """
           # Create new table
           echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null
           echo "create '#{table}', 'cf1', {REGION_REPLICATION => 2}" | hbase shell 2>/dev/null;
@@ -230,7 +225,7 @@ This check is only executed if more than two HBase Master are declared.
           echo "scan '#{table}',  { CONSISTENCY => 'STRONG' }" | hbase shell 2>/dev/null
           echo "scan '#{table}',  { CONSISTENCY => 'TIMELINE' }" | hbase shell 2>/dev/null
           """
-          # unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{table}'\" | grep -w '#{table}'"
+          # unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{table}'\" | grep -w '#{table}'"
 
 ## Dependencies
 

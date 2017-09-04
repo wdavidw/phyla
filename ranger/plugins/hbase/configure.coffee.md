@@ -2,153 +2,180 @@
 ## Ranger HBase Plugin Configure
 
     module.exports = ->
-      hm_ctxs = @contexts 'ryba/hbase/master'
-      rs_ctxs = @contexts 'ryba/hbase/regionserver'
-      [ranger_admin_ctx] = @contexts 'ryba/ranger/admin'
-      return unless ranger_admin_ctx?
-      {ryba} = @config
-      {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
-      ranger.plugins.hbase_enabled ?= if hm_ctxs.length > 0 then true else false
-      type = if @config.ryba.hbase_plugin_is_master then 'master' else 'rs'
-      log_dir = @config.ryba.hbase["#{type}"].log_dir
-      conf_dir = @config.ryba.hbase["#{type}"].conf_dir
-      if ranger.plugins.hbase_enabled
-        throw Error 'Need HBase to enable ranger HBase Plugin' unless hm_ctxs.length > 0
-        # Ranger HBase Webui xuser
-        ranger.users['hbase'] ?=
-          "name": 'hbase'
-          "firstName": ''
-          "lastName": 'hadoop'
-          "emailAddress": 'hbase@hadoop.ryba'
-          "password": 'hbase123'
-          'userSource': 1
-          'userRoleList': ['ROLE_USER']
-          'groups': []
-          'status': 1
-        # Commun Configuration
-        @config.ryba.ranger ?= {}
-        @config.ryba.ranger.user = @config.ryba.ranger.user
-        @config.ryba.ranger.group = @config.ryba.ranger.group
-        # HBase Plugin configuration
-        hbase_plugin = @config.ryba.ranger.hbase_plugin ?= {}
-        hbase_plugin.policy_name ?= "Ranger-Ryba-HBase-Policy"
-        hbase_plugin.install ?= {}
-        hbase_plugin.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
-        hbase_plugin.install['CUSTOM_USER'] ?= "#{@config.ryba.hbase.user.name}"
+      service = migration.call @, service, 'ryba/ranger/plugins/hbase', ['ryba', 'ranger', 'hbase_plugin'], require('nikita/lib/misc').merge require('.').use,
+        krb5_client: key: ['krb5_client']
+        hadoop_core: key: ['ryba']
+        hbase_master: key: ['ryba', 'hbase', 'master']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+      @config.ryba.ranger ?= {}
+      options = @config.ryba.ranger.hbase_plugin = service.options
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+
+## Identities
+
+      options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
+      options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
+      options.hbase_user = service.use.hbase_master.options.user
+      options.hadoop_group = service.use.hbase_master.options.hadoop_group
+
+## Access`
+
+      options.ranger_admin ?= service.use.ranger_admin.options.admin
+
+## Environment
+
+      options.conf_dir ?= service.use.hbase_master.options.conf_dir
+      options.log_dir ?= service.use.hbase_master.options.log_dir
+
+## Plugin User
+
+migration: wdavidw 170828, please explain its usage.It is an admin user here 
+for conveniency or an internal application user to communicate with between the 
+plugin and the server ?
+
+migration: wdavidw 170828, access for the user need to be tested through a HTTP
+REST request.
+
+      service.use.ranger_admin.options.users['yarn'] ?=
+        "name": 'hbase'
+        "firstName": ''
+        "lastName": 'hadoop'
+        "emailAddress": 'hbase@hadoop.ryba'
+        "password": 'hbase123'
+        'userSource': 1
+        'userRoleList': ['ROLE_USER']
+        'groups': []
+        'status': 1
+
+## Configuration
+
+      options.install ?= {}
+      # migration: wdavidw 170902, used in hbase/rest/check, should be moved
+      # options.policy_name ?= "Ranger-Ryba-HBase-Policy"
+      options.install ?= {}
+      options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
+      options.install['CUSTOM_USER'] ?= "#{options.hbase_user.name}"
 
 ### HBase regionserver env
-Some ranger plugins needs to have the configuration file on thei classpath to make 
-configuration separation complete.
 
-        #fix ranger hbase rs plugin
-        for ctx in rs_ctxs
-          ctx.config.ryba ?= {}
-          ctx.config.ryba.hbase ?= {}
-          ctx.config.ryba.hbase.rs ?= {}
-          ctx.config.ryba.hbase.rs.env ?= {}
-          if not ctx.config.ryba?.hbase?.rs?.env['HBASE_CLASSPATH']?
-            ctx.config.ryba.hbase.rs.env['HBASE_CLASSPATH'] = "$HBASE_CLASSPATH:/etc/hbase-regionserver/conf/core-site.xml"
-          else if (ctx.config.ryba.hbase.rs.env['HBASE_CLASSPATH'].indexOf(":/etc/hbase-regionserver/conf/core-site.xml") is -1)
-            ctx.config.ryba.hbase.rs.env['HBASE_CLASSPATH'] += ":/etc/hbase-regionserver/conf/core-site.xml"
+Some ranger plugins needs to have the configuration file on their classpath to 
+make configuration effective.
+
+      # migration: wdavidw 170902, code is ready but commented for now, maybe
+      # it should apply to hbase master as well.
+      # for srv in service.use.hbase_regionserver
+      #   core_site_path = "#{srv.options.conf_dir}/core-site.xml"
+      #   unless srv.options.env['HBASE_CLASSPATH']
+      #     srv.options.env['HBASE_CLASSPATH'] = "$HBASE_CLASSPATH:#{core_site_path}"
+      #   else if (srv.options.env['HBASE_CLASSPATH'].indexOf(":#{core_site_path}") is -1)
+      #     srv.options.env['HBASE_CLASSPATH'] += ":#{core_site_path}"
 
 ### HBase Policy Admin Tool
 The repository name should match the reposity name in web ui.
 
-        hbase_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
-        hbase_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
-        hbase_plugin.service_repo ?=
-          'configs':
-            'username': @config.ryba.hbase.admin.principal
-            'password': @config.ryba.hbase.admin.password
-            'hadoop.security.authorization': core_site['hadoop.security.authorization']
-            'hbase.master.kerberos.principal': @config.ryba.hbase["#{type}"].site['hbase.master.kerberos.principal']
-            'hadoop.security.authentication': core_site['hadoop.security.authentication']
-            'hbase.security.authentication': @config.ryba.hbase["#{type}"].site['hbase.security.authentication']
-            'hbase.zookeeper.property.clientPort': @config.ryba.hbase["#{type}"].site['hbase.zookeeper.property.clientPort']
-            'hbase.zookeeper.quorum': @config.ryba.hbase["#{type}"].site['hbase.zookeeper.quorum']
-            'zookeeper.znode.parent': @config.ryba.hbase["#{type}"].site['zookeeper.znode.parent']
-            'policy.download.auth.users': "#{@config.ryba.hbase.user.name}" #from ranger 0.6
-            'tag.download.auth.users': "#{@config.ryba.hbase.user.name}"
-            'policy.grantrevoke.auth.users': "#{@config.ryba.hbase.user.name}"
-          'description': 'HBase Repo'
-          'isEnabled': true
-          'name': hbase_plugin.install['REPOSITORY_NAME']
-          'type': 'hbase'
-        hbase_plugin.install['XAAUDIT.SUMMARY.ENABLE'] ?= 'true'
-        hbase_plugin.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
+      options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
+      options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
+      options.service_repo ?=
+        'configs':
+          'password': 'ranger_plugin_hbase'
+          'username': 'RangerPluginHBase123!'
+          'hadoop.security.authorization': service.use.hadoop_core.options.core_site['hadoop.security.authorization']
+          'hbase.master.kerberos.principal': service.use.hbase_master.options.hbase_site['hbase.master.kerberos.principal']
+          'hadoop.security.authentication': service.use.hadoop_core.options.core_site['hadoop.security.authentication']
+          'hbase.security.authentication': service.use.hbase_master.options.hbase_site['hbase.security.authentication']
+          'hbase.zookeeper.property.clientPort': service.use.hbase_master.options.hbase_site['hbase.zookeeper.property.clientPort']
+          'hbase.zookeeper.quorum': service.use.hbase_master.options.hbase_site['hbase.zookeeper.quorum']
+          'zookeeper.znode.parent': service.use.hbase_master.options.hbase_site['zookeeper.znode.parent']
+          'policy.download.auth.users': "#{options.hbase_user.name}" #from ranger 0.6
+          'tag.download.auth.users': "#{options.hbase_user.name}"
+          'policy.grantrevoke.auth.users': "#{options.hbase_user.name}"
+        'description': 'HBase Repo'
+        'isEnabled': true
+        'name': options.install['REPOSITORY_NAME']
+        'type': 'hbase'
+      options.install['XAAUDIT.SUMMARY.ENABLE'] ?= 'true'
+      options.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
 
 ### HBase Audit (HDFS V3 properties)
 
-        # V3 Configuration
-        hbase_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
-        if hbase_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-          hbase_plugin.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
-          hbase_plugin.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
-          hbase_plugin.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
-          hbase_plugin.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
-          hbase_plugin.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
-          hbase_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
+      # V3 Configuration
+      options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
+        options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
+        options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
+        options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
+        options.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
 ### HBase Audit (HDFS Storage)
 
-        # AUDIT TO HDFS
-        hbase_plugin.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-        hbase_plugin.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
-        hbase_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{log_dir}/audit/hdfs/spool"
+      # AUDIT TO HDFS
+      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
+      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
 
 ### HBase Audit (database storage)
 
-        #Deprecated
-        hbase_plugin.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
-        if hbase_plugin.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
-          hbase_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
-          switch hbase_plugin.install['XAAUDIT.DB.FLAVOUR']
-            when 'MYSQL'
-              hbase_plugin.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
-              hbase_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
-              hbase_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
-              hbase_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
-              hbase_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
-            when 'ORACLE'
-              throw Error 'Ryba does not support ORACLE Based Ranger Installation'
-            else
-              throw Error "Apache Ranger does not support chosen DB FLAVOUR"
-        else
-            hbase_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
-            hbase_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
-            hbase_plugin.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
-            hbase_plugin.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
+      # Deprecated
+      # migration: wdavidw 170902, in favor of what ?
+      options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
+      if options.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
+        switch options.install['XAAUDIT.DB.FLAVOUR']
+          when 'MYSQL'
+            options.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
+            options.install['XAAUDIT.DB.HOSTNAME'] ?= service.use.ranger_admin.options.install['db_host']
+            options.install['XAAUDIT.DB.DATABASE_NAME'] ?= service.use.ranger_admin.options.install['audit_db_name']
+            options.install['XAAUDIT.DB.USER_NAME'] ?= service.use.ranger_admin.options.install['audit_db_user']
+            options.install['XAAUDIT.DB.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_db_password']
+          when 'ORACLE'
+            throw Error 'Ryba does not support ORACLE Based Ranger Installation'
+          else
+            throw Error "Apache Ranger does not support chosen DB FLAVOUR"
+      else
+          options.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
 
 
 ### HBase Audit (to SOLR)
 
-        if ranger.install['audit_store'] is 'solr'
-          hbase_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
-          hbase_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          hbase_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
-          hbase_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
-          hbase_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
-          hbase_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
-          hbase_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{log_dir}/audit/solr/spool"
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
+        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
+        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
+        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
+        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
+        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/solr/spool"
 
 ### HBase Plugin Execution
 
-      if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        @config.ryba.ranger.hbase_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
-        @config.ryba.ranger.hbase_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
-        @config.ryba.ranger.hbase_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']
-        @config.ryba.ranger.hbase_plugin.install['SSL_TRUSTSTORE_PASSWORD'] ?= @config.ryba.ssl_client['ssl.client.truststore.password']
+      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.password']
 
 ## Merge hive_plugin conf to ranger admin
 
-        ranger_admin_ctx.config.ryba.ranger.hbase_plugin = merge hbase_plugin
+        # ranger_admin_ctx.config.ryba.ranger.hbase_plugin = merge hbase_plugin
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

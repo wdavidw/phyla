@@ -96,8 +96,10 @@ User can be External and Internal. Only Internal users can be created from the r
       # Ranger Admin configuration
       options.current_password ?= 'admin'
       # TODO: wdavidw 10821, rename as admin_password
-      options.password ?= 'rangerAdmin123'
-      if not (/^.*[a-zA-Z]/.test(options.password) and /^.*[0-9]/.test(options.password) and options.password.length > 8)
+      options.admin ?= {}
+      options.admin.username ?= 'admin'
+      options.admin.password ?= 'rangerAdmin123'
+      if not (/^.*[a-zA-Z]/.test(options.admin.password) and /^.*[0-9]/.test(options.admin.password) and options.admin.password.length > 8)
        throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest"
       options.conf_dir ?= '/etc/ranger/admin'
       options.site ?= {}
@@ -493,7 +495,7 @@ Ryba injects function to the different contexts.
       options.wait = {}
       options.wait.http = {}
       options.wait.http.username = 'admin'
-      options.wait.http.password = options.password
+      options.wait.http.password = options.admin.password
       options.wait.http.url = "#{options.install['policymgr_external_url']}/service/users/1"
 
 ## Dependencies

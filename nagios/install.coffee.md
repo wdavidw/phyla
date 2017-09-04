@@ -341,10 +341,10 @@ cat /etc/nagios/objects/hadoop-services.cfg | grep hostgroup_name
             datanode_port: dn_port
             clientPort: zookeeper.port
             hbase_rs_port: hrs_ctxs[0].config.ryba.hbase.rs.site['hbase.regionserver.info.port']
-            hbase_master_port: hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.info.port']
+            hbase_master_port: service.use.hbase_master[0].options.hbase_site['hbase.master.info.port']
             hbase_master_hosts_in_str: hm_ctxs.map( (hm_ctx) -> hm_ctx.config.host ).join ','
             hbase_master_hosts: hm_ctxs.map( (hm_ctx) -> hm_ctx.config.host )
-            hbase_master_rpc_port: hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.port']
+            hbase_master_rpc_port: service.use.hbase_master[0].options.hbase_site['hbase.master.port']
             hive_metastore_port: url.parse(hcat_ctxs[0].config.ryba.hive.site['hive.metastore.uris'].split(',')[0]).port
             hive_server_port: hs2_port
             oozie_url: oozie.site['oozie.base.url']

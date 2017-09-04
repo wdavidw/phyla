@@ -8,8 +8,7 @@ have usecase for it yet.
 This installation also found inspiration from the 
 [cloudera hbase setup in secure mode][hbase-configuration].
 
-    module.exports =  header: 'HBase Thrift Install', handler: ->
-      {hbase} = @config.ryba
+    module.exports =  header: 'HBase Thrift Install', handler: (options) ->
 
 ## Register
 
@@ -28,11 +27,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.thrift.site['hbase.thrift.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Thrift Master" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.thrift.site['hbase.thrift.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Thrift Info Web UI" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.thrift.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Thrift Master" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.thrift.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Thrift Info Web UI" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Identities
 
@@ -45,26 +44,26 @@ cat /etc/group | grep hbase
 hbase:x:492:
 ```
 
-      @system.group header: 'Group', hbase.group
-      @system.user header: 'User', hbase.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## HBase Thrift Server Layout
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: hbase.thrift.pid_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.thrift.log_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.thrift.conf_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
 
 ## ACL Table
@@ -76,7 +75,7 @@ hbase:x:492:
             grant 'hbase_thrift', 'RWCA'
           CMD
           """
-          unless: hbase.thrift.site['hbase.thrift.kerberos.principal'].indexOf 'HTTP' > -1
+          unless: options.hbase_site['hbase.thrift.kerberos.principal'].indexOf 'HTTP' > -1
 
 ## Configure
 
@@ -85,13 +84,13 @@ restrict it but not the thrift server.
 
       @hconfigure
         header: 'HBase Site'
-        target: "#{hbase.thrift.conf_dir}/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"
         local: true
-        properties: hbase.thrift.site
+        properties: options.hbase_site
         merge: false
-        uid: hbase.user.name
-        gid: hbase.group.name
+        uid: options.user.name
+        gid: options.group.name
         backup: true
 
 ## Opts
@@ -100,13 +99,13 @@ Environment passed to the HBase Rest Server before it starts.
 
       @file.render
         header: 'HBase Env'
-        target: "#{hbase.thrift.conf_dir}/hbase-env.sh"
+        target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
         context: @config
         mode: 0o0755
         unlink: true
-        write: for k, v of hbase.thrift.env
+        write: for k, v of options.env
           match: RegExp "export #{k}=.*", 'm'
           replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
 
@@ -114,8 +113,8 @@ Environment passed to the HBase Rest Server before it starts.
 
       @system.limits
         header: 'Ulimit'
-        user: hbase.user.name
-      , hbase.user.limits
+        user: options.user.name
+      , options.user.limits
 
 ##  Hbase-Thrift Service
 
@@ -144,16 +143,16 @@ Environment passed to the HBase Rest Server before it starts.
             mode: 0o0640
           @system.tmpfs
             header: 'Run dir'
-            mount: hbase.thrift.pid_dir
-            uid: hbase.user.name
-            gid: hbase.group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0755'
 
 ## Logging
 
       @file
         header: 'Log4J'
-        target: "#{hbase.thrift.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
 

@@ -17,7 +17,7 @@ Modify admin account password. By default the login:pwd  is `admin:admin`.
           header: "Check admin password"
           cmd: """
           curl -H \"Content-Type: application/json\"  --fail -k -X GET \
-            -u admin:#{options.password} \"#{options.install['policymgr_external_url']}/service/users/1\"
+            -u admin:#{options.admin.password} \"#{options.install['policymgr_external_url']}/service/users/1\"
           """
           code_skipped: 22
           shy: true
@@ -25,7 +25,7 @@ Modify admin account password. By default the login:pwd  is `admin:admin`.
           unless: -> @status -1
           header: "Change admin password"
           cmd: """
-          curl -H \"Content-Type: application/json\" --fail -k -X POST -d '#{JSON.stringify oldPassword: options.current_password, updPassword: options.password, loginId: 'admin'}'  \
+          curl -H \"Content-Type: application/json\" --fail -k -X POST -d '#{JSON.stringify oldPassword: options.current_password, updPassword: options.admin.password, loginId: 'admin'}'  \
             -u admin:#{options.current_password} \"#{options.install['policymgr_external_url']}/service/users/1/passwordchange\"
           """
 
@@ -42,7 +42,7 @@ Indeed usersource to 1 means external user and so unknown password.
             if: user.userSource is 0
             cmd: """
             curl --fail -H "Content-Type: application/json"   -k -X POST \
-              -d '#{JSON.stringify user}' -u admin:#{options.password} \
+              -d '#{JSON.stringify user}' -u admin:#{options.admin.password} \
               \"#{options.install['policymgr_external_url']}/service/xusers/secure/users\"
             """
             unless_exec: """
@@ -54,11 +54,11 @@ Indeed usersource to 1 means external user and so unknown password.
             if: user.userSource is 1
             cmd: """
             curl --fail -H "Content-Type: application/json"   -k -X POST \
-              -d '#{JSON.stringify user}' -u admin:#{options.password} \
+              -d '#{JSON.stringify user}' -u admin:#{options.admin.password} \
               \"#{options.install['policymgr_external_url']}/service/xusers/secure/users\"
             """
             unless_exec: """
             curl --fail -H "Content-Type: application/json"   -k -X GET \
-              -u admin:#{options.password} \
+              -u admin:#{options.admin.password} \
               \"#{options.install['policymgr_external_url']}/service/xusers/users/userName/#{name}\"
             """

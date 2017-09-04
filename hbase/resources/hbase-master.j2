@@ -32,10 +32,10 @@
 ### END INIT INFO
 
 NAME='HBase Master'
-USER='{{ryba.hbase.user.name}}'
-GROUP='{{ryba.hbase.group.name}}'
-CONF_DIR='{{ryba.hbase.master.conf_dir}}'
-RUN_DIR='{{ryba.hbase.master.pid_dir}}'
+USER='{{options.user.name}}'
+GROUP='{{options.group.name}}'
+CONF_DIR='{{options.conf_dir}}'
+RUN_DIR='{{options.pid_dir}}'
 PID_FILE="${RUN_DIR}/hbase-hbase-master.pid"
 CMD="su - $USER -c \"/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config $CONF_DIR start master\""
 KILL_FORCE=0

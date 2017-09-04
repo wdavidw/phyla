@@ -2,9 +2,8 @@
 # Ranger HBase Plugin Install
 
     module.exports = header: 'Ranger HBase Plugin install', handler: ->
-      {ranger, hdfs, hbase, realm, hadoop_group, ssl, core_site} = @config.ryba
+      {ranger, hdfs, hbase, , , ssl, core_site} = @config.ryba
       {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5_client.admin[realm]
       hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
       version= null
       conf_dir = null
@@ -37,13 +36,13 @@
       @system.mkdir
         target: ranger.hbase_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
         uid: hbase.user.name
-        gid: hadoop_group.name
+        gid: options.hadoop_group.name
         mode: 0o0750
         if: ranger.hbase_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
         target: ranger.hbase_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
         uid: hbase.user.name
-        gid: hadoop_group.name
+        gid: options.hadoop_group.name
         mode: 0o0750
         if: ranger.hbase_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
@@ -123,7 +122,7 @@ we execute this task using the rest api.
 
 ## HBase  Plugin Principal
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         if: ranger.hbase_plugin.principal
         header: 'Ranger HBase Principal'
         principal: ranger.hbase_plugin.principal
@@ -207,7 +206,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
             """
           @system.execute
             header: "Fix Plugin repository permission"
-            cmd: "chown -R #{hbase.user.name}:#{hadoop_group.name} /etc/ranger/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}"
+            cmd: "chown -R #{hbase.user.name}:#{options.hadoop_group.name} /etc/ranger/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}"
           @hconfigure
             header: 'Fix Plugin security conf'
             target: "#{conf_dir}/ranger-hbase-security.xml"

@@ -3,8 +3,7 @@
 
 Install the HBase client package and configure it with secured access.
 
-    module.exports =  header: 'HBase Client Install', handler: ->
-      {hbase} = @config.ryba
+    module.exports =  header: 'HBase Client Install', handler: (options) ->
 
 ## Register
 
@@ -23,8 +22,8 @@ cat /etc/group | grep hbase
 hbase:x:492:
 ``` 
 
-      @system.group header: 'Group', hbase.group
-      @system.user header: 'User', hbase.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Packages
 
@@ -40,11 +39,11 @@ RegionServer, and HBase client host machines.
 
       @file.jaas
         header: 'Zookeeper JAAS'
-        target: "#{hbase.conf_dir}/hbase-client.jaas"
+        target: "#{options.conf_dir}/hbase-client.jaas"
         content: Client:
           useTicketCache: 'true'
-        uid: hbase.user.name
-        gid: hbase.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o644
 
 ## Configure
@@ -53,10 +52,10 @@ Note, we left the permission mode as default, Master and RegionServer need to
 
       @hconfigure
         header: 'HBase Site'
-        target: "#{hbase.conf_dir}/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"
         local: true
-        properties: hbase.site
+        properties: options.hbase_site
         mode: 0o0644
         merge: false
         backup: true
@@ -67,7 +66,7 @@ Environment passed to the Master before it starts.
 
       @file.render
         header: 'Env'
-        target: "#{hbase.conf_dir}/hbase-env.sh"
+        target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
         context: @config
@@ -76,6 +75,6 @@ Environment passed to the Master before it starts.
         # Fix mapreduce looking for "mapreduce.tar.gz"
         write: [
           match: /^export HBASE_OPTS=\"(.*)\$\{HBASE_OPTS\} -Djava.security.auth.login.config(.*)$/m
-          replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{hbase.conf_dir}/hbase-client.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
+          replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{options.conf_dir}/hbase-client.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
           append: true
         ]
