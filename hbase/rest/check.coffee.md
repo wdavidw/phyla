@@ -1,30 +1,28 @@
 
 # HBase Rest Gateway Check
 
-    module.exports =  header: 'HBase Rest Check', label_true: 'CHECKED', handler: ->
-      {shortname} = @config
-      {force_check, jaas_client, hbase, user} = @config.ryba
-      encode = (data) -> (new Buffer data, 'utf8').toString 'base64'
-      decode = (data) -> (new Buffer data, 'base64').toString 'utf8'
-      curl = 'curl -s '
-      curl += '-k ' if hbase.rest.site['hbase.rest.ssl.enabled'] is 'true'
-      curl += '--negotiate -u: ' if hbase.rest.site['hbase.rest.authentication.type'] is 'kerberos'
-      curl += '-H "Accept: application/json" '
-      curl += '-H "Content-Type: application/json" '
-      protocol = if hbase.rest.site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
-      host = @config.host
-      shortname = @config.shortname
-      port = hbase.rest.site['hbase.rest.port']
-      schema = JSON.stringify ColumnSchema: [name: "#{shortname}_rest"]
-      rows = JSON.stringify Row: [ key: encode('my_row_rest'), Cell: [column: encode("#{shortname}_rest:my_column"), $: encode('my rest value')]]
-      [ranger_ctx] = @contexts 'ryba/ranger/admin'
+    module.exports =  header: 'HBase Rest Check', label_true: 'CHECKED', handler: (options) ->
+
+## Assert HTTP Port
+
+      @connection.assert
+        header: 'HTTP'
+        servers: options.wait.http.filter (server) -> server.host is options.fqdn
+
+## Assert HTTP Info Port
+
+      @connection.assert
+        header: 'HTTP Info'
+        servers: options.wait.http_info.filter (server) -> server.host is options.fqdn
 
 ## Ranger Policy
+
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
+      [ranger_ctx] = @contexts 'ryba/ranger/admin'
       @call if: (-> ranger_ctx?), ->
         {install} = ranger_ctx.config.ryba.ranger.hbase_plugin
-        policy_name = "Ranger-Ryba-HBase-Rest-Policy-#{@config.host}"
+        policy_name = "Ranger-Ryba-HBase-Rest-Policy-#{options.fqdn}"
         hbase_policy =
           "name": "#{policy_name}"
           "service": "#{install['REPOSITORY_NAME']}"
@@ -39,7 +37,7 @@
               "isRecursive": false
             "table":
               "values": [
-                "#{hbase.rest.test.namespace}:#{hbase.rest.test.table}"
+                "#{options.test.namespace}:#{options.test.table}"
                 ]
               "isExcludes": false
               "isRecursive": false
@@ -63,7 +61,7 @@
           			'type': 'admin'
           			'isAllowed': true
           		],
-          		'users': ['hbase', "#{user.name}"]
+          		'users': ['hbase', "#{options.user.name}"]
           		'groups': []
           		'conditions': []
           		'delegateAdmin': true
@@ -73,7 +71,7 @@
           header: 'Wait HBase Ranger repository'
           cmd: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{install['REPOSITORY_NAME']}\"
           """
           code_skipped: 22
@@ -82,50 +80,57 @@
           cmd: """
           curl --fail -H "Content-Type: application/json" -k -X POST \
             -d '#{JSON.stringify hbase_policy}' \
-            -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
           """
           unless_exec: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{ranger_ctx.config.ryba.ranger.admin.password} \
+            -u #{options.ranger_admin}:#{options.ranger_admin.password} \
             \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/#{policy_name}\"
           """
 
-## Wait
-
-      @call once: true, 'ryba/hbase/rest/wait'
-
 ## Check Shell
 
+      encode = (data) -> (new Buffer data, 'utf8').toString 'base64'
+      decode = (data) -> (new Buffer data, 'base64').toString 'utf8'
+      curl = 'curl -s '
+      curl += '-k ' if options.hbase_site['hbase.rest.ssl.enabled'] is 'true'
+      curl += '--negotiate -u: ' if options.hbase_site['hbase.rest.authentication.type'] is 'kerberos'
+      curl += '-H "Accept: application/json" '
+      curl += '-H "Content-Type: application/json" '
+      protocol = if options.hbase_site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
+      port = options.hbase_site['hbase.rest.port']
+      schema = JSON.stringify ColumnSchema: [name: "#{options.hostname}_rest"]
+      rows = JSON.stringify Row: [ key: encode('my_row_rest'), Cell: [column: encode("#{options.hostname}_rest:my_column"), $: encode('my rest value')]]
       @system.execute
         cmd: mkcmd.hbase @, """
-        if hbase shell 2>/dev/null <<< "list_namespace_tables '#{hbase.rest.test.namespace}'" | egrep '[0-9]+ row'; then
-          if [ ! -z '#{force_check or ''}' ]; then
+        if hbase shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
+          if [ ! -z '#{options.force_check or ''}' ]; then
             echo [DEBUG] Cleanup existing table and namespace
             hbase shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
-              disable '#{hbase.rest.test.namespace}:#{hbase.rest.test.table}'
-              drop '#{hbase.rest.test.namespace}:#{hbase.rest.test.table}'
-              drop_namespace '#{hbase.rest.test.namespace}'
+              disable '#{options.test.namespace}:#{options.test.table}'
+              drop '#{options.test.namespace}:#{options.test.table}'
+              drop_namespace '#{options.test.namespace}'
             CMD
           else
             echo [INFO] Test is skipped; exit 2;
           fi
         fi
         hbase shell 2>/dev/null <<-CMD
-          create_namespace '#{hbase.rest.test.namespace}'
-          grant '#{user.name}', 'RWC', '@#{hbase.rest.test.namespace}'
-          create '#{hbase.rest.test.namespace}:#{hbase.rest.test.table}', 'family1'
+          create_namespace '#{options.test.namespace}'
+          grant '#{options.user.name}', 'RWC', '@#{options.test.namespace}'
+          create '#{options.test.namespace}:#{options.test.table}', 'family1'
         CMD
         """
         code_skipped: 2
         trap: true
       @system.execute
         cmd: mkcmd.test @, """
-        #{curl} -X POST --data '#{schema}' #{protocol}://#{host}:#{port}/#{hbase.rest.test.namespace}:#{hbase.rest.test.table}/schema
-        #{curl} --data '#{rows}' #{protocol}://#{host}:#{port}/#{hbase.rest.test.namespace}:#{hbase.rest.test.table}/___false-row-key___/#{shortname}_rest%3A
-        #{curl} #{protocol}://#{host}:#{port}/#{hbase.rest.test.namespace}:#{hbase.rest.test.table}/my_row_rest
+        #{curl} -X POST --data '#{schema}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/schema
+        #{curl} --data '#{rows}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/___false-row-key___/#{options.hostname}_rest%3A
+        #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
         """
-        unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{hbase.rest.test.namespace}:#{hbase.rest.test.table}', {COLUMNS => '#{shortname}_rest'}\" | egrep '[0-9]+ row'"
+        unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
       , (err, executed, stdout) ->
         return if err or not executed
         try

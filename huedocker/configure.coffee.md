@@ -300,13 +300,15 @@ Example:
           # from source code the hostname should be prefixed with https to warn hue that SSL is enabled
           # activating ssl make hue mismatch fully qualified hostname
           # for now not prefixing anything
-          # host_adress += 'https' if hbase_ctx.config.ryba.hbase.thrift.site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.site['hbase.regionserver.thrift.http']
-          host_adress += '' if hbase_ctx.config.ryba.hbase.thrift.site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.site['hbase.regionserver.thrift.http']
-          host_adress += "#{hbase_ctx.config.host}:#{hbase_ctx.config.ryba.hbase.thrift.site['hbase.thrift.port']}"
+          # host_adress += 'https' if hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http']
+          host_adress += '' if hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http']
+          host_adress += "#{hbase_ctx.config.host}:#{hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.port']}"
           hbase_thrift_cluster +=  if key == '0' then "(Cluster|#{host_adress})" else ",(Cluster|https://#{host_adress})"
         hue_docker.ini['hbase'] ?= {}
         hue_docker.ini['hbase']['hbase_conf_dir'] ?= hbase_cli_ctx.config.ryba.hbase.conf_dir
-        @config.ryba.hbase.site[prop] ?= hbase_thrift_ctxs[0].config.ryba.hbase.thrift.site[prop] for prop in [
+        # migration: wdavidw: properties were exported to "onfig.ryba.hbase.site",
+        # which seems to enrich the client hbase-site file with thrift related informations
+        for prop in [
           'hbase.thrift.port'
           'hbase.thrift.info.port'
           'hbase.thrift.support.proxyuser'
@@ -315,6 +317,7 @@ Example:
           'hbase.thrift.kerberos.principal'
           'hbase.thrift.ssl.enabled'
           ]
+        then @config.ryba.hbase.client.hbase_site[prop] ?= hbase_thrift_ctxs[0].config.ryba.hbase.thrift.hbase_site[prop]
         hue_docker.ini['hbase']['hbase_clusters'] ?= hbase_thrift_cluster
         # Hard limit of rows or columns per row fetched before truncating.
         hue_docker.ini['hbase']['truncate_limit'] ?= '500'
@@ -322,8 +325,8 @@ Example:
         # set to false if you want to unable
         # not stable
         # force the use of impersonation in hue.ini, it can be read by hue if set inside hbase-site.xml file
-        hue_docker.ini['hbase']['use_doas'] = if hbase_thrift_ctxs[0].config.ryba.hbase.thrift.site['hbase.regionserver.thrift.http'] then 'true' else 'false'
-        hue_docker.ini['hbase']['thrift_transport'] =  hbase_ctx.config.ryba.hbase.thrift.site['hbase.regionserver.thrift.framed']
+        hue_docker.ini['hbase']['use_doas'] = if hbase_thrift_ctxs[0].config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http'] then 'true' else 'false'
+        hue_docker.ini['hbase']['thrift_transport'] =  hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.framed']
       else
         blacklisted_app.push 'hbase'
 

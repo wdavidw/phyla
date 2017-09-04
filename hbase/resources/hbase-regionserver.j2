@@ -48,10 +48,10 @@
 ### END INIT INFO
 
 NAME='HBase Region Server'
-USER='{{ryba.hbase.user.name}}'
-GROUP='{{ryba.hbase.group.name}}'
-CONF_DIR='{{ryba.hbase.rs.conf_dir}}'
-RUN_DIR='{{ryba.hbase.rs.pid_dir}}'
+USER='{{options.user.name}}'
+GROUP='{{options.group.name}}'
+CONF_DIR='{{options.conf_dir}}'
+RUN_DIR='{{options.pid_dir}}'
 PID_FILE="${RUN_DIR}/hbase-hbase-regionserver.pid"
 CMD="su - $USER -c \"/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config $CONF_DIR start regionserver\""
 KILL_FORCE=0

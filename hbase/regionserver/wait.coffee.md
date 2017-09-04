@@ -1,23 +1,16 @@
 
 # HBase RegionServer Wait
 
-    module.exports = header: 'HBase RegionServer Wait', label_true: 'READY', handler: ->
-      options = {}
-      options.wait_rpc = for rs_ctx in @contexts 'ryba/hbase/regionserver'
-        host: rs_ctx.config.host
-        port: rs_ctx.config.ryba.hbase.rs.site['hbase.regionserver.port']
-      options.wait_info = for rs_ctx in @contexts 'ryba/hbase/regionserver'
-        host: rs_ctx.config.host
-        port: rs_ctx.config.ryba.hbase.rs.site['hbase.regionserver.info.port']
+    module.exports = header: 'HBase RegionServer Wait', label_true: 'READY', handler: (options) ->
 
 ## RPC Port
 
       @connection.wait
         header: 'RPC'
-        servers: options.wait_rpc
+        servers: options.rpc
 
 ## Info Port
 
       @connection.wait
         header: 'Info'
-        servers: options.wait_info
+        servers: options.info

@@ -11,7 +11,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
 ## Service
 
-    module.exports =  header: 'HBase Thrift Stop', label_true: 'STOPPED', handler: ->
+    module.exports =  header: 'HBase Thrift Stop', label_true: 'STOPPED', handler: (options) ->
       {hbase} = @config.ryba
       @service.stop
         header: 'Service'

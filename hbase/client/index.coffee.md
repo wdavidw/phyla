@@ -7,17 +7,18 @@ Client code accessing a cluster finds the cluster by querying ZooKeeper.
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        mapred_client: 'ryba/hadoop/mapred_client'
-        hbase_master: 'ryba/hbase/master'
+        java: module: 'masson/commons/java', local: true
+        mapred_client: module: 'ryba/hadoop/mapred_client', required: true
+        hbase_master: module: 'ryba/hbase/master', required: true
+        hbase_regionserver: module: 'ryba/hbase/regionserver', required: true
       configure:
         'ryba/hbase/client/configure'
       commands:
-        'install': [
-          # 
-          'ryba/hbase/client/install'
-          'ryba/hbase/client/replication'
-          'ryba/hbase/client/check'
-        ]
-        'check':
-          'ryba/hbase/client/check'
+        'install': ->
+          options = @config.ryba.hbase.client
+          @call 'ryba/hbase/client/install', options
+          @call 'ryba/hbase/client/replication', options
+          @call 'ryba/hbase/client/check', options
+        'check': ->
+          options = @config.ryba.hbase.client
+          @call 'ryba/hbase/client/check', options

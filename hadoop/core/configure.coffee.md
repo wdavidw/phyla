@@ -421,7 +421,7 @@ keytool -list -v -keystore keystore -alias hadoop
 
 [hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
 
-      options.ssl ?= service.use.ssl?.options or {}
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
       options.ssl.enabled = !!service.use.ssl
       if options.ssl
         options.ssl_client ?= {}
@@ -435,14 +435,44 @@ keytool -list -v -keystore keystore -alias hadoop
         options.core_site['hadoop.ssl.keystores.factory.class'] ?= 'org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory'
         options.core_site['hadoop.ssl.server.conf'] ?= 'ssl-server.xml'
         options.core_site['hadoop.ssl.client.conf'] ?= 'ssl-client.xml'
-        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
-        options.ssl_client['ssl.client.truststore.password'] ?= 'ryba123'
+
+### SSL Client
+
+The "ssl_client" options store information used to write the "ssl-client.xml"
+file in the Hadoop XML configuration format. Some information are derived the 
+the truststore options exported from the SSL service and merged above:
+
+```json
+{ password: 'Truststore123-',
+  target: '/etc/security/jks/truststore.jks',
+  caname: 'ryba_root_ca' }
+```
+
+        options.ssl_client['ssl.client.truststore.password'] ?= options.ssl.truststore.password
         throw Error "Required Option: ssl_client['ssl.client.truststore.password']" unless options.ssl_client['ssl.client.truststore.password']
+        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_client['ssl.client.truststore.type'] ?= 'jks'
-        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.conf_dir}/keystore"
+
+### SSL Server
+
+The "ssl_server" options store information used to write the "ssl-server.xml"
+file in the Hadoop XML configuration format. Some information are derived the 
+the keystore options exported from the SSL service and merged above:
+
+```json
+{ password: 'Keystore123-',
+  keypass: 'Keystore123-',
+  target: '/etc/security/jks/keystore.jks',
+  name: 'master01',
+  caname: 'ryba_root_ca' },
+```
+
+        options.ssl_server['ssl.server.keystore.password'] ?= options.ssl.keystore.password
         throw Error "Required Option: ssl_server['ssl.server.keystore.password']" unless options.ssl_server['ssl.server.keystore.password']
+        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.conf_dir}/keystore"
         options.ssl_server['ssl.server.keystore.type'] ?= 'jks'
-        options.ssl_server['ssl.server.keystore.keypassword'] ?= options.ssl_server['ssl.server.keystore.password']
+        options.ssl_server['ssl.server.keystore.keypassword'] ?= options.ssl.keystore.keypass
+        throw Error "Required Option: ssl_server['ssl.server.keystore.keypassword']" unless options.ssl_server['ssl.server.keystore.keypassword']
         options.ssl_server['ssl.server.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_server['ssl.server.truststore.password'] ?= options.ssl_client['ssl.client.truststore.password']
         options.ssl_server['ssl.server.truststore.type'] ?= 'jks'
@@ -457,4 +487,5 @@ keytool -list -v -keystore keystore -alias hadoop
 
     path = require 'path'
     quote = require 'regexp-quote'
+    {merge} = require 'nikita/lib/misc'
     migration = require 'masson/lib/migration'

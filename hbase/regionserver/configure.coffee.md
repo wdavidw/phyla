@@ -1,60 +1,94 @@
 
 
-    module.exports = ->
-      hm_ctxs = @contexts 'ryba/hbase/master'
-      thrift_ctxs = @contexts 'ryba/hbase/thrift'
-      rest_ctxs = @contexts 'ryba/hbase/rest'
-      ryba = @config.ryba ?= {}
-      {java} = @config
-      {realm, hbase, ganglia, graphite} = @config.ryba
-      hbase = @config.ryba.hbase ?= {}
-      throw Error "No Configured Master" unless hm_ctxs.length
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hbase/regionserver', ['ryba', 'hbase', 'regionserver'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hadoop_core: key: ['ryba']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        hbase_master: key: ['ryba', 'hbase', 'master']
+        hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ganglia_collector: key: ['ryba', 'ganglia']
+      @config.ryba ?= {}
+      @config.ryba.hbase ?= {}
+      options = @config.ryba.hbase.regionserver = service.options
 
-# Identities
+## Kerberos
 
-      hbase.group = merge hm_ctxs[0].config.ryba.hbase.group, hbase.group
-      hbase.user = merge hm_ctxs[0].config.ryba.hbase.user, hbase.user
-      hbase.admin = merge hm_ctxs[0].config.ryba.hbase.admin, hbase.admin
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
-# Regionserver Layout
+## Identities
 
-      hbase.rs ?= {}
-      hbase.rs.conf_dir ?= '/etc/hbase-regionserver/conf'
-      hbase.rs.log_dir ?= '/var/log/hbase'
-      hbase.rs.pid_dir ?= '/var/run/hbase'
-      hbase.rs.tmp_dir ?= '/tmp/hbase'
-      hbase.rs.site ?= {}
-      hbase.rs.site['hbase.regionserver.port'] ?= '60020'
-      hbase.rs.site['hbase.regionserver.info.port'] ?= '60030'
-      hbase.rs.site['hbase.ssl.enabled'] ?= 'true'
-      hbase.rs.site['hbase.regionserver.handler.count'] ?= 60 # HDP default
-      hbase.rs.site['hbase.tmp.dir'] = hbase.rs.tmp_dir
-      hbase.rs.env ?= {}
-      hbase.rs.env['JAVA_HOME'] ?= "#{java.java_home}"
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.use.hbase_master[0].options.group, options.group
+      options.user = merge service.use.hbase_master[0].options.user, options.user
+      options.admin = merge service.use.hbase_master[0].options.admin, options.admin
+
+## Environment
+
+      # Layout
+      options.conf_dir ?= '/etc/hbase-regionserver/conf'
+      options.log_dir ?= '/var/log/hbase'
+      options.pid_dir ?= '/var/run/hbase'
+      # Env & Java
+      options.env ?= {}
+      options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
       # http://blog.sematext.com/2012/07/16/hbase-memstore-what-you-should-know/
       # Keep hbase.regionserver.hlog.blocksize * hbase.regionserver.maxlogs just
-      hbase.rs.heapsize ?= "256m" #i.e. -Xmx256m
-      # a bit above hbase.regionserver.global.memstore.lowerLimit * HBASE_HEAPSIZE
-      hbase.rs.java_opts ?= "" #rs.java_opts is build at runtime from the rs.opts object
-      hbase.rs.opts ?= {} #represent the java options obect
-      hbase.rs.opts['java.security.auth.login.config'] ?= "#{hbase.rs.conf_dir}/hbase-regionserver.jaas"
-      hbase.rs.opts['java.io.tmpdir'] ?= hbase.rs.tmp_dir
+      # Value is a bit above hbase.regionserver.global.memstore.lowerLimit * HBASE_HEAPSIZE
+      options.heapsize ?= "256m" #i.e. -Xmx256m
+      options.java_opts ?= "" #rs.java_opts is build at runtime from the rs.opts object
+      options.opts ?= {} #represent the java options obect
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.clean_logs ?= false
+      
+## Registration
 
-## Configuration for Kerberos
+      for srv in service.use.hbase_master
+        srv.options.regionservers[service.node.fqdn] ?= true
 
-      hbase.rs.site['hbase.security.authentication'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authentication']
-      if hbase.rs.site['hbase.security.authentication'] is 'kerberos'
-        hbase.rs.site['hbase.master.kerberos.principal'] = hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal'] #.replace '_HOST', hm_ctxs[0].config.host
-        hbase.rs.site['hbase.regionserver.kerberos.principal'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.regionserver.kerberos.principal']
-        hbase.rs.site['hbase.regionserver.keytab.file'] ?= '/etc/security/keytabs/rs.service.keytab'
-        hbase.rs.site['hbase.security.authentication.ui'] ?= 'kerberos'
-        hbase.rs.site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{ryba.realm}"
-        hbase.rs.site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
-      hbase.rs.site['hbase.regionserver.global.memstore.upperLimit'] = null # Deprecated from HDP 2.3
-      hbase.rs.site['hbase.regionserver.global.memstore.size'] = '0.4' # Default in HDP Companion Files
-      hbase.rs.site['hbase.coprocessor.region.classes'] =  hm_ctxs[0].config.ryba.hbase.master.site['hbase.coprocessor.region.classes']
-      if @has_service('ryba/hbase/master') and hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal'] isnt hbase.rs.site['hbase.regionserver.kerberos.principal']
-        throw Error "HBase principals must match in single node"
+      for srv in service.use.hbase_regionserver
+        srv.options.regionservers ?= {}
+        srv.options.regionservers[service.node.fqdn] ?= true
+
+## Configuration
+
+      options.hbase_site ?= {}
+      options.hbase_site['hbase.regionserver.port'] ?= '60020'
+      options.hbase_site['hbase.regionserver.info.port'] ?= '60030'
+      options.hbase_site['hbase.ssl.enabled'] ?= 'true'
+      options.hbase_site['hbase.regionserver.handler.count'] ?= 60 # HDP default
+
+## Security
+
+      options.hbase_site['hbase.security.authentication'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authentication']
+      if options.hbase_site['hbase.security.authentication'] is 'kerberos'
+        options.hbase_site['hbase.master.kerberos.principal'] = service.use.hbase_master[0].options.hbase_site['hbase.master.kerberos.principal']
+        options.hbase_site['hbase.regionserver.kerberos.principal'] ?= service.use.hbase_master[0].options.hbase_site['hbase.regionserver.kerberos.principal']
+        options.hbase_site['hbase.regionserver.keytab.file'] ?= '/etc/security/keytabs/rs.service.keytab'
+        options.hbase_site['hbase.security.authentication.ui'] ?= 'kerberos'
+        options.hbase_site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
+        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
+      options.hbase_site['hbase.regionserver.global.memstore.upperLimit'] = null # Deprecated from HDP 2.3
+      options.hbase_site['hbase.regionserver.global.memstore.size'] = '0.4' # Default in HDP Companion Files
+      options.hbase_site['hbase.coprocessor.region.classes'] =  service.use.hbase_master[0].options.hbase_site['hbase.coprocessor.region.classes']
+      # Jaas file
+      options.opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-regionserver.jaas"
+      # Copy the Master keytab if a colocalised Master is found and if their principals are equal.
+      local_master = service.use.hbase_master.filter( (srv) -> srv.node.fqdn is service.node.fqdn)[0]
+      are_principal_equal = local_master.options.hbase_site['hbase.master.kerberos.principal'] is options.hbase_site['hbase.regionserver.kerberos.principal'] if local_master
+      if local_master and are_principal_equal
+        options.copy_master_keytab ?= local_master.options.hbase_site['hbase.master.keytab.file']
 
 ## Configuration Distributed mode
 
@@ -66,7 +100,7 @@
         'hbase.zookeeper.quorum'
         'hbase.zookeeper.property.clientPort'
         'dfs.domain.socket.path'
-      ] then hbase.rs.site[property] ?= hm_ctxs[0].config.ryba.hbase.master.site[property]
+      ] then options.hbase_site[property] ?= service.use.hbase_master[0].options.hbase_site[property]
 
 ## Configuration for HA Reads
 
@@ -82,14 +116,14 @@ HA properties must be available to masters and regionservers.
         'hbase.region.replica.wait.for.primary.flush'
         'hbase.region.replica.storefile.refresh.memstore.multiplier'
       ]
-      for property in properties then hbase.rs.site[property] ?= hm_ctxs[0].config.ryba.hbase.master.site[property]
+      for property in properties then options.hbase_site[property] ?= service.use.hbase_master[0].options.hbase_site[property]
 
 ## Configuration for security
 
-      hbase.rs.site['hbase.security.authorization'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authorization']
-      hbase.rs.site['hbase.rpc.engine'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.rpc.engine']
-      hbase.rs.site['hbase.superuser'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.superuser']
-      hbase.rs.site['hbase.bulkload.staging.dir'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.bulkload.staging.dir']
+      options.hbase_site['hbase.security.authorization'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authorization']
+      options.hbase_site['hbase.rpc.engine'] ?= service.use.hbase_master[0].options.hbase_site['hbase.rpc.engine']
+      options.hbase_site['hbase.superuser'] ?= service.use.hbase_master[0].options.hbase_site['hbase.superuser']
+      options.hbase_site['hbase.bulkload.staging.dir'] ?= service.use.hbase_master[0].options.hbase_site['hbase.bulkload.staging.dir']
 
 ## Configuration Quota
 
@@ -98,43 +132,68 @@ HA properties must be available to masters and regionservers.
 
 ## Ranger Plugin Configuration
 
-      @config.ryba.hbase_plugin_is_master = false
+      # @config.ryba.hbase_plugin_is_master = false
+
+## Configuration for metrics
+
+Metrics information are entirely derived from the Master.
+
+      options.metrics ?= service.use.hbase_master[0].options.metrics
 
 ## Configuration for Log4J
 
-      hbase.rs.log4j ?= {}
-      hbase.rs.opts['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
+      options.opts['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
+      options.log4j ?= {}
       #HBase bin script use directly environment bariables
-      hbase.rs.env['HBASE_ROOT_LOGGER'] ?= 'INFO,RFA'
-      hbase.rs.env['HBASE_SECURITY_LOGGER'] ?= 'INFO,RFAS'
+      options.env['HBASE_ROOT_LOGGER'] ?= 'INFO,RFA'
+      options.env['HBASE_SECURITY_LOGGER'] ?= 'INFO,RFAS'
       if @config.log4j?.services?
         if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hbase/regionserver' in @config.log4j?.services)
           # adding SOCKET appender
-          hbase.rs.socket_client ?= "SOCKET"
+          options.socket_client ?= "SOCKET"
           # Root logger
-          if hbase.rs.env['HBASE_ROOT_LOGGER'].indexOf(hbase.rs.socket_client) is -1
-          then hbase.rs.env['HBASE_ROOT_LOGGER'] += ",#{hbase.rs.socket_client}"
+          if options.env['HBASE_ROOT_LOGGER'].indexOf(options.socket_client) is -1
+          then options.env['HBASE_ROOT_LOGGER'] += ",#{options.socket_client}"
           # Security Logger
-          if hbase.rs.env['HBASE_SECURITY_LOGGER'].indexOf(hbase.rs.socket_client) is -1
-          then hbase.rs.env['HBASE_SECURITY_LOGGER']+= ",#{hbase.rs.socket_client}"
+          if options.env['HBASE_SECURITY_LOGGER'].indexOf(options.socket_client) is -1
+          then options.env['HBASE_SECURITY_LOGGER']+= ",#{options.socket_client}"
 
-          hbase.rs.opts['hbase.log.application'] = 'hbase-regionserver'
-          hbase.rs.opts['hbase.log.remote_host'] = @config.log4j.remote_host
-          hbase.rs.opts['hbase.log.remote_port'] = @config.log4j.remote_port
+          options.opts['hbase.log.application'] = 'hbase-regionserver'
+          options.opts['hbase.log.remote_host'] = @config.log4j.remote_host
+          options.opts['hbase.log.remote_port'] = @config.log4j.remote_port
 
-          hbase.rs.socket_opts ?=
+          options.socket_opts ?=
             Application: '${hbase.log.application}'
             RemoteHost: '${hbase.log.remote_host}'
             Port: '${hbase.log.remote_port}'
             ReconnectionDelay: '10000'
 
-          hbase.rs.log4j = merge hbase.rs.log4j, appender
+          options.log4j = merge options.log4j, appender
             type: 'org.apache.log4j.net.SocketAppender'
-            name: hbase.rs.socket_client
-            logj4: hbase.rs.log4j
-            properties: hbase.rs.socket_opts
+            name: options.socket_client
+            logj4: options.log4j
+            properties: options.socket_opts
+
+## Wait
+
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_hbase_master = service.use.hbase_master[0].options.wait
+      options.wait = {}
+      for srv in service.use.hbase_regionserver
+        srv.options.hbase_site ?= {}
+        srv.options.hbase_site['hbase.regionserver.port'] ?= '60000'
+        srv.options.hbase_site['hbase.regionserver.info.port'] ?= '60010'
+      options.wait.rpc = for srv in service.use.hbase_regionserver
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.regionserver.port']
+      options.wait.info = for srv in service.use.hbase_regionserver
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.regionserver.info.port']
 
 ## Dependencies
 
     appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

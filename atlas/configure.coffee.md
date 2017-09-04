@@ -413,8 +413,8 @@ Solr for its indexing backend
       if atlas.storage_engine is 'hbase'
         if hm_ctxs.length > 0
           atlas.application.properties['atlas.graph.storage.backend'] ?= 'hbase'
-          atlas.application.properties['atlas.graph.storage.hostname'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.zookeeper.quorum']
-          atlas.application.properties['zookeeper.znode.parent'] ?= hm_ctxs[0].config.ryba.hbase.master.site['zookeeper.znode.parent']
+          atlas.application.properties['atlas.graph.storage.hostname'] ?= service.use.hbase_master[0].options.hbase_site['hbase.zookeeper.quorum']
+          atlas.application.properties['zookeeper.znode.parent'] ?= service.use.hbase_master[0].options.hbase_site['zookeeper.znode.parent']
           atlas.application.namespace ?= 'atlas'
           atlas.application.properties['atlas.graph.storage.hbase.table'] ?= "#{atlas.application.namespace}:atlas_titan"
           atlas.application.properties['atlas.audit.hbase.tablename'] ?= "#{atlas.application.namespace}:atlas_entity_audit"

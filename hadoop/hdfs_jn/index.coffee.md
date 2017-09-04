@@ -17,7 +17,7 @@ watching them for changes to the edit log.
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_jn: module: 'ryba/hadoop/hdfs_jn'
         zookeeper_server: module: 'ryba/zookeeper/server'
       configure:

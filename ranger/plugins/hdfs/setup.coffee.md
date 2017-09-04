@@ -17,11 +17,11 @@ we execute this task using the rest api.
         if: options.repo_create
         unless_exec: """
         curl --fail -H "Content-Type: application/json" -k -X GET  \
-          -u admin:#{options.admin_password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
+          -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
         """
         cmd: """
         curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
-          -u admin:#{options.admin_password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
+          -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
         """
 
       # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal

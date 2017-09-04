@@ -6,68 +6,79 @@ See [REST Gateway Impersonation Configuration][impersonation].
 
 [impersonation]: http://hbase.apache.org/book.html#security.rest.gateway
 
-    module.exports = ->
-      hm_ctxs = @contexts 'ryba/hbase/master'
-      rs_ctxs = @contexts 'ryba/hbase/regionserver'
-      ryba = @config.ryba ?= {}
-      {realm, core_site, ssl_server, hbase} = @config.ryba
-      {java_home} = @config.java
-      hbase = @config.ryba.hbase ?= {}
-      hbase.rest ?= {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hbase/rest', ['ryba', 'hbase', 'rest'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        hbase_master: key: ['ryba', 'hbase', 'master']
+        hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
+        hbase_client: key: ['ryba', 'hbase', 'client']
+        hbase_rest: key: ['ryba', 'hbase', 'rest']
+      @config.ryba ?= {}
+      @config.ryba.hbase ?= {}
+      options = @config.ryba.hbase.rest = service.options
 
-# Identities
+## Kerberos
 
-      hbase.group = merge hm_ctxs[0].config.ryba.hbase.group, hbase.group
-      hbase.user = merge hm_ctxs[0].config.ryba.hbase.user, hbase.user
-      hbase.admin = merge hm_ctxs[0].config.ryba.hbase.admin, hbase.admin
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
-## Test
+## Identities
 
-      hbase.rest.test ?= {}
-      hbase.rest.test.namespace ?= "ryba_check_rest_#{@config.shortname}"
-      hbase.rest.test.table ?= 'a_table'
+      options.group = merge service.use.hbase_master[0].options.group, options.group
+      options.user = merge service.use.hbase_master[0].options.user, options.user
+      options.admin = merge service.use.hbase_master[0].options.admin, options.admin
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+
+## Environnment
+
+      # Layout
+      options.conf_dir ?= '/etc/hbase-rest/conf'
+      options.log_dir ?= '/var/log/hbase'
+      options.pid_dir ?= '/var/run/hbase'
+      # Env & Java
+      options.env ?= {}
+      options.env['JAVA_HOME'] ?= service.use.java.options.java_home
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.force_check ?= false
 
 ## Rest Server Configuration
 
-      hbase.rest.conf_dir ?= '/etc/hbase-rest/conf'
-      hbase.rest.log_dir ?= '/var/log/hbase'
-      hbase.rest.pid_dir ?= '/var/run/hbase'
-      hbase.rest.site ?= {}
-      hbase.rest.site['hbase.rest.port'] ?= '60080' # Default to "8080"
-      hbase.rest.site['hbase.rest.info.port'] ?= '60085' # Default to "8085"
-      hbase.rest.site['hbase.rest.ssl.enabled'] ?= 'true'
-      hbase.rest.site['hbase.rest.ssl.keystore.store'] ?= ssl_server['ssl.server.keystore.location']
-      hbase.rest.site['hbase.rest.ssl.keystore.password'] ?= ssl_server['ssl.server.keystore.password']
-      hbase.rest.site['hbase.rest.ssl.keystore.keypassword'] ?= ssl_server['ssl.server.keystore.keypassword']
-      hbase.rest.site['hbase.rest.kerberos.principal'] ?= "hbase_rest/_HOST@#{realm}" # Dont forget `grant 'rest_server', 'RWCA'`
-      hbase.rest.site['hbase.rest.keytab.file'] ?= '/etc/security/keytabs/hbase_rest.service.keytab'
-      hbase.rest.site['hbase.rest.authentication.type'] ?= 'kerberos'
-      hbase.rest.site['hbase.rest.support.proxyuser'] ?= 'true'
-      hbase.rest.site['hbase.rest.authentication.kerberos.principal'] ?= "HTTP/_HOST@#{realm}"
-      # hbase.site['hbase.rest.authentication.kerberos.keytab'] ?= "#{hbase.conf_dir}/hbase.service.keytab"
-      hbase.rest.site['hbase.rest.authentication.kerberos.keytab'] ?= core_site['hadoop.http.authentication.kerberos.keytab']
-      hbase.rest.site['hbase.security.authentication'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authentication']
-      hbase.rest.site['hbase.security.authorization'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authorization']
-      hbase.rest.site['hbase.master.kerberos.principal'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal']
-      hbase.rest.site['hbase.regionserver.kerberos.principal'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.regionserver.kerberos.principal']
-      hbase.rest.site['hbase.rpc.engine'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.rpc.engine']
-      hbase.rest.env ?= {}
-      hbase.rest.env['JAVA_HOME'] ?= hm_ctxs[0].config.ryba.hbase.master.env['JAVA_HOME']
+      options.hbase_site ?= {}
+      options.hbase_site['hbase.rest.port'] ?= '60080' # Default to "8080"
+      options.hbase_site['hbase.rest.info.port'] ?= '60085' # Default to "8085"
+      options.hbase_site['hbase.rest.ssl.enabled'] ?= 'true'
+      options.hbase_site['hbase.rest.ssl.keystore.store'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+      options.hbase_site['hbase.rest.ssl.keystore.password'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+      options.hbase_site['hbase.rest.ssl.keystore.keypassword'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.keypassword']
+      options.hbase_site['hbase.rest.kerberos.principal'] ?= "hbase_rest/_HOST@#{options.krb5.realm}" # Dont forget `grant 'rest_server', 'RWCA'`
+      options.hbase_site['hbase.rest.keytab.file'] ?= '/etc/security/keytabs/hbase_rest.service.keytab'
+      options.hbase_site['hbase.rest.authentication.type'] ?= 'kerberos'
+      options.hbase_site['hbase.rest.support.proxyuser'] ?= 'true'
+      options.hbase_site['hbase.rest.authentication.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
+      # options.hbase_site['hbase.rest.authentication.kerberos.keytab'] ?= "#{hbase.conf_dir}/hbase.service.keytab"
+      options.hbase_site['hbase.rest.authentication.kerberos.keytab'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
+      options.hbase_site['hbase.security.authentication'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authentication']
+      options.hbase_site['hbase.security.authorization'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authorization']
+      options.hbase_site['hbase.master.kerberos.principal'] ?= service.use.hbase_master[0].options.hbase_site['hbase.master.kerberos.principal']
+      options.hbase_site['hbase.regionserver.kerberos.principal'] ?= service.use.hbase_master[0].options.hbase_site['hbase.regionserver.kerberos.principal']
+      options.hbase_site['hbase.rpc.engine'] ?= service.use.hbase_master[0].options.hbase_site['hbase.rpc.engine']
 
 ## Proxy Users
 
-      for hbase_ctx in [hm_ctxs..., rs_ctxs...]
-        match = /^(.+?)[@\/]/.exec hbase.rest.site['hbase.rest.kerberos.principal']
-        throw Error 'Invalid HBase Rest principal' unless match
-        hbase_ctx.config.ryba.hbase ?= {}
-        hbase_ctx.config.ryba.hbase.master ?= {}
-        hbase_ctx.config.ryba.hbase.master.site ?= {}
-        hbase_ctx.config.ryba.hbase.master?.site["hadoop.proxyuser.#{match[1]}.groups"] ?= '*'
-        hbase_ctx.config.ryba.hbase.master?.site["hadoop.proxyuser.#{match[1]}.hosts"] ?= '*'
-        hbase_ctx.config.ryba.hbase.rs ?= {}
-        hbase_ctx.config.ryba.hbase.rs.site ?= {}
-        hbase_ctx.config.ryba.hbase.rs.site["hadoop.proxyuser.#{match[1]}.groups"] ?= '*'
-        hbase_ctx.config.ryba.hbase.rs.site["hadoop.proxyuser.#{match[1]}.hosts"] ?= '*'
+      krb5_username = /^(.+?)[@\/]/.exec(options.hbase_site['hbase.rest.kerberos.principal'])?[1]
+      throw Error 'Invalid HBase Rest principal' unless krb5_username
+      for srv in [service.use.hbase_master..., service.use.hbase_regionserver...]
+        srv.options.hbase_site["hadoop.proxyuser.#{krb5_username}.groups"] ?= '*'
+        srv.options.hbase_site["hadoop.proxyuser.#{krb5_username}.hosts"] ?= '*'
 
 ## Distributed mode
 
@@ -78,8 +89,33 @@ See [REST Gateway Impersonation Configuration][impersonation].
         'hbase.zookeeper.quorum'
         'hbase.zookeeper.property.clientPort'
         'dfs.domain.socket.path'
-      ] then hbase.rest.site[property] ?= hm_ctxs[0].config.ryba.hbase.master.site[property]
+      ] then options.hbase_site[property] ?= service.use.hbase_master[0].options.hbase_site[property]
+
+## Test
+
+      options.test ?= {}
+      options.test.namespace ?= "ryba_check_rest_#{@config.shortname}"
+      options.test.table ?= 'a_table'
+
+## Wait
+
+      options.wait_krb5_client = service.use.krb5_client
+      options.wait_zookeeper_server = service.use.zookeeper_server
+      options.wait_hdfs_nn = service.use.hdfs_nn
+      options.wait_hbase_master = service.use.hbase_master
+      for srv in service.use.hbase_rest
+        srv.options.hbase_site ?= {}
+        srv.options.hbase_site['hbase.rest.port'] ?= '9090'
+        srv.options.hbase_site['hbase.rest.infot.port'] ?= '9095'
+      options.wait = {}
+      options.wait.http = for srv in service.use.hbase_rest
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.rest.port']
+      options.wait.http_info = for srv in service.use.hbase_rest
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.rest.info.port']
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

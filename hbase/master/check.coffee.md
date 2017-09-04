@@ -1,17 +1,43 @@
 
 # HBase Master Check
 
-    module.exports = header: 'HBase Master Check', label_true: 'CHECKED', handler: ->
-      {core_site, hbase} = @config.ryba
-      protocol = if hbase.master.site['hbase.ssl.enabled'] is 'true' then 'https' else 'http'
-      port = hbase.master.site['hbase.master.info.port']
-      url = "#{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=HBase,name=Master,sub=Server"
+    module.exports = header: 'HBase Master Check', label_true: 'CHECKED', handler: (options) ->
 
-## Wait
+## Assert
 
-Wait for the service to be started.
+Ensure for the server is listening for remote connections.
 
-      @call once: true, 'ryba/hbase/master/wait'
+      @connection.assert
+        header: 'RPC'
+        servers: options.wait.rpc.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000
+
+      @connection.assert
+        header: 'HTTP'
+        servers: options.wait.http.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000
+
+## Check FSCK
+
+It is possible that HBase fail to started because of currupted WAL files.
+Corrupted blocks for removal can be found with the command: 
+`hdfs fsck / | egrep -v '^\.+$' | grep -v replica | grep -v Replica`
+Additionnal information may be found on the [CentOS HowTos site][corblk].
+
+[corblk]: http://centoshowtos.org/hadoop/fix-corrupt-blocks-on-hdfs/
+
+      @system.execute
+        header: 'FSCK'
+        label_true: 'CHECKED'
+        cmd: mkcmd.hdfs @, """
+        hdfs fsck #{options.hbase_site['hbase.rootdir']}/WALs \
+        | grep 'Status: HEALTHY'
+        """
+        relax: true
+      , (err) ->
+        throw Error "WAL Corruption detected by FSCK" if err
 
 ## Check SPNEGO
 
@@ -23,15 +49,18 @@ is added membership to the group hadoop to gain read access.
 
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{hbase.user.name} -c 'test -r #{core_site['hadoop.http.authentication.kerberos.keytab']}'"
+        cmd: "su -l #{options.user.name} -c 'test -r #{options.hbase_site['hbase.security.authentication.spnego.kerberos.principal']}'"
 
 ## Check HTTP JMX
 
+      protocol = if options.hbase_site['hbase.ssl.enabled'] is 'true' then 'https' else 'http'
+      port = options.hbase_site['hbase.master.info.port']
+      url = "#{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=HBase,name=Master,sub=Server"
       @system.execute
         header: 'HTTP JMX'
         cmd: mkcmd.test @, """
         host=`curl -s -k --negotiate -u : #{url} | grep tag.Hostname | sed 's/^.*:.*"\\(.*\\)".*$/\\1/g'`
-        [ "$host" == '#{@config.host}' ] || [ "$host" == '#{@config.shortname}' ]
+        [ "$host" == '#{options.fqdn}' ] || [ "$host" == '#{options.hostname}' ]
         """
 
 ## Dependencies

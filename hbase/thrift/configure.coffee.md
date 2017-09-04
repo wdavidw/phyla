@@ -1,44 +1,67 @@
 
 # HBase Thrit Server Configuration
 
-    module.exports = ->
-      hm_ctxs = @contexts 'ryba/hbase/master'
-      rs_ctxs = @contexts 'ryba/hbase/regionserver'
-      ryba = @config.ryba ?= {}
-      {realm, core_site, ssl_server, hbase} = @config.ryba
-      hbase = @config.ryba.hbase ?= {}
-      throw Error 'No HBase Master configured' unless hm_ctxs.length > 0
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/hbase/thrift', ['ryba', 'hbase', 'thrift'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        hbase_master: key: ['ryba', 'hbase', 'master']
+        hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
+        hbase_client: key: ['ryba', 'hbase', 'client']
+        hbase_thrift: key: ['ryba', 'hbase', 'thrift']
+      @config.ryba ?= {}
+      @config.ryba.hbase ?= {}
+      options = @config.ryba.hbase.thrift = service.options
 
-# Identities
+## Kerberos
 
-      hbase.group = merge hm_ctxs[0].config.ryba.hbase.group, hbase.group
-      hbase.user = merge hm_ctxs[0].config.ryba.hbase.user, hbase.user
-      hbase.admin = merge hm_ctxs[0].config.ryba.hbase.admin, hbase.admin
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+
+## Identities
+
+      options.group = merge service.use.hbase_master[0].options.group, options.group
+      options.user = merge service.use.hbase_master[0].options.user, options.user
+      options.admin = merge service.use.hbase_master[0].options.admin, options.admin
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+
+## Environnment
+
+      # Layout
+      options.conf_dir ?= '/etc/hbase-thrift/conf'
+      options.log_dir ?= '/var/log/hbase'
+      options.pid_dir ?= '/var/run/hbase'
+      # Env & Java
+      options.env ?= {}
+      options.env['JAVA_HOME'] ?= service.use.java.options.java_home
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 # Thrift Server Configuration  
 
-      hbase.thrift ?= {}
-      hbase.thrift.conf_dir ?= '/etc/hbase-thrift/conf'
-      hbase.thrift.log_dir ?= '/var/log/hbase'
-      hbase.thrift.pid_dir ?= '/var/run/hbase'
-      hbase.thrift.site ?= {}
-      hbase.thrift.site['hbase.thrift.port'] ?= '9090' # Default to "8080"
-      hbase.thrift.site['hbase.thrift.info.port'] ?= '9095' # Default to "8085"
-      hbase.thrift.site['hbase.thrift.ssl.enabled'] ?= 'true'
-      hbase.thrift.site['hbase.thrift.ssl.keystore.store'] ?= ssl_server['ssl.server.keystore.location']
-      hbase.thrift.site['hbase.thrift.ssl.keystore.password'] ?= ssl_server['ssl.server.keystore.password']
-      hbase.thrift.site['hbase.thrift.ssl.keystore.keypassword'] ?= ssl_server['ssl.server.keystore.keypassword']
+      options.hbase_site ?= {}
+      options.hbase_site['hbase.thrift.port'] ?= '9090' # Default to "8080"
+      options.hbase_site['hbase.thrift.info.port'] ?= '9095' # Default to "8085"
+      options.hbase_site['hbase.thrift.ssl.enabled'] ?= 'true'
+      options.hbase_site['hbase.thrift.ssl.keystore.store'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+      options.hbase_site['hbase.thrift.ssl.keystore.password'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+      options.hbase_site['hbase.thrift.ssl.keystore.keypassword'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.keypassword']
       # Type of HBase thrift server
-      hbase.thrift.site['hbase.regionserver.thrift.server.type'] ?= 'TThreadPoolServer'
+      options.hbase_site['hbase.regionserver.thrift.server.type'] ?= 'TThreadPoolServer'
       # The value for the property hbase.thrift.security.qop can be one of the following values:
       # auth-conf - authentication, integrity, and confidentiality checking
       # auth-int - authentication and integrity checking
       # auth - authentication checking only
-      hbase.thrift.site['hbase.thrift.security.qop'] ?= "auth"
-      hbase.thrift.env ?= {}
-      hbase.thrift.env['JAVA_HOME'] ?= hm_ctxs[0].config.ryba.hbase.master.env['JAVA_HOME']
+      options.hbase_site['hbase.thrift.security.qop'] ?= "auth"
 
-## Kerberos
+## Security
 
 *   [HBase docs enables impersonation][hbase-impersonation-mode]
 *   [HBaseThrift configuration for hue][hue-thrift-impersonation]
@@ -49,40 +72,33 @@
 [hbase-impersonation-mode]: http://hbase.apache.org/book.html#security.gateway.thrift
 [hbase-configuration-cloudera]:(http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/cdh_sg_hbase_authentication.html/)
 
-      hbase.thrift.site['hbase.security.authentication'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authentication']
-      hbase.thrift.site['hbase.security.authorization'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.security.authorization']
-      hbase.thrift.site['hbase.rpc.engine'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.rpc.engine']
-      hbase.thrift.site['hbase.thrift.authentication.type'] = hbase.thrift.site['hbase.security.authentication'] ?= 'kerberos'
-      hbase.thrift.site['hbase.master.kerberos.principal'] = hm_ctxs[0].config.ryba.hbase.master.site['hbase.master.kerberos.principal']
-      hbase.thrift.site['hbase.regionserver.kerberos.principal'] = hm_ctxs[0].config.ryba.hbase.master.site['hbase.regionserver.kerberos.principal']
-      # hbase.site['hbase.thrift.kerberos.principal'] ?= "hbase/_HOST@#{realm}" # Dont forget `grant 'thrift_server', 'RWCA'`
+      options.hbase_site['hbase.security.authentication'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authentication']
+      options.hbase_site['hbase.security.authorization'] ?= service.use.hbase_master[0].options.hbase_site['hbase.security.authorization']
+      options.hbase_site['hbase.rpc.engine'] ?= service.use.hbase_master[0].options.hbase_site['hbase.rpc.engine']
+      options.hbase_site['hbase.thrift.authentication.type'] = options.hbase_site['hbase.security.authentication'] ?= 'kerberos'
+      options.hbase_site['hbase.master.kerberos.principal'] = service.use.hbase_master[0].options.hbase_site['hbase.master.kerberos.principal']
+      options.hbase_site['hbase.regionserver.kerberos.principal'] = service.use.hbase_master[0].options.hbase_site['hbase.regionserver.kerberos.principal']
+      # hbase.site['hbase.thrift.kerberos.principal'] ?= "hbase/_HOST@#{options.krb5.realm}" # Dont forget `grant 'thrift_server', 'RWCA'`
       # hbase.site['hbase.thrift.keytab.file'] ?= "#{hbase.conf_dir}/thrift.service.keytab"
       # Principal changed to http by default in order to enable impersonation and make it work with hue
-      hbase.thrift.site['hbase.thrift.kerberos.principal'] ?= "HTTP/#{@config.host}@#{realm}" # was hbase_thrift/_HOST
-      hbase.thrift.site['hbase.thrift.keytab.file'] ?= core_site['hadoop.http.authentication.kerberos.keytab']
+      options.hbase_site['hbase.thrift.kerberos.principal'] ?= "HTTP/#{@config.host}@#{options.krb5.realm}" # was hbase_thrift/_HOST
+      options.hbase_site['hbase.thrift.keytab.file'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
 
 ## Impersonation
 
       # Enables impersonation
       # For now thrift server does not support impersonation for framed transport: check cloudera setup warning
-      hbase.thrift.site['hbase.regionserver.thrift.http'] ?= 'true'
-      hbase.thrift.site['hbase.thrift.support.proxyuser'] ?= 'true'
-      hbase.thrift.site['hbase.regionserver.thrift.framed'] ?= if hbase.thrift.site['hbase.regionserver.thrift.http'] then 'buffered' else 'framed'
+      options.hbase_site['hbase.regionserver.thrift.http'] ?= 'true'
+      options.hbase_site['hbase.thrift.support.proxyuser'] ?= 'true'
+      options.hbase_site['hbase.regionserver.thrift.framed'] ?= if options.hbase_site['hbase.regionserver.thrift.http'] then 'buffered' else 'framed'
 
 ## Proxy Users
 
-      for hbase_ctx in [hm_ctxs..., rs_ctxs...]
-        match = /^(.+?)[@\/]/.exec hbase.thrift.site['hbase.thrift.kerberos.principal']
-        throw Error 'Invalid HBase Thrift principal' unless match
-        hbase_ctx.config.ryba.hbase ?= {}
-        hbase_ctx.config.ryba.hbase.master ?= {}
-        hbase_ctx.config.ryba.hbase.master.site ?= {}
-        hbase_ctx.config.ryba.hbase.master.site["hadoop.proxyuser.#{match[1]}.groups"] ?= '*'
-        hbase_ctx.config.ryba.hbase.master.site["hadoop.proxyuser.#{match[1]}.hosts"] ?= '*'
-        hbase_ctx.config.ryba.hbase.rs ?= {}
-        hbase_ctx.config.ryba.hbase.rs.site ?= {}
-        hbase_ctx.config.ryba.hbase.rs.site["hadoop.proxyuser.#{match[1]}.groups"] ?= '*'
-        hbase_ctx.config.ryba.hbase.rs.site["hadoop.proxyuser.#{match[1]}.hosts"] ?= '*'
+      krb5_username = /^(.+?)[@\/]/.exec(options.hbase_site['hbase.thrift.kerberos.principal'])?[1]
+      throw Error 'Invalid HBase Thrift principal' unless krb5_username
+      for srv in [service.use.hbase_master..., service.use.hbase_regionserver...]
+        srv.options.hbase_site["hadoop.proxyuser.#{krb5_username}.groups"] ?= '*'
+        srv.options.hbase_site["hadoop.proxyuser.#{krb5_username}.hosts"] ?= '*'
 
 ## Distributed Mode
 
@@ -93,8 +109,27 @@
         'hbase.zookeeper.quorum'
         'hbase.zookeeper.property.clientPort'
         'dfs.domain.socket.path'
-      ] then hbase.thrift.site[property] ?= hm_ctxs[0].config.ryba.hbase.master.site[property]
+      ] then options.hbase_site[property] ?= service.use.hbase_master[0].options.hbase_site[property]
+
+## Wait
+
+      options.wait_krb5_client = service.use.krb5_client
+      options.wait_zookeeper_server = service.use.zookeeper_server
+      options.wait_hdfs_nn = service.use.hdfs_nn
+      options.wait_hbase_master = service.use.hbase_master
+      for srv in service.use.hbase_thrift
+        srv.options.hbase_site ?= {}
+        srv.options.hbase_site['hbase.thrift.port'] ?= '9090'
+        srv.options.hbase_site['hbase.thrift.infot.port'] ?= '9095'
+      options.wait = {}
+      options.wait.http = for srv in service.use.hbase_thrift
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.thrift.port']
+      options.wait.http_info = for srv in service.use.hbase_thrift
+        host: srv.node.fqdn
+        port: srv.options.hbase_site['hbase.thrift.info.port']
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

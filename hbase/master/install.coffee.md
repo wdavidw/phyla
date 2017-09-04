@@ -3,10 +3,7 @@
 
 TODO: [HBase backup node](http://willddy.github.io/2013/07/02/HBase-Add-Backup-Master-Node.html)
 
-    module.exports =  header: 'HBase Master Install', handler: ->
-      hbase_regionservers = @contexts 'ryba/hbase/regionserver'
-      {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports =  header: 'HBase Master Install', handler: (options) ->
 
 ## Register
 
@@ -26,11 +23,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         header: 'IPTables'
+        if: options.iptabless
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.master.site['hbase.master.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Master" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.master.site['hbase.master.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Info Web UI" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.master.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Master" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.master.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Info Web UI" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Identities
 
@@ -43,27 +40,27 @@ cat /etc/group | grep hbase
 hbase:x:492:
 ```
 
-      @system.group header: 'Group', hbase.group
-      @system.user header: 'User', hbase.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 
 ## HBase Master Layout
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: hbase.master.pid_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.master.log_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.master.conf_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
           target: hbase.master.tmp_dir
@@ -88,7 +85,7 @@ Install the "hbase-master" service, symlink the rc.d startup script inside
           header: 'Init Script'
           source: "#{__dirname}/../resources/hbase-master.j2"
           local: true
-          context: @config
+          context: options: options
           target: '/etc/init.d/hbase-master'
           mode: 0o0755
         @call
@@ -99,13 +96,13 @@ Install the "hbase-master" service, symlink the rc.d startup script inside
             target: '/usr/lib/systemd/system/hbase-master.service'
             source: "#{__dirname}/../resources/hbase-master-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0640
           @system.tmpfs
             header: 'Run dir'
-            mount: hbase.master.pid_dir
-            uid: hbase.user.name
-            gid: hbase.group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0755'
 
 ## Compression Libs
@@ -126,13 +123,13 @@ Install compression libs as defined in HDP docs
 
       @hconfigure
         header: 'HBase Site'
-        target: "#{hbase.master.conf_dir}/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"
         local: true
-        properties: hbase.master.site
+        properties: options.hbase_site
         merge: false
-        uid: hbase.user.name
-        gid: hbase.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0600 # See slide 33 from [Operator's Guide][secop]
         backup: true
 
@@ -141,19 +138,19 @@ Install compression libs as defined in HDP docs
 Environment passed to the Master before it starts.
 
       @call header: 'HBase Env', ->
-        hbase.master.java_opts += " -D#{k}=#{v}" for k, v of hbase.master.opts
-        hbase.master.java_opts += " -Xms#{hbase.master.heapsize} -Xmx#{hbase.master.heapsize} "
+        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
+        options.java_opts += " -Xms#{options.heapsize} -Xmx#{options.heapsize} "
         @file.render
-          target: "#{hbase.master.conf_dir}/hbase-env.sh"
+          target: "#{options.conf_dir}/hbase-env.sh"
           source: "#{__dirname}/../resources/hbase-env.sh.j2"
           backup: true
           local: true
           eof: true
-          context: @config
+          context: options: options
           mode: 0o750
-          uid: hbase.user.name
-          gid: hbase.group.name
-          write: for k, v of hbase.master.env
+          uid: options.user.name
+          gid: options.group.name
+          write: for k, v of options.env
             match: RegExp "export #{k}=.*", 'm'
             replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
             append: true
@@ -162,12 +159,19 @@ Environment passed to the Master before it starts.
 
 Upload the list of registered RegionServers.
 
+      regionservers = for fqdn, active of options.regionservers
+        continue unless active
+        fqdn
       @file
         header: 'Registered RegionServers'
-        content: hbase_regionservers.map( (ctx) -> ctx.config.host ).join '\n'
-        target: "#{hbase.master.conf_dir}/regionservers"
-        uid: hbase.user.name
-        gid: hadoop_group.name
+        target: "#{options.conf_dir}/regionservers"
+        content: (
+          for fqdn, active of options.regionservers
+            continue unless active
+            fqdn
+        ).join '\n'
+        uid: options.user.name
+        gid: options.hadoop_group.name
         eof: true
         mode: 0o640
 
@@ -180,12 +184,12 @@ Environment file is enriched by "ryba/hbase" # HBase # Env".
 
       @file.jaas
         header: 'Zookeeper JAAS'
-        target: "#{hbase.master.conf_dir}/hbase-master.jaas"
+        target: "#{options.conf_dir}/hbase-master.jaas"
         content: Client:
-          principal: hbase.master.site['hbase.master.kerberos.principal'].replace '_HOST', @config.host
-          keyTab: hbase.master.site['hbase.master.keytab.file']
-        uid: hbase.user.name
-        gid: hbase.group.name
+          principal: options.hbase_site['hbase.master.kerberos.principal'].replace '_HOST', options.fqdn
+          keyTab: options.hbase_site['hbase.master.keytab.file']
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o600
 
 ## Kerberos
@@ -193,25 +197,25 @@ Environment file is enriched by "ryba/hbase" # HBase # Env".
 https://blogs.apache.org/hbase/entry/hbase_cell_security
 https://hbase.apache.org/book/security.html
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos Master User'
-        principal: hbase.master.site['hbase.master.kerberos.principal'].replace '_HOST', @config.host
+        principal: options.hbase_site['hbase.master.kerberos.principal'].replace '_HOST', options.fqdn
         randkey: true
-        keytab: hbase.master.site['hbase.master.keytab.file']
-        uid: hbase.user.name
-        gid: hadoop_group.name
+        keytab: options.hbase_site['hbase.master.keytab.file']
+        uid: options.user.name
+        gid: options.hadoop_group.name
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos Admin User'
-        principal: hbase.admin.principal
-        password: hbase.admin.password
+        principal: options.admin.principal
+        password: options.admin.password
 
       @file
         header: 'Log4J Properties'
-        target: "#{hbase.master.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-        write: for k, v of hbase.master.log4j
+        write: for k, v of options.log4j
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true
@@ -222,23 +226,23 @@ Enable stats collection in Ganglia and Graphite
 
       @file.properties
         header: 'Metrics Properties'
-        target: "#{hbase.master.conf_dir}/hadoop-metrics2-hbase.properties"
-        content: hbase.metrics.config
+        target: "#{options.conf_dir}/hadoop-metrics2-hbase.properties"
+        content: options.metrics.config
         backup: true
         mode: 0o640
-        uid: hbase.user.name
-        gid: hbase.group.name
+        uid: options.user.name
+        gid: options.group.name
 
       # @call header: 'SSL', retry: 0, ->
       #   {ssl, ssl_server, ssl_client, hdfs} = @config.ryba
-      #   ssl_client['ssl.client.truststore.location'] = "#{hbase.conf_dir}/truststore"
-      #   ssl_server['ssl.server.keystore.location'] = "#{hbase.conf_dir}/keystore"
-      #   ssl_server['ssl.server.truststore.location'] = "#{hbase.conf_dir}/truststore"
+      #   ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
+      #   ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
+      #   ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
       #   @hconfigure
-      #     target: "#{hbase.conf_dir}/ssl-server.xml"
+      #     target: "#{options.conf_dir}/ssl-server.xml"
       #     properties: ssl_server
       #   @hconfigure
-      #     target: "#{hbase.conf_dir}/ssl-client.xml"
+      #     target: "#{options.conf_dir}/ssl-client.xml"
       #     properties: ssl_client
       #   # Client: import certificate to all hosts
       #   @java.keystore_add
@@ -273,23 +277,23 @@ principal.
 
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{hbase.user.name} -c 'test -r /etc/security/keytabs/spnego.service.keytab'"
+        cmd: "su -l #{options.user.name} -c 'test -r /etc/security/keytabs/spnego.service.keytab'"
 
 # User limits
 
       @system.limits
         header: 'Ulimit'
-        user: hbase.user.name
-      , hbase.user.limits
+        user: options.user.name
+      , options.user.limits
 
 ## Ranger HBase Plugin Install
 
-      @call
-        if: -> @contexts('ryba/ranger/admin').length > 0
-      , ->
-        @call -> @config.ryba.hbase_plugin_is_master = true
-        @call 'ryba/ranger/plugins/hbase/install'
-        @call -> @config.ryba.hbase_plugin_is_master = false
+      # @call
+      #   if: -> @contexts('ryba/ranger/admin').length > 0
+      # , ->
+      #   @call -> @config.ryba.hbase_plugin_is_master = true
+      #   @call 'ryba/ranger/plugins/hbase/install'
+      #   @call -> @config.ryba.hbase_plugin_is_master = false
 
 # Dependencies
 

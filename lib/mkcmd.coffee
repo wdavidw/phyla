@@ -48,10 +48,11 @@ module.exports = (args...) ->
   # then "echo '#{options.password}' | kinit #{options.principal} >/dev/null && {\n#{options.cmd}\n}"
   # else "su -l #{options.name} -c \"#{options.cmd}\""
 
-module.exports.hbase = (ctx, cmd) ->
-  {security, hbase} = ctx.config.ryba
+module.exports.hbase = (krb5_user, cmd) ->
+  # {security, hbase} = ctx.config.ryba
+  security = 'kerberos'
   if security is 'kerberos'
-  then "echo '#{hbase.admin.password}' | kinit #{hbase.admin.principal} >/dev/null && {\n#{cmd}\n}"
+  then "echo '#{krb5_user.password}' | kinit #{krb5_user.principal} >/dev/null && {\n#{cmd}\n}"
   else "su -l #{hbase.user.name} -c \"#{cmd}\""
 
 module.exports.hdfs = (ctx, cmd) ->

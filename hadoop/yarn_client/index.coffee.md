@@ -8,7 +8,7 @@ The URI resources are grouped into APIs based on the type of information returne
       use:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true

@@ -8,34 +8,35 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        zoo_server: 'ryba/zookeeper/server'
-        hdfs_client: 'ryba/hadoop/hdfs_client'
-        hdfs_nn: 'ryba/hadoop/hdfs_nn'
-        hdfs_dn: 'ryba/hadoop/hdfs_dn'
-        yarn_rm: 'ryba/hadoop/yarn_rm'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        ranger_admin: 'ryba/ranger/admin'
-        hbase_master: 'ryba/hbase/master'
-        ganglia: 'ryba/ganglia/collector'
-      configure: [
-        'ryba/hbase/lib/configure_metrics'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client'
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        # hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        ranger_admin: module: 'ryba/ranger/admin'
+        hbase_master: module: 'ryba/hbase/master'
+        ganglia_collector: module: 'ryba/ganglia/collector', single: true
+      configure:
         'ryba/hbase/master/configure'
-        'ryba/ranger/plugins/hbase/configure'
-      ]
+        # 'ryba/ranger/plugins/hbase/configure'
       commands:
-        'check':
-          'ryba/hbase/master/check'
-        'install': [
-          'ryba/hbase/master/install'
-          'ryba/hbase/master/layout'
-          'ryba/hbase/master/start'
-          'ryba/hbase/master/check'
-        ]
-        'start':
-          'ryba/hbase/master/start'
-        'stop':
-          'ryba/hbase/master/stop'
+        'check': ->
+          options = @config.ryba.hbase.master
+          @call 'ryba/hbase/master/check', options
+        'install': ->
+          options = @config.ryba.hbase.master
+          # @call 'ryba/hbase/master/install', options
+          # @call 'ryba/hbase/master/layout', options
+          # @call 'ryba/hbase/master/start', options
+          @call 'ryba/hbase/master/check', options
+        'start': ->
+          options = @config.ryba.hbase.master
+          @call 'ryba/hbase/master/start', options
+        'stop': ->
+          options = @config.ryba.hbase.master
+          @call 'ryba/hbase/master/stop', options

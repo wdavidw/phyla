@@ -55,7 +55,7 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
         hive_plugin.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
         # Should Hive GRANT/REVOKE update XA policies?
         hive_plugin.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
-        hive_plugin.install['CUSTOM_USER'] ?= "#{@config.ryba.hive.user.name}"
+        hive_plugin.install['CUSTOM_USER'] ?= "#{@config.ryba.hive.server2.user.name}"
         hive_plugin.install['CUSTOM_GROUP'] ?= "#{hadoop_group.name}"
 
 ### HIVE Policy Admin Tool
@@ -74,8 +74,8 @@ The repository name should match the reposity name in web ui.
             'jdbc.driverClassName': 'org.apache.hive.jdbc.HiveDriver'
             'jdbc.url': "#{hive_url}"
             "commonNameForCertificate": ''
-            'policy.download.auth.users': "#{@config.ryba.hive.user.name}" #from ranger 0.6
-            'tag.download.auth.users': "#{@config.ryba.hive.user.name}"
+            'policy.download.auth.users': "#{@config.ryba.hive.server2.user.name}" #from ranger 0.6
+            'tag.download.auth.users': "#{@config.ryba.hive.server2.user.name}"
 
 ### HIVE Plugin audit
 

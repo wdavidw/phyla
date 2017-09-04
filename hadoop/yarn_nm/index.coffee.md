@@ -16,7 +16,7 @@ applications.
         java: module: 'masson/commons/java', local: true
         cgroups: module: 'masson/core/cgroups', local: true, required: true
         zookeeper_server: module: 'ryba/zookeeper/server'
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         ranger_admin: module: 'ryba/ranger/admin'

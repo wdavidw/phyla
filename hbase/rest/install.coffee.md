@@ -6,9 +6,7 @@ for the service princial define by "hbase.rest.kerberos.principal". For example,
 run the command `grant '$USER', 'RWCA'`. Ryba isnt doing it because we didn't
 have usecase for it yet.
 
-    module.exports =  header: 'HBase Rest Install', handler: ->
-      {hadoop_group, hbase, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports =  header: 'HBase Rest Install', handler: (options) ->
 
 ## Register
 
@@ -27,11 +25,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         header: 'Iptables'
+        if: options.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.rest.site['hbase.rest.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Master" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hbase.rest.site['hbase.rest.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Info Web UI" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.rest.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Master" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.rest.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Info Web UI" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Identities
 
@@ -44,26 +42,26 @@ cat /etc/group | grep hbase
 hbase:x:492:
 ```
 
-      @system.group header: 'Group', hbase.group
-      @system.user header: 'User', hbase.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## HBase Rest Server Layout
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: hbase.rest.pid_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.rest.log_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: hbase.rest.conf_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
 
 ## HBase Rest Service
@@ -94,10 +92,10 @@ hbase:x:492:
             mode: 0o0640
           @system.tmpfs
             header: 'Run dir'
-            mount: hbase.rest.pid_dir
-            uid: hbase.user.name
-            gid: hbase.group.name
-            perm: '0755'
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
+            perm: 0o0755
 
 ## Configure
 
@@ -106,12 +104,12 @@ restrict it but not the rest server.
 
       @hconfigure
         header: 'HBase Site'
-        target: "#{hbase.rest.conf_dir}/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"
         local: true
-        properties: hbase.rest.site
-        uid: hbase.user.name
-        gid: hbase.group.name
+        properties: options.hbase_site
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o600
         backup: true
 
@@ -121,15 +119,15 @@ Environment passed to the HBase Rest Server before it starts.
 
       @file.render
         header: 'Hbase Env'
-        target: "#{hbase.rest.conf_dir}/hbase-env.sh"
+        target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
         context: @config
         mode: 0o0750
-        uid: hbase.user.name
-        gid: hbase.group.name
+        uid: options.user.name
+        gid: options.group.name
         unlink: true
-        write: for k, v of hbase.rest.env
+        write: for k, v of options.env
           match: RegExp "export #{k}=.*", 'm'
           replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
 
@@ -137,25 +135,25 @@ Environment passed to the HBase Rest Server before it starts.
 
 Create the Kerberos keytab for the service principal.
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: hbase.rest.site['hbase.rest.kerberos.principal'].replace '_HOST', @config.host
+        principal: options.hbase_site['hbase.rest.kerberos.principal'].replace '_HOST', @config.host
         randkey: true
-        keytab: hbase.rest.site['hbase.rest.keytab.file']
-        uid: hbase.user.name
-        gid: hadoop_group.name
+        keytab: options.hbase_site['hbase.rest.keytab.file']
+        uid: options.user.name
+        gid: options.group.name
 
 # User limits
 
       @system.limits
         header: 'Ulimit'
-        user: hbase.user.name
-      , hbase.user.limits
+        user: options.user.name
+      , options.user.limits
 
 ## Logging
 
       @file
         header: 'Log4J'
-        target: "#{hbase.rest.conf_dir}/log4j.properties"
+        target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true

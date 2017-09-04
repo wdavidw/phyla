@@ -37,7 +37,7 @@ as external.
 
 ## Access`
 
-      options.admin_password ?= service.use.ranger_admin.options.plugins.password
+      options.ranger_admin ?= service.use.ranger_admin.options.admin
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
       # options.plugins ?= {}
       # options.plugins.principal ?= service.use.ranger_admin.options.plugins.principal

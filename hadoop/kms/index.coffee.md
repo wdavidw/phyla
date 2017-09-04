@@ -11,7 +11,7 @@ REST API.
       use:
         iptables: module: 'masson/core/iptables', local: true
         java: module: 'masson/commons/java', local: true
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         zookeeper_server: module: 'ryba/zookeeper/server'
       configure:
         'ryba/hadoop/kms/configure'
