@@ -13,6 +13,15 @@
       
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
+
+## Ranger User
+
+      @ranger_user
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
 
 ## Packages
 
@@ -64,7 +73,7 @@ we execute this task using the rest api.
               values: ['/ranger/audit/hbaseRegional','/ranger/audit/hbaseMaster']
               isExcludes: false
           policyItems: [{
-            users: ["#{options.user.name}"]
+            users: ["#{options.plugin_user.name}"]
             groups: []
             delegateAdmin: true
             accesses:[
@@ -80,13 +89,13 @@ we execute this task using the rest api.
             conditions: []
             }]
         @hdfs_mkdir
-          header: 'HBase Master plugin HDFS audit dir'
+          header: 'Master HDFS Audit Dir'
           target: "/#{options.user.name}/audit/hbaseMaster"
           mode: 0o750
           user: options.user.name
           group: options.group.name
         @hdfs_mkdir
-          header: 'HBase Regionserver plugin HDFS audit dir'
+          header: 'RegionServer HDFS Audit Dir'
           target: "/#{options.user.name}/audit/hbaseRegional"
           mode: 0o750
           user: options.user.name

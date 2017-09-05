@@ -3,6 +3,10 @@
 
     module.exports =  header: 'Ranger Admin Setup', handler: (options) ->
 
+## Register
+
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
+
       protocol = if options.site['ranger.service.https.attrib.ssl.enabled'] is 'true' then 'https' else 'http'
       port = options.site["ranger.service.#{protocol}.port"]
 
@@ -36,29 +40,10 @@ Requires `admin` user to have `ROLE_SYS_ADMIN`.
 Method to check is user account already exit is not identical base on user source.
 Indeed usersource to 1 means external user and so unknown password.
 
-      @call header: 'Ranger Admin Manager Users Accounts', ->
-        for name, user of options.users
-          @system.execute
-            if: user.userSource is 0
-            cmd: """
-            curl --fail -H "Content-Type: application/json"   -k -X POST \
-              -d '#{JSON.stringify user}' -u admin:#{options.admin.password} \
-              \"#{options.install['policymgr_external_url']}/service/xusers/secure/users\"
-            """
-            unless_exec: """
-            curl --fail -H "Content-Type: application/json"   -k -X GET \
-              -u #{name}:#{user.password} \
-              \"#{options.install['policymgr_external_url']}/service/users/profile\"
-            """
-          @system.execute
-            if: user.userSource is 1
-            cmd: """
-            curl --fail -H "Content-Type: application/json"   -k -X POST \
-              -d '#{JSON.stringify user}' -u admin:#{options.admin.password} \
-              \"#{options.install['policymgr_external_url']}/service/xusers/secure/users\"
-            """
-            unless_exec: """
-            curl --fail -H "Content-Type: application/json"   -k -X GET \
-              -u admin:#{options.admin.password} \
-              \"#{options.install['policymgr_external_url']}/service/xusers/users/userName/#{name}\"
-            """
+      @ranger_user (
+        header: "Account #{name}"
+        username: options.admin.username
+        password: options.admin.password
+        url: options.install['policymgr_external_url']
+        user: user
+      ) for name, user of options.users

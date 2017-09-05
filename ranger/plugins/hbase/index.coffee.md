@@ -16,6 +16,7 @@
         @before
           type: ['service', 'start']
           name: 'hbase-master'
+          # handler: 'ryba/hbase/master/install'
         , ->
           console.log 'plugin after'
           @call 'ryba/ranger/plugins/hbase/install', options

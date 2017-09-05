@@ -50,7 +50,7 @@ plugin and the server ?
 migration: wdavidw 170828, access for the user need to be tested through a HTTP
 REST request.
 
-      service.use.ranger_admin.options.users['hbase'] ?=
+      options.plugin_user = 
         "name": 'hbase'
         "firstName": ''
         "lastName": 'hadoop'
@@ -60,6 +60,7 @@ REST request.
         'userRoleList': ['ROLE_USER']
         'groups': []
         'status': 1
+      # service.use.ranger_admin.options.users['hbase'] ?= options.ranger_user
 
 ## Configuration
 
@@ -91,8 +92,8 @@ The repository name should match the reposity name in web ui.
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
       options.service_repo ?=
         'configs':
-          'password': 'ranger_plugin_hbase'
-          'username': 'RangerPluginHBase123!'
+          'username': 'ranger_plugin_hbase'
+          'password': 'RangerPluginHBase123!'
           'hadoop.security.authorization': service.use.hadoop_core.options.core_site['hadoop.security.authorization']
           'hbase.master.kerberos.principal': service.use.hbase_master.options.hbase_site['hbase.master.kerberos.principal']
           'hadoop.security.authentication': service.use.hadoop_core.options.core_site['hadoop.security.authentication']
