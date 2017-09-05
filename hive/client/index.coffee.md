@@ -5,14 +5,15 @@ Once installed you can type hive in a prompt and the hive client shell wil launc
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: 'ryba/hadoop/core/configure'
-        hdfs_client: 'ryba/hadoop/hdfs_client'
-        yarn_client: 'ryba/hadoop/yarn_client'
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core/configure'
+        hdfs_client: module: 'ryba/hadoop/hdfs_client'
+        yarn_client: module: 'ryba/hadoop/yarn_client'
         mapred_client: 'ryba/hadoop/mapred_client'
         tez: implicit: true, module: 'ryba/tez'
-        hcat: 'ryba/hive/hcatalog'
-        ranger_admin: 'ryba/ranger/admin'
+        hcat: module: 'ryba/hive/hcatalog'
+        ranger_admin: module: 'ryba/ranger/admin'
       configure:
         'ryba/hive/client/configure'
       commands:

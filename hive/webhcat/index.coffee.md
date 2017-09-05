@@ -5,15 +5,15 @@
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        java: implicit: true, module: 'masson/commons/java'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
-        test_user: implicit: true, module: 'ryba/commons/test_user'
-        hadoop_core: 'ryba/hadoop/core'
-        hive_client: implicit: true, module: 'ryba/hive/client'
-        hive_hcatalog: 'ryba/hive/hcatalog'
-        sqoop: 'ryba/sqoop'
-        db_admin: 'ryba/commons/db_admin'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        hadoop_core: module: 'ryba/hadoop/core'
+        hive_client: module: 'ryba/hive/client', implicit: true, 
+        hive_hcatalog: module: 'ryba/hive/hcatalog'
+        sqoop: module: 'ryba/sqoop'
+        db_admin: module: 'ryba/commons/db_admin'
       configure:
         'ryba/hive/webhcat/configure'
       commands:

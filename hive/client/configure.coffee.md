@@ -22,38 +22,44 @@ Example:
       {mapred, tez} = @config.ryba
       {java_home} = @config.java
       hive = @config.ryba.hive ?= {}
-      hive.client ?= {}
-      hive.client.opts = ""
-      hive.client.heapsize = 1024
-      hive.conf_dir ?= '/etc/hive/conf'
+      options = hive.client ?= {}
+
+## Environment
+
+      # Layout
+      options.conf_dir ?= '/etc/hive/conf'
+      # Opts and Java
+      options.env ?= {}
+      options.opts = ""
+      options.heapsize = 1024
+      options.aux_jars ?= hcat_ctxs[0].config.ryba.hive.hcatalog.aux_jars
 
 ## Identities
 
-      hive.user = merge hcat_ctxs[0].config.ryba.hive.user, hive.user
-      hive.group = merge hcat_ctxs[0].config.ryba.hive.group, hive.group
+      options.user = merge hcat_ctxs[0].config.ryba.hive.user, options.user
+      options.group = merge hcat_ctxs[0].config.ryba.hive.group, options.group
 
 ## Configuration
 
-      hive.site ?= {}
-      hive.client.aux_jars ?= hcat_ctxs[0].config.ryba.hive.hcatalog.aux_jars
+      options.site ?= {}
       # Tuning
       # [Christian Prokopp comments](http://www.quora.com/What-are-the-best-practices-for-using-Hive-What-settings-should-we-enable-most-of-the-time)
       # [David Streever](https://streever.atlassian.net/wiki/display/HADOOP/Hive+Performance+Tips)
-      # hive.site['hive.exec.compress.output'] ?= 'true'
-      hive.site['hive.exec.compress.intermediate'] ?= 'true'
-      hive.site['hive.auto.convert.join'] ?= 'true'
-      hive.site['hive.cli.print.header'] ?= 'false'
-      # hive.site['hive.mapjoin.smalltable.filesize'] ?= '50000000'
+      # options.site['hive.exec.compress.output'] ?= 'true'
+      options.site['hive.exec.compress.intermediate'] ?= 'true'
+      options.site['hive.auto.convert.join'] ?= 'true'
+      options.site['hive.cli.print.header'] ?= 'false'
+      # options.site['hive.mapjoin.smalltable.filesize'] ?= '50000000'
 
-      hive.site['hive.execution.engine'] ?= 'tez'
-      hive.site['hive.tez.container.size'] ?= tez.site['tez.am.resource.memory.mb']
-      hive.site['hive.tez.java.opts'] ?= tez.site['hive.tez.java.opts']
+      options.site['hive.execution.engine'] ?= 'tez'
+      options.site['hive.tez.container.size'] ?= tez.site['tez.am.resource.memory.mb']
+      options.site['hive.tez.java.opts'] ?= tez.site['hive.tez.java.opts']
       # Size per reducer. The default in Hive 0.14.0 and earlier is 1 GB. In
       # Hive 0.14.0 and later the default is 256 MB.
       # HDP set it to 64 MB which seems wrong
       # Don't know if this default value should be hardcoded or estimated based
       # on cluster capacity
-      hive.site['hive.exec.reducers.bytes.per.reducer'] ?= '268435456'
+      options.site['hive.exec.reducers.bytes.per.reducer'] ?= '268435456'
 
       # Import HCatalog properties
 
@@ -76,11 +82,7 @@ Example:
       #   'hive.cluster.delegation.token.store.class'
       # ]
       # 
-      # for property in properties then hive.site[property] ?= hcat_ctxs[0].config.ryba.hive.site[property]
-
-## Environment
-
-      hive.client.env ?= {}
+      # for property in properties then options.site[property] ?= hcat_ctxs[0].config.ryba.hive.site[property]
 
 ## Client Metastore Configuration
 
@@ -110,30 +112,17 @@ Example:
         'hive.auto.convert.sortmerge.join.noconditionaltask'
         'hive.exec.max.created.files'
         # Transaction, read/write locks
-      ] then hive.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.site[property]
-# 
-# ## Client HiveServer2 Configuration
-# 
-#       for property in [
-#         'hive.server2.authentication'
-#         # Transaction, read/write locks
-#         'hive.execution.engine'
-#         'hive.zookeeper.quorum'
-#         'hive.server2.thrift.sasl.qop'
-#         'hive.optimize.mapjoin.mapreduce'
-#         'hive.heapsize'
-#         'hive.auto.convert.sortmerge.join.noconditionaltask'
-#         'hive.exec.max.created.files'
-#       ] then hive.site[property] ?= hs2_ctxs[0].config.ryba.hive.server2.site[property]
+      ] then options.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.site[property]
 
 ## Configure SSL
 
-      hive.client.truststore_location ?= "#{hive.conf_dir}/truststore"
-      hive.client.truststore_password ?= "ryba123"
+      options.truststore_location ?= "#{options.conf_dir}/truststore"
+      options.truststore_password ?= "ryba123"
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'
 
 ## Notes
 

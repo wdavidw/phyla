@@ -30,18 +30,18 @@ Example:
       hadoop_ctxs = @contexts ['ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
       {db_admin, realm} = @config.ryba
       @config.ryba.hive ?= {}
-      metastore = @config.ryba.hive.metastore ?= {}
+      options = @config.ryba.hive.metastore ?= {}
 
 ## Configure Database
 
 Note, at the moment, only MySQL and PostgreSQL are supported.
 
-      metastore.db ?= {}
-      metastore.db.username ?= 'hive'
-      throw Error "Required Property: hive.metastore.db.password" unless metastore.db.password
-      if metastore.db.jdbc
+      options.db ?= {}
+      options.db.username ?= 'hive'
+      throw Error "Required Options: db.password" unless options.db.password
+      if options.db.jdbc
         # Ensure the url host is the same as the one configured in config.ryba.db_admin
-        jdbc = db.jdbc metastore.db.jdbc
+        jdbc = db.jdbc options.db.jdbc
         switch jdbc.engine
           when 'mysql'
             admin = jdbc.addresses.filter (address) ->
@@ -53,25 +53,26 @@ Note, at the moment, only MySQL and PostgreSQL are supported.
             throw new Error "Invalid host configuration" unless admin.length
           else throw new Error 'Unsupported database engine'
       else
-        if pg_ctx then metastore.db.engine ?= 'postgres'
-        else if my_ctx then metastore.db.engine ?= 'mysql'
-        else if ma_ctx then metastore.db.engine ?= 'mysql'
-        else metastore.db.engine ?= 'derby'
-        metastore.db.database ?= 'hive'
-        metastore.db.jdbc ?= "#{db_admin[metastore.db.engine].jdbc}/#{metastore.db.database}?createDatabaseIfNotExist=true"
-        metastore.db[k] ?= v for k, v of db_admin[metastore.db.engine]
+        if pg_ctx then options.db.engine ?= 'postgres'
+        else if my_ctx then options.db.engine ?= 'mysql'
+        else if ma_ctx then options.db.engine ?= 'mysql'
+        else options.db.engine ?= 'derby'
+        options.db.database ?= 'hive'
+        options.db.jdbc ?= "#{db_admin[options.db.engine].jdbc}/#{options.db.database}?createDatabaseIfNotExist=true"
+        options.db[k] ?= v for k, v of db_admin[options.db.engine]
 
-## Metastore site
+## Configuration
 
 These configurations will not be rendered into a configuration file but be imported
 by metastore provider like HCatalog or HiveServer2 (local mode).
 
-      metastore.site ?= {}
-      metastore.site['javax.jdo.option.ConnectionURL'] ?= metastore.db.jdbc
-      metastore.site['javax.jdo.option.ConnectionUserName'] ?= metastore.db.username
-      metastore.site['javax.jdo.option.ConnectionPassword'] ?= metastore.db.password
-      metastore.site['javax.jdo.option.ConnectionDriverName'] ?= metastore.db.java.driver
+      options.site ?= {}
+      options.site['javax.jdo.option.ConnectionURL'] ?= options.db.jdbc
+      options.site['javax.jdo.option.ConnectionUserName'] ?= options.db.username
+      options.site['javax.jdo.option.ConnectionPassword'] ?= options.db.password
+      options.site['javax.jdo.option.ConnectionDriverName'] ?= options.db.java.driver
 
 ## Module Dependencies
 
     db = require 'nikita/lib/misc/db'
+    migration = require 'masson/lib/migration'
