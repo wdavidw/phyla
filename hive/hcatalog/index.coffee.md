@@ -10,16 +10,16 @@ data processing tools — Pig, MapReduce — to more easily read and write data 
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        test_user: implicit: true, module: 'ryba/commons/test_user'
-        mapred_client: implicit: true, module: 'ryba/hadoop/mapred_client'
-        metastore: implicit: true, module: 'ryba/hive/metastore'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        mapred_client: module: 'ryba/hadoop/mapred_client', implicit: true
+        metastore: module: 'ryba/hive/metastore', implicit: true
         zookeeper_server: 'ryba/zookeeper/server'
-        yarn_rm: 'ryba/hadoop/yarn_rm'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        tez: 'ryba/tez'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        tez: module: 'ryba/tez'
         hbase_client: implicit: true, module: 'ryba/hbase/client'
       configure:
         'ryba/hive/hcatalog/configure'

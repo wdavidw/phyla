@@ -9,17 +9,17 @@ open API clients like JDBC and ODBC.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
         test_user: implicit: true, module: 'ryba/commons/test_user'
         # mapred_client: implicit: true, module: 'ryba/hadoop/mapred_client'
         tez: implicit: true, module: 'ryba/tez'
         metastore: implicit: true, module: 'ryba/hive/metastore'
-        ranger_admin: 'ryba/ranger/admin'
-        hadoop_core: 'ryba/hadoop/core'
-        hive_client: 'ryba/hive/client'
-        hive_hcatalog: 'ryba/hive/hcatalog'
+        ranger_admin: module: 'ryba/ranger/admin'
+        hadoop_core: module: 'ryba/hadoop/core'
+        hive_client: module: 'ryba/hive/client'
+        hive_hcatalog: module: 'ryba/hive/hcatalog'
         # hbase_client: 'ryba/hbase/client'
       configure: [
         'ryba/hive/server2/configure'
