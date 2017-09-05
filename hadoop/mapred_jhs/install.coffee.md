@@ -150,7 +150,7 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
         context:
           HADOOP_HEAPSIZE: options.hadoop_heap
           HADOOP_LOG_DIR: ''
-          HADOOP_PID_DIR: ''
+          HADOOP_PID_DIR: options.pid_dir
           HADOOP_OPTS: options.hadoop_opts
           HADOOP_CLIENT_OPTS: options.hadoop_client_opts
           HADOOP_MAPRED_LOG_DIR: options.log_dir

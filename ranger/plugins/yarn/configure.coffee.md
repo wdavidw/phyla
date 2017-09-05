@@ -7,13 +7,13 @@ This modules configures every hadoop plugin needed to enable Ranger. It configur
 variables but also inject some function to be executed.
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/plugins/yarn', ['ryba', 'ranger', 'yarn_plugin'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ranger/plugins/yarn', ['ryba', 'ranger', 'yarn'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         hadoop_core: key: ['ryba']
         yarn_rm: key: ['ryba', 'yarn', 'rm']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
       @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.yarn_plugin = service.options
+      options = @config.ryba.ranger.yarn = service.options
 
 ## Plugin User
 

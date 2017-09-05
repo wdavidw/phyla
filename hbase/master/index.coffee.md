@@ -14,7 +14,7 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         zookeeper_server: module: 'ryba/zookeeper/server', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client'
-        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
         # hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
@@ -30,9 +30,9 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
           @call 'ryba/hbase/master/check', options
         'install': ->
           options = @config.ryba.hbase.master
-          # @call 'ryba/hbase/master/install', options
-          # @call 'ryba/hbase/master/layout', options
-          # @call 'ryba/hbase/master/start', options
+          @call 'ryba/hbase/master/install', options
+          @call 'ryba/hbase/master/layout', options
+          @call 'ryba/hbase/master/start', options
           @call 'ryba/hbase/master/check', options
         'start': ->
           options = @config.ryba.hbase.master

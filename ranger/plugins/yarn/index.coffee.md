@@ -9,7 +9,7 @@
       configure:
         'ryba/ranger/plugins/yarn/configure'
       plugin: ->
-        options = @config.ryba.ranger.hdfs_plugin
+        options = @config.ryba.ranger.yarn
         @before
           type: ['service', 'start']
           name: 'hadoop-yarn-resourcemanager'
@@ -17,5 +17,5 @@
           @call 'ryba/ranger/plugins/yarn/install', options
       commands:
         'install': ->
-          options = @config.ryba.ranger.yarn_plugin
+          options = @config.ryba.ranger.yarn
           @call 'ryba/ranger/plugins/yarn/install', options

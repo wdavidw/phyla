@@ -8,6 +8,7 @@
         zookeeper_server: key: ['ryba', 'zookeeper']
         hadoop_core: key: ['ryba']
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
         hdfs_client: key: ['ryba', 'hdfs_client']
         hbase_master: key: ['ryba', 'hbase', 'master']
         hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
@@ -35,6 +36,8 @@
 
       # Layout
       options.conf_dir ?= '/etc/hbase-regionserver/conf'
+      # We could use hdfs_dn but defaultFS isnt defined
+      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
       options.log_dir ?= '/var/log/hbase'
       options.pid_dir ?= '/var/run/hbase'
       # Env & Java
@@ -43,6 +46,7 @@
       # http://blog.sematext.com/2012/07/16/hbase-memstore-what-you-should-know/
       # Keep hbase.regionserver.hlog.blocksize * hbase.regionserver.maxlogs just
       # Value is a bit above hbase.regionserver.global.memstore.lowerLimit * HBASE_HEAPSIZE
+      # 'HBASE_REGIONSERVER_OPTS ?= '-Xmn200m -Xms4096m -Xmx4096m' # Default in HDP companion file
       options.heapsize ?= "256m" #i.e. -Xmx256m
       options.java_opts ?= "" #rs.java_opts is build at runtime from the rs.opts object
       options.opts ?= {} #represent the java options obect

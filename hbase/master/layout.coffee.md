@@ -22,14 +22,25 @@ Wait for HDFS to be started.
 
 Create the directory structure with correct ownerships and permissions.
 
+
       @hdfs_mkdir
-        header: 'User Test'
+        header: 'Data'
+        target: options.hbase_site['hbase.rootdir']
+        user: options.user.name
+        group: options.group.name
+        mode: 0o0711
+        parent:
+          mode: 0o0711
+        conf_dir: options.hdfs_conf_dir
+        krb5_user: options.hdfs_admin
+      @hdfs_mkdir
+        header: 'Staging'
         target: options.hbase_site['hbase.bulkload.staging.dir']
         user: options.user.name
         group: options.group.name
         mode: 0o0711
         parent:
-          mode: 0o0644
+          mode: 0o0711
         conf_dir: options.hdfs_conf_dir
         krb5_user: options.hdfs_admin
         

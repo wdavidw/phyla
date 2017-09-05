@@ -4,7 +4,7 @@ Description=HBase Master
 [Service]
 User={{options.user.name}}
 Group={{options.group.name}}
-PIDFile={{options.master.pid_dir}}/hbase-hbase-master.pid
+PIDFile={{options.pid_dir}}/hbase-hbase-master.pid
 ExecStart=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{options.conf_dir}} start master
 ExecReload=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{options.conf_dir}} restart master
 ExecStop=/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config {{options.conf_dir}} stop master

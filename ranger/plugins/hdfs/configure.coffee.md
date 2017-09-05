@@ -5,7 +5,7 @@ For the HDFS plugin, the executed script already create the hdfs user to ranger 
 as external.
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/plugins/hdfs', ['ryba', 'ranger', 'hdfs_plugin'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ranger/plugins/hdfs', ['ryba', 'ranger', 'hdfs'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         hadoop_core: key: ['ryba']
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
@@ -13,7 +13,7 @@ as external.
         hdfs_client: key: ['ryba', 'hdfs']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
       @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.hdfs_plugin = service.options
+      options = @config.ryba.ranger.hdfs = service.options
 
 ## Environment
 
@@ -35,7 +35,7 @@ as external.
       # Admin Information
       options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
 
-## Access`
+## Access
 
       options.ranger_admin ?= service.use.ranger_admin.options.admin
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered

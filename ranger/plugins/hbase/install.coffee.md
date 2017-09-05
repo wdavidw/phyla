@@ -1,18 +1,16 @@
 
 # Ranger HBase Plugin Install
 
-    module.exports = header: 'Ranger HBase Plugin install', handler: ->
-      {ranger, hdfs, hbase, , , ssl, core_site} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
+    module.exports = header: 'Ranger HBase Plugin Install', handler: (options) ->
       version= null
-      conf_dir = null
 
-      @call -> conf_dir = if @config.ryba.hbase_plugin_is_master then hbase.master.conf_dir else hbase.rs.conf_dir
+## Wait
 
-## Dependencies
+      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger_admin
 
-      @call once: true, 'ryba/ranger/admin/wait'
+## Register
+
+      
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
 
@@ -25,38 +23,37 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
+         , (err, _, stdout) ->
+            throw  err if err
+            version = stdout.trim()
         @service
           name: "ranger-hbase-plugin"
 
 ## Layout
 
       @system.mkdir
-        target: ranger.hbase_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: hbase.user.name
+        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        uid: options.user.name
         gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.hbase_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
-        target: ranger.hbase_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: hbase.user.name
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.user.name
         gid: options.hadoop_group.name
         mode: 0o0750
-        if: ranger.hbase_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
 ## HBase Service Repository creation
 Matchs step 1 in [hdfs plugin configuration][hbase-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
       @call
-        if: @contexts('ryba/hbase/master')[0].config.host is @config.host
-        header: 'Ranger HBase Repository & audit policy'
+        header: 'Policy'
       , ->
         hbase_policy =
           name: "hbase-ranger-plugin-audit"
-          service: "#{hdfs_plugin.install['REPOSITORY_NAME']}"
+          service: "#{options.hdfs_install['REPOSITORY_NAME']}"
           repositoryType:"hdfs"
           description: 'HBase Ranger Plugin audit log policy'
           isEnabled: true
@@ -67,7 +64,7 @@ we execute this task using the rest api.
               values: ['/ranger/audit/hbaseRegional','/ranger/audit/hbaseMaster']
               isExcludes: false
           policyItems: [{
-            users: ["#{hbase.user.name}"]
+            users: ["#{options.user.name}"]
             groups: []
             delegateAdmin: true
             accesses:[
@@ -84,50 +81,52 @@ we execute this task using the rest api.
             }]
         @hdfs_mkdir
           header: 'HBase Master plugin HDFS audit dir'
-          target: "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hbaseMaster"
+          target: "/#{options.user.name}/audit/hbaseMaster"
           mode: 0o750
-          user: hbase.user.name
-          group: hbase.group.name
-          unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hbaseMaster"
+          user: options.user.name
+          group: options.group.name
         @hdfs_mkdir
           header: 'HBase Regionserver plugin HDFS audit dir'
-          target: "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hbaseRegional"
+          target: "/#{options.user.name}/audit/hbaseRegional"
           mode: 0o750
-          user: hbase.user.name
-          group: hbase.group.name
-          unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hbaseRegional"
+          user: options.user.name
+          group: options.group.name
         @system.execute
-          header: 'Ranger Admin Policy'
+          header: 'Admin Policy'
+          unless_exec: """
+          curl --fail -H "Content-Type: application/json" -k -X GET  \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            "#{options.hdfs_install['POLICY_MGR_URL']}/service/public/v2/api/service/#{options.hdfs_install['REPOSITORY_NAME']}/policy/hbase-ranger-plugin-audit"
+          """
           cmd: """
           curl --fail -H "Content-Type: application/json" -k -X POST \
             -d '#{JSON.stringify hbase_policy}' \
-            -u admin:#{password} \
-            \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
-          """
-          unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{password} \
-            \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/#{hdfs_plugin.install['REPOSITORY_NAME']}/policy/hbase-ranger-plugin-audit\"
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            "#{options.hdfs_install['POLICY_MGR_URL']}/service/public/v2/api/policy"
           """
         @system.execute
-          header: 'Ranger Admin Repository'
+          header: 'Admin Repository'
           unless_exec: """
-          curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{password} \"#{ranger.hbase_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}\"
+          curl --fail -H "Content-Type: application/json"   -k -X GET  \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
           """
           cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.hbase_plugin.service_repo}' \
-            -u admin:#{password} \"#{ranger.hbase_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
+          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
           """
 
 ## HBase  Plugin Principal
 
-      @krb5.addprinc options.krb5.admin,
-        if: ranger.hbase_plugin.principal
-        header: 'Ranger HBase Principal'
-        principal: ranger.hbase_plugin.principal
-        randkey: true
-        password: ranger.hbase_plugin.password
+      # migration: wdavidw, 170905, isnt the principal hbase/{fqdn}? If so, then
+      # it should already be provisionned by HBase Master, no ?
+      # @krb5.addprinc options.krb5.admin,
+      #   if: options.principal
+      #   header: 'Ranger HBase Principal'
+      #   principal: ranger.hbase_plugin.principal
+      #   randkey: true
+      #   password: ranger.hbase_plugin.password
 
 ## SSL
 
@@ -137,11 +136,11 @@ Must add certificate to JAVA Cacerts file manually.
 TODO: remove CA from JAVA_HOME cacerts in a future version.
 
       @java.keystore_add
-        keystore: '/usr/java/default/jre/lib/security/cacerts'
+        keystore: "#{options.jre_home}/lib/security/cacerts"
         storepass: 'changeit'
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{options.ssl.cacert.source}"
+        local: "#{options.ssl.cacert.local}"
 
 ## Plugin Scripts 
 
@@ -154,7 +153,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.hbase_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -163,7 +162,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
           target: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
           write:[
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
             ,
               match: RegExp "\\^HCOMPONENT_LIB_DIR=.*$", 'mg'
               replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hbase-client/lib"
@@ -179,7 +178,8 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
             cmd: """
             echo '' | keytool -list \
               -storetype jceks \
-              -keystore /etc/ranger/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+              -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks \
+            | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
             code_skipped: 1
           @call
@@ -187,7 +187,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
           , ->
             @each files, (options, cb) ->
               file = options.key
-              target = "#{conf_dir}/#{file}"
+              target = "#{options.conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
@@ -206,16 +206,16 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
             """
           @system.execute
             header: "Fix Plugin repository permission"
-            cmd: "chown -R #{hbase.user.name}:#{options.hadoop_group.name} /etc/ranger/#{ranger.hbase_plugin.install['REPOSITORY_NAME']}"
+            cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
           @hconfigure
             header: 'Fix Plugin security conf'
-            target: "#{conf_dir}/ranger-hbase-security.xml"
+            target: "#{options.conf_dir}/ranger-hbase-security.xml"
             merge: true
             properties:
-              'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
+              'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
           @each files, (options, cb) ->
             file = options.key
-            target = "#{conf_dir}/#{file}"
+            target = "#{options.conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return callback err if err
               properties.read options.ssh, target , (err, props) ->

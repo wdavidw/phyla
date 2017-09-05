@@ -49,7 +49,7 @@ is added membership to the group hadoop to gain read access.
 
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{options.user.name} -c 'test -r #{options.hbase_site['hbase.security.authentication.spnego.kerberos.principal']}'"
+        cmd: "su -l #{options.user.name} -c 'test -r #{options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab']}'"
 
 ## Check HTTP JMX
 

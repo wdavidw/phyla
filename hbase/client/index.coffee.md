@@ -8,9 +8,12 @@ Client code accessing a cluster finds the cluster by querying ZooKeeper.
     module.exports =
       use:
         java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         mapred_client: module: 'ryba/hadoop/mapred_client', required: true
         hbase_master: module: 'ryba/hbase/master', required: true
         hbase_regionserver: module: 'ryba/hbase/regionserver', required: true
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+        ranger_hbase: module: 'ryba/ranger/plugins/hbase'
       configure:
         'ryba/hbase/client/configure'
       commands:
