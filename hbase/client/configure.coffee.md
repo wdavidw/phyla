@@ -4,9 +4,12 @@
     module.exports = (service) ->
       service = migration.call @, service, 'ryba/hbase/client', ['ryba', 'hbase', 'client'], require('nikita/lib/misc').merge require('.').use,
         java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
         mapred_client: key: ['ryba', 'mapred']
         hbase_master: key: ['ryba', 'hbase', 'master']
         hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_hbase: key: ['ryba', 'ranger', 'hbase']
       @config.ryba ?= {}
       @config.ryba.hbase ?= {}
       options = @config.ryba.hbase.client = service.options
@@ -15,35 +18,31 @@
 
       options.group = merge service.use.hbase_master[0].options.group, options.group
       options.user = merge service.use.hbase_master[0].options.user, options.user
+      # Krb5 admin user
       options.admin = merge service.use.hbase_master[0].options.admin, options.admin
       options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
-      # Krb5 admin user
-      options.admin = service.use.hbase_master[0].options.admin
-
-## Layout
-
-      options.conf_dir ?= '/etc/hbase/conf'
-      options.log_dir ?= '/var/log/hbase'
-
-## Test
-
-      options.test ?= {}
-      options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
-      options.test.table ?= 'a_table'
 
 ## Environment
 
+      # Layout
+      options.conf_dir ?= '/etc/hbase/conf'
+      options.log_dir ?= '/var/log/hbase'
       # Java
       options.env ?=  {}
-      options.env['JAVA_HOME'] ?= "#{@config.java}"
+      options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
-      options.env['HBASE_MASTER_OPTS'] ?= '-Xmx2048m' # Default in HDP companion file
-      options.env['HBASE_REGIONSERVER_OPTS'] ?= '-Xmn200m -Xms4096m -Xmx4096m' # Default in HDP companion file
       # Misc
       options.hostname ?= service.use.hostname
       options.force_check ?= true
       options.is_ha ?= service.use.hbase_master.length
+
+## Test
+
+      options.ranger_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
+      options.test = merge {}, service.use.test_user.options, options.test
+      options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
+      options.test.table ?= 'a_table'
 
 ## Configuration
 
@@ -88,6 +87,7 @@
 
       options.wait_hbase_master = service.use.hbase_master[0].options.wait
       options.wait_hbase_regionserver = service.use.hbase_regionserver[0].options.wait
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait
 
 ## Configuration Quota
 

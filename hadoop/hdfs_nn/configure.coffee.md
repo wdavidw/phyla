@@ -238,7 +238,7 @@ for distcp purpose.
 
 ## Ranger
 
-      options.ranger = true if service.use.ranger_admin
+      # options.ranger = true if service.use.ranger_admin
 
 ## Export configuration
 

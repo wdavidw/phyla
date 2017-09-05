@@ -2,13 +2,15 @@
 ## Ranger HBase Plugin Configure
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/plugins/hbase', ['ryba', 'ranger', 'hbase_plugin'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ranger/plugins/hbase', ['ryba', 'ranger', 'hbase'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
+        java: key: ['java']
         hadoop_core: key: ['ryba']
         hbase_master: key: ['ryba', 'hbase', 'master']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
       @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.hbase_plugin = service.options
+      options = @config.ryba.ranger.hbase = service.options
 
 ## Kerberos
 
@@ -25,14 +27,19 @@
       options.hbase_user = service.use.hbase_master.options.user
       options.hadoop_group = service.use.hbase_master.options.hadoop_group
 
-## Access`
+## Access
 
       options.ranger_admin ?= service.use.ranger_admin.options.admin
+      options.hdfs_install ?= service.use.ranger_hdfs.options.install
 
 ## Environment
 
+      # Layout
       options.conf_dir ?= service.use.hbase_master.options.conf_dir
       options.log_dir ?= service.use.hbase_master.options.log_dir
+      # Java
+      # Java
+      options.jre_home ?= service.use.java.options.jre_home
 
 ## Plugin User
 
@@ -43,7 +50,7 @@ plugin and the server ?
 migration: wdavidw 170828, access for the user need to be tested through a HTTP
 REST request.
 
-      service.use.ranger_admin.options.users['yarn'] ?=
+      service.use.ranger_admin.options.users['hbase'] ?=
         "name": 'hbase'
         "firstName": ''
         "lastName": 'hadoop'
@@ -166,6 +173,7 @@ The repository name should match the reposity name in web ui.
 ### HBase Plugin Execution
 
       if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
         options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
         options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.location']
@@ -174,6 +182,10 @@ The repository name should match the reposity name in web ui.
 ## Merge hive_plugin conf to ranger admin
 
         # ranger_admin_ctx.config.ryba.ranger.hbase_plugin = merge hbase_plugin
+
+## Wait
+
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait
 
 ## Dependencies
 

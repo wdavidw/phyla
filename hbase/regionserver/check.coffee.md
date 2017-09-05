@@ -14,8 +14,8 @@ Ensure for the server is listening for remote connections.
         sleep: 3000
 
       @connection.assert
-        header: 'HTTP'
-        servers: options.wait.http.filter (srv) -> srv.host is options.fqdn
+        header: 'Info'
+        servers: options.wait.info.filter (srv) -> srv.host is options.fqdn
         retry: 3
         sleep: 3000
 

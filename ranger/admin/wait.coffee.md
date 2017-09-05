@@ -11,7 +11,7 @@ Wait for the Ranger Admin server to accept HTTP connections.
       @wait.execute
         cmd: """
         curl --fail -H "Content-Type: application/json" -k -X GET \
-          -u admin:#{options.http.password} \
+          -u #{options.http.username}:#{options.http.password} \
           "#{options.http.url}"
         """
         code_skipped: [1,7,22]

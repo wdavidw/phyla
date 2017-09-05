@@ -361,15 +361,6 @@ ${HADOOP_CONF_DIR}/core-site.xml
         cmd: mkcmd.hdfs @, "service hadoop-hdfs-namenode status && hdfs --config '#{options.conf_dir}' dfsadmin -refreshServiceAcl"
         code_skipped: 3
 
-## Ranger HDFS Plugin Install
-
-      # TODO: restart hdfs service in ranger hdfs plugin
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length
-      # , ->
-      #   @call 'ryba/ranger/plugins/hdfs/install', options
-      #   @call 'ryba/ranger/plugins/hdfs/setup', options
-
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'

@@ -20,7 +20,6 @@
       @config.ryba.hbase ?= {}
       options = @config.ryba.hbase.master = service.options
       
-
 ## Kerberos
 
       options.krb5 ?= {}
@@ -80,14 +79,14 @@ Example
       throw Error 'Required Option: admin.password' unless options.admin.password
       # HDFS Admin
       options.hdfs_admin ?= {}
-      options.hdfs_admin.principal ?= service.use.hdfs_nn[0].options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
-      options.hdfs_admin.keytab ?= service.use.hdfs_nn[0].options.hdfs_site['dfs.namenode.keytab.file']
+      options.hdfs_admin.principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
+      options.hdfs_admin.keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
 
 ## Environment
 
       # Layout
       options.conf_dir ?= '/etc/hbase-master/conf'
-      options.hdfs_conf_dir ?= service.use.hdfs_nn[0].options.conf_dir
+      options.hdfs_conf_dir ?= service.use.hdfs_nn.options.conf_dir
       options.log_dir ?= '/var/log/hbase'
       options.pid_dir ?= '/var/run/hbase'
       # Env
@@ -96,6 +95,7 @@ Example
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
       # Java
+      # 'HBASE_MASTER_OPTS' ?= '-Xmx2048m' # Default in HDP companion file
       options.heapsize ?= "1024m"
       options.java_opts ?= ""
       options.opts ?= {}
@@ -133,10 +133,7 @@ activate or desactivate the RegionServer.
       options.hbase_site['zookeeper.session.timeout'] ?= "#{20 * parseInt service.use.zookeeper_server[0].options.config['tickTime']}"
       # Enter the HBase NameNode server hostname
       # http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/latest/CDH4-High-Availability-Guide/cdh4hag_topic_2_6.html
-      nn_host = if service.use.hdfs_nn.length > 1
-      then service.use.hdfs_nn[0].options.nameservice
-      else "#{service.use.hdfs_nn[0].node.fqdn}:8020"
-      options.hbase_site['hbase.rootdir'] ?= "hdfs://#{nn_host}/apps/hbase/data"
+      options.hbase_site['hbase.rootdir'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/apps/hbase/data"
       # Comma separated list of Zookeeper servers (match to
       # what is specified in zoo.cfg but without portnumbers)
       options.hbase_site['hbase.zookeeper.quorum'] = "#{zk_hosts}"
@@ -364,7 +361,7 @@ supported contexts are "hbase", "jvm" and "rpc".
 
       options.wait_krb5_client = service.use.krb5_client.options.wait
       options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn.options.wait
       for srv in service.use.hbase_master
         srv.options.master_site ?= {}
         srv.options.master_site['hbase.master.port'] ?= '60000'

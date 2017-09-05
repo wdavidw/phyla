@@ -23,4 +23,5 @@ systemctl start hbase-master
 su -l hbase -c "/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /etc/hbase-master/conf start master"
 ```
 
-      @service.start 'hbase-master'
+      @service.start
+        name: 'hbase-master'

@@ -15,7 +15,7 @@ Wait for Kerberos, ZooKeeper, HDFS and HBase Master to be started.
 
       @call 'masson/core/krb5_client/wait', once: true,  options.wait_krb5_client
       @call 'ryba/zookeeper/server/wait', once: true,  options.wait_zookeeper_server
-      @call 'ryba/hadoop/hdfs_nn/wait', once: true,  options.wait_hdfs_nn
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true,  options.wait_hdfs_nn, conf_dir: options.hdfs_conf_dir
       @call 'ryba/hbase/master/wait', once: true, options.wait_hbase_master
 
 Start the service.

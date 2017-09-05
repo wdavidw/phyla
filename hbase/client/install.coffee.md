@@ -69,12 +69,18 @@ Environment passed to the Master before it starts.
         target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
-        context: @config
+        context: options: options
         mode: 0o644
         eof: true
         # Fix mapreduce looking for "mapreduce.tar.gz"
-        write: [
-          match: /^export HBASE_OPTS=\"(.*)\$\{HBASE_OPTS\} -Djava.security.auth.login.config(.*)$/m
-          replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{options.conf_dir}/hbase-client.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
+        # migration: wdavidw 170905, comment to see if it still apply
+        # write: [
+        #   match: /^export HBASE_OPTS=\"(.*)\$\{HBASE_OPTS\} -Djava.security.auth.login.config(.*)$/m
+        #   replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{options.conf_dir}/hbase-client.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
+        #   append: true
+        # ]
+        # migration: wdavidw 170905, added
+        write: for k, v of options.env
+          match: RegExp "export #{k}=.*", 'm'
+          replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
           append: true
-        ]
