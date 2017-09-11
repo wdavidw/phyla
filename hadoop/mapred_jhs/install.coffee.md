@@ -154,7 +154,7 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
         mode: 0o0755
         backup: true
       @file.render
-        header: 'Mapred Env'
+        header: 'MapRed Env'
         target: "#{options.conf_dir}/mapred-env.sh"
         source: "#{__dirname}/../resources/mapred-env.sh.j2"
         context: options: options
