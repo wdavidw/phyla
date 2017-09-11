@@ -1,8 +1,7 @@
 
 # Tez Install
 
-    module.exports = header: 'Tez Install', handler: ->
-      {tez, hadoop_conf_dir} = @config.ryba
+    module.exports = header: 'Tez Install', handler: (options) ->
 
 ## Register
 
@@ -31,19 +30,19 @@ HDFS directory. Note, the parent directories are created by the
 
       @hconfigure
         header: 'Tez Site'
-        target: "#{tez.env['TEZ_CONF_DIR']}/tez-site.xml"
+        target: "#{options.env['TEZ_CONF_DIR']}/tez-site.xml"
         source: "#{__dirname}/resources/tez-site.xml"
         local: true
-        properties: tez.site
+        properties: options.tez_site
         merge: true
 
 ## Environment
 
 Environment passed to Hadoop.   
 
-      env = for k, v of tez.env
+      env = for k, v of options.env
         "export #{k}=#{v}"
-      classpath = "#{tez.env['TEZ_CONF_DIR']}:#{tez.env['TEZ_JARS']}"
+      classpath = "#{options.env['TEZ_CONF_DIR']}:#{options.env['TEZ_JARS']}"
       @file
         header: 'Environment'
         target: '/etc/profile.d/tez.sh'
@@ -62,15 +61,15 @@ Environment passed to Hadoop.
 Tez UI will be untared in the tez.ui.html_path directory. A WebServer must be configured
 to serve this directory.
 
-      @call header: 'UI', if: tez.ui.enabled, ->
+      @call header: 'UI', if: options.ui.enabled, ->
         @system.mkdir
           header: 'Layout'
-          target: tez.ui.html_path
+          target: options.ui.html_path
         @system.execute
           header: 'Web Files'
           cmd: """
           target_file=`ls /usr/hdp/current/tez-client/ui/tez-ui*.war | sed 's/^.*tez/tez/g'`
-          cd #{tez.ui.html_path}
+          cd #{options.ui.html_path}
           ls ${target_file} >/dev/null 2>&1
           if [ $? -ne 0 ]; then
             rm -rf *
@@ -83,13 +82,13 @@ to serve this directory.
           code_skipped: 3
         @file
           header: 'Env'
-          target: "#{tez.ui.html_path}/config/configs.env"
-          content: "ENV = #{JSON.stringify tez.ui.env, null, '  '};"
+          target: "#{options.ui.html_path}/config/configs.env"
+          content: "ENV = #{JSON.stringify options.ui.env, null, '  '};"
           backup: true
           eof: true
         @file
           header: 'Fix HTTPS'
-          target: "#{tez.ui.html_path}/assets/tez-ui.js"
+          target: "#{options.ui.html_path}/assets/tez-ui.js"
           write: [
             match: "      url = this.correctProtocol(url);"
             replace: "      //url = this.correctProtocol(url);"
