@@ -13,12 +13,12 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         java: module: 'masson/commons/java', local: true
         zookeeper_server: module: 'ryba/zookeeper/server', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
-        hdfs_client: module: 'ryba/hadoop/hdfs_client'
-        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         # hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
-        ranger_admin: module: 'ryba/ranger/admin'
+        ranger_admin: module: 'ryba/ranger/admin', single: true
         hbase_master: module: 'ryba/hbase/master'
         ganglia_collector: module: 'ryba/ganglia/collector', single: true
       configure:

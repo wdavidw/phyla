@@ -211,7 +211,7 @@ Example:
       # WebHcat
       [webhcat_ctx] = @contexts 'ryba/hive/webhcat'
       if webhcat_ctx
-        webhcat_port = webhcat_ctx.config.ryba.webhcat.site['templeton.port']
+        webhcat_port = webhcat_ctx.config.ryba.webhcat.webhcat_site['templeton.port']
         templeton_url = "http://#{webhcat_ctx.config.host}:#{webhcat_port}/templeton/v1/"
         hue_docker.ini['hcatalog'] ?= {}
         hue_docker.ini['hcatalog']['templeton_url'] ?= templeton_url
@@ -219,8 +219,8 @@ Example:
       webhcat_ctxs = @contexts 'ryba/hive/webhcat'
       if webhcat_ctxs.length
         for webhcat_ctx in webhcat_ctxs
-          webhcat_ctx.config.ryba.webhcat.site["webhcat.proxyuser.#{hue_docker.user.name}.users"] ?= '*'
-          webhcat_ctx.config.ryba.webhcat.site["webhcat.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+          webhcat_ctx.config.ryba.webhcat.webhcat_site["webhcat.proxyuser.#{hue_docker.user.name}.users"] ?= '*'
+          webhcat_ctx.config.ryba.webhcat.webhcat_site["webhcat.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
       else
         blacklisted_app.push 'webhcat'
 
@@ -230,9 +230,9 @@ Example:
       throw Error "No Hive HCatalog Server configured" unless hs2_ctx
       hue_docker.ini['beeswax'] ?= {}
       hue_docker.ini['beeswax']['hive_server_host'] ?= "#{hs2_ctx.config.host}"
-      hue_docker.ini['beeswax']['hive_server_port'] ?= if hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'binary'
-      then hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.port']
-      else hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.port']
+      hue_docker.ini['beeswax']['hive_server_port'] ?= if hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.transport.mode'] is 'binary'
+      then hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.thrift.port']
+      else hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.thrift.http.port']
       hue_docker.ini['beeswax']['hive_conf_dir'] ?= '/etc/hive/conf' # Hive client is a dependency of Hue
       hue_docker.ini['beeswax']['server_conn_timeout'] ?= "240"
       # Desktop
@@ -252,11 +252,16 @@ Example:
       hue_docker.ini.desktop.database.user ?= 'hue'
       throw Error "Required Property: hue_docker.ini.desktop.database.password" unless hue_docker.ini.desktop.database.password
       hue_docker.ini.desktop.database.name ?= 'hue3'
-      # Desktop database
+
+## Desktop database
+
+      hue_docker.db ?= {}
+      hue_docker.db.engine ?= db_admin.engine
+      hue_docker.db = merge {}, db_admin[hue_docker.db.engine], hue_docker.db
       hue_docker.ini['desktop']['database'] ?= {}
-      if pg_ctx then hue_docker.ini['desktop']['database']['engine'] ?= 'postgres'
-      else if my_ctx then hue_docker.ini['desktop']['database']['engine'] ?= 'mysql'
-      else hue_docker.ini['desktop']['database']['engine'] ?= 'derby'
+      hue_docker.ini['desktop']['database']['engine'] = hue_docker.db.engine
+      hue_docker.ini['desktop']['database']['engine'] = 'postgres' if hue_docker.db.engine is 'postgresql'
+      hue_docker.ini['desktop']['database']['engine'] ?= 'derby'
       engine = hue_docker.ini['desktop']['database']['engine']
       hue_docker.ini['desktop']['database']['host'] ?= db_admin[engine]['host']
       hue_docker.ini['desktop']['database']['port'] ?= db_admin[engine]['port']
@@ -436,6 +441,10 @@ Example:
         hive_ctx.config.ryba.core_site ?= {}
         hive_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
         hive_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
 
 [home]: http://gethue.com
 [hdp-2.3.2.0-hue]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_installing_manually_book/content/prerequisites_hue.html)

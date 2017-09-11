@@ -82,7 +82,7 @@
         options.hbase_site['hbase.regionserver.keytab.file'] ?= '/etc/security/keytabs/rs.service.keytab'
         options.hbase_site['hbase.security.authentication.ui'] ?= 'kerberos'
         options.hbase_site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
-        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
+        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
       options.hbase_site['hbase.regionserver.global.memstore.upperLimit'] = null # Deprecated from HDP 2.3
       options.hbase_site['hbase.regionserver.global.memstore.size'] = '0.4' # Default in HDP Companion Files
       options.hbase_site['hbase.coprocessor.region.classes'] =  service.use.hbase_master[0].options.hbase_site['hbase.coprocessor.region.classes']

@@ -2,7 +2,7 @@
 # Hive HCatalog Status
 
 Check if the HCatalog is running. The process ID is located by default
-inside "/var/lib/hive-hcatalog/hcat.pid".
+inside "/var/run/hive-hcatalog/hive-hcatalog.pid".
 
     module.exports = header: 'Hive HCatalog Status', label_true: 'STARTED', label_false: 'STOPPED', handler: ->
       @service.status

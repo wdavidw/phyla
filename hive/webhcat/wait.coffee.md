@@ -1,17 +1,13 @@
 
 # WebHCat Wait
 
-    module.exports = header: 'WebHCat Wait', label_true: 'READY', handler:  ->
-      options = {}
-      options.wait_http = for webhcat_ctx in @contexts 'ryba/hive/webhcat'
-        host: webhcat_ctx.config.host
-        port: webhcat_ctx.config.ryba.webhcat.site['templeton.port']
+    module.exports = header: 'WebHCat Wait', label_true: 'READY', handler: (options) ->
 
 ## HTTP Port
 
       @connection.wait
         header: 'HTTP'
-        servers: options.wait_http
+        servers: options.http
 
 ## Dependencies
 

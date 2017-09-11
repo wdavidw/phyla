@@ -227,6 +227,7 @@ Layout is inspired by [Hadoop recommandation](http://hadoop.apache.org/docs/r2.1
       @system.execute
         header: 'HDFS Layout'
         cmd: mkcmd.hdfs @, """
+        modified=""
         if ! hdfs --config #{options.conf_dir} dfs -test -d #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history; then
           hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history
           hdfs --config #{options.conf_dir} dfs -chmod 0755 #{options.mapred_site['yarn.app.mapreduce.am.staging-dir']}/history

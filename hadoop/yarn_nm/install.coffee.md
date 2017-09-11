@@ -29,15 +29,14 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       nm_localizer_port = options.yarn_site['yarn.nodemanager.localizer.address'].split(':')[1]
       nm_webapp_port = options.yarn_site['yarn.nodemanager.webapp.address'].split(':')[1]
       nm_webapp_https_port = options.yarn_site['yarn.nodemanager.webapp.https.address'].split(':')[1]
+      options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nm_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Container" }
+      options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nm_localizer_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Localizer" }
+      options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nm_webapp_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Web UI" }
+      options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nm_webapp_https_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Web Secured UI" }
       @tools.iptables
         header: 'IPTables'
         if: options.iptables
-        rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: nm_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Container" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: nm_localizer_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Localizer" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: nm_webapp_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Web UI" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: nm_webapp_https_port, protocol: 'tcp', state: 'NEW', comment: "YARN NM Web Secured UI" }
-        ]
+        rules: options.iptables_rules
 
 ## Packages
 

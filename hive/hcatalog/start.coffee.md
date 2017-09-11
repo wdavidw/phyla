@@ -1,35 +1,31 @@
 
 # Hive HCatalog Start
 
+Start the Hive HCatalog server. 
 
-## Start Hive HCatalog
+    module.exports =  header: 'Hive HCatalog Start', label_true: 'STARTED', handler: (options) ->
 
-Start the Hive HCatalog server. You can also start the server manually with the
+## Wait
+
+The Hive HCatalog require the database server to be started. The HDFS Namenode 
+need to functionnal for Hive to answer queries.
+
+      # console.log 'options.wait_db_admin', options.wait_db_admin
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.hdfs_conf_dir
+      @call 'ryba/commons/db_admin/wait', once: true, options.wait_db_admin
+
+## Service
+
+You can also start the server manually with the
 following two commands:
 
 ```
 service hive-hcatalog-server start
-su -l hive -c 'nohup hive --service metastore >/var/log/hive-hcatalog/hcat.out 2>/var/log/hive-hcatalog/hcat.err & echo $! >/var/lib/hive-hcatalog/hcat.pid'
+systemctl start hive-hcatalog-server
+su -l hive -c 'nohup hive --config /etc/hive-hcatalog/conf --service metastore >/var/log/hive-hcatalog/hcat.out 2>/var/log/hive-hcatalog/hcat.err & echo $! >/var/run/hive-hcatalog/hive-hcatalog.pid'
 ```
-
-    module.exports =  header: 'Hive HCatalog Start', label_true: 'STARTED', handler: ->
-      {hive} = @config.ryba
-      jdbc = db.jdbc hive.hcatalog.site['javax.jdo.option.ConnectionURL']
-
-## Wait
-
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-
-## Wait Database
-
-The Hive HCatalog require the database server to be started. The Hive Server2
-require the HDFS Namenode to be started. Both of them will need to functionnal
-HDFS server to answer queries.
-
-      @call header: 'Wait DB', label_true: 'READY', ->
-        @connection.wait jdbc.addresses
 
       @service.start
         header: 'Start service'

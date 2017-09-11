@@ -61,31 +61,26 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 ## Ranger Databases
 
       @call header: 'DB Setup', ->
-        {db_admin} = @config.ryba
-        switch options.install['DB_FLAVOR'].toLowerCase()
-          when 'mysql'
-            mysql_exec = "mysql -u#{db_admin.mysql.admin_username} -p#{db_admin.mysql.admin_password} -h#{db_admin.mysql.host} -P#{db_admin.mysql.port} "
+        switch options.db.engine
+          when 'mariadb', 'mysql'
+            # mysql_exec = "mysql -u#{options.db.admin_username} -p#{options.db.admin_password} -h#{options.db.host} -P#{options.db.port} "
             @system.execute
-              cmd: """
-              #{mysql_exec} -e "
+              cmd: db.cmd options.db, """
               SET GLOBAL log_bin_trust_function_creators = 1;
               create database  #{options.install['db_name']};
               grant all privileges on #{options.install['db_name']}.* to #{options.install['db_user']}@'localhost' identified by '#{options.install['db_password']}';
               grant all privileges on #{options.install['db_name']}.* to #{options.install['db_user']}@'%' identified by '#{options.install['db_password']}';
               flush privileges;
-              "
               """
-              unless_exec: "#{mysql_exec} -e 'use #{options.install['db_name']}'"
+              unless_exec: db.cmd options.db, "use #{options.install['db_name']}"
             @system.execute
-              cmd: """
-              #{mysql_exec} -e "
+              cmd: db.cmd options.db, """
               create database  #{options.install['audit_db_name']};
               grant all privileges on #{options.install['audit_db_name']}.* to #{options.install['audit_db_user']}@'localhost' identified by '#{options.install['audit_db_password']}';
               grant all privileges on #{options.install['audit_db_name']}.* to #{options.install['audit_db_user']}@'%' identified by '#{options.install['audit_db_password']}';
               flush privileges;
-              "
               """
-              unless_exec: "#{mysql_exec} -e 'use #{options.install['audit_db_name']}'"
+              unless_exec: db.cmd options.db, "use #{options.install['audit_db_name']}"
 
 ## Install Scripts
 
@@ -105,10 +100,13 @@ Update the file "install.properties" with the properties defined by the
           append: true
 
 ## Setup Ranger Admin 
+
 Follow [the instructions][instruction-24-25] for upgrade.
 Sometime you can fall on this error on mysql databse.
+
 This function has none of DETERMINISTIC, NO SQL, or READS SQL DATA in its declaration 
 and binary logging is enabled.
+
 To pass the setup script you have to set log_bin_trust_function_creators variable to 1
 to allow user to create none-determisitic functions.
 
@@ -248,5 +246,6 @@ This part of the setup is not documented. Deduce from launch scripts.
     glob = require 'glob'
     path = require 'path'
     quote = require 'regexp-quote'
+    db = require 'nikita/lib/misc/db'
 
 [instruction-24-25]:http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_command-line-upgrade/content/upgrade-ranger_24.html

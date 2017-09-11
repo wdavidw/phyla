@@ -12,34 +12,38 @@ open API clients like JDBC and ODBC.
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
-        test_user: implicit: true, module: 'ryba/commons/test_user'
-        # mapred_client: implicit: true, module: 'ryba/hadoop/mapred_client'
-        tez: implicit: true, module: 'ryba/tez'
-        metastore: implicit: true, module: 'ryba/hive/metastore'
-        ranger_admin: module: 'ryba/ranger/admin'
-        hadoop_core: module: 'ryba/hadoop/core'
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
+        tez: module: 'ryba/tez', local: true, auto: true, implicit: true
+        hive_metastore: module: 'ryba/hive/metastore', local: true, auto: true, implicit: true
+        hive_hcatalog: module: 'ryba/hive/hcatalog', required: true
+        hive_server2: module: 'ryba/hive/server2'
         hive_client: module: 'ryba/hive/client'
-        hive_hcatalog: module: 'ryba/hive/hcatalog'
-        # hbase_client: 'ryba/hbase/client'
-      configure: [
+        hbase_thrift: module: 'ryba/hbase/thrift'
+        hbase_client: module: 'ryba/hbase/client', local: true
+        phoenix_client: module: 'ryba/phoenix/client'
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+      configure:
         'ryba/hive/server2/configure'
-        'ryba/ranger/plugins/hiveserver2/configure'
-        ]
       commands:
-        'install': [
-          'ryba/hive/server2/install'
-          'ryba/hive/server2/start'
-          'ryba/hive/server2/check'
-        ]
-        'start':
-          'ryba/hive/server2/start'
-        'check':
-          'ryba/hive/server2/check'
+        'install': ->
+          options = @config.ryba.hive.server2
+          @call 'ryba/hive/server2/install', options
+          @call 'ryba/hive/server2/start', options
+          @call 'ryba/hive/server2/check', options
+        'start': ->
+          options = @config.ryba.hive.server2
+          @call 'ryba/hive/server2/start', options
+        'check': ->
+          options = @config.ryba.hive.server2
+          @call 'ryba/hive/server2/check', options
         'status':
           'ryba/hive/server2/status'
-        'stop':
-          'ryba/hive/server2/stop'
-        'wait':
-          'ryba/hive/server2/wait'
-        'backup':
-          'ryba/hive/server2/backup'
+        'stop': ->
+          options = @config.ryba.hive.server2
+          @call 'ryba/hive/server2/stop', options
+        'backup': ->
+          options = @config.ryba.hive.server2
+          @call 'ryba/hive/server2/backup', options

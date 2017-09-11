@@ -3,6 +3,10 @@
 
     module.exports =  header: 'HBase Rest Check', label_true: 'CHECKED', handler: (options) ->
 
+## Register
+
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+
 ## Assert HTTP Port
 
       @connection.assert
@@ -19,75 +23,65 @@
 
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
-      [ranger_ctx] = @contexts 'ryba/ranger/admin'
-      @call if: (-> ranger_ctx?), ->
-        {install} = ranger_ctx.config.ryba.ranger.hbase_plugin
-        policy_name = "Ranger-Ryba-HBase-Rest-Policy-#{options.fqdn}"
-        hbase_policy =
-          "name": "#{policy_name}"
-          "service": "#{install['REPOSITORY_NAME']}"
-          "resources":
-            "column":
-              "values": ["*"]
-              "isExcludes": false
-              "isRecursive": false
-            "column-family":
-              "values": ["*"]
-              "isExcludes": false
-              "isRecursive": false
-            "table":
-              "values": [
-                "#{options.test.namespace}:#{options.test.table}"
-                ]
-              "isExcludes": false
-              "isRecursive": false
-          "repositoryName": "#{install['REPOSITORY_NAME']}"
-          "repositoryType": "hbase"
-          "isEnabled": "true",
-          "isAuditEnabled": true,
-          'tableType': 'Inclusion',
-          'columnType': 'Inclusion',
-          'policyItems': [
-          		"accesses": [
-          			'type': 'read'
-          			'isAllowed': true
-              ,
-          			'type': 'write'
-          			'isAllowed': true
-          		,
-          			'type': 'create'
-          			'isAllowed': true
-          		,
-          			'type': 'admin'
-          			'isAllowed': true
-          		],
-          		'users': ['hbase', "#{options.user.name}"]
-          		'groups': []
-          		'conditions': []
-          		'delegateAdmin': true
-            ]
-        @call once: true, 'ryba/ranger/admin/wait'
+      @call
+        if: -> options.ranger_admin
+      , ->
+        @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         @wait.execute
           header: 'Wait HBase Ranger repository'
           cmd: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{install['REPOSITORY_NAME']}\"
+            \"#{options.ranger_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_install['REPOSITORY_NAME']}\"
           """
           code_skipped: 22
-        @system.execute
-          header: 'Ranger Ryba Policy'
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST \
-            -d '#{JSON.stringify hbase_policy}' \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
-          """
-          unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u #{options.ranger_admin}:#{options.ranger_admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/#{policy_name}\"
-          """
+        @ranger_policy
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.ranger_install['POLICY_MGR_URL']
+          policy:
+            "name": "Ranger-Ryba-HBase-Rest-Policy-#{options.hostname}"
+            "service": "#{options.ranger_install['REPOSITORY_NAME']}"
+            "resources":
+              "column":
+                "values": ["*"]
+                "isExcludes": false
+                "isRecursive": false
+              "column-family":
+                "values": ["*"]
+                "isExcludes": false
+                "isRecursive": false
+              "table":
+                "values": [
+                  "#{options.test.namespace}:#{options.test.table}"
+                  ]
+                "isExcludes": false
+                "isRecursive": false
+            "repositoryName": "#{options.ranger_install['REPOSITORY_NAME']}"
+            "repositoryType": "hbase"
+            "isEnabled": "true",
+            "isAuditEnabled": true,
+            'tableType': 'Inclusion',
+            'columnType': 'Inclusion',
+            'policyItems': [
+            		"accesses": [
+            			'type': 'read'
+            			'isAllowed': true
+                ,
+            			'type': 'write'
+            			'isAllowed': true
+            		,
+            			'type': 'create'
+            			'isAllowed': true
+            		,
+            			'type': 'admin'
+            			'isAllowed': true
+            		],
+            		'users': ['hbase', "#{options.user.name}"]
+            		'groups': []
+            		'conditions': []
+            		'delegateAdmin': true
+              ]
 
 ## Check Shell
 

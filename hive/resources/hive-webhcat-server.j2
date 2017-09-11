@@ -32,11 +32,11 @@
 ### END INIT INFO
 
 NAME='Hive Webhcat Server'
-USER='{{hive.user.name}}'
-GROUP='{{hive.group.name}}'
-RUN_DIR='{{webhcat.pid_dir}}'
+USER='{{options.user.name}}'
+GROUP='{{options.group.name}}'
+RUN_DIR='{{options.pid_dir}}'
 PID_FILE="${RUN_DIR}/webhcat.pid"
-CMD="su -l $USER -c \"export WEBHCAT_CONF_DIR={{webhcat.conf_dir}}; /usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh start\""
+CMD="su -l $USER -c \"export WEBHCAT_CONF_DIR={{options.conf_dir}}; /usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh start\""
 
 KILL_FORCE=0
 KILL_SLEEP=10

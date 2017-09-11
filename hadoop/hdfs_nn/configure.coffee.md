@@ -173,7 +173,7 @@ for distcp purpose.
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
       options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
@@ -223,22 +223,16 @@ for distcp purpose.
           options.opts['hadoop.log.application'] ?= 'namenode'
           options.opts['hadoop.log.remote_host'] ?= @config.log4j.remote_host
           options.opts['hadoop.log.remote_port'] ?= @config.log4j.remote_port
-
           options.socket_opts ?=
             Application: '${hadoop.log.application}'
             RemoteHost: '${hadoop.log.remote_host}'
             Port: '${hadoop.log.remote_port}'
             ReconnectionDelay: '10000'
-
           options.log4j = merge options.log4j, appender
             type: 'org.apache.log4j.net.SocketAppender'
             name: options.socket_client
             logj4: options.log4j
             properties: options.socket_opts
-
-## Ranger
-
-      # options.ranger = true if service.use.ranger_admin
 
 ## Export configuration
 

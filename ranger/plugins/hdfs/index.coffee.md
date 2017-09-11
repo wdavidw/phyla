@@ -18,9 +18,7 @@
           name: 'hadoop-hdfs-namenode'
         , ->
           @call 'ryba/ranger/plugins/hdfs/install', options
-          @call 'ryba/ranger/plugins/hdfs/setup', options
       commands:
         'install': ->
           options = @config.ryba.ranger.hdfs
           @call 'ryba/ranger/plugins/hdfs/install', options
-          @call 'ryba/ranger/plugins/hdfs/setup', options

@@ -1,38 +1,43 @@
 
 # Hive HCatalog Check
 
-    module.exports =  header: 'Hive HCatalog Check', label_true: 'CHECKED', handler: ->
-      {hive} = @config.ryba
-      jdbc = db.jdbc hive.hcatalog.site['javax.jdo.option.ConnectionURL']
+    module.exports =  header: 'Hive HCatalog Check', label_true: 'CHECKED', handler: (options) ->
 
-## Wait
+## Asset Connection
 
-      @call once: true, 'ryba/hive/hcatalog/wait'
+The Hive metastore listener port, default to "9083".
+
+      @connection.assert
+        header: 'RPC'
+        servers: options.wait.rpc.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000
 
 ## Check Database
 
 Check if Hive can authenticate and run a basic query to the database.
 
-      @call header: 'Database', label_true: 'CHECKED', ->
-        cmd = switch hive.metastore.db.engine
-          when 'mysql' then 'SELECT * FROM VERSION'
+      @call header: 'Database', ->
+        cmd = switch options.db.engine
+          when 'mariadb', 'mysql' then 'SELECT * FROM VERSION'
           when 'postgres' then '\\dt'
         @system.execute
-          cmd: db.cmd hive.metastore.db, admin_username: null, cmd
+          cmd: db.cmd options.db, admin_username: null, cmd
 
 ## Check Port
 
 Check if the Hive HCatalog (Metastore) server is listening.
 
-      @call header: 'Port', label_true: 'CHECKED', ->
-        uris = hive.hcatalog.site['hive.metastore.uris'].split ','
-        [server] = for uri in uris
-          {hostname, port} = url.parse uri
-          continue unless hostname is @config.host
-          host: hostname, port: port
-        throw Error 'Invalid configuration' unless server
-        @system.execute
-          cmd: "echo > /dev/tcp/#{server.host}/#{server.port}"
+      # migration: wdavidw 170911, this is the same as the connection.assert call just above
+      # @connection.assert
+      #   header: 'Port'
+      #   server: options.hive_site['hive.metastore.uris']
+      #     .split(',')
+      #     .map (uri) ->
+      #       {fqdn, port} = url.parse uri
+      #       host: fqdn, port: port
+      #     .filter (server) ->
+      #       server.fqdn is options.fqdn
 
 # Module Dependencies
 

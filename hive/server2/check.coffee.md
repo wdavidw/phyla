@@ -1,24 +1,18 @@
 
 # Hive HCatalog Check
 
-    module.exports =  header: 'Hive Server2 Check Thrift', label_true: 'CHECKED', handler: (options) ->
-      {hive} = @config.ryba
-      port = if hive.server2.site['hive.server2.transport.mode'] is 'http'
-      then hive.server2.site['hive.server2.thrift.http.port']
-      else hive.server2.site['hive.server2.thrift.port']
+    module.exports =  header: 'Hive Server2 Check', label_true: 'CHECKED', handler: (options) ->
 
-## Wait
+## Assert Thrift TCP/HTTP Port
 
-      @call once: true, 'ryba/hive/server2/wait'
+      @connection.wait
+        header: 'Thrift'
+        servers: options.wait.thrift
 
-## Check Thrift Port
+## Check JDBC
 
-Check if the Hive Server2 server is listening.
-
-      @system.execute
-        label_true: 'CHECKED'
-        header: 'Check Thrift Port'
-        cmd: "echo > /dev/tcp/#{@config.host}/#{port}"
+Note, the Hive Server2 is checked inside the beeline service. However, a very
+basic test could be present here.
 
       @call header: 'Check JDBC', handler: ->
         # http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/4.3.0/CDH4-Security-Guide/cdh4sg_topic_9_1.html

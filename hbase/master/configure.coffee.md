@@ -77,16 +77,11 @@ Example
       options.admin.name ?= options.user.name
       options.admin.principal ?= "#{options.admin.name}@#{options.krb5.realm}"
       throw Error 'Required Option: admin.password' unless options.admin.password
-      # HDFS Admin
-      options.hdfs_admin ?= {}
-      options.hdfs_admin.principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
-      options.hdfs_admin.keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
 
 ## Environment
 
       # Layout
       options.conf_dir ?= '/etc/hbase-master/conf'
-      options.hdfs_conf_dir ?= service.use.hdfs_nn.options.conf_dir
       options.log_dir ?= '/var/log/hbase'
       options.pid_dir ?= '/var/run/hbase'
       # Env
@@ -104,6 +99,9 @@ Example
       options.hostname = service.node.hostname
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.clean_logs ?= false
+      # HDFS
+      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
+      options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
 
 ## RegionServers
 
@@ -133,7 +131,7 @@ activate or desactivate the RegionServer.
       options.hbase_site['zookeeper.session.timeout'] ?= "#{20 * parseInt service.use.zookeeper_server[0].options.config['tickTime']}"
       # Enter the HBase NameNode server hostname
       # http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/latest/CDH4-High-Availability-Guide/cdh4hag_topic_2_6.html
-      options.hbase_site['hbase.rootdir'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/apps/hbase/data"
+      options.hbase_site['hbase.rootdir'] ?= "#{service.use.hdfs_nn[0].options.core_site['fs.defaultFS']}/apps/hbase/data"
       # Comma separated list of Zookeeper servers (match to
       # what is specified in zoo.cfg but without portnumbers)
       options.hbase_site['hbase.zookeeper.quorum'] = "#{zk_hosts}"
@@ -151,7 +149,7 @@ activate or desactivate the RegionServer.
         options.hbase_site['hbase.regionserver.kerberos.principal'] ?= "hbase/_HOST@#{options.krb5.realm}" # "rs/_HOST@#{realm}" <-- need zookeeper auth_to_local
         options.hbase_site['hbase.security.authentication.ui'] ?= 'kerberos'
         options.hbase_site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
-        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= '/etc/security/keytabs/spnego.service.keytab'
+        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
         options.hbase_site['hbase.coprocessor.master.classes'] ?= [
           'org.apache.hadoop.hbase.security.access.AccessController'
         ]
@@ -361,7 +359,7 @@ supported contexts are "hbase", "jvm" and "rpc".
 
       options.wait_krb5_client = service.use.krb5_client.options.wait
       options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn.options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
       for srv in service.use.hbase_master
         srv.options.master_site ?= {}
         srv.options.master_site['hbase.master.port'] ?= '60000'

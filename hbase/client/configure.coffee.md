@@ -33,7 +33,7 @@
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
       # Misc
-      options.hostname ?= service.use.hostname
+      options.hostname ?= service.node.hostname
       options.force_check ?= true
       options.is_ha ?= service.use.hbase_master.length
 
@@ -87,7 +87,7 @@
 
       options.wait_hbase_master = service.use.hbase_master[0].options.wait
       options.wait_hbase_regionserver = service.use.hbase_regionserver[0].options.wait
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
 
 ## Configuration Quota
 

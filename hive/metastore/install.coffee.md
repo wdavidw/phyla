@@ -1,8 +1,7 @@
 
 # Hive Metastore Install
 
-    module.exports =  header: 'Hive Metastore Install', handler: ->
-      {metastore} = @config.ryba.hive
+    module.exports =  header: 'Hive Metastore Install', handler: (options) ->
 
 ## Register
 
@@ -14,7 +13,7 @@
 
       @call
         header: 'MySQL Client'
-        if: metastore.db.engine is 'mysql'
+        if: options.db.engine in ['mariadb', 'mysql']
       , ->
         @service
           name: 'mysql'
@@ -22,7 +21,7 @@
           name: 'mysql-connector-java'
       @call
         header: 'Postgres Client'
-        if: metastore.db.engine is 'postgres'
+        if: options.db.engine is 'postgresql'
       , ->
         @service
           name: 'postgresql'
@@ -32,16 +31,16 @@
 ## Metastore DB
 
       @call header: 'Metastore DB', ->
-        @db.user metastore.db, database: null,
+        @db.user options.db, database: null,
           header: 'User'
-          if: metastore.db.engine in ['mysql', 'postgres']
-        @db.database metastore.db,
+          if: options.db.engine in ['mariadb', 'postgresql', 'mysql']
+        @db.database options.db,
           header: 'Database'
-          user: metastore.db.username
-          if: metastore.db.engine in ['mysql', 'postgres']
-        @db.schema metastore.db,
+          user: options.db.username
+          if: options.db.engine in ['mariadb', 'postgresql', 'mysql']
+        @db.schema options.db,
           header: 'Schema'
-          if: metastore.db.engine is 'postgres'
-          schema: metastore.db.schema or metastore.db.database
-          database: metastore.db.database
-          owner: metastore.db.username
+          if: options.db.engine is 'postgres'
+          schema: options.db.schema or options.db.database
+          database: options.db.database
+          owner: options.db.username

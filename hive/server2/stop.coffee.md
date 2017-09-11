@@ -1,27 +1,31 @@
 
 # Hive Server2 Stop
 
-Stop the Hive Server2. You can also stop the server manually with one of
-the following two commands:
+Run the command `./bin/ryba stop -m ryba/hive/server2` to stop the Hive Server2
+server using Ryba.
+
+    module.exports = header: 'Hive Server2 Stop', label_true: 'STOPPED', handler: (options) ->
+
+## System
+
+You can also stop the server manually with one of the following two commands:
 
 ```
 service hive-server2 stop
+systemctl stop hive-server2
 su -l hive -c "kill `cat /var/run/hive-server2/hive-server2.pid`"
 ```
-
-    module.exports = header: 'Hive Server2 Stop', label_true: 'STOPPED', handler: ->
-      {hive} = @config.ryba
 
       @service.stop
         name: 'hive-server2'
 
-## Stop Clean Logs
+## Clean Logs
 
-      @call
+Remove the "*" log file if the property "clean_logs" is
+activated.
+
+      @system.execute
         header: 'Stop Clean Logs'
-        label_true: 'CLEANED'
-        if: -> @config.ryba.clean_logs
-      , ->
-        @system.execute
-          cmd: "rm #{hive.server2.log_dir}/*"
-          code_skipped: 1
+        if: -> options.clean_logs
+        cmd: "rm #{options.log_dir}/*"
+        code_skipped: 1

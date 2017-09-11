@@ -54,7 +54,7 @@ variables but also inject some function to be executed.
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
 
 ## Log4j
 
@@ -73,9 +73,11 @@ variables but also inject some function to be executed.
       options.log4j['log4j.appender.hdfsAppender.layout.ConversionPattern'] = '%d{yy/MM/dd HH:mm:ss} [%t]: %p %c{2}: %m%n'
       options.log4j['log4j.appender.hdfsAppender.encoding'] = 'UTF-8'
 
-# Ranger xusers
+# Managed Users
+
 Ranger enable to create users with its REST API. Required user can be specified in the
 ranger config and ryba will create them.
+
 User can be External and Internal. Only Internal users can be created from the ranger webui.
 
       # Ranger Manager Users
@@ -112,6 +114,7 @@ User can be External and Internal. Only Internal users can be created from the r
       options.install['RANGER_ADMIN_LOG_DIR'] ?= "#{options.log_dir}"
 
 # Kerberos
+
 [Starting from 2.5][ranger-upgrade-24-25], Ranger supports Kerberos Authentication for secured cluster
 
       if options.krb5.enabled
@@ -138,6 +141,7 @@ User can be External and Internal. Only Internal users can be created from the r
           options.site['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= options.install['admin_principal']
 
 # Audit Storage
+
 Ranger can store  audit to different storage type.
 - HDFS ( Long term and scalable storage)
 - SOLR ( short term storage & Ranger WEBUi)
@@ -148,6 +152,7 @@ Hortonworks recommandations are to enable SOLR and HDFS Storage.
       options.install['audit_store'] ?= 'solr'
 
 ## Solr Audit Configuration
+
 Here SOLR configuration is discovered and ranger admin is set up.
 
 Ryba support both Solr Cloud mode and Solr Standalone installation. 
@@ -356,6 +361,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           break;
 
 ## Solr Audit Database Bootstrap
+
 Create the `ranger_audits` collection('cloud')/core('standalone').
 
       if options.install['audit_store'] is 'solr'
@@ -387,6 +393,7 @@ ranger.admin.cluster_config.ranger.solr_users =
           }
 
 ## Ranger Admin SSL
+
 Configure SSL for Ranger policymanager (webui).
 
       options.site['ranger.service.https.attrib.ssl.enabled'] ?= 'true'
@@ -396,32 +403,35 @@ Configure SSL for Ranger policymanager (webui).
       options.site['ranger.service.https.attrib.keystore.keyalias'] ?= @config.shortname
 
 # Ranger Admin Databases
+
 Configures the Ranger WEBUi (policymanager) database. For now only mysql is supported.
 
-      options.install['DB_FLAVOR'] ?= 'MYSQL' # we support only mysql for now
-      switch options.install['DB_FLAVOR'].toLowerCase()
-        when 'mysql'
-          provider = service.use.db_admin.options.mysql
-          throw Error "DB Provider Not Available: mysql" unless provider
+      options.db ?= {}
+      options.db.engine ?= service.use.db_admin.options.engine
+      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      switch options.db.engine
+        when 'mysql', 'mariadb'
+          options.install['DB_FLAVOR'] ?= 'MYSQL' # we support only mysql for now
           options.install['SQL_CONNECTOR_JAR'] ?= '/usr/hdp/current/ranger-admin/lib/mysql-connector-java.jar'
           # not setting these properties on purpose, we manage manually databases inside mysql
-          options.install['db_root_user'] = provider.admin_username
-          options.install['db_root_password'] ?= provider.admin_password
+          options.install['db_root_user'] = options.db.admin_username
+          options.install['db_root_password'] ?= options.db.admin_password
           if not options.install['db_root_user'] and not options.install['db_root_password']
           then throw Error "account with privileges for creating database schemas and users is required"
-          options.install['db_host'] ?=  provider.host
-          #Ranger Policy Database
+          options.install['db_host'] ?= options.db.host
+          # Ranger Policy Database
           throw Error "mysql host not specified" unless options.install['db_host']
           options.install['db_name'] ?= 'ranger'
           options.install['db_user'] ?= 'rangeradmin'
-          options.install['db_password'] ?= 'rangeradmin123'
+          throw Error 'Required Options: install.db_password' unless options.install['db_password']
           options.install['audit_db_name'] ?= 'ranger_audit'
           options.install['audit_db_user'] ?= 'rangerlogger'
-          options.install['audit_db_password'] ?= 'rangerlogger123'
+          throw Error 'Required Options: install.audit_db_password' unless options.install['audit_db_password']
         else throw Error 'For now only mysql engine is supported'
 
 
 # Ranger Admin Policymanager Access
+
 Defined how Ranger authenticates users (the xusers)  to the webui. By default
 only users created within the webui are allowed.
 

@@ -11,15 +11,14 @@
       configure:
         'ryba/ranger/plugins/hbase/configure'
       plugin: ->
-        console.log 'plugin before'
         options = @config.ryba.ranger.hbase
         @before
           type: ['service', 'start']
           name: 'hbase-master'
-          # handler: 'ryba/hbase/master/install'
         , ->
-          console.log 'plugin after'
           @call 'ryba/ranger/plugins/hbase/install', options
+        # @after 'ryba/hbase/master/install', ->
+        #   @call 'ryba/ranger/plugins/hbase/install', options
       commands:
         'install': ->
           options = @config.ryba.ranger.hbase_plugin

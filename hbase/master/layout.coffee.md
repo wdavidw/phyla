@@ -32,7 +32,7 @@ Create the directory structure with correct ownerships and permissions.
         parent:
           mode: 0o0711
         conf_dir: options.hdfs_conf_dir
-        krb5_user: options.hdfs_admin
+        krb5_user: options.hdfs_krb5_user
       @hdfs_mkdir
         header: 'Staging'
         target: options.hbase_site['hbase.bulkload.staging.dir']
@@ -42,7 +42,7 @@ Create the directory structure with correct ownerships and permissions.
         parent:
           mode: 0o0711
         conf_dir: options.hdfs_conf_dir
-        krb5_user: options.hdfs_admin
+        krb5_user: options.hdfs_krb5_user
         
       # migration: wdavidw 070829, remove if @hdfs_mkdir above worked as expected
       # @call ->

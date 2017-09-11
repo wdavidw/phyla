@@ -78,7 +78,7 @@ Example:
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
       options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
       options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
 

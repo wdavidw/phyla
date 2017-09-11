@@ -29,12 +29,31 @@ Example:
 ```
 
     module.exports = ->
-      zk_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
-      hcat_ctxs = @contexts 'ryba/hive/hcatalog'
-      hive = @config.ryba.hive ?= {}
-      {db_admin, realm} = @config.ryba
-      options = hive.hcatalog ?= {}
+      service = migration.call @, service, 'ryba/hive/hcatalog', ['ryba', 'hive', 'hcatalog'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
+        db_admin: key: ['ryba', 'db_admin']
+        mapred_client: key: ['ryba', 'mapred']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hadoop_core: key: ['ryba']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        tez: key: ['ryba', 'tez']
+        hive_metastore: key: ['ryba', 'hive', 'metastore']
+        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
+        # hive_server2: key: ['ryba', 'hive', 'server2']
+        # hive_client: key: ['ryba', 'hive']
+        # hbase_thrift: key: ['ryba', 'hbase', 'thrift']
+        hbase_client: key: ['ryba', 'hbase', 'client']
+        # phoenix_client: key: ['ryba', 'phoenix'] # actuall, phoenix expose no configuration
+        # ranger_admin: key: ['ryba', 'ranger', 'admin']
+      @config.ryba ?= {}
+      @config.ryba.hive ?= {}
+      options = @config.ryba.hive.hcatalog = service.options
 
 ## Environment
 
@@ -42,10 +61,27 @@ Example:
       options.conf_dir ?= '/etc/hive-hcatalog/conf'
       options.log_dir ?= '/var/log/hive-hcatalog'
       options.pid_dir ?= '/var/run/hive-hcatalog'
+      options.hdfs_conf_dir ?= service.use.hdfs_client.options.conf_dir
       # Opts and Java
+      options.java_home ?= service.use.java.options.java_home
       options.opts ?= ''
       options.heapsize ?= 1024
       options.libs ?= []
+      # Misc
+      options.fqdn = service.node.fqdn
+      options.hostname = service.node.hostname
+      options.clean_logs ?= false
+      options.tez_enabled ?= service.use.tez
+      # HDFS
+      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
+      options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Identities
 
@@ -83,7 +119,7 @@ Example:
         -Dcom.sun.management.jmxremote.rmi.port=#{options.env["JMXPORT"]} \
         """
       # migration: wdavidw 170904, this is really dirty, we should have only one property,
-      # usually, we should an object type where the value is a boolean to 
+      # usually, we should have an object type where the value is a boolean to 
       # activate/disactivate the key
       options.aux_jars_paths ?= []
       #adding defaults jars
@@ -97,53 +133,72 @@ Example:
 
 ## Configuration
 
-      options.site ?= {}
+      options.hive_site ?= {}
       # by default BONECP could lead to BLOCKED thread for class reading from DB
-      options.site['datanucleus.connectionPoolingType'] ?= 'DBCP'
-      options.site['hive.metastore.port'] ?= '9083'
-      options.site['hive.hwi.listen.port'] ?= '9999'
-      options.site['hive.metastore.uris'] ?= hcat_ctxs.map((ctx) -> "thrift://#{ctx.config.host}:#{options.site['hive.metastore.port']}").join ','
-      options.site['datanucleus.autoCreateTables'] ?= 'true'
-      options.site['hive.security.authorization.enabled'] ?= 'true'
-      options.site['hive.security.authorization.manager'] ?= 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
-      options.site['hive.security.metastore.authorization.manager'] ?= 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
-      options.site['hive.security.authenticator.manager'] ?= 'org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator'
+      options.hive_site['datanucleus.connectionPoolingType'] ?= 'DBCP'
+      options.hive_site['hive.metastore.port'] ?= '9083'
+      options.hive_site['hive.hwi.listen.port'] ?= '9999'
+      options.hive_site['hive.metastore.uris'] ?= (
+        for srv in service.use.hive_hcatalog
+          srv.options.hive_site ?= {}
+          srv.options.hive_site['hive.metastore.port'] ?= 9083
+          "thrift://#{srv.node.fqdn}:#{srv.options.hive_site['hive.metastore.port'] or '9083'}"
+      ).join ','
+      options.hive_site['datanucleus.autoCreateTables'] ?= 'true'
+      options.hive_site['hive.security.authorization.enabled'] ?= 'true'
+      options.hive_site['hive.security.authorization.manager'] ?= 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
+      options.hive_site['hive.security.metastore.authorization.manager'] ?= 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
+      options.hive_site['hive.security.authenticator.manager'] ?= 'org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator'
       # see https://cwiki.apache.org/confluence/display/Hive/WebHCat+InstallWebHCat
-      options.site['hive.security.metastore.authenticator.manager'] ?= 'org.apache.hadoop.hive.ql.security.HadoopDefaultMetastoreAuthenticator'
-      options.site['hive.metastore.pre.event.listeners'] ?= 'org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener'
-      options.site['hive.metastore.cache.pinobjtypes'] ?= 'Table,Database,Type,FieldSchema,Order'
+      options.hive_site['hive.security.metastore.authenticator.manager'] ?= 'org.apache.hadoop.hive.ql.security.HadoopDefaultMetastoreAuthenticator'
+      options.hive_site['hive.metastore.pre.event.listeners'] ?= 'org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener'
+      options.hive_site['hive.metastore.cache.pinobjtypes'] ?= 'Table,Database,Type,FieldSchema,Order'
+
+# HDFS Layout
+
+Hive 0.14.0 and later:  HDFS root scratch directory for Hive jobs, which gets 
+created with write all (733) permission. For each connecting user, an HDFS 
+scratch directory ${hive.exec.scratchdir}/<username> is created with 
+${hive.scratch.dir.permission}.
+
+      options.hive_site['hive.metastore.warehouse.dir'] ?= "/apps/#{options.user.name}/warehouse"
+      options.hive_site['hive.exec.scratchdir'] ?= "/tmp/hive"
 
 ## Common Configuration
 
       # To prevent memory leak in unsecure mode, disable [file system caches](https://cwiki.apache.org/confluence/display/Hive/Setting+up+HiveServer2)
       # , by setting following params to true
-      options.site['fs.hdfs.impl.disable.cache'] ?= 'false'
-      options.site['fs.file.impl.disable.cache'] ?= 'false'
+      options.hive_site['fs.hdfs.impl.disable.cache'] ?= 'false'
+      options.hive_site['fs.file.impl.disable.cache'] ?= 'false'
       # TODO: encryption is only with Kerberos, need to check first
       # http://hortonworks.com/blog/encrypting-communication-between-hadoop-and-your-analytics-tools/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+hortonworks%2Ffeed+%28Hortonworks+on+Hadoop%29
-      options.site['hive.server2.thrift.sasl.qop'] ?= 'auth'
+      options.hive_site['hive.server2.thrift.sasl.qop'] ?= 'auth'
       # http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.6.0/bk_installing_manually_book/content/rpm-chap14-2-3.html#rmp-chap14-2-3-5
       # If true, the metastore thrift interface will be secured with
       # SASL. Clients must authenticate with Kerberos.
       # Unset unvalid properties
-      options.site['hive.optimize.mapjoin.mapreduce'] ?= null
-      options.site['hive.heapsize'] ?= null
-      options.site['hive.auto.convert.sortmerge.join.noconditionaltask'] ?= null # "does not exist"
-      options.site['hive.exec.max.created.files'] ?= '100000' # "expects LONG type value"
+      options.hive_site['hive.optimize.mapjoin.mapreduce'] ?= null
+      options.hive_site['hive.heapsize'] ?= null
+      options.hive_site['hive.auto.convert.sortmerge.join.noconditionaltask'] ?= null # "does not exist"
+      options.hive_site['hive.exec.max.created.files'] ?= '100000' # "expects LONG type value"
 
 ## Kerberos
 
-      options.site['hive.metastore.sasl.enabled'] ?= 'true'
+      options.hive_site['hive.metastore.sasl.enabled'] ?= 'true'
       # The path to the Kerberos Keytab file containing the metastore
       # thrift server's service principal.
-      options.site['hive.metastore.kerberos.keytab.file'] ?= '/etc/security/keytabs/hive.service.keytab'
+      options.hive_site['hive.metastore.kerberos.keytab.file'] ?= '/etc/security/keytabs/hive.service.keytab'
       # The service principal for the metastore thrift server. The
       # special string _HOST will be replaced automatically with the correct  hostname.
-      options.site['hive.metastore.kerberos.principal'] ?= "hive/_HOST@#{realm}"
+      options.hive_site['hive.metastore.kerberos.principal'] ?= "hive/_HOST@#{options.krb5.realm}"
 
-## Configure Database
+## Database
 
-      options.site[k] ?= v for k, v of hive.metastore.site
+Import database information from the Hive Metastore
+
+      
+      options.db = merge {}, service.use.hive_metastore.options.db, options.db
+      merge options.hive_site, service.use.hive_metastore.options.hive_site
 
 ## Configure Transactions and Lock Manager
 
@@ -152,36 +207,38 @@ full ACID semantics at the row level, so that one application can add rows while
 another reads from the same partition without interfering with each other.
 
       # Get ZooKeeper Quorum
-      zookeeper_quorum = zk_ctxs.map((ctx) -> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.config['clientPort']}")
+      zookeeper_quorum = for srv in service.use.zookeeper_server
+        continue unless srv.options.config['peerType'] is 'participant'
+        "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       # Enable Table Lock Manager
       # Accoring to [Cloudera](http://www.cloudera.com/content/cloudera/en/documentation/cdh4/v4-2-0/CDH4-Installation-Guide/cdh4ig_topic_18_5.html),
       # enabling the Table Lock Manager without specifying a list of valid
       # Zookeeper quorum nodes will result in unpredictable behavior. Make sure
       # that both properties are properly configured.
-      options.site['hive.support.concurrency'] ?= 'true' # Required, default to false
-      options.site['hive.zookeeper.quorum'] ?= zookeeper_quorum.join ','
-      options.site['hive.enforce.bucketing'] ?= 'true' # Required, default to false,  set to true to support INSERT ... VALUES, UPDATE, and DELETE transactions
-      options.site['hive.exec.dynamic.partition.mode'] ?= 'nonstrict' # Required, default to strict
-      # options.site['hive.txn.manager'] ?= 'org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager'
-      options.site['hive.txn.manager'] ?= 'org.apache.hadoop.hive.ql.lockmgr.DbTxnManager'
-      options.site['hive.txn.timeout'] ?= '300'
-      options.site['hive.txn.max.open.batch'] ?= '1000'
+      options.hive_site['hive.support.concurrency'] ?= 'true' # Required, default to false
+      options.hive_site['hive.zookeeper.quorum'] ?= zookeeper_quorum.join ','
+      options.hive_site['hive.enforce.bucketing'] ?= 'true' # Required, default to false,  set to true to support INSERT ... VALUES, UPDATE, and DELETE transactions
+      options.hive_site['hive.exec.dynamic.partition.mode'] ?= 'nonstrict' # Required, default to strict
+      # options.hive_site['hive.txn.manager'] ?= 'org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager'
+      options.hive_site['hive.txn.manager'] ?= 'org.apache.hadoop.hive.ql.lockmgr.DbTxnManager'
+      options.hive_site['hive.txn.timeout'] ?= '300'
+      options.hive_site['hive.txn.max.open.batch'] ?= '1000'
 
 hive.compactor.initiator.on can be activated on only one node !
 [hive compactor initiator][initiator]
 So we provide true by default on the 1st hive-hcatalog-server, but we force false elsewhere
 
-      if hcat_ctxs[0].config.host is @config.host
-        options.site['hive.compactor.initiator.on'] ?= 'true'
+      if service.use.hive_hcatalog[0].node.fqdn is service.node.fqdn
+        options.hive_site['hive.compactor.initiator.on'] ?= 'true'
       else
-        options.site['hive.compactor.initiator.on'] = 'false'
-      options.site['hive.compactor.worker.threads'] ?= '1' # Required > 0
-      options.site['hive.compactor.worker.timeout'] ?= '86400L'
-      options.site['hive.compactor.cleaner.run.interval'] ?= '5000'
-      options.site['hive.compactor.check.interval'] ?= '300L'
-      options.site['hive.compactor.delta.num.threshold'] ?= '10'
-      options.site['hive.compactor.delta.pct.threshold'] ?= '0.1f'
-      options.site['hive.compactor.abortedtxn.threshold'] ?= '1000'
+        options.hive_site['hive.compactor.initiator.on'] = 'false'
+      options.hive_site['hive.compactor.worker.threads'] ?= '1' # Required > 0
+      options.hive_site['hive.compactor.worker.timeout'] ?= '86400L'
+      options.hive_site['hive.compactor.cleaner.run.interval'] ?= '5000'
+      options.hive_site['hive.compactor.check.interval'] ?= '300L'
+      options.hive_site['hive.compactor.delta.num.threshold'] ?= '10'
+      options.hive_site['hive.compactor.delta.pct.threshold'] ?= '0.1f'
+      options.hive_site['hive.compactor.abortedtxn.threshold'] ?= '1000'
 
 ## Configure HA
 
@@ -196,32 +253,32 @@ The [MemoryTokenStore] is used if there is only one HCatalog Server otherwise we
 default to the [DBTokenStore]. Also worth of interest is the
 [ZooKeeperTokenStore].
 
-      options.site['hive.cluster.delegation.token.store.class'] ?= 'org.apache.hadoop.hive.thrift.ZooKeeperTokenStore'
-      # options.site['hive.cluster.delegation.token.store.class'] ?= if hive_hcatalog.length > 1
+      options.hive_site['hive.cluster.delegation.token.store.class'] ?= 'org.apache.hadoop.hive.thrift.ZooKeeperTokenStore'
+      # options.hive_site['hive.cluster.delegation.token.store.class'] ?= if hive_hcatalog.length > 1
       # # then 'org.apache.hadoop.hive.thrift.ZooKeeperTokenStore'
       # then 'org.apache.hadoop.hive.thrift.DBTokenStore'
       # else 'org.apache.hadoop.hive.thrift.MemoryTokenStore'
-      switch options.site['hive.cluster.delegation.token.store.class']
+      switch options.hive_site['hive.cluster.delegation.token.store.class']
         when 'org.apache.hadoop.hive.thrift.ZooKeeperTokenStore'
-          options.site['hive.cluster.delegation.token.store.zookeeper.connectString'] ?= zookeeper_quorum.join ','
-          options.site['hive.cluster.delegation.token.store.zookeeper.znode'] ?= '/hive/cluster/delegation'
+          options.hive_site['hive.cluster.delegation.token.store.zookeeper.connectString'] ?= zookeeper_quorum.join ','
+          options.hive_site['hive.cluster.delegation.token.store.zookeeper.znode'] ?= '/hive/cluster/delegation'
 
 ## Configure SSL
 
-      options.truststore_location ?= "#{options.conf_dir}/truststore"
-      options.truststore_password ?= "ryba123"
+      # options.truststore_location ?= "#{options.conf_dir}/truststore"
+      # options.truststore_password ?= "ryba123"
 
-##Proxy users
+## Proxy users
 
-      for hadoop_ctx in hadoop_ctxs
-        hadoop_ctx.config.ryba ?= {}
-        hadoop_ctx.config.ryba.core_site ?= {}
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
-      #hive-hcatalog server's client core site also need to be set
-      @config.core_site ?= {}
-      @config.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
-      @config.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
+      for srv in service.use.yarn_rm
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
+      # migration: david 170907, dont know why we doing locally since looping
+      # through each hdfs_client should do the job
+      # #hive-hcatalog server's client core site also need to be set
+      # @config.core_site ?= {}
+      # @config.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+      # @config.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
 
 ## Log4J
 
@@ -300,8 +357,22 @@ default to the [DBTokenStore]. Also worth of interest is the
       config['log4j.rootLogger'] ?= '${hive.root.logger}, EventCounter'
       config['log4j.threshold'] ?= '${hive.log.threshold}'
 
+## Wait
+
+      options.wait_krb5_client ?= service.use.krb5_client.options.wait
+      options.wait_zookeeper_server ?= service.use.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_db_admin ?= service.use.db_admin.options.wait
+      options.wait = {}
+      options.wait.rpc = for srv in service.use.hive_hcatalog
+        srv.options.hive_site ?= {}
+        srv.options.hive_site['hive.metastore.port'] ?= 9083
+        host: srv.node.fqdn
+        port: srv.options.hive_site['hive.metastore.port']
+
 # Module Dependencies
 
+    {merge} = require 'nikita/lib/misc'
     db = require 'nikita/lib/misc/db'
     migration = require 'masson/lib/migration'
 

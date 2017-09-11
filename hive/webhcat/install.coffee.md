@@ -1,9 +1,7 @@
 
 # WebHCat
 
-    module.exports =  header: 'WebHCat Install', handler: ->
-      {webhcat, hadoop_group} = @config.ryba
-      port = webhcat.site['templeton.port']
+    module.exports =  header: 'WebHCat Install', handler: (options) ->
 
 ## Register
 
@@ -13,10 +11,10 @@
 
 ## Wait
 
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-      @call once: true, 'ryba/hive/hcatalog/wait'
-      @call once: true, 'masson/core/krb5_client/wait'
+      # @call once: true, 'ryba/zookeeper/server/wait'
+      # @call once: true, 'ryba/hadoop/hdfs_nn/wait'
+      # @call once: true, 'ryba/hive/hcatalog/wait'
+      # @call once: true, 'masson/core/krb5_client/wait'
 
 ## IPTables
 
@@ -30,9 +28,9 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "WebHCat HTTP Server" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.webhcat_site['templeton.port'], protocol: 'tcp', state: 'NEW', comment: "WebHCat HTTP Server" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables.action is 'start'
 
 ## Identities
 
@@ -46,8 +44,8 @@ cat /etc/group | grep hive
 hive:x:493:
 ```
 
-      @system.group header: 'Group', webhcat.group
-      @system.user header: 'User', webhcat.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 
 ## Startup
@@ -55,7 +53,7 @@ hive:x:493:
 Install the "hadoop-yarn-resourcemanager" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service 'hive-webhcat-server'
         @service 'pig'   # Upload .tar.gz
         @service 'sqoop' # Upload .tar.gz
@@ -67,12 +65,12 @@ inside "/etc/init.d" and activate it on startup.
           local: true
           target: '/etc/init.d/hive-webhcat-server'
           mode: 0o0755
-          context: @config.ryba
+          context: options: options
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: webhcat.pid_dir
-          uid: webhcat.user.name
-          gid: hadoop_group.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.hadoop_group.name
           perm: '0750'
         @system.execute
           cmd: "service hive-webhcat-server restart"
@@ -84,14 +82,14 @@ Create file system directories for log and pid.
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: webhcat.log_dir
-          uid: webhcat.user.name
-          gid: hadoop_group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
         @system.mkdir
-          target: webhcat.pid_dir
-          uid: webhcat.user.name
-          gid: hadoop_group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o755
 
 ## Configuration
@@ -100,12 +98,12 @@ Upload configuration inside '/etc/hive-webhcat/conf/webhcat-site.xml'.
 
       @hconfigure
         header: 'Webhcat Site'
-        target: "#{webhcat.conf_dir}/webhcat-site.xml"
+        target: "#{options.conf_dir}/webhcat-site.xml"
         source: "#{__dirname}/../../resources/hive-webhcat/webhcat-site.xml"
         local: true
-        properties: webhcat.site
-        uid: webhcat.user.name
-        gid: hadoop_group.name
+        properties: options.webhcat_site
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0755
         merge: true
 
@@ -114,18 +112,18 @@ Upload configuration inside '/etc/hive-webhcat/conf/webhcat-site.xml'.
 Update environnmental variables inside '/etc/hive-webhcat/conf/webhcat-env.sh'.
 
       @call header: 'Webhcat Env', ->
-        webhcat.java_opts = ''
-        webhcat.java_opts += " -D#{k}=#{v}" for k, v of webhcat.opts
+        options.java_opts = ''
+        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
         @file.render
           source: "#{__dirname}/../../resources/hive-webhcat/webhcat-env.sh"
           local: true
-          target: "#{webhcat.conf_dir}/webhcat-env.sh"
-          uid: webhcat.user.name
-          gid: hadoop_group.name
+          target: "#{options.conf_dir}/webhcat-env.sh"
+          uid: options.user.name
+          gid: options.hadoop_group.name
           mode: 0o0755
           write: [
             match: RegExp "export HADOOP_OPTS=.*", 'm'
-            replace: "export HADOOP_OPTS=\"${HADOOP_OPTS} #{webhcat.java_opts}\" # RYBA, DONT OVERWRITE"
+            replace: "export HADOOP_OPTS=\"${HADOOP_OPTS} #{options.java_opts}\" # RYBA, DONT OVERWRITE"
             append: true
           ]
 
@@ -151,7 +149,7 @@ HDFS directory. Note, the parent directories are created by the
         cmd: mkcmd.hdfs @, """
         if hdfs dfs -test -d /tmp/hadoop-hcat; then exit 2; fi
         hdfs dfs -mkdir -p /tmp/hadoop-hcat
-        hdfs dfs -chown HTTP:#{hadoop_group.name} /tmp/hadoop-hcat
+        hdfs dfs -chown HTTP:#{options.hadoop_group.name} /tmp/hadoop-hcat
         hdfs dfs -chmod -R 1777 /tmp/hadoop-hcat
         """
         code_skipped: 2
@@ -163,19 +161,19 @@ Copy the spnego keytab with restricitive permissions
       @system.copy
         header: 'SPNEGO'
         source: '/etc/security/keytabs/spnego.service.keytab'
-        target: webhcat.site['templeton.kerberos.keytab']
-        uid: webhcat.user.name
-        gid: hadoop_group.name
+        target: options.webhcat_site['templeton.kerberos.keytab']
+        uid: options.user.name
+        gid: options.hadoop_group.name
         mode: 0o0660
 
 ## Log4j Properties
 
       @file
         header: 'Log4j'
-        target: "#{webhcat.conf_dir}/webhcat-log4j.properties"
+        target: "#{options.conf_dir}/webhcat-log4j.properties"
         source: "#{__dirname}/../resources/webhcat-log4j.properties"
         local: true
-        write: for k, v of webhcat.log4j
+        write: for k, v of options.log4j
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

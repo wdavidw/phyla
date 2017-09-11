@@ -12,14 +12,13 @@ format their data is stored — RCFile format, text files, SequenceFiles, or ORC
 
     module.exports =
       use:
-        postgres_server: module: 'masson/commons/postgres/server'
-        mariadb_server: module: 'masson/commons/mariadb/server'
-        mysql_server: module: 'masson/commons/mysql/server'
-        db_admin: implicit: true, module: 'ryba/commons/db_admin'
+        db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
       configure:
         'ryba/hive/metastore/configure'
       commands:
-        'install': [
-          'ryba/hive/metastore/install'
-        ]
-        'backup': 'ryba/hive/metastore/backup'
+        'install': ->
+          options = @config.ryba.hive.metastore
+          @call 'ryba/hive/metastore/install', options
+        'backup': ->
+          options = @config.ryba.hive.metastore
+          @call 'ryba/hive/metastore/backup', options
