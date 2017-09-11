@@ -1,41 +1,53 @@
 
 ## Configuration
 
-    module.exports = ->
-      hdfs_url = @config.ryba.core_site['fs.defaultFS']
-      [rm_context] = @contexts 'ryba/hadoop/yarn_rm'
-      nm_ctxs = @contexts 'ryba/hadoop/yarn_nm'
-      tez = @config.ryba.tez ?= {}
-      tez.env ?= {}
-      tez.env['TEZ_CONF_DIR'] ?= '/etc/tez/conf'
-      tez.env['TEZ_JARS'] ?= '/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*'
-      tez.env['HADOOP_CLASSPATH'] ?= '$TEZ_CONF_DIR:$TEZ_JARS:$HADOOP_CLASSPATH'
-      tez.ui ?= {}
-      tez.ui.enabled ?= @config.host in @contexts('masson/commons/httpd').map( (c) -> c.config.host )
-      tez.site ?= {}
-      # tez.site['tez.lib.uris'] ?= "#{hdfs_url}/apps/tez/,#{hdfs_url}/apps/tez/lib/"
-      tez.site['tez.lib.uris'] ?= "/hdp/apps/${hdp.version}/tez/tez.tar.gz"
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/tez', ['ryba', 'tez'], require('nikita/lib/misc').merge require('.').use,
+        java: key: ['javas']
+        httpd: key: ['httpd']
+        hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        yarn_ts: key: ['ryba', 'yarn', 'ats']
+        yarn_client: key: ['ryba', 'yarn_client']
+      options = @config.ryba.tez = service.options
+
+## Environnment
+
+      options.env ?= {}
+      options.env['TEZ_CONF_DIR'] ?= '/etc/tez/conf'
+      options.env['TEZ_JARS'] ?= '/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*'
+      options.env['HADOOP_CLASSPATH'] ?= '$TEZ_CONF_DIR:$TEZ_JARS:$HADOOP_CLASSPATH'
+      # Misc
+      options.hostname = service.node.hostname
+      options.force_check ?= false
+
+## Configuration
+
+      options.tez_site ?= {}
+      options.tez_site['tez.lib.uris'] ?= "/hdp/apps/${hdp.version}/tez/tez.tar.gz"
       # For documentation purpose in case we HDFS_DELEGATION_TOKEN in hive queries
-      # Following line: ryba.tez.site['tez.am.am.complete.cancel.delegation.tokens'] ?= 'false'
-      # Renamed to: ryba.tez.site['tez.cancel.delegation.tokens.on.completion'] ?= 'false'
+      # Following line: options.tez_site['tez.am.am.complete.cancel.delegation.tokens'] ?= 'false'
+      # Renamed to: options.tez_site['tez.cancel.delegation.tokens.on.completion'] ?= 'false'
       # Validation
       # Java.lang.IllegalArgumentException: tez.runtime.io.sort.mb 512 should be larger than 0 and should be less than the available task memory (MB):364
-      # throw Error '' ryba.tez.site['tez.runtime.io.sort.mb']
+      # throw Error '' options.tez_site['tez.runtime.io.sort.mb']
 
-## Configuration for Resource Allocation
+## Resource Allocation
 
       memory_per_container = 512
-      rm_memory_max_mb = rm_context.config.ryba.yarn.rm.yarn_site['yarn.scheduler.maximum-allocation-mb']
-      rm_memory_min_mb = rm_context.config.ryba.yarn.rm.yarn_site['yarn.scheduler.minimum-allocation-mb']
-      am_memory_mb = tez.site['tez.am.resource.memory.mb'] or memory_per_container
+      rm_memory_max_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_memory_min_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
+      am_memory_mb = options.tez_site['tez.am.resource.memory.mb'] or memory_per_container
       am_memory_mb = Math.min rm_memory_max_mb, am_memory_mb
       am_memory_mb = Math.max rm_memory_min_mb, am_memory_mb
-      tez.site['tez.am.resource.memory.mb'] = am_memory_mb
-      tez_memory_xmx = /-Xmx(.*?)m/.exec(tez.site['hive.tez.java.opts'])?[1] or Math.floor .8 * am_memory_mb
+      options.tez_site['tez.am.resource.memory.mb'] = am_memory_mb
+      tez_memory_xmx = /-Xmx(.*?)m/.exec(options.tez_site['hive.tez.java.opts'])?[1] or Math.floor .8 * am_memory_mb
       tez_memory_xmx = Math.min rm_memory_max_mb, tez_memory_xmx
-      tez.site['hive.tez.java.opts'] ?= "-Xmx#{tez_memory_xmx}m"
+      options.tez_site['hive.tez.java.opts'] ?= "-Xmx#{tez_memory_xmx}m"
 
-## Depracated warning
+## Deprecated warning
 
 Convert [deprecated values][dep] between HDP 2.1 and HDP 2.2.
 
@@ -77,55 +89,46 @@ Convert [deprecated values][dep] between HDP 2.1 and HDP 2.2.
       deprecated['tez.task.initial.memory.scale.ratios'] = 'tez.task.scale.memory.ratios'
       deprecated['tez.resource.calculator.process-tree.class'] = 'tez.task.resource.calculator.process-tree.class'
       for previous, current of deprecated
-        continue unless tez.site[previous]
-        tez.site[current] = tez.site[previous]
-        @log? "Deprecated property '#{previous}' [WARN]"
+        continue unless options.tez_site[previous]
+        options.tez_site[current] = options.tez_site[previous]
+        console.log "Deprecated property '#{previous}' [WARN]"
 
 ## Tez Ports
 
+Enrich the Yarn NodeManager with additionnal IPTables rules.
+
       # Range of ports that the AM can use when binding for client connections
-      tez.site['tez.am.client.am.port-range'] ?= '34816-36864'
-      for nm_ctx in nm_ctxs
-        nm_ctx
-        .after
-          type: ['hconfigure']
-          target: "#{nm_ctx.config.ryba.yarn.nm.conf_dir}/yarn-site.xml"
-          handler: (options, callback) ->
-            @tools.iptables
-              ssh: options.ssh
-              header: 'Tez AM Port Opening'
-              rules: [
-                { chain: 'INPUT', jump: 'ACCEPT', dport: tez.site['tez.am.client.am.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Tez AM Range" }
-              ]
-              if: nm_ctx.config.iptables.action is 'start'
-            @then callback
+      options.tez_site['tez.am.client.am.port-range'] ?= '34816-36864'
+      for srv in service.use.yarn_nm
+        srv.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.tez_site['tez.am.client.am.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Tez AM Range" }
 
-## Tez UI
 
-      if tez.ui.enabled
-        tez.ui.env ?= {}
-        tez.ui.env.hosts ?= {}
-        unless tez.site['tez.tez-ui.history-url.base'] and tez.ui.html_path
-          unless @config.host in @contexts('masson/commons/httpd').map( (c) -> c.config.host )
-            throw 'Install masson/commons/httpd on ' + @config.host + ' or specify tez.site[\'tez.tez-ui.history-url.base\'] and tez.ui.html_path if tez.ui.enabled'
-          tez.site['tez.tez-ui.history-url.base'] ?= "http://#{@config.host}/tez-ui"
-          tez.ui.html_path ?= "#{@config.httpd.user.home}/tez-ui"
-        yarn_ts_ctxs = @contexts 'ryba/hadoop/yarn_ts'
-        yarn_rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
-        throw Error 'Cannot install Tez UI without Yarn TS' unless yarn_ts_ctxs.length
-        throw Error 'Cannot install Tez UI without YARN RM' unless yarn_rm_ctxs.length
-        ats_ctx = yarn_ts_ctxs[0]
-        rm_ctx = yarn_rm_ctxs[0]
-        id = if rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-        tez.ui.env.hosts.timeline ?= if ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.timeline-service.webapp.address']
-        else "https://"+ ats_ctx.config.ryba.yarn.ats.yarn_site['yarn.timeline-service.webapp.https.address']
-        tez.ui.env.hosts.rm ?= if rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
-        else "https://"+ rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
+## UI
+
+      options.ui ?= {}
+      options.ui.enabled ?= !!service.use.httpd
+      if options.ui.enabled
+        options.ui.env ?= {}
+        options.ui.env.hosts ?= {}
+        unless options.tez_site['tez.tez-ui.history-url.base'] and options.ui.html_path
+          unless service.use.httpd
+            throw 'Install masson/commons/httpd on ' + service.node.fqdn + ' or specify tez_site[\'tez.tez-ui.history-url.base\'] and ui.html_path if ui.enabled'
+          options.tez_site['tez.tez-ui.history-url.base'] ?= "http://#{service.node.fqdn}/tez-ui"
+          options.ui.html_path ?= "#{service.use.httpd.options.user.home}/tez-ui"
+        id = if service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        options.ui.env.hosts.timeline ?= if service.use.yarn_ts[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + service.use.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.address']
+        else "https://"+ service.use.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
+        options.ui.env.hosts.rm ?= if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
+        else "https://"+ service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
         ## Tez Site when UI is enabled
-        tez.site['tez.runtime.convert.user-payload.to.history-text'] ?= 'true'
-        tez.site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'
+        options.tez_site['tez.runtime.convert.user-payload.to.history-text'] ?= 'true'
+        options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'
+
+## Dependencies
+
+    migration = require 'masson/lib/migration'
 
 [tez]: http://tez.apache.org/
 [instructions]: (http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.0/HDP_Man_Install_v22/index.html#Item1.8.4)
