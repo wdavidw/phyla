@@ -63,8 +63,10 @@ The properties can be found [here][hdfs-repository]
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
       options.service_repo ?=
         'configs':
-          'username': 'ranger_plugin_hdfs'
-          'password': 'RangerPluginHDFS123!'
+          # 'username': 'ranger_plugin_hdfs'
+          # 'password': 'RangerPluginHDFS123!'
+          'username': service.use.ranger_admin.options.plugins.principal
+          'password': service.use.ranger_admin.options.plugins.password
           'fs.default.name': service.use.hdfs_nn.options.core_site['fs.defaultFS']
           'hadoop.security.authentication': service.use.hdfs_nn.options.core_site['hadoop.security.authentication']
           'dfs.namenode.kerberos.principal': service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']

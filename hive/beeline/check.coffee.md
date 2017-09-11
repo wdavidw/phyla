@@ -3,31 +3,30 @@
 
 This module check the Hive Server2 servers using the `beeline` command.
 
-    module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', handler: ->
-      {force_check, realm, user, hive} = @config.ryba
-      hive_server2 = @contexts 'ryba/hive/server2'
-      spark_thrift_servers = @contexts 'ryba/spark/thrift_server'
-      [ranger_admin] = @contexts 'ryba/ranger/admin'
+    module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', handler: (options) ->
 
 ## Wait
 
-      @call once: true, 'ryba/hive/server2/wait'
-      @call if: ranger_admin?, once: true, 'ryba/ranger/admin/wait'
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin if options.wait_ranger_admin
+      @call 'ryba/hive/server2/wait', once: true, options.wait_hive_server2
+      @call 'ryba/spark/thrift_server/wait', once: true, options.wait_spark_thrift_server if options.wait_spark_thrift_server
 
 ## Add Ranger Policy 
 
-      @call header: 'Add Hive Policy', if: ranger_admin?, ->
-        {install} = hive_server2[0].config.ryba.ranger.hive_plugin
+      @call
+        header: 'Hive Policy'
+        if: !!options.ranger_admin
+      , ->
         dbs = []
-        for hs2_ctx in hive_server2
-          dbs.push "check_#{@config.shortname}_server2_#{hs2_ctx.config.shortname}"
-          dbs.push "check_#{@config.shortname}_hs2_zoo_#{hs2_ctx.config.ryba.hive.server2.site['hive.server2.zookeeper.namespace']}"
-        for hs_ctx in spark_thrift_servers
-          dbs.push "check_#{@config.shortname}_spark_sql_server_#{hs_ctx.config.shortname}"
+        for hive_server2 in options.hive_server2
+          dbs.push "check_#{options.hostname}_server2_#{hive_server2.hostname}"
+          dbs.push "check_#{options.hostname}_hs2_zoo_#{hive_server2.hive_site['hive.server2.zookeeper.namespace']}"
+        for spark_thrift_server in options.spark_thrift_server
+          dbs.push "check_#{options.hostname}_spark_sql_server_#{spark_thrift_server.hostname}"
         # use v1 policy api (old style) from ranger to have an example
         hive_policy =
-          "policyName": "Ranger-Ryba-HIVE-Policy-#{@config.host}"
-          "repositoryName": "#{install['REPOSITORY_NAME']}"
+          "policyName": "Ranger-Ryba-HIVE-Policy-#{options.hostname}"
+          "repositoryName": "#{options.ranger_hive_install['REPOSITORY_NAME']}"
           "repositoryType":"hive"
           "description": 'Ryba check hive policy'
           "databases": "#{dbs.join ','}"
@@ -39,27 +38,27 @@ This module check the Hive Server2 servers using the `beeline` command.
           'isEnabled': true
           'isAuditEnabled': true
           "permMapList": [{
-          		"userList": ["#{user.name}"],
+          		"userList": ["#{options.test.user.name}"],
           		"permList": ["all"]
           	}]
         @wait.execute
           cmd: """
           curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{install['REPOSITORY_NAME']}\"
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_hive_install['REPOSITORY_NAME']}\"
           """
           code_skipped: [1,7,22] #22 is for 404 not found,7 is for not connected to host
         @system.execute
           cmd: """
           curl --fail -H "Content-Type: application/json" -k -X POST \
             -d '#{JSON.stringify hive_policy}' \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/api/policy\"
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/api/policy\"
           """
           unless_exec: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/Ranger-Ryba-HIVE-Policy-#{@config.host}\"
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/v2/api/service/#{options.ranger_hive_install['REPOSITORY_NAME']}/policy/Ranger-Ryba-HIVE-Policy-#{options.hostname}\"
           """
           code_skippe: 22
 
@@ -75,25 +74,24 @@ The JDBC url may be provided inside the "-u" option or after the "!connect"
 directive once you enter the beeline shell.
 
       @call
-        header: 'Check Server2 (no ZK)'
+        header: 'Server2 (no ZK)'
         label_true: 'CHECKED'
       , ->
-        for hs2_ctx in hive_server2
-          # {hive} = hs2_ctx.config.ryba
-          directory = "check-#{@config.shortname}-hive_server2-#{hs2_ctx.config.shortname}"
-          db = "check_#{@config.shortname}_server2_#{hs2_ctx.config.shortname}"
-          port = if hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
-          then hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.port']
-          else hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.port']
-          principal = hs2_ctx.config.ryba.hive.server2.site['hive.server2.authentication.kerberos.principal']
-          url = "jdbc:hive2://#{hs2_ctx.config.host}:#{port}/default;principal=#{principal}"
-          if hs2_ctx.config.ryba.hive.server2.site['hive.server2.use.SSL'] is 'true'
+        for hive_server2 in options.hive_server2
+          directory = "check-#{options.hostname}-hive_server2-#{hive_server2.hostname}"
+          db = "check_#{options.hostname}_server2_#{hive_server2.hostname}"
+          port = if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
+          then hive_server2.hive_site['hive.server2.thrift.http.port']
+          else hive_server2.hive_site['hive.server2.thrift.port']
+          principal = hive_server2.hive_site['hive.server2.authentication.kerberos.principal']
+          url = "jdbc:hive2://#{hive_server2.fqdn}:#{port}/default;principal=#{principal}"
+          if hive_server2.hive_site['hive.server2.use.SSL'] is 'true'
             url += ";ssl=true"
-            url += ";sslTrustStore=#{hive.client.truststore_location}"
-            url += ";trustStorePassword=#{hive.client.truststore_password}"
-          if hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
-            url += ";transportMode=#{hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode']}"
-            url += ";httpPath=#{hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.path']}"
+            url += ";sslTrustStore=#{options.truststore_location}"
+            url += ";trustStorePassword=#{options.truststore_password}"
+          if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
+            url += ";transportMode=#{hive_server2.hive_site['hive.server2.transport.mode']}"
+            url += ";httpPath=#{hive_server2.hive_site['hive.server2.thrift.http.path']}"
           beeline = "beeline -u \"#{url}\" --silent=true "
           @system.execute
             cmd: mkcmd.test @, """
@@ -103,7 +101,7 @@ directive once you enter the beeline shell.
             #{beeline} \
             -e "DROP TABLE IF EXISTS #{db}.my_table;" \
             -e "DROP DATABASE IF EXISTS #{db};" \
-            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{user.name}/#{directory}/my_db'" \
+            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{options.test.user.name}/#{directory}/my_db'" \
             -e "CREATE TABLE IF NOT EXISTS #{db}.my_table(col1 STRING, col2 INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';"
             #{beeline} \
             -e "SELECT SUM(col2) FROM #{db}.my_table;" | hdfs dfs -put - #{directory}/result
@@ -111,80 +109,74 @@ directive once you enter the beeline shell.
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
             trap: true
             retry: 3
 
       @call
-        header: 'Check Server2 (with ZK)'
+        header: 'Server2 (with ZK)'
         label_true: 'CHECKED'
-        if: -> hive_server2.length > 1
+        if: -> options.hive_server2.length > 1
       , ->
-        current = null
-        urls = hive_server2
-        .map (hs2_ctx) ->
-          quorum = hs2_ctx.config.ryba.hive.server2.site['hive.zookeeper.quorum']
-          namespace = hs2_ctx.config.ryba.hive.server2.site['hive.server2.zookeeper.namespace']
-          principal = hs2_ctx.config.ryba.hive.server2.site['hive.server2.authentication.kerberos.principal']
+        urls = for hive_server2 in options.hive_server2
+          quorum = hive_server2.hive_site['hive.zookeeper.quorum']
+          namespace = hive_server2.hive_site['hive.server2.zookeeper.namespace']
+          principal = hive_server2.hive_site['hive.server2.authentication.kerberos.principal']
           url = "jdbc:hive2://#{quorum}/;principal=#{principal};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=#{namespace}"
-          if hs2_ctx.config.ryba.hive.server2.site['hive.server2.use.SSL'] is 'true'
+          if hive_server2.hive_site['hive.server2.use.SSL'] is 'true'
             url += ";ssl=true"
-            url += ";sslTrustStore=#{hive.client.truststore_location}"
-            url += ";trustStorePassword=#{hive.client.truststore_password}"
-          if hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
-            url += ";transportMode=#{hs2_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode']}"
-            url += ";httpPath=#{hs2_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.path']}"
+            url += ";sslTrustStore=#{options.truststore_location}"
+            url += ";trustStorePassword=#{options.truststore_password}"
+          if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
+            url += ";transportMode=#{hive_server2.hive_site['hive.server2.transport.mode']}"
+            url += ";httpPath=#{hive_server2.hive_site['hive.server2.thrift.http.path']}"
           url
-        .sort()
-        .filter (c) ->
-          p = current; current = c; p isnt c
         for url in urls
           namespace = /zooKeeperNamespace=(.*?)(;|$)/.exec(url)[1]
-          directory = "check-#{@config.shortname}-hive_server2-zoo-#{namespace}"
-          db = "check_#{@config.shortname}_hs2_zoo_#{namespace}"
-          beeline = "beeline -u \"#{url}\" --silent=true "
+          directory = "check-#{options.hostname}-hive_server2-zoo-#{namespace}"
+          db = "check_#{options.hostname}_hs2_zoo_#{namespace}"
           @system.execute
             cmd: mkcmd.test @, """
             hdfs dfs -rm -r -f -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table || true
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
-            #{beeline} \
+            beeline -u \"#{url}\" --silent=true  \
             -e "DROP TABLE IF EXISTS #{db}.my_table;" \
             -e "DROP DATABASE IF EXISTS #{db};" \
-            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{user.name}/#{directory}/my_db'" \
+            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{options.test.user.name}/#{directory}/my_db'" \
             -e "CREATE TABLE IF NOT EXISTS #{db}.my_table(col1 STRING, col2 INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';"
-            #{beeline} \
+            beeline -u \"#{url}\" --silent=true  \
             -e "SELECT SUM(col2) FROM #{db}.my_table;" | hdfs dfs -put - #{directory}/result
-            #{beeline} \
+            beeline -u \"#{url}\" --silent=true  \
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Check Sparl SQL Thrift Server
 
-      @call once: true, if: (spark_thrift_servers.length > 0), 'ryba/spark/thrift_server/wait'
+      
       @call
-        header: 'Check Spark SQL Thrift Server'
+        header: 'Spark SQL Thrift Server'
         label_true: 'CHECKED'
+        if: options.spark_thrift_server.length
       , ->
-        for sts_ctx in spark_thrift_servers
-          # {hive} = sts_ctx.config.ryba
-          directory = "check-#{@config.shortname}-spark-sql-server-#{sts_ctx.config.shortname}"
-          db = "check_#{@config.shortname}_spark_sql_server_#{sts_ctx.config.shortname}"
-          port = if sts_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
-          then sts_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.port']
-          else sts_ctx.config.ryba.hive.server2.site['hive.server2.thrift.port']
-          principal = sts_ctx.config.ryba.hive.server2.site['hive.server2.authentication.kerberos.principal']
-          url = "jdbc:hive2://#{sts_ctx.config.host}:#{port}/default;principal=#{principal}"
-          if sts_ctx.config.ryba.hive.server2.site['hive.server2.use.SSL'] is 'true'
+        for spark_thrift_server in options.spark_thrift_server
+          directory = "check-#{options.hostname}-spark-sql-server-#{spark_thrift_server.hostname}"
+          db = "check_#{options.hostname}_spark_sql_server_#{spark_thrift_server.hostname}"
+          port = if spark_thrift_server.hive_site['hive.server2.transport.mode'] is 'http'
+          then spark_thrift_server.hive_site['hive.server2.thrift.http.port']
+          else spark_thrift_server.hive_site['hive.server2.thrift.port']
+          principal = spark_thrift_server.hive_site['hive.server2.authentication.kerberos.principal']
+          url = "jdbc:hive2://#{spark_thrift_server.fqdn}:#{port}/default;principal=#{principal}"
+          if spark_thrift_server.hive_site['hive.server2.use.SSL'] is 'true'
             url += ";ssl=true"
-            url += ";sslTrustStore=#{@config.ryba.hive.client.truststore_location}"
-            url += ";trustStorePassword=#{@config.ryba.hive.client.truststore_password}"
-          if sts_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode'] is 'http'
-            url += ";transportMode=#{sts_ctx.config.ryba.hive.server2.site['hive.server2.transport.mode']}"
-            url += ";httpPath=#{sts_ctx.config.ryba.hive.server2.site['hive.server2.thrift.http.path']}"
+            url += ";sslTrustStore=#{options.truststore_location}"
+            url += ";trustStorePassword=#{options.truststore_password}"
+          if spark_thrift_server.hive_site['hive.server2.transport.mode'] is 'http'
+            url += ";transportMode=#{spark_thrift_server.hive_site['hive.server2.transport.mode']}"
+            url += ";httpPath=#{spark_thrift_server.hive_site['hive.server2.thrift.http.path']}"
           beeline = "beeline -u \"#{url}\" --silent=true "
           @system.execute
             cmd: mkcmd.test @, """
@@ -194,7 +186,7 @@ directive once you enter the beeline shell.
             #{beeline} \
             -e "DROP TABLE IF EXISTS #{db}.my_table;" \
             -e "DROP DATABASE IF EXISTS #{db};" \
-            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{user.name}/#{directory}/my_db'" \
+            -e "CREATE DATABASE IF NOT EXISTS #{db} LOCATION '/user/#{options.test.user.name}/#{directory}/my_db'" \
             -e "CREATE TABLE IF NOT EXISTS #{db}.my_table(col1 STRING, col2 INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';"
             #{beeline} \
             -e "SELECT SUM(col2) FROM #{db}.my_table;" | hdfs dfs -put - #{directory}/result
@@ -202,7 +194,7 @@ directive once you enter the beeline shell.
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Dependencies

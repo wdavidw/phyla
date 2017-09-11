@@ -10,14 +10,7 @@ HDP 2.1 and 2.2 dont support secured Hive metastore in HA mode, see
 Resources:
 *   [Cloudera security instruction for CDH5](http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_sg_hiveserver2_security.html)
 
-    module.exports =  header: 'Hive Server2 Install', handler: ->
-      {hive} = @config.ryba
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
-      tmp_location = "/var/tmp/ryba/ssl"
-      hive_server_port = if hive.server2.site['hive.server2.transport.mode'] is 'binary'
-      then hive.server2.site['hive.server2.thrift.port']
-      else hive.server2.site['hive.server2.thrift.http.port']
+    module.exports =  header: 'Hive Server2 Install', handler: (options) ->
 
 ## Register
 
@@ -38,12 +31,15 @@ Resources:
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
+      hive_server_port = if options.hive_site['hive.server2.transport.mode'] is 'binary'
+      then options.hive_site['hive.server2.thrift.port']
+      else options.hive_site['hive.server2.thrift.http.port']
       rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: hive_server_port, protocol: 'tcp', state: 'NEW', comment: "Hive Server" }]
-      rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: parseInt(hive.server2.env["JMXPORT"],10), protocol: 'tcp', state: 'NEW', comment: "HiveServer2 JMX" } if hive.server2.env["JMXPORT"]?
+      rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: parseInt(options.env["JMXPORT"],10), protocol: 'tcp', state: 'NEW', comment: "HiveServer2 JMX" } if options.env["JMXPORT"]?
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: rules
-        if: @config.iptables.action is 'start'
 
 ## Identities
 
@@ -57,8 +53,15 @@ cat /etc/group | grep hive
 hive:x:493:
 ```
 
-      @system.group header: 'Group', hive.group
-      @system.user header: 'User', hive.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
+
+## Ulimit
+
+      @system.limits
+        header: 'Ulimit'
+        user: options.user.name
+      , options.user.limits
 
 ## Startup
 
@@ -79,39 +82,39 @@ isnt yet started.
           header: 'Init Script'
           source: "#{__dirname}/../resources/hive-server2.j2"
           local: true
-          context: @config.ryba
+          context: options: options
           target: '/etc/init.d/hive-server2'
           mode: 0o0755
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: hive.server2.pid_dir
-          uid: hive.user.name
-          gid: hive.group.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 ## Configuration
 
       @hconfigure
         header: 'Hive Site'
-        target: "#{hive.server2.conf_dir}/hive-site.xml"
+        target: "#{options.conf_dir}/hive-site.xml"
         source: "#{__dirname}/../../resources/hive/hive-site.xml"
         local: true
-        properties: hive.server2.site
+        properties: options.hive_site
         merge: true
         backup: true
-        uid: hive.user.name
-        gid: hive.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0750
       @file.render
         header: 'Hive Log4j properties'
         source: "#{__dirname}/../resources/hive-exec-log4j.properties"
         local: true
-        target: "#{hive.server2.conf_dir}/hive-exec-log4j.properties"
+        target: "#{options.conf_dir}/hive-exec-log4j.properties"
         context: @config
       @file.properties
         header: 'Hive server Log4j properties'
-        target: "#{hive.server2.conf_dir}/hive-log4j.properties"
-        content: hive.server2.log4j.config
+        target: "#{options.conf_dir}/hive-log4j.properties"
+        content: options.log4j.config
         backup: true
 
 ## Env
@@ -126,17 +129,17 @@ Server2 to 4Gb by setting a value equal to "-Xmx4096m".
       @file.render
         header: 'Hive Server2 Env'
         source: "#{__dirname}/../resources/hive-env.sh.j2"
-        target: "#{hive.server2.conf_dir}/hive-env.sh"
+        target: "#{options.conf_dir}/hive-env.sh"
         local: true
-        context: @config
+        context: options: options
         eof: true
         backup: true
         mode: 0o0750
-        uid: hive.user.name
-        gid: hive.group.name
+        uid: options.user.name
+        gid: options.group.name
         write: [
           match: RegExp "^export HIVE_CONF_DIR=.*$", 'mg'
-          replace: "export HIVE_CONF_DIR=#{hive.server2.conf_dir}"
+          replace: "export HIVE_CONF_DIR=#{options.conf_dir}"
         ]
 
 ## Layout
@@ -146,38 +149,36 @@ Create the directories to store the logs and pid information. The properties
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: hive.server2.log_dir
-          uid: hive.user.name
-          gid: hive.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           parent: true
         @system.mkdir
-          target: hive.server2.pid_dir
-          uid: hive.user.name
-          gid: hive.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           parent: true
 
 ## SSL
 
       @call
-        header: 'Client SSL'
-        if: -> @config.ryba.hive.server2.site['hive.server2.use.SSL'] is 'true'
+        header: 'SSL'
+        if: -> options.hive_site['hive.server2.use.SSL'] is 'true'
       , ->
         @java.keystore_add
-          keystore: hive.server2.site['hive.server2.keystore.path']
-          storepass: hive.server2.site['hive.server2.keystore.password']
-          caname: "hive_root_ca"
-          cacert: ssl.cacert
-          key: ssl.key
-          cert: ssl.cert
-          keypass: ssl_server['ssl.server.keystore.keypassword']
-          name: @config.shortname
-          local: true
-        # @java.keystore_add
-        #   keystore: hive.server2.site['hive.server2.keystore.path']
-        #   storepass: hive.server2.site['hive.server2.keystore.password']
-        #   caname: "hadoop_root_ca"
-        #   cacert: ssl.cacert
-        #   local: true
+          keystore: options.hive_site['hive.server2.keystore.path']
+          storepass: options.hive_site['hive.server2.keystore.password']
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.hive_site['hive.server2.keystore.password']
+          name: options.ssl.key.name
+          local: options.ssl.key.local
+        @java.keystore_add
+          keystore: options.hive_site['hive.server2.keystore.path']
+          storepass: options.hive_site['hive.server2.keystore.password']
+          caname: "hadoop_root_ca"
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
         @service
           srv_name: 'hive-server2'
           action: 'restart'
@@ -185,28 +186,21 @@ Create the directories to store the logs and pid information. The properties
 
 ## Kerberos
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: hive.server2.site['hive.server2.authentication.kerberos.principal'].replace '_HOST', @config.host
+        principal: options.hive_site['hive.server2.authentication.kerberos.principal'].replace '_HOST', @config.host
         randkey: true
-        keytab: hive.server2.site['hive.server2.authentication.kerberos.keytab']
-        uid: hive.user.name
-        gid: hive.group.name
-        unless: @has_service('ryba/hive/hcatalog') and hive.server2.site['hive.metastore.kerberos.principal'] is hive.server2.site['hive.server2.authentication.kerberos.principal']
-
-## Ulimit
-
-      @system.limits
-        header: 'Ulimit'
-        user: hive.user.name
-      , hive.user.limits
+        keytab: options.hive_site['hive.server2.authentication.kerberos.keytab']
+        uid: options.user.name
+        gid: options.group.name
+        unless: @has_service('ryba/hive/hcatalog') and options.hive_site['hive.metastore.kerberos.principal'] is options.hive_site['hive.server2.authentication.kerberos.principal']
 
 ## Ranger Hive Plugin Install
-
-      @call
-        if: -> @contexts('ryba/ranger/admin').length > 0
-      , ->
-        @call 'ryba/ranger/plugins/hiveserver2/install'
+      # 
+      # @call
+      #   if: -> @contexts('ryba/ranger/admin').length > 0
+      # , ->
+      #   @call 'ryba/ranger/plugins/hiveserver2/install'
 
 ## Dependencies
 

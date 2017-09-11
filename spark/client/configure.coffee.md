@@ -110,7 +110,7 @@ the hive-site.xml is set inside /etc/spark/conf/ dir.
         'hive.exec.max.created.files'
         'hive.metastore.warehouse.dir'
         # Transaction, read/write locks
-      ] then spark.hive.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.site[property]
+      ] then spark.hive.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.hive_site[property]
       spark.hive.site['hive.execution.engine'] ?= 'mr'
 
 [secu]: http://spark.apache.org/docs/latest/security.html

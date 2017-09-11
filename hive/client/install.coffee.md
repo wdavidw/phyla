@@ -1,11 +1,7 @@
 
 # Hive & HCatalog Client
 
-    module.exports = header: 'Hive Client Install', handler: ->
-      {hive, hadoop_group} = @config.ryba
-      {java_home} =@config.java
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba
-      tmp_location = "/var/tmp/ryba/ssl"
+    module.exports = header: 'Hive Client Install', handler: (options) ->
 
 ## Register
 
@@ -24,8 +20,8 @@ cat /etc/group | grep hive
 hive:x:493:
 ```
 
-      @system.group header: 'Group', hive.group
-      @system.user header: 'User', hive.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Service
 
@@ -35,11 +31,14 @@ is installed on the host.
       @service
         name: 'phoenix'
         if: @has_service 'ryba/phoenix/client'
+      # migration: wdavidw 170908, attempt to simplify package installation
       @service 'hive'
-      @service 'hive-webhcat' # Install hcat command
-      @hdp_select 'hive-webhcat'
-      # @service
-      #   name: 'hive-hcatalog'
+      @hdp_select 'hive-webhcat' # Selecting "hive-client" throw "Invalid package" error
+      # @service 'hive'
+      # @service 'hive-webhcat' # Install hcat command
+      # @hdp_select 'hive-webhcat'
+      # # @service
+      # #   name: 'hive-hcatalog'
 
 ## Configure
 
@@ -47,26 +46,28 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
 
       @hconfigure
         header: 'Hive Site'
-        target: "#{hive.conf_dir}/hive-site.xml"
+        target: "#{options.conf_dir}/hive-site.xml"
         source: "#{__dirname}/../../resources/hive/hive-site.xml"
         local: true
-        properties: hive.site
+        properties: options.hive_site
         merge: true
         backup: true
-      @system.execute
-        header: 'Permissions'
-        cmd: """
-        chown -R #{hive.user.name}:#{hadoop_group.name} #{hive.conf_dir}
-        chmod -R 755 #{hive.conf_dir}
-        """
-        shy: true # TODO: indempotence by detecting ownerships and permissions
+      # migration: wdavidw 170907, i dont see the interest of changing the 
+      # ownerships and permissions on /etc/hive/conf
+      # @system.execute
+      #   header: 'Permissions'
+      #   cmd: """
+      #   chown -R #{options.user.name}:#{hadoop_group.name} #{options.conf_dir}
+      #   chmod -R 755 #{options.conf_dir}
+      #   """
+      #   shy: true # TODO: indempotence by detecting ownerships and permissions
 
 ## Env
 
-Enrich the "hive-env.sh" file with the value of the configuration properties
-"ryba.hive.client.opts" and "ryba.hive.client.heapsize". Internally, the
-environmental variables "HADOOP_CLIENT_OPTS" and "HADOOP_HEAPSIZE" are enriched
-and they only apply to the Hive HCatalog server.
+Enrich the "hive-env.sh" file with the value of the options
+"opts" and "heapsize". Internally, the environmental variables 
+"HADOOP_CLIENT_OPTS" and "HADOOP_HEAPSIZE" are enriched
+and they only apply to the Hive client.
 
 Using this functionnality, a user may for example raise the heap size of Hive
 Client to 4Gb by either setting a "opts" value equal to "-Xmx4096m" or the
@@ -75,22 +76,18 @@ by setting a "heapsize" value equal to "4096".
       @file.render
         header: 'Hive Env'
         source: "#{__dirname}/../resources/hive-env.sh.j2"
-        target: "#{hive.conf_dir}/hive-env.sh"
+        target: "#{options.conf_dir}/hive-env.sh"
         local: true
-        context: @config
+        context: options: options
         eof: true
         backup: true
 
 ## SSL
 
-      @java.keystore_add
-        header: 'Client SSL'
-        keystore: hive.client.truststore_location
-        storepass: hive.client.truststore_password
-        caname: "hive_root_ca"
-        cacert: ssl.cacert
-        local: true
-
-## Dependencies
-
-    path = require 'path'
+      # @java.keystore_add
+      #   header: 'Client SSL'
+      #   keystore: options.truststore_location
+      #   storepass: options.truststore_password
+      #   caname: "hive_root_ca"
+      #   cacert: ssl.cacert
+      #   local: true

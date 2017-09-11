@@ -172,7 +172,7 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
       # Password to the Java Keystore stored in the 'kms.keystore' file
       throw Error 'Required Options: ssl.password' unless options.ssl.password
       options.kms_site['hadoop.kms.key.provider.uri'] ?= "jceks://file@/#{options.conf_dir}/kms.keystore"

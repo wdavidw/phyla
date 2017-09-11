@@ -8,25 +8,27 @@
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
-        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
-        hadoop_core: module: 'ryba/hadoop/core'
-        hive_client: module: 'ryba/hive/client', implicit: true, 
-        hive_hcatalog: module: 'ryba/hive/hcatalog'
-        sqoop: module: 'ryba/sqoop'
         db_admin: module: 'ryba/commons/db_admin'
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hive_hcatalog: module: 'ryba/hive/hcatalog', required: true
+        hive_client: module: 'ryba/hive/client', local: true, auto: true, implicit: true
+        hive_webhcat: module: 'ryba/hive/webhcat'
+        sqoop: module: 'ryba/sqoop'
       configure:
         'ryba/hive/webhcat/configure'
       commands:
-        'install': [
-          'ryba/hive/webhcat/install'
-          'ryba/hive/webhcat/start'
-          'ryba/hive/webhcat/check'
-        ]
-        'start':
-          'ryba/hive/webhcat/start'
+        'install': ->
+          options = @config.ryba.webhcat
+          @call 'ryba/hive/webhcat/install', options
+          @call 'ryba/hive/webhcat/start', options
+          @call 'ryba/hive/webhcat/check', options
+        'start': ->
+          options = @config.ryba.webhcat
+          @call 'ryba/hive/webhcat/start', options
         'status':
           'ryba/hive/webhcat/status'
-        'stop':
-          'ryba/hive/webhcat/stop'
-        'wait':
-          'ryba/hive/webhcat/wait'
+        'stop': ->
+          options = @config.ryba.webhcat
+          @call 'ryba/hive/webhcat/stop', options

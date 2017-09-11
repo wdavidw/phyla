@@ -1,8 +1,13 @@
 
 # Ranger HBase Plugin Install
 
-    module.exports = header: 'Ranger HBase Plugin Install', handler: (options) ->
-      version= null
+    module.exports = header: 'Ranger HBase Plugin', handler: (options) ->
+      version = null
+
+## Register
+
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
 ## Wait
 
@@ -54,77 +59,41 @@
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
 ## HBase Service Repository creation
+
 Matchs step 1 in [hdfs plugin configuration][hbase-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
       @call
-        header: 'Policy'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        header: 'Audit HDFS Policy'
       , ->
-        hbase_policy =
-          name: "hbase-ranger-plugin-audit"
-          service: "#{options.hdfs_install['REPOSITORY_NAME']}"
-          repositoryType:"hdfs"
-          description: 'HBase Ranger Plugin audit log policy'
-          isEnabled: true
-          isAuditEnabled: true
-          resources:
-            path:
-              isRecursive: 'true'
-              values: ['/ranger/audit/hbaseRegional','/ranger/audit/hbaseMaster']
-              isExcludes: false
-          policyItems: [{
-            users: ["#{options.plugin_user.name}"]
-            groups: []
-            delegateAdmin: true
-            accesses:[
-                "isAllowed": true
-                "type": "read"
-            ,
-                "isAllowed": true
-                "type": "write"
-            ,
-                "isAllowed": true
-                "type": "execute"
-            ]
-            conditions: []
-            }]
-        @hdfs_mkdir
-          header: 'Master HDFS Audit Dir'
-          target: "/#{options.user.name}/audit/hbaseMaster"
-          mode: 0o750
-          user: options.user.name
-          group: options.group.name
-        @hdfs_mkdir
-          header: 'RegionServer HDFS Audit Dir'
-          target: "/#{options.user.name}/audit/hbaseRegional"
-          mode: 0o750
-          user: options.user.name
-          group: options.group.name
-        @system.execute
-          header: 'Admin Policy'
-          unless_exec: """
-          curl --fail -H "Content-Type: application/json" -k -X GET  \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            "#{options.hdfs_install['POLICY_MGR_URL']}/service/public/v2/api/service/#{options.hdfs_install['REPOSITORY_NAME']}/policy/hbase-ranger-plugin-audit"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST \
-            -d '#{JSON.stringify hbase_policy}' \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            "#{options.hdfs_install['POLICY_MGR_URL']}/service/public/v2/api/policy"
-          """
-        @system.execute
-          header: 'Admin Repository'
-          unless_exec: """
-          curl --fail -H "Content-Type: application/json"   -k -X GET  \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
-          """
+        for target in options.policy_hdfs_audit.resources.path.values
+          @hdfs_mkdir
+            target: target
+            mode: 0o0750
+            parent:
+              mode: 0o0711
+              user: options.user.name
+              group: options.group.name
+            user: options.hbase_user.name
+            group: options.hbase_user.name
+            unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
+        @ranger_policy
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          policy: options.policy_hdfs_audit
+
+## Service Repository creation
+
+Matchs step 1 in [hbase plugin configuration][hbase-plugin]. Instead of using the web ui
+we execute this task using the rest api.
+
+        @ranger_service
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          service: options.service_repo
 
 ## HBase  Plugin Principal
 
@@ -178,7 +147,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
           ]
           backup: true
           mode: 0o750
-        @call header: 'Enable HBase Plugin', (options, callback) ->
+        @call header: 'Enable HBase Plugin', (_, callback) ->
           files = ['ranger-hbase-audit.xml','ranger-hbase-security.xml','ranger-policymgr-ssl.xml']
           sources_props = {}
           current_props = {}
@@ -194,14 +163,14 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
           @call
             if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
           , ->
-            @each files, (options, cb) ->
-              file = options.key
+            @each files, (opt, cb) ->
+              file = opt.key
               target = "#{options.conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
                 files_exists["#{file}"] = exists
-                properties.read options.ssh, target , (err, props) ->
+                properties.read options.ssh, target, (err, props) ->
                   return cb err if err
                   sources_props["#{file}"] = props
                   cb()
@@ -213,17 +182,17 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
             else exit 1 ;
             fi;
             """
-          @system.execute
-            header: "Fix Plugin repository permission"
-            cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
+          # @system.execute
+          #   header: "Fix Plugin repository permission"
+          #   cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
           @hconfigure
             header: 'Fix Plugin security conf'
             target: "#{options.conf_dir}/ranger-hbase-security.xml"
             merge: true
             properties:
               'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
-          @each files, (options, cb) ->
-            file = options.key
+          @each files, (opt, cb) ->
+            file = opt.key
             target = "#{options.conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return callback err if err

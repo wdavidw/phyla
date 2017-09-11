@@ -87,7 +87,7 @@ The default configuration is located inside the source code in the location
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl or {}
+      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
 
 ## Log4J
 

@@ -1,133 +1,98 @@
 
 # Ranger HiveServer2 Plugin Install
 
-    module.exports = header: 'Ranger Hive Plugin install', handler: ->
-      {ranger, hive, realm, hadoop_group, core_site} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
-      hive_plugin = @config.ryba.ranger.hive_plugin
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Ranger Hive Plugin', handler: (options) ->
       version = null
       #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
 
-# Dependencies
+## Wait
 
-      @call once: true, 'ryba/ranger/admin/wait'
+      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger_admin
+
+## Register
+
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
-# Create Hive Policy for On HDFS Repo
+## Ranger User
+
+      @ranger_user
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
+
+## Create Hive Policy for HDFS Repo
 
       @call
-        if: hive_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        header: 'Hive ranger plugin audit to HDFS'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        header: 'Audit HDFS Policy'
       , ->
         @system.mkdir
-          target: hive_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-          uid: hive.user.name
-          gid: hadoop_group.name
+          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          uid: options.hive_user.name
+          gid: options.hive_group.name
           mode: 0o0750
-        @call
-          if: @contexts('ryba/ranger/admin')[0].config.ryba.ranger.plugins.hdfs_enabled
-        , ->
-          hive_policy =
-            name: "hive-ranger-plugin-audit"
-            service: "#{hdfs_plugin.install['REPOSITORY_NAME']}"
-            repositoryType:"hdfs"
-            description: 'Hive Ranger Plugin audit log policy'
-            isEnabled: true
-            isAuditEnabled: true
-            resources:
-              path:
-                isRecursive: 'true'
-                values: ['/ranger/audit/hiveServer2']
-                isExcludes: false
-            policyItems: [{
-              users: ["#{hive.user.name}"]
-              groups: []
-              delegateAdmin: true
-              accesses:[
-                  "isAllowed": true
-                  "type": "read"
-              ,
-                  "isAllowed": true
-                  "type": "write"
-              ,
-                  "isAllowed": true
-                  "type": "execute"
-              ]
-              conditions: []
-              }]
-          @system.execute
-            cmd: """
-            curl --fail -H "Content-Type: application/json" -k -X POST \
-              -d '#{JSON.stringify hive_policy}' \
-              -u admin:#{password} \
-              \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
-            """
-            unless_exec: """
-            curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-              -u admin:#{password} \
-              \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/#{hdfs_plugin.install['REPOSITORY_NAME']}/policy/hive-ranger-plugin-audit\"
-            """
-            code_skippe: 22
+        for target in options.policy_hdfs_audit.resources.path.values
+          @hdfs_mkdir
+            target: target
+            mode: 0o0750
+            parent:
+              mode: 0o0711
+              user: options.user.name
+              group: options.group.name
+            user: options.hive_user.name
+            group: options.hive_user.name
+            unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
+        @ranger_policy
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          policy: options.policy_hdfs_audit
 
-# Packages
+## Packages
 
       @call header: 'Packages', ->
         @system.execute
           header: 'Setup Execution Version'
-          shy:true
-          cmd: """
-          hdp-select versions | tail -1
-          """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
+          shy: true
+          cmd: "hdp-select versions | tail -1"
+        , (err, executed,stdout, stderr) ->
+          return  err if err or not executed
+          version = stdout.trim() if executed
         @service
           name: "ranger-hive-plugin"
 
-# Hive ranger plugin audit to SOLR
+## Hive ranger plugin audit to SOLR
 
       @system.mkdir
-        target: hive_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: hive.user.name
-        gid: hadoop_group.name
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.hive_user.name
+        gid: options.hive_group.name
         mode: 0o0750
-        if: hive_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
-# HIVE Service Repository creation
+## Service Repository creation
+
 Matchs step 1 in [hive plugin configuration][hive-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call
-        if: @contexts('ryba/hive/server2')[0].config.host is @config.host
-        header: 'Ranger HIVE Repository'
-      , ->
-        @system.execute
-          unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{password} \"#{hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{hive_plugin.install['REPOSITORY_NAME']}\"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify hive_plugin.service_repo}' \
-            -u admin:#{password} \"#{hive_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
-          """
-        @krb5.addprinc krb5,
-          if: hive_plugin.principal
-          header: 'Ranger HIVE Principal'
-          principal: hive_plugin.principal
-          randkey: true
-          password: hive_plugin.password
-        @hdfs_mkdir
-          header: 'Ranger Audit HIVE Layout'
-          target: "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hiveServer2"
-          mode: 0o750
-          user: hive.user.name
-          group: hive.user.name
-          unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/hiveServer2"
+      @ranger_service
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
+      @krb5.addprinc options.krb5.admin,
+        if: options.principal
+        header: 'Ranger HIVE Principal'
+        principal: options.principal
+        randkey: true
+        password: options.password
 
-# Plugin Scripts 
+## Plugin Scripts 
 
       @call ->
         @file.render
@@ -138,7 +103,7 @@ we execute this task using the rest api.
           local: true
           eof: true
           backup: true
-          write: for k, v of hive_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -147,7 +112,7 @@ we execute this task using the rest api.
           target: "/usr/hdp/#{version}/ranger-hive-plugin/enable-hive-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{hive.server2.conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
             ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/hive-server2"
@@ -159,24 +124,26 @@ we execute this task using the rest api.
           mode: 0o750
         @call
           header: 'Enable Hive Plugin'
-        , (options, callback) ->
+        , (_, callback) ->
           files = ['ranger-hive-audit.xml','ranger-hive-security.xml','ranger-policymgr-ssl.xml']
           sources_props = {}
           current_props = {}
           files_exists = {}
           @system.execute
             cmd: """
-            echo '' | keytool -list \
+            echo '' \
+            | keytool -list \
               -storetype jceks \
-              -keystore /etc/ranger/#{hive_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+              -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks \
+            | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
             code_skipped: 1
           @call
-            if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
+            if: -> @status -1 # Optional if cred.jceks file not provisioned
           , ->
-            @each files, (options, cb) ->
-              file = options.key
-              target = "#{hive.server2.conf_dir}/#{file}"
+            @each files, (opt, cb) ->
+              file = opt.key
+              target = "#{options.conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
@@ -195,22 +162,22 @@ we execute this task using the rest api.
             """
           @hconfigure
             header: 'Fix ranger-hive-security conf'
-            target: "#{hive.server2.conf_dir}/ranger-hive-security.xml"
+            target: "#{options.conf_dir}/ranger-hive-security.xml"
             merge: true
             properties:
-              'ranger.plugin.hive.policy.rest.ssl.config.file': "#{hive.server2.conf_dir}/ranger-policymgr-ssl.xml"
+              'ranger.plugin.hive.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
           @system.remove
             header: 'Remove useless file'
-            target: "#{hive.server2.conf_dir}/hiveserver2-site.xml"
+            target: "#{options.conf_dir}/hiveserver2-site.xml"
             shy: true
           @hconfigure
             header: 'JAAS Properties for solr'
-            target: "#{hive.server2.conf_dir}/ranger-hive-audit.xml"
+            target: "#{options.conf_dir}/ranger-hive-audit.xml"
             merge: true
-            properties: hive_plugin.audit
-          @each files, (options, cb) ->
-            file = options.key
-            target = "#{hive.server2.conf_dir}/#{file}"
+            properties: options.audit
+          @each files, (opt, cb) ->
+            file = opt.key
+            target = "#{options.conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return callback err if err
               properties.read options.ssh, target , (err, props) ->
@@ -222,7 +189,7 @@ we execute this task using the rest api.
             shy: true
           , ->
             for file in files
-              #do not need to go further if the file did not exist
+              # Stop if file does not exist
               return callback null, true unless sources_props["#{file}"]?
               for prop, value of current_props["#{file}"]
                 return callback null, true unless value is sources_props["#{file}"][prop]

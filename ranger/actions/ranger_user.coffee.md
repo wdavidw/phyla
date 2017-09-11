@@ -17,15 +17,20 @@
 ```js
 nikita
 .ranger_user({
-  "name": 'hbase',
-  "firstName": '',
-  "lastName": 'hadoop',
-  "emailAddress": 'hbase@hadoop.ryba',
-  "password": 'hbase123',
-  'userSource': 1,
-  'userRoleList': ['ROLE_USER'],
-  'groups': [],
-  'status': 1
+  "username": 'ranger_username',
+  "password": 'ranger_secret',
+  "url": "http://ranger.policy.manager",
+  "user": {
+    "name": 'hbase',
+    "firstName": '',
+    "lastName": 'hadoop',
+    "emailAddress": 'hbase@hadoop.ryba',
+    "password": 'hbase123',
+    'userSource': 1,
+    'userRoleList': ['ROLE_USER'],
+    'groups': [],
+    'status': 1
+  }
 }, function(err, status){
   console.log( err ? err.message : 'User Created: ' + status)
 })

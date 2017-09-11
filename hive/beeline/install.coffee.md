@@ -1,11 +1,7 @@
 
 # Hive Beeline Install
 
-    module.exports = header: 'Hive Beeline Install', handler: ->
-      {hive, hadoop_group} = @config.ryba
-      {java_home} =@config.java
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir} = @config.ryba
-      tmp_location = "/var/tmp/ryba/ssl"
+    module.exports = header: 'Hive Beeline Install', handler: (options) ->
 
 ## Register
 
@@ -14,8 +10,7 @@
 
 ## Service
 
-      @service
-        name: 'hive'
+      @service name: 'hive'
       @hdp_select 'hive-webhcat'
 
 ## Configure
@@ -24,17 +19,17 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
 
       @hconfigure
         header: 'Hive Site'
-        target: "#{hive.conf_dir}/hive-site.xml"
+        target: "#{options.conf_dir}/hive-site.xml"
         source: "#{__dirname}/../../resources/hive/hive-site.xml"
         local: true
-        properties: hive.site
+        properties: options.hive_site
         merge: true
         backup: true
       @system.execute
         header: 'Permissions'
         cmd: """
-        chown -R #{hive.user.name}:#{hadoop_group.name} #{hive.conf_dir}
-        chmod -R 755 #{hive.conf_dir}
+        chown -R #{options.user.name}:#{options.hadoop_group.name} #{options.conf_dir}
+        chmod -R 755 #{options.conf_dir}
         """
         shy: true # TODO: indempotence by detecting ownerships and permissions
 
@@ -43,9 +38,9 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
       @file.render
         header: 'Hive Env'
         source: "#{__dirname}/../resources/hive-env.sh.j2"
-        target: "#{hive.conf_dir}/hive-env.sh"
+        target: "#{options.conf_dir}/hive-env.sh"
         local: true
-        context: @config
+        context: options: options
         eof: true
         backup: true
 
@@ -53,11 +48,11 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
 
       @java.keystore_add
         header: 'Client SSL'
-        keystore: hive.client.truststore_location
-        storepass: hive.client.truststore_password
-        caname: "hive_root_ca"
-        cacert: ssl.cacert
-        local: true
+        keystore: options.truststore_location
+        storepass: options.truststore_password
+        caname: "hadoop_root_ca"
+        cacert: "#{options.ssl.cacert.source}"
+        local: "#{options.ssl.cacert.local}"
 
 ## Dependencies
 

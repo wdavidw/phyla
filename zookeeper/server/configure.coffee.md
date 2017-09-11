@@ -177,8 +177,8 @@ Example :
 
 ## Wait
 
-      options.wait = {}
       options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait = {}
 
 ## Dependencies
 

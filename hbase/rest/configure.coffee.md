@@ -46,6 +46,7 @@ See [REST Gateway Impersonation Configuration][impersonation].
       options.env ?= {}
       options.env['JAVA_HOME'] ?= service.use.java.options.java_home
       # Misc
+      options.hostname = service.node.hostname
       options.fqdn = service.node.fqdn
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.force_check ?= false
@@ -93,6 +94,10 @@ See [REST Gateway Impersonation Configuration][impersonation].
 
 ## Test
 
+
+## Test
+
+      options.ranger_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
       options.test ?= {}
       options.test.namespace ?= "ryba_check_rest_#{@config.shortname}"
       options.test.table ?= 'a_table'
