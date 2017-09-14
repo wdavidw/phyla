@@ -16,8 +16,7 @@ enterprise data ecosystem.
         zookeepers: 'ryba/zookeeper/server'
         hbase_master: 'ryba/hbase/master'
         ranger_admin: 'ryba/ranger/admin'
-        kafka_consumer: implicit: true, module: 'ryba/kafka/consumer'
-        kafka_producer: implicit: true, module: 'ryba/kafka/producer'
+        kafka_client: implicit: true, module: 'ryba/kafka/client'
         hive_client: implicit: true, module: 'ryba/hive/client'
         hbase_client: implicit: true, module: 'ryba/hbase/client'
       configure: [

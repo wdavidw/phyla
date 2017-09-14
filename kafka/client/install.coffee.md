@@ -124,16 +124,8 @@ Update the file "server.properties" with the properties defined by the
 
 ## SSL
 
-  Imports broker's CA to trustore.
+Imports broker's CA to trustore.
 
-      console.log
-        header: 'SSL Client'
-        if: -> options.config['ssl.truststore.location']?
-        keystore: options.config['ssl.truststore.location']
-        storepass: options.config['ssl.truststore.password']
-        caname: "hadoop_root_ca"
-        cacert: options.ssl.cacert.source
-        local: options.ssl.cacert.local
       @java.keystore_add
         header: 'SSL Client'
         if: -> options.config['ssl.truststore.location']?
