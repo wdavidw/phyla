@@ -58,7 +58,10 @@ Example:
       options.admin.principal ?= "#{options.user.name}@#{options.krb5.realm}"
       throw Error "Required Option: admin.password" unless options.admin.password
       #list of kafka superusers
-      options.superusers ?= ["#{options.admin.principal}"]
+      match = /^(.+?)[@\/]/.exec options.admin.principal
+      throw Error 'Invalid kafka.broker.admin.principal' unless match
+      options.superusers ?= [match[0]]
+      throw Error 'Kafka admin_principal must be in kafka superusers' unless match[0] in options.superusers
 
 ## Environment
 
@@ -112,37 +115,37 @@ Example:
       config['log4j.appender.stdout.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.stdout.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.kafkaAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.kafkaAppender.MaxFileSize'] ?= '10MB'
-      config['log4j.appender.kafkaAppender.MaxBackupIndex'] ?= '1'
+      config['log4j.appender.kafkaAppender.MaxFileSize'] ?= '100MB'
+      config['log4j.appender.kafkaAppender.MaxBackupIndex'] ?= '10'
       config['log4j.appender.kafkaAppender.File'] ?= '${kafka.logs.dir}/server.log'
       config['log4j.appender.kafkaAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.kafkaAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.stateChangeAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.stateChangeAppender.MaxFileSize'] ?= '10MB'
+      config['log4j.appender.stateChangeAppender.MaxFileSize'] ?= '100MB'
       config['log4j.appender.stateChangeAppender.MaxBackupIndex'] ?= '1'
       config['log4j.appender.stateChangeAppender.File'] ?= '${kafka.logs.dir}/state-change.log'
       config['log4j.appender.stateChangeAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.stateChangeAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.requestAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.requestAppender.MaxFileSize'] ?= '10MB'
+      config['log4j.appender.requestAppender.MaxFileSize'] ?= '100MB'
       config['log4j.appender.requestAppender.MaxBackupIndex'] ?= '1'
       config['log4j.appender.requestAppender.File'] ?= '${kafka.logs.dir}/kafka-request.log'
       config['log4j.appender.requestAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.requestAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.cleanerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.cleanerAppender.MaxFileSize'] ?= '10MB'
+      config['log4j.appender.cleanerAppender.MaxFileSize'] ?= '100MB'
       config['log4j.appender.cleanerAppender.MaxBackupIndex'] ?= '1'
       config['log4j.appender.cleanerAppender.File'] ?= '${kafka.logs.dir}/log-cleaner.log'
       config['log4j.appender.cleanerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.cleanerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.controllerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.controllerAppender.MaxFileSize'] ?= '10MB'
+      config['log4j.appender.controllerAppender.MaxFileSize'] ?= '100MB'
       config['log4j.appender.controllerAppender.MaxBackupIndex'] ?= '1'
       config['log4j.appender.controllerAppender.File'] ?= '${kafka.logs.dir}/controller.log'
       config['log4j.appender.controllerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
       config['log4j.appender.controllerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       config['log4j.appender.authorizerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.authorizerAppender.MaxFileSize'] ?= '10MB'
+      config['log4j.appender.authorizerAppender.MaxFileSize'] ?= '100MB'
       config['log4j.appender.authorizerAppender.MaxBackupIndex'] ?= '1'
       config['log4j.appender.authorizerAppender.File'] ?= '${kafka.logs.dir}/kafka-authorizer.log'
       config['log4j.appender.authorizerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
@@ -163,7 +166,7 @@ Example:
       #config['log4j.logger.kafka.network.Processor'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
       #config['log4j.logger.kafka.server.KafkaApis'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
       #config['log4j.additivity.kafka.server.KafkaApis'] ?= 'false'
-      config['log4j.rootLogger'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
+      config['log4j.rootLogger'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
       config['log4j.logger.kafka'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
       config['log4j.additivity.kafka'] ?= 'false'
       config['log4j.logger.kafka.network.RequestChannel$'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
@@ -285,6 +288,10 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
         options.wait[protocol] = for srv in service.use.kafka_broker
           host: srv.node.fqdn
           port: options.ports[protocol]
+      options.wait['PLAINTEXT'] ?= []
+      options.wait['SSL'] ?= []
+      options.wait['SASL_PLAINTEXT'] ?= []
+      options.wait['SASL_SSL'] ?= []
           
       
       console.log 'options.wait.brokers', options.wait.brokers

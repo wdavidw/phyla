@@ -2,11 +2,9 @@
 # Kafka Broker Check
 
     module.exports = header: 'Kafka Broker Check', label_true: 'CHECKED', handler: (options) ->
-      
-      console.log 'options.wait.brokers', options.wait
 
 ## Assert
-
+      
       @connection.assert
         header: 'PLAINTEXT'
         if: !!options.wait['PLAINTEXT']
@@ -15,8 +13,8 @@
       @connection.assert
         header: 'SSL'
         if: !!options.wait['SSL']
-        servers: options.wait['SSL']
-
+        servers: options.wait['SSL'].filter (server) -> server.host is options.fqdn
+      
       @connection.assert
         header: 'SASL_PLAINTEXT'
         if: !!options.wait['SASL_PLAINTEXT']

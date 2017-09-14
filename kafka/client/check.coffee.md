@@ -425,7 +425,6 @@ Trustore location and password given to line command because if executed before 
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['SASL_SSL'].join ','} \
             --topic #{test_topic} \
@@ -434,7 +433,6 @@ Trustore location and password given to line command because if executed before 
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'
