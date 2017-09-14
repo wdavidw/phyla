@@ -128,7 +128,8 @@ protocols.
             sleep 1
             /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
               --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
-              --add --allow-principal User:ANONYMOUS \
+              --add \
+              --allow-principal User:ANONYMOUS \
               --operation Read \
               --operation Write \
               --topic #{test_topic}
@@ -180,7 +181,7 @@ protocols.
         @system.execute
           cmd: """
           (
-            sleep 1
+            sleep 5
             echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=PLAINTEXT \
               --broker-list #{options.brokers['PLAINTEXT'].join ','} \
@@ -197,7 +198,8 @@ protocols.
             --property security.protocol=PLAINTEXT \
             --consumer.config #{options.conf_dir}/consumer.properties \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --from-beginning --max-messages 1 \
+            --from-beginning \
+            --max-messages 1 \
           | grep 'hello #{options.hostname}'
           """
 
@@ -208,7 +210,7 @@ Trustore location and password given to line command because if executed before 
 '/etc/kafka/conf/producer.properties' might be empty.
 
       @call
-        header: 'Check SSL'
+        header: 'SSL'
         retry: 3
         if: 'SSL' in options.protocols
       , ->
@@ -255,18 +257,18 @@ Trustore location and password given to line command because if executed before 
           | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
-          cmd:  """
-          echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
-            --producer-property security.protocol=SSL \
-            --broker-list #{options.brokers['SSL'].join ','} \
-            --security-protocol SSL \
-            --producer-property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
-            --producer-property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
-            --producer.config #{options.conf_dir}/producer.properties \
-            --topic #{test_topic}
-          """
-        @system.execute
           cmd: """
+          (
+            sleep 5
+            echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
+              --producer-property security.protocol=SSL \
+              --broker-list #{options.brokers['SSL'].join ','} \
+              --security-protocol SSL \
+              --producer-property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
+              --producer-property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
+              --producer.config #{options.conf_dir}/producer.properties \
+              --topic #{test_topic}
+          )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
             --new-consumer \
             --delete-consumer-offsets \
@@ -288,7 +290,7 @@ Trustore location and password given to line command because if executed before 
 Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
 
       @call
-        header: 'Check SASL_PLAINTEXT'
+        header: 'SASL_PLAINTEXT'
         retry: 3
         if: 'SASL_PLAINTEXT' in options.protocols
       , ->
@@ -336,7 +338,7 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
         @system.execute
           cmd:  mkcmd.test @, """
           (
-            sleep 1
+            sleep 5
             echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=SASL_PLAINTEXT \
               --broker-list #{options.brokers['SASL_PLAINTEXT'].join ','} \
@@ -364,7 +366,7 @@ Trustore location and password given to line command because if executed before 
 '/etc/kafka/conf/producer.properties' might be empty.
 
       @call
-        header: 'Check SASL_SSL'
+        header: 'SASL_SSL'
         retry: 3
         if: 'SASL_SSL' in options.protocols
       , ->
@@ -414,7 +416,7 @@ Trustore location and password given to line command because if executed before 
         @system.execute
           cmd:  mkcmd.test @, """
           (
-            sleep 1
+            sleep 5
             echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=SASL_SSL \
               --broker-list #{options.brokers['SASL_SSL'].join ','} \
@@ -425,6 +427,7 @@ Trustore location and password given to line command because if executed before 
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
+            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['SASL_SSL'].join ','} \
             --topic #{test_topic} \
@@ -433,6 +436,7 @@ Trustore location and password given to line command because if executed before 
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'

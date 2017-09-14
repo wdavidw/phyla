@@ -58,10 +58,11 @@ Example:
       options.admin.principal ?= "#{options.user.name}@#{options.krb5.realm}"
       throw Error "Required Option: admin.password" unless options.admin.password
       #list of kafka superusers
-      match = /^(.+?)[@\/]/.exec options.admin.principal
-      throw Error 'Invalid kafka.broker.admin.principal' unless match
-      options.superusers ?= [match[0]]
-      throw Error 'Kafka admin_principal must be in kafka superusers' unless match[0] in options.superusers
+      # match = /^(.+?)[@\/]/.exec options.admin.principal
+      # throw Error 'Invalid kafka.broker.admin.principal' unless match
+      # options.superusers ?= [match[0]]
+      # throw Error 'Kafka admin_principal must be in kafka superusers' unless match[0] in options.superusers
+      options.superusers ?= [options.admin.principal.split('@')[0].split('/')[0]]
 
 ## Environment
 
@@ -292,9 +293,6 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
       options.wait['SSL'] ?= []
       options.wait['SASL_PLAINTEXT'] ?= []
       options.wait['SASL_SSL'] ?= []
-          
-      
-      console.log 'options.wait.brokers', options.wait.brokers
 
 ## Dependencies
 

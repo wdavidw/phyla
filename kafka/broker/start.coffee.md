@@ -22,4 +22,6 @@ systemctl start kafka-broker
 su - kafka -c '/usr/hdp/current/kafka-broker/bin/kafka start'
 ```
 
-      @service.start name: 'kafka-broker'
+      @service.start
+        header: 'Service'
+        name: 'kafka-broker'
