@@ -320,7 +320,6 @@ Add Hive user as proxyuser
         then srv.options.hive_site['hive.server2.thrift.http.port']
         else srv.options.hive_site['hive.server2.thrift.port']
 
-
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'

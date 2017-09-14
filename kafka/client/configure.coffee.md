@@ -3,33 +3,49 @@
 ## Configure
 
     module.exports = ->
-      # Init
-      options = @config.ryba.kafka ?= {}
-      # ZooKeeper Quorum
-      zoo_ctxs = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      zookeeper_quorum = for zoo_ctx in zoo_ctxs
-        "#{zoo_ctx.config.host}:#{zoo_ctx.config.ryba.zookeeper.port}"
-      ks_ctxs = @contexts 'ryba/kafka/broker'
-      throw Error 'Cannot configure kafka consumer without broker' unless ks_ctxs.length > 0
+      service = migration.call @, service, 'ryba/kafka/client', ['ryba', 'kafka', 'client'], require('nikita/lib/misc').merge require('.').use,
+        ssl: key: ['ssl']
+        krb5_client: key: ['krb5_client']
+        test_user: key: ['ryba', 'test_user']
+        hdp: key: ['ryba', 'hdp']
+        hdf: key: ['ryba', 'hdf']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        kafka_broker: key: ['ryba', 'kafka', 'broker']
+      @config.ryba.kafka ?= {}
+      options = @config.ryba.kafka.client = service.options
 
 ## Identities
 
-      options.group = merge ks_ctxs[0].config.ryba.kafka.group, options.group
-      options.user = merge ks_ctxs[0].config.ryba.kafka.user, options.user
+Merge group and user from the Kafka broker configuration.
+
+      options.group = merge {}, service.use.kafka_broker[0].options.group, options.group
+      options.user = merge {}, service.use.kafka_broker[0].options.user, options.user
+      # Admin principal
+      options.admin ?= {}
+      options.admin.principal ?= service.use.kafka_broker[0].options.admin.principal
+      options.admin.password ?= service.use.kafka_broker[0].options.admin.password
+      # Ranger
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+
+## Environment
+
+      # Layout
+      options.conf_dir ?= '/etc/kafka/conf'
+      # Env
+      options.env ?= {}
+      # Kerberos
+      if service.use.kafka_broker[0].options.config['zookeeper.set.acl'] is 'true'
+        options.env['KAFKA_KERBEROS_PARAMS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/kafka-client.jaas"
+      # Misc
+      options.hostname = service.node.hostname
 
 ## Configuration
 
-      #conf_dr
       options.config ?= {}
-      options.conf_dir ?= '/etc/kafka/conf'
-      #admin principal
-      options.admin ?= {}
-      options.admin.principal ?= ks_ctxs[0].config.ryba.kafka.admin.principal
-      options.admin.password ?= ks_ctxs[0].config.ryba.kafka.admin.password
       # Consumer
       options.consumer ?= {}
       options.consumer.config ?= {}
-      options.consumer.config['zookeeper.connect'] ?= zookeeper_quorum
+      options.consumer.config['zookeeper.connect'] ?= service.use.kafka_broker[0].options.zookeeper_quorum
       options.consumer.config['group.id'] ?= 'ryba-consumer-group'
       # Producer
       options.producer ?= {}
@@ -41,40 +57,36 @@
       # which result with the error:
       # Conflicting serviceName values found in JAAS and Kafka configs value in JAAS file kafka, value in Kafka config kafka
       # fixed in 0.9.0.1
-      # kafka.consumer.config['sasl.kerberos.service.name'] =  ks_ctxs[0].config.ryba.kafka.broker.config['sasl.kerberos.service.name']
+      # kafka.consumer.config['sasl.kerberos.service.name'] =  service.use.kafka_broker[0].options.config['sasl.kerberos.service.name']
       delete options.consumer.config['sasl.kerberos.service.name']
-      # producer config does not support several protocol like kafka/broker (e.g. 'listeners' property)
-      # thats why we make dynamic discovery of the best protocol available
-      # and pass needed protocol to command line in the checks
-      protocols = ks_ctxs[0].config.ryba.kafka.broker.protocols
-      ssl_enabled = if  ks_ctxs[0].config.ryba.kafka.broker.config['ssl.keystore.location'] then true else false
-      sasl_enabled = if  ks_ctxs[0].config.ryba.kafka.broker.kerberos then true else false
-      protocol = ''
-      if sasl_enabled
-        protocol = 'SASL_PLAINTEXT'
-        if ssl_enabled
-          protocol = 'SASL_SSL'
-      else
-        if ssl_enabled
-          protocol = 'SSL'
-        else
-          protocol = 'PLAINTEXT'
-      brokers = for ks_ctx in ks_ctxs
-        "#{ks_ctx.config.host}:#{ks_ctx.config.ryba.kafka.broker.ports[protocol]}"
-      options.protocols ?= protocols
-      #producer
-      options.producer.config['security.protocol'] ?= options.protocols
-      options.producer.config['metadata.broker.list'] ?= brokers.join ','
-      options.producer.config['bootstrap.servers'] ?= brokers.join ','
-      options.producer.protocols ?= protocols
-      #consumer
-      options.consumer.config['security.protocol'] ?= options.protocols
-      options.consumer.protocols ?= protocols
 
+## Brokers and protocols
+
+Producer config does not support several protocol like kafka/broker (for
+example the 'listeners' property), this is why we make dynamic discovery of the 
+best protocol available and pass needed protocol to command line in the checks.
+
+      options.protocols = service.use.kafka_broker[0].options.protocols
+      options.brokers = {}
+      for protocol in options.protocols
+        options.brokers[protocol] = for srv in service.use.kafka_broker
+          "#{srv.node.fqdn}:#{srv.options.ports[protocol]}"
+      ssl_enabled = if  service.use.kafka_broker[0].options.config['ssl.keystore.location'] then true else false
+      sasl_enabled = if  service.use.kafka_broker[0].options.kerberos then true else false
+      recommended_protocol = if sasl_enabled
+        if ssl_enabled then 'SASL_SSL' else 'SASL_PLAINTEXT'
+      else
+        if ssl_enabled then 'SSL' else 'PLAINTEXT'
+      # Producer
+      options.producer.config['security.protocol'] ?= options.protocols
+      options.producer.config['metadata.broker.list'] ?= options.brokers[recommended_protocol].join ','
+      options.producer.config['bootstrap.servers'] ?= options.brokers[recommended_protocol].join ','
+      # Consumer
+      options.consumer.config['security.protocol'] ?= recommended_protocol
 
 ## Log4j
 
-      # producer log4j
+      # Producer
       options.log4j ?= {}
       options.log4j['log4j.rootLogger'] ?= 'INFO, stdout'
       options.log4j['log4j.appender.stdout'] ?= 'org.apache.log4j.ConsoleAppender'
@@ -83,10 +95,10 @@
 
 ## SSL
 
-      ssl_enabled = false
-      for protocol in ks_ctxs[0].config.ryba.kafka.broker.protocols
-        continue unless ['SASL_SSL','SSL'].indexOf(protocol) > -1
-        ssl_enabled = true
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      # Configuration
+      ssl_enabled = service.use.kafka_broker[0].options.protocols.some (protocol) ->
+        protocol in ['SASL_SSL', 'SSL']
       if ssl_enabled
         options.config['ssl.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.config['ssl.truststore.password'] ?= 'ryba123'
@@ -95,11 +107,19 @@
         options.producer.config['ssl.truststore.location'] ?= options.config['ssl.truststore.location']
         options.producer.config['ssl.truststore.password'] ?= options.config['ssl.truststore.password']
 
-## Kerberos
+## Test
 
-      options.env ?= {}
-      if ks_ctxs[0].config.ryba.kafka.broker.config['zookeeper.set.acl'] is 'true'
-        options.env['KAFKA_KERBEROS_PARAMS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/kafka-client.jaas"
+      options.ranger_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
+      options.test = merge {}, service.use.test_user.options, options.test
+
+## Wait
+
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_kafka_broker = service.use.kafka_broker[0].options.wait
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

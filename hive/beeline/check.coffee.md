@@ -5,6 +5,10 @@ This module check the Hive Server2 servers using the `beeline` command.
 
     module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', handler: (options) ->
 
+## Register
+
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+
 ## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin if options.wait_ranger_admin
@@ -24,43 +28,35 @@ This module check the Hive Server2 servers using the `beeline` command.
         for spark_thrift_server in options.spark_thrift_server
           dbs.push "check_#{options.hostname}_spark_sql_server_#{spark_thrift_server.hostname}"
         # use v1 policy api (old style) from ranger to have an example
-        hive_policy =
-          "policyName": "Ranger-Ryba-HIVE-Policy-#{options.hostname}"
-          "repositoryName": "#{options.ranger_hive_install['REPOSITORY_NAME']}"
-          "repositoryType":"hive"
-          "description": 'Ryba check hive policy'
-          "databases": "#{dbs.join ','}"
-          'tables': '*'
-          "columns": "*"
-          "udfs": ""
-          'tableType': 'Inclusion'
-          'columnType': 'Inclusion'
-          'isEnabled': true
-          'isAuditEnabled': true
-          "permMapList": [{
-          		"userList": ["#{options.test.user.name}"],
-          		"permList": ["all"]
-          	}]
         @wait.execute
           cmd: """
           curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_hive_install['REPOSITORY_NAME']}\"
+            \"#{options.ranger_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_install['REPOSITORY_NAME']}\"
           """
           code_skipped: [1,7,22] #22 is for 404 not found,7 is for not connected to host
-        @system.execute
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST \
-            -d '#{JSON.stringify hive_policy}' \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/api/policy\"
-          """
-          unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/v2/api/service/#{options.ranger_hive_install['REPOSITORY_NAME']}/policy/Ranger-Ryba-HIVE-Policy-#{options.hostname}\"
-          """
-          code_skippe: 22
+        @ranger_policy
+          header: 'Create Policy'
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.ranger_install['POLICY_MGR_URL']
+          policy:
+            "policyName": "Ranger-Ryba-HIVE-Policy-#{options.hostname}"
+            "repositoryName": "#{options.ranger_install['REPOSITORY_NAME']}"
+            "repositoryType":"hive"
+            "description": 'Ryba check hive policy'
+            "databases": "#{dbs.join ','}"
+            'tables': '*'
+            "columns": "*"
+            "udfs": ""
+            'tableType': 'Inclusion'
+            'columnType': 'Inclusion'
+            'isEnabled': true
+            'isAuditEnabled': true
+            "permMapList": [{
+            		"userList": ["#{options.test.user.name}"],
+            		"permList": ["all"]
+            	}]
 
 ## Check Server2
 
