@@ -1,91 +1,86 @@
 
 # Kafka Check
 
-    module.exports = header: 'Kafka Client Check', label_true: 'CHECKED', handler: ->
-      ks_ctxs = @contexts 'ryba/kafka/broker'
-      {ssl, user} = @config.ryba
-      options = @config.ryba.kafka
-      [ranger_admin] = @contexts 'ryba/ranger/admin'
-      protocols = options.protocols
+    module.exports = header: 'Kafka Client Check', label_true: 'CHECKED', handler: (options) ->
+
+## Register
+
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
 
 ## Wait
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/kafka/broker/wait'
-      @call if: ranger_admin?, once: true, 'ryba/ranger/admin/wait'
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper_server
+      @call once: true, 'ryba/kafka/broker/wait', options.wait_kafka_broker
 
 ## Add Ranger Policy
 
-      @call header: 'Add Kafka Policy', if: ranger_admin?, handler: ->
-        {install} = ranger_admin.config.ryba.ranger.kafka_plugin
-        policy_name = "test-ryba-client-#{@config.host}"
-        topics = protocols.map (prot) =>
-          "check-#{@config.host}-client-#{prot.toLowerCase().split('_').join('-')}-topic"
-        users = ["#{user.name}"]
-        users.push 'ANONYMOUS' if ('PLAINTEXT' in protocols) or ('SSL' in protocols)
-        kafka_policy =
-          service: "#{install['REPOSITORY_NAME']}"
-          name: policy_name
-          description: "Policy for ryba kafka Client test"
-          isAuditEnabled: true
-          resources:
-            topic:
-              values: topics
-              isExcludes: false
-              isRecursive: false
-          'policyItems': [
-              "accesses": [
-                'type': 'publish'
-                'isAllowed': true
-              ,
-                'type': 'consume'
-                'isAllowed': true
-              ,
-                'type': 'configure'
-                'isAllowed': true
-              ,
-                'type': 'describe'
-                'isAllowed': true
-              ,
-                'type': 'create'
-                'isAllowed': true
-              ,
-                'type': 'delete'
-                'isAllowed': true
-              ,
-                'type': 'kafka_admin'
-                'isAllowed': true
-              ],
-              'users': users
-              'groups': []
-              'conditions': []
-              'delegateAdmin': true
-            ]
+      @call
+        header: 'Ranger'
+        if: !!options.ranger_admin
+      , ->
+        @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+        topics = options.protocols.map (prot) =>
+          "check-#{options.hostname}-client-#{prot.toLowerCase().split('_').join('-')}-topic"
+        users = ["#{options.test.user.name}"]
+        users.push 'ANONYMOUS' if ('PLAINTEXT' in options.protocols) or ('SSL' in options.protocols)
         @wait.execute
+          header: 'Wait Service'
           cmd: """
-          curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{install['REPOSITORY_NAME']}\"
+          curl --fail -H "Content-Type: application/json" -k -X GET \
+            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
+            "#{options.ranger_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_install['REPOSITORY_NAME']}"
           """
           code_skipped: [1,7,22] #22 is for 404 not found,7 is for not connected to host
-        @system.execute
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST \
-            -d '#{JSON.stringify kafka_policy}' \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
-          """
-          unless_exec: """
-          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-            -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-            \"#{install['POLICY_MGR_URL']}/service/public/v2/api/service/#{install['REPOSITORY_NAME']}/policy/#{policy_name}\"
-          """
+        @ranger_policy
+          header: 'Create Policy'
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.ranger_install['POLICY_MGR_URL']
+          policy:
+            service: "#{options.ranger_install['REPOSITORY_NAME']}"
+            name: "test-ryba-client-#{options.hostname}"
+            description: "Policy for ryba kafka Client test"
+            isAuditEnabled: true
+            resources:
+              topic:
+                values: topics
+                isExcludes: false
+                isRecursive: false
+            policyItems: [
+                "accesses": [
+                  'type': 'publish'
+                  'isAllowed': true
+                ,
+                  'type': 'consume'
+                  'isAllowed': true
+                ,
+                  'type': 'configure'
+                  'isAllowed': true
+                ,
+                  'type': 'describe'
+                  'isAllowed': true
+                ,
+                  'type': 'create'
+                  'isAllowed': true
+                ,
+                  'type': 'delete'
+                  'isAllowed': true
+                ,
+                  'type': 'kafka_admin'
+                  'isAllowed': true
+                ],
+                'users': users
+                'groups': []
+                'conditions': []
+                'delegateAdmin': true
+              ]
         @wait
           time: 10000
           if: -> @status -1
 
-## Check Messages PLAINTEXT
+## PLAINTEXT Protocol
+
 Check Message by writing to a test topic on the PLAINTEXT channel.
 Since new API (0.8-0.9) and security features, kafka broker are able to deal with
 multiple channel with different protocols. For its internal functionment, it associates
@@ -93,85 +88,102 @@ an not authenticated user to ANONYMOUS name when client communicates on PLAINTEX
 protocols.
 
       @call
-        header: 'Check PLAINTEXT'
-        label_true: 'CHECKED'
-        if: 'PLAINTEXT' in ks_ctxs[0].config.ryba.kafka.broker.protocols
+        header: 'PLAINTEXT'
+        if: 'PLAINTEXT' in options.protocols
         retry: 3
       , ->
-        test_topic = "check-#{@config.host}-client-plaintext-topic"
-        brokers = ks_ctxs.map( (ctx) => #, require('../broker').configure
-          "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports['PLAINTEXT']}"
-        ).join ','
-        zoo_connect = ks_ctxs[0].config.ryba.kafka.broker.config['zookeeper.connect']
+        test_topic = "check-#{options.hostname}-client-plaintext-topic"
         @system.execute
           if: options.env['KAFKA_KERBEROS_PARAMS']?
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
-            --zookeeper #{zoo_connect} --partitions #{ks_ctxs.length} --replication-factor #{ks_ctxs.length} \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --partitions #{options.brokers['PLAINTEXT'].length} \
+            --replication-factor #{options.brokers['PLAINTEXT'].length} \
             --topic #{test_topic}
           """
-          unless_exec: mkcmd.kafka @, """
+          unless_exec: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list \
-            --zookeeper #{zoo_connect} | grep #{test_topic}
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+          | grep #{test_topic}
           """
         @system.execute
           unless: options.env['KAFKA_KERBEROS_PARAMS']?
           cmd: """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
-            --zookeeper #{zoo_connect} --partitions #{ks_ctxs.length} --replication-factor #{ks_ctxs.length} \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --partitions #{options.brokers['PLAINTEXT'].length} \
+            --replication-factor #{options.brokers['PLAINTEXT'].length} \
             --topic #{test_topic}
           """
           unless_exec: """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list \
-            --zookeeper #{zoo_connect} | grep #{test_topic}
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+          | grep #{test_topic}
           """
         @system.execute
           if:  options.env['KAFKA_KERBEROS_PARAMS']?
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
-            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:ANONYMOUS  \
-              --operation Read --operation Write --topic #{test_topic}
+            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+              --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+              --add --allow-principal User:ANONYMOUS \
+              --operation Read \
+              --operation Write \
+              --topic #{test_topic}
           )&
           (
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
             --add \
-            --allow-principal User:ANONYMOUS --consumer --group #{options.consumer.config['group.id']} --topic #{test_topic}
+            --allow-principal User:ANONYMOUS \
+            --consumer \
+            --group #{options.consumer.config['group.id']} \
+            --topic #{test_topic}
           )
           """
-          unless_exec: mkcmd.kafka @, """
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
-            --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-            --topic #{test_topic} | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
+          unless_exec: mkcmd.kafka options.admin, """
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --list \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+            --topic #{test_topic} \
+          | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
           unless:  options.env['KAFKA_KERBEROS_PARAMS']?
           cmd: """
           (
             sleep 1
-            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:ANONYMOUS  \
-              --operation Read --operation Write --topic #{test_topic}
+            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+              --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+              --add --allow-principal User:ANONYMOUS \
+              --operation Read \
+              --operation Write \
+              --topic #{test_topic}
           )&
           (
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
             --add \
-            --allow-principal User:ANONYMOUS --consumer --group #{options.consumer.config['group.id']} --topic #{test_topic}
+            --allow-principal User:ANONYMOUS \
+            --consumer \
+            --group #{options.consumer.config['group.id']} \
+            --topic #{test_topic}
           )
           """
           unless_exec: """
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
-            --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-            --topic #{test_topic} | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --list \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+            --topic #{test_topic} \
+          | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
           cmd: """
           (
             sleep 1
-            echo 'hello front1' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
+            echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=PLAINTEXT \
-              --broker-list #{brokers} \
+              --broker-list #{options.brokers['PLAINTEXT'].join ','} \
               --security-protocol PLAINTEXT \
               --producer.config #{options.conf_dir}/producer.properties \
               --topic #{test_topic}
@@ -179,15 +191,17 @@ protocols.
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
             --new-consumer \
             --delete-consumer-offsets \
-            --bootstrap-server #{brokers} \
+            --bootstrap-server #{options.brokers['PLAINTEXT'].join ','} \
             --topic #{test_topic} \
             --security-protocol PLAINTEXT \
             --property security.protocol=PLAINTEXT \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} --from-beginning --max-messages 1 | grep 'hello front1'
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --from-beginning --max-messages 1 \
+          | grep 'hello #{options.hostname}'
           """
 
-## Check Messages SSL
+## SSL Protocol
 
 Check Message by writing to a test topic on the SSL channel.
 Trustore location and password given to line command because if executed before producer install
@@ -195,49 +209,56 @@ Trustore location and password given to line command because if executed before 
 
       @call
         header: 'Check SSL'
-        label_true: 'CHECKED'
         retry: 3
-        if: 'SSL' in ks_ctxs[0].config.ryba.kafka.broker.protocols
+        if: 'SSL' in options.protocols
       , ->
-        brokers = ks_ctxs.map( (ctx) => #, require('../broker').configure
-          "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports['SSL']}"
-        ).join ','
-        test_topic = "check-#{@config.host}-client-ssl-topic"
-        zoo_connect = ks_ctxs[0].config.ryba.kafka.broker.config['zookeeper.connect']
+        test_topic = "check-#{options.hostname}-client-ssl-topic"
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
-            --zookeeper #{zoo_connect} --partitions #{ks_ctxs.length} --replication-factor #{ks_ctxs.length} \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --partitions #{options.brokers['SSL'].length} \
+            --replication-factor #{options.brokers['SSL'].length} \
             --topic #{test_topic}
           """
-          unless_exec: mkcmd.kafka @, """
+          unless_exec: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list \
-            --zookeeper #{zoo_connect} | grep #{test_topic}
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+          | grep #{test_topic}
           """
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
-            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:ANONYMOUS  \
-              --operation Read --operation Write --topic #{test_topic}
+            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+              --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+              --add --allow-principal User:ANONYMOUS \
+              --operation Read \
+              --operation Write \
+              --topic #{test_topic}
           )&
           (
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
             --add \
-            --allow-principal User:ANONYMOUS --consumer --group #{options.consumer.config['group.id']} --topic #{test_topic}
+            --allow-principal User:ANONYMOUS \
+            --consumer \
+            --group #{options.consumer.config['group.id']} \
+            --topic #{test_topic}
           )
           """
-          unless_exec: mkcmd.kafka @, """
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
-            --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-            --topic #{test_topic} | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
+          unless_exec: mkcmd.kafka options.admin, """
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --list \
+            --authorizer-properties \
+            zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+            --topic #{test_topic} \
+          | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
           cmd:  """
-          echo 'hello front1' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
+          echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
             --producer-property security.protocol=SSL \
-            --broker-list #{brokers} \
+            --broker-list #{options.brokers['SSL'].join ','} \
             --security-protocol SSL \
             --producer-property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --producer-property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
@@ -247,69 +268,78 @@ Trustore location and password given to line command because if executed before 
         @system.execute
           cmd: """
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer  \
+            --new-consumer \
             --delete-consumer-offsets \
-            --bootstrap-server #{brokers} \
+            --bootstrap-server #{options.brokers['SSL'].join ','} \
             --topic #{test_topic} \
             --security-protocol SSL \
             --property security.protocol=SSL \
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{zoo_connect} --from-beginning --max-messages 1 | grep 'hello front1'
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --from-beginning \
+            --max-messages 1 \
+          | grep 'hello #{options.hostname}'
           """
 
-## Check Messages SASL_PLAINTEXT
+## SASL_PLAINTEXT Protocol
 
 Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
 
       @call
         header: 'Check SASL_PLAINTEXT'
-        label_true: 'CHECKED'
         retry: 3
-        if: 'SASL_PLAINTEXT' in ks_ctxs[0].config.ryba.kafka.broker.protocols
+        if: 'SASL_PLAINTEXT' in options.protocols
       , ->
-        brokers = ks_ctxs.map( (ctx) => #, require('../broker').configure
-          "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports['SASL_PLAINTEXT']}"
-        ).join ','
-        test_topic = "check-#{@config.host}-client-sasl-plaintext-topic"
-        zoo_connect = ks_ctxs[0].config.ryba.kafka.broker.config['zookeeper.connect']
+        test_topic = "check-#{options.hostname}-client-sasl-plaintext-topic"
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
-            --zookeeper #{zoo_connect} --partitions #{ks_ctxs.length} --replication-factor #{ks_ctxs.length} \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --partitions #{options.brokers['SASL_PLAINTEXT'].length} \
+            --replication-factor #{options.brokers['SASL_PLAINTEXT'].length} \
             --topic #{test_topic}
           """
-          unless_exec: mkcmd.kafka @, """
+          unless_exec: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list \
-            --zookeeper #{zoo_connect} | grep #{test_topic}
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+          | grep #{test_topic}
           """
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
-            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:#{user.name}  \
-              --operation Read --operation Write --topic #{test_topic}
+            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+              --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+              --add \
+              --allow-principal User:#{options.test.user.name} \
+              --operation Read \
+              --operation Write \
+              --topic #{test_topic}
           )&
           (
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
             --add \
-            --allow-principal User:#{user.name} --consumer --group #{options.config['group.id']} --topic #{test_topic}
+            --allow-principal User:#{options.test.user.name} \
+            --consumer --group #{options.config['group.id']} \
+            --topic #{test_topic}
           )
           """
-          unless_exec: mkcmd.kafka @, """
+          unless_exec: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
-            --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-            --topic #{test_topic} | grep 'User:#{user.name} has Allow permission for operations: Write from hosts: *'
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+            --topic #{test_topic} \
+          | grep 'User:#{options.test.user.name} has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
           cmd:  mkcmd.test @, """
           (
             sleep 1
-            echo 'hello front1' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
+            echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=SASL_PLAINTEXT \
-              --broker-list #{brokers} \
+              --broker-list #{options.brokers['SASL_PLAINTEXT'].join ','} \
               --security-protocol SASL_PLAINTEXT \
               --producer.config #{options.conf_dir}/producer.properties \
               --topic #{test_topic}
@@ -317,14 +347,17 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
             --new-consumer \
             --delete-consumer-offsets \
-            --bootstrap-server #{brokers} \
+            --bootstrap-server #{options.brokers['SASL_PLAINTEXT'].join ','} \
             --topic #{test_topic} \
             --security-protocol SASL_PLAINTEXT \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{zoo_connect} --from-beginning --max-messages 1 | grep 'hello front1'
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --from-beginning \
+            --max-messages 1 \
+          | grep 'hello #{options.hostname}'
           """
 
-## Check Messages SASL_SSL
+## SASL_SSL Protocol
 
 Check Message by writing to a test topic on the SASL_SSL channel.
 Trustore location and password given to line command because if executed before producer install
@@ -332,52 +365,59 @@ Trustore location and password given to line command because if executed before 
 
       @call
         header: 'Check SASL_SSL'
-        label_true: 'CHECKED'
         retry: 3
+        if: 'SASL_SSL' in options.protocols
       , ->
-        ks_ctxs = @contexts 'ryba/kafka/broker'
-        return if ks_ctxs[0].config.ryba.kafka.broker.protocols.indexOf('SASL_SSL') == -1
-        brokers = ks_ctxs.map( (ctx) => #, require('../broker').configure
-          "#{ctx.config.host}:#{ctx.config.ryba.kafka.broker.ports['SASL_SSL']}"
-        ).join ','
-        test_topic = "check-#{@config.host}-client-sasl-ssl-topic"
-        zoo_connect = ks_ctxs[0].config.ryba.kafka.broker.config['zookeeper.connect']
+        test_topic = "check-#{options.hostname}-client-sasl-ssl-topic"
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
-            --zookeeper #{zoo_connect} --partitions #{ks_ctxs.length} --replication-factor #{ks_ctxs.length} \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --partitions #{options.brokers['SASL_SSL'].length} \
+            --replication-factor #{options.brokers['SASL_SSL'].length} \
             --topic #{test_topic}
           """
-          unless_exec: mkcmd.kafka @, """
-          /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list \
-            --zookeeper #{zoo_connect} | grep #{test_topic}
+          unless_exec: mkcmd.kafka options.admin, """
+          /usr/hdp/current/kafka-broker/bin/kafka-topics.sh \
+            --list \
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+          | grep #{test_topic}
           """
         @system.execute
-          cmd: mkcmd.kafka @, """
+          cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
-            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:#{user.name}  \
-              --operation Read --operation Write --topic #{test_topic}
+            /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+              --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+              --add \
+              --allow-principal User:#{options.test.user.name} \
+              --operation Read \
+              --operation Write \
+              --topic #{test_topic}
           )&
           (
-          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
+          /usr/hdp/current/kafka-broker/bin/kafka-acls.sh \
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
             --add \
-            --allow-principal User:#{user.name} --consumer --group #{options.consumer.config['group.id']} --topic #{test_topic}
+            --allow-principal User:#{options.test.user.name} \
+            --consumer \
+            --group #{options.consumer.config['group.id']} \
+            --topic #{test_topic}
           )
           """
-          unless_exec: mkcmd.kafka @, """
+          unless_exec: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
-            --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-            --topic #{test_topic} | grep 'User:#{user.name} has Allow permission for operations: Write from hosts: *'
+            --authorizer-properties zookeeper.connect=#{options.consumer.config['zookeeper.connect']} \
+            --topic #{test_topic} \
+          | grep 'User:#{options.test.user.name} has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
           cmd:  mkcmd.test @, """
           (
             sleep 1
-            echo 'hello front1' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
+            echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
               --producer-property security.protocol=SASL_SSL \
-              --broker-list #{brokers} \
+              --broker-list #{options.brokers['SASL_SSL'].join ','} \
               --security-protocol SASL_SSL \
               --producer-property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
               --producer-property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
@@ -387,14 +427,17 @@ Trustore location and password given to line command because if executed before 
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
             --new-consumer \
             --delete-consumer-offsets \
-            --bootstrap-server #{brokers} \
+            --bootstrap-server #{options.brokers['SASL_SSL'].join ','} \
             --topic #{test_topic} \
             --security-protocol SASL_SSL \
             --property security.protocol=SASL_SSL \
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{zoo_connect} --from-beginning --max-messages 1 | grep 'hello front1'
+            --zookeeper #{options.consumer.config['zookeeper.connect']} \
+            --from-beginning \
+            --max-messages 1 \
+          | grep 'hello #{options.hostname}'
           """
 
 ## Dependencies

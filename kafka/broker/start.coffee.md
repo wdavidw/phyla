@@ -1,21 +1,25 @@
 
 # Kafka Broker Start
 
-Start the Kafka Broker. You can also start the server manually with the
-following two commands:
+Start the Kafka Broker.
 
-```
-service kafka-broker start
-su - kafka -c '/usr/hdp/current/kafka-broker/bin/kafka start'
-```
+    module.exports = header: 'Kafka Broker Start', label_true: 'STARTED', handler: (options) ->
 
-    module.exports = header: 'Kafka Broker Start', label_true: 'STARTED', handler: ->
+## Wait
 
 Wait for Kerberos and ZooKeeper.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
 
-Start the service.
+## service.
+
+You can also start the server manually with the following commands:
+
+```
+service kafka-broker start
+systemctl start kafka-broker
+su - kafka -c '/usr/hdp/current/kafka-broker/bin/kafka start'
+```
 
       @service.start name: 'kafka-broker'

@@ -1,9 +1,7 @@
 
-# Kafka Producer Install
+# Kafka Client Install
 
-    module.exports = header: 'Kafka Producer Install', handler: ->
-      {ssl} = @config.ryba
-      options = @config.ryba.kafka
+    module.exports = header: 'Kafka Client Install', handler: (options) ->
 
 ## Register
 
@@ -93,7 +91,6 @@ Update the file "server.properties" with the properties defined by the
         backup: true
         eof: true
 
-
 ## Kerberos
 
       @file.jaas
@@ -111,7 +108,7 @@ Update the file "server.properties" with the properties defined by the
         uid: options.user.name
         gid: options.group.name
 
-## Env
+## Environment
 
  Exports JAAS configuration to producer JVM properties.
 
@@ -129,14 +126,22 @@ Update the file "server.properties" with the properties defined by the
 
   Imports broker's CA to trustore.
 
+      console.log
+        header: 'SSL Client'
+        if: -> options.config['ssl.truststore.location']?
+        keystore: options.config['ssl.truststore.location']
+        storepass: options.config['ssl.truststore.password']
+        caname: "hadoop_root_ca"
+        cacert: options.ssl.cacert.source
+        local: options.ssl.cacert.local
       @java.keystore_add
         header: 'SSL Client'
         if: -> options.config['ssl.truststore.location']?
         keystore: options.config['ssl.truststore.location']
         storepass: options.config['ssl.truststore.password']
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: options.ssl.cacert.source
+        local: options.ssl.cacert.local
 
 ## Dependencies
 

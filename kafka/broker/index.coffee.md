@@ -6,34 +6,33 @@ log. It is fast, scalable, durable and distributed by design.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        test_user: implicit: true, module: 'ryba/commons/test_user'
-        hdp: 'ryba/hdp'
-        hdf: 'ryba/hdf'
-        zookeeper: 'ryba/zookeeper/server'
-        hadoop_core: 'ryba/hadoop/core'
-        zoo_server: 'ryba/zookeeper/server'
-        ranger_admin: 'ryba/ranger/admin'
-        ganglia: 'ryba/ganglia/collector'
-      configure: [
+        ssl: module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        hdp: module: 'ryba/hdp', local: true
+        hdf: module: 'ryba/hdf', local: true
+        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        kafka_broker: module: 'ryba/kafka/broker'
+        ranger_admin: module: 'ryba/ranger/admin'
+      configure:
         'ryba/kafka/broker/configure'
-        'ryba/ranger/plugins/kafka/configure'
-      ]
       commands:
-        'install': [
-          'ryba/kafka/broker/install'
-          'ryba/kafka/broker/start'
-          'ryba/kafka/broker/check'
-        ]
-        'check':
-          'ryba/kafka/broker/check'
-        'start':
-          'ryba/kafka/broker/start'
-        'stop':
-          'ryba/kafka/broker/stop'
+        'install': ->
+          options = @config.ryba.kafka.broker
+          @call 'ryba/kafka/broker/install', options
+          @call 'ryba/kafka/broker/start', options
+          @call 'ryba/kafka/broker/check', options
+        'check': ->
+          options = @config.ryba.kafka.broker
+          @call 'ryba/kafka/broker/check', options
+        'start': ->
+          options = @config.ryba.kafka.broker
+          @call 'ryba/kafka/broker/start', options
+        'stop': ->
+          options = @config.ryba.kafka.broker
+          @call 'ryba/kafka/broker/stop', options
         'status':
           'ryba/kafka/broker/status'
-        'wait':
-          'ryba/kafka/broker/wait'

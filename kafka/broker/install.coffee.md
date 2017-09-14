@@ -1,9 +1,7 @@
 
 # Kafka Broker Install
 
-    module.exports = header: 'Kafka Broker Install', handler: ->
-      {kafka, hadoop_group, realm, ssl} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Kafka Broker Install', handler: (options) ->
 
 ## Register
 
@@ -12,7 +10,7 @@
 
 ## Wait
 
-      @call once: true, 'masson/core/krb5_client/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
 
 ## Identities
 
@@ -25,8 +23,8 @@ cat /etc/group | grep kafka
 kafka:x:496:kafka
 ```
 
-      @system.group header: 'Group', kafka.group
-      @system.user header: 'User', kafka.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -43,8 +41,8 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @call header: 'IPTables', handler: ->
         return unless @config.iptables.action is 'start'
         @tools.iptables
-          rules: for proto in kafka.broker.protocols
-            { chain: 'INPUT', jump: 'ACCEPT', dport: kafka.broker.ports[proto], protocol: 'tcp', state: 'NEW', comment: "Kafka Broker #{proto}" }
+          rules: for protocol in options.protocols
+            { chain: 'INPUT', jump: 'ACCEPT', dport: options.ports[protocol], protocol: 'tcp', state: 'NEW', comment: "Kafka Broker #{protocol}" }
 
 ## Package
 
@@ -52,15 +50,15 @@ Install the Kafka consumer package and set it to the latest version. Note, we
 select the "kafka-broker" hdp directory. There is no "kafka-consumer"
 directories.
 
-      @call header: 'Packages', handler: (options) ->
+      @call header: 'Packages', handler: ->
         @service
           name: 'kafka'
         @hdp_select
           name: 'kafka-broker'
         @system.mkdir
           target: '/var/lib/kafka'
-          uid: kafka.user.name
-          gid: kafka.user.name
+          uid: options.user.name
+          gid: options.user.name
         @service.init
           if_os: name: ['redhat','centos'], version: '6'
           header: 'Init Script'
@@ -68,7 +66,7 @@ directories.
           source: "#{__dirname}/../resources/kafka-broker.j2"
           local: true
           mode: 0o0755
-          context: @config
+          context: options: options
         @call
           if_os: name: ['redhat','centos'], version: '7'
         , ->
@@ -77,31 +75,31 @@ directories.
             target: '/usr/lib/systemd/system/kafka-broker.service'
             source: "#{__dirname}/../resources/kafka-broker-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0640
           @system.tmpfs
-            mount: kafka.broker.run_dir
-            uid: kafka.user.name
-            gid: kafka.group.name
+            mount: options.run_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0750'
 
 ## Configure
 
-Update the file "broker.properties" with the properties defined by the
-"ryba.kafka.broker" configuration.
+Update the file "broker.properties" with the properties defined in the
+"config" option.
 
       @file
         header: 'Server properties'
-        target: "#{kafka.broker.conf_dir}/server.properties"
-        write: for k, v of kafka.broker.config
+        target: "#{options.conf_dir}/server.properties"
+        write: for k, v of options.config
           match: RegExp "^#{quote k}=.*$", 'mg'
           replace: "#{k}=#{v}"
           append: true
         backup: true
         eof: true
         mode: 0o0750
-        uid: kafka.user.name
-        gid: kafka.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## Metrics
 
@@ -115,23 +113,23 @@ Upload *.properties files in /etc/kafka-broker/conf directory.
               @file
                 source: file
                 local: true
-                target: "#{kafka.broker.conf_dir}/#{path.basename file}"
+                target: "#{options.conf_dir}/#{path.basename file}"
                 binary: true
             @then callback
         @file
           source: "#{__dirname}/../resources/connect-console-sink.properties"
           local: true
-          target: "#{kafka.broker.conf_dir}/connect-console-sink.properties"
+          target: "#{options.conf_dir}/connect-console-sink.properties"
           binary: true
         @file
           source: "#{__dirname}/../resources/connect-console-sink.properties"
           local: true
-          target: "#{kafka.broker.conf_dir}/connect-console-sink.properties"
+          target: "#{options.conf_dir}/connect-console-sink.properties"
           binary: true
         @file
           source: "#{__dirname}/../resources/connect-console-sink.properties"
           local: true
-          target: "#{kafka.broker.conf_dir}/connect-console-sink.properties"
+          target: "#{options.conf_dir}/connect-console-sink.properties"
           binary: true
 
 ## Env
@@ -142,8 +140,8 @@ Note: With systemd environment, JAVA_HOME needs to be defined.
       @file
         header: 'Environment'
         source: "#{__dirname}/../resources/kafka-env.sh"
-        target: "#{kafka.broker.conf_dir}/kafka-env.sh"
-        write: for k, v of kafka.broker.env
+        target: "#{options.conf_dir}/kafka-env.sh"
+        write: for k, v of options.env
           match: RegExp "export #{k}=.*", 'm'
           replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
           append: true
@@ -151,8 +149,8 @@ Note: With systemd environment, JAVA_HOME needs to be defined.
         local: true
         eof: true
         mode: 0o0750
-        uid: kafka.user.name
-        gid: kafka.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## Logging
 
@@ -160,13 +158,13 @@ Set Log4j properties
 
       @file.properties
         header: 'Broker Log4j'
-        target: "#{kafka.broker.conf_dir}/log4j.properties"
-        content: kafka.broker.log4j.config
+        target: "#{options.conf_dir}/log4j.properties"
+        content: options.log4j.config
         backup: true
       @file.properties
         header: 'Common Log4j'
         target: "/etc/kafka/conf/log4j.properties"
-        content: kafka.broker.log4j.config
+        content: options.log4j.config
         backup: true
 
 Modify bin scripts to set $KAFKA_HOME variable to match /etc/kafka-broker/conf.
@@ -178,7 +176,7 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
         #   target: "/usr/hdp/current/kafka-broker/bin/kafka"
         #   write: [
         #     match: /^KAFKA_BROKER_CMD=(.*)/m
-        #     replace: "KAFKA_BROKER_CMD=\"$KAFKA_HOME/bin/kafka-server-broker-start.sh #{kafka.broker.conf_dir}/server.properties\""
+        #     replace: "KAFKA_BROKER_CMD=\"$KAFKA_HOME/bin/kafka-server-broker-start.sh #{options.conf_dir}/server.properties\""
         #   ]
         #   backup: true
         #   eof: true
@@ -186,7 +184,7 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
           target: '/usr/hdp/current/kafka-broker/bin/kafka-server-start.sh'
           write: [
                 match: RegExp "^exec.*$", 'mg'
-                replace: "exec /usr/hdp/current/kafka-broker/bin/kafka-run-broker-class.sh $EXTRA_ARGS kafka.Kafka #{kafka.broker.conf_dir}/server.properties # RYBA DON'T OVERWRITE"
+                replace: "exec /usr/hdp/current/kafka-broker/bin/kafka-run-broker-class.sh $EXTRA_ARGS kafka.Kafka #{options.conf_dir}/server.properties # RYBA DON'T OVERWRITE"
             ]
           backup: true
           eof: true
@@ -199,7 +197,7 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
           target: '/usr/hdp/current/kafka-broker/bin/kafka-run-broker-class.sh'
           write: [
             match: RegExp "^KAFKA_ENV=.*$", 'mg'
-            replace: "KAFKA_ENV=#{kafka.broker.conf_dir}/kafka-env.sh # RYBA DON'T OVERWRITE"
+            replace: "KAFKA_ENV=#{options.conf_dir}/kafka-env.sh # RYBA DON'T OVERWRITE"
           ,
             match: RegExp "KAFKA_GC_LOG_OPTS=\"[^\"]+\"", 'mg'
             replace: """
@@ -207,6 +205,7 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
                 KAFKA_GC_LOG_OPTS="-Xloggc:$LOG_DIR/$GC_LOG_FILE_NAME -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps "
               fi
             """
+            replace: "KAFKA_ENV=#{options.conf_dir}/kafka-env.sh # RYBA DON'T OVERWRITE"
           ]
           backup: true
           eof: true
@@ -218,38 +217,38 @@ Broker Server principal, keytab and JAAS
 
       @call
         header: 'Kerberos'
-        if: kafka.broker.config['zookeeper.set.acl'] is 'true'
+        if: options.config['zookeeper.set.acl'] is 'true'
         handler: ->
-          @krb5.addprinc krb5,
+          @krb5.addprinc options.krb5.admin,
             header: 'Broker Server Kerberos'
-            principal: kafka.broker.kerberos['principal']
+            principal: options.kerberos.principal
             randkey: true
-            keytab: kafka.broker.kerberos['keyTab']
-            uid: kafka.user.name
-            gid: kafka.group.name
+            keytab: options.kerberos.keyTab
+            uid: options.user.name
+            gid: options.group.name
           @file.jaas
             header: 'Broker JAAS'
-            target: "#{kafka.broker.conf_dir}/kafka-server.jaas"
+            target: "#{options.conf_dir}/kafka-server.jaas"
             content:
               KafkaServer:
-                principal: kafka.broker.kerberos['principal']
-                keyTab: kafka.broker.kerberos['keyTab']
+                principal: options.kerberos.principal
+                keyTab: options.kerberos.keyTab
                 useKeyTab: true
                 storeKey: true
               Client:
-                principal: kafka.broker.kerberos['principal']
-                keyTab: kafka.broker.kerberos['keyTab']
+                principal: options.kerberos.principal
+                keyTab: options.kerberos.keyTab
                 useKeyTab: true
                 storeKey: true
-            uid: kafka.user.name
-            gid: kafka.group.name
+            uid: options.user.name
+            gid: options.group.name
 
 Kafka Superuser principal generation
 
-          @krb5.addprinc krb5,
+          @krb5.addprinc options.krb5.admin,
             header: 'Kafka Superuser kerberos'
-            principal: kafka.admin.principal
-            password: kafka.admin.password
+            principal: options.admin.principal
+            password: options.admin.password
 
 # SSL Server
 
@@ -258,31 +257,29 @@ SSL is enabled at least for inter broker communication
 
       @call
         header: 'SSL'
-        handler: ->
-          return if kafka.broker.config['replication.security.protocol'] is 'PLAINTEXT'
-          @java.keystore_add
-            keystore: kafka.broker.config['ssl.keystore.location']
-            storepass: kafka.broker.config['ssl.keystore.password']
-            caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            key: "#{ssl.key}"
-            cert: "#{ssl.cert}"
-            keypass: kafka.broker.config['ssl.key.password']
-            name: @config.shortname
-            local: true
-          @java.keystore_add
-            keystore: kafka.broker.config['ssl.keystore.location']
-            storepass: kafka.broker.config['ssl.keystore.password']
-            caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            local: true
-          # imports kafka broker server hadoop_root_ca CA trustore
-          @java.keystore_add
-            keystore: kafka.broker.config['ssl.truststore.location']
-            storepass: kafka.broker.config['ssl.truststore.password']
-            caname: "hadoop_root_ca"
-            cacert: "#{ssl.cacert}"
-            local: true
+        unless: options.config['replication.security.protocol'] is 'PLAINTEXT'
+      , ->
+        @java.keystore_add
+          keystore: options.config['ssl.keystore.location']
+          storepass: options.config['ssl.keystore.password']
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.config['ssl.key.password']
+          name: options.ssl.key.name
+          local: options.ssl.cert.local
+        @java.keystore_add
+          keystore: options.config['ssl.keystore.location']
+          storepass: options.config['ssl.keystore.password']
+          caname: "hadoop_root_ca"
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+        # imports kafka broker server hadoop_root_ca CA trustore
+        @java.keystore_add
+          keystore: options.config['ssl.truststore.location']
+          storepass: options.config['ssl.truststore.password']
+          caname: "hadoop_root_ca"
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 
 ## Layout
@@ -293,27 +290,21 @@ will be placed in the directory which currently has the fewest partitions.
       @call header: 'Layout', handler: ->
         @system.mkdir (
           target: dir
-          uid: kafka.user.name
-          gid: kafka.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           parent: true
-        ) for dir in kafka.broker.config['log.dirs'].split ','
+        ) for dir in options.config['log.dirs'].split ','
         @system.mkdir
-          target: kafka.broker.log_dir
-          uid: kafka.user.name
-          gid: kafka.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
-          target: kafka.broker.run_dir
-          uid: kafka.user.name
-          gid: kafka.group.name
+          target: options.run_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
-
-## Ranger Kafka Plugin Install
-
-      @call
-        if: -> @contexts('ryba/ranger/admin').length > 0
-        handler: 'ryba/ranger/plugins/kafka/install'
 
 ## Dependencies
 

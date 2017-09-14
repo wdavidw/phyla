@@ -146,7 +146,7 @@ recommendations](http://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html).
           keystore: options.ssl_client['ssl.client.truststore.location']
           storepass: options.ssl_client['ssl.client.truststore.password']
           caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
+          cacert: options.ssl.cacert.source
           local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
@@ -154,8 +154,8 @@ recommendations](http://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html).
           storepass: options.ssl_server['ssl.server.keystore.password']
           # caname: "hadoop_root_ca"
           # cacert: "#{options.ssl.cacert}"
-          key: "#{options.ssl.key.source}"
-          cert: "#{options.ssl.cert.source}"
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
           keypass: options.ssl_server['ssl.server.keystore.keypassword']
           name: options.ssl.key.name
           local: options.ssl.key.local

@@ -67,11 +67,11 @@ module.exports.test = (ctx, cmd) ->
   then "echo #{test_user.krb5.user.password} | kinit #{test_user.krb5.user.principal} >/dev/null && {\n#{cmd}\n}"
   else "su -l #{user.name} -c \"#{cmd}\""
 
-module.exports.kafka = (ctx, cmd) ->
-  {security, kafka} = ctx.config.ryba
+module.exports.kafka = (krb5_user, cmd) ->
+  security = 'kerberos'
   if security is 'kerberos'
-  then "echo '#{kafka.admin.password}' | kinit #{kafka.admin.principal} >/dev/null && {\n#{cmd}\n}"
-  else "su -l #{kafka.user.name} -c \"#{cmd}\""
+  then "echo '#{krb5_user.password}' | kinit #{krb5_user.principal} >/dev/null && {\n#{cmd}\n}"
+  else "su -l #{hbase.user.name} -c \"#{cmd}\""
 
 module.exports.solr = (ctx, cmd) ->
   {security, solr} = ctx.config.ryba

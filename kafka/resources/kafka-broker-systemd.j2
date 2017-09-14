@@ -2,8 +2,8 @@
 Description=Kafka Broker
 
 [Service]
-User={{kafka.user.name}}
-Group={{kafka.group.name}}
+User={{options.user.name}}
+Group={{options.group.name}}
 PIDFile=/var/run/kafka/kafka.pid
 ExecStart=/usr/hdp/current/kafka-broker/bin/kafka start
 ExecReload=/usr/hdp/current/kafka-broker/bin/kafka restart

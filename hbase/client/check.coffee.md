@@ -22,12 +22,12 @@ Wait for the HBase master to be started.
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
       @call
+        header: 'Ranger'
         if: -> options.ranger_admin
-        header: 'Policy'
       , ->
         @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         @wait.execute
-          header: 'Wait'
+          header: 'Wait Service'
           cmd: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
@@ -35,7 +35,7 @@ Wait for the HBase master to be started.
           """
           code_skipped: 22
         @ranger_policy
-          header: 'Create'
+          header: 'Create Policy'
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.ranger_install['POLICY_MGR_URL']

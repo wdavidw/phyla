@@ -1,20 +1,24 @@
 
 # Kafka Broker Start
 
-Stop the Kafka Broker. You can also stop the server manually with the following
-tow commands:
+Stop the Kafka Broker.
+
+    module.exports = header: 'Kafka Broker Stop', label_true: 'STOPPED', handler: (stop) ->
+
+## Service
+
+You can also stop the server manually with the following commands:
 
 ```
 service kafka-broker stop
+systemctl stop kafka-broker
 su -l kafka -c '/usr/hdp/current/kafka-broker/bin/kafka stop'
 ```
 
 The file storing the PID is "/var/run/kafka/kafka.pid".
 
-    module.exports = header: 'Kafka Broker Stop', label_true: 'STOPPED', handler: ->
       @service.stop
         name: 'kafka-broker'
-        if_exists: '/etc/init.d/kafka-broker'
 
 ## Clean Logs
 
