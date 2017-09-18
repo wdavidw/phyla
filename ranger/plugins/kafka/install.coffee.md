@@ -1,15 +1,34 @@
 
-    module.exports = header: 'Ranger Kafka Plugin install', handler: ->
-      {ranger, kafka, realm, hadoop_group, core_site} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5_client.admin[realm]
+# Ranger Kafka Plugin Install
+
+    module.exports = header: 'Ranger Kafka Plugin', handler: ->
       version= null
-      #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
 
-# Dependencies
+## Wait
 
-      @call once: true, 'ryba/ranger/admin/wait'
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+      
+# Register
+
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
+
+## Ranger User
+
+      @ranger_user
+        header: 'Ranger User'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
+      @ranger_user
+        header: 'Ranger Anon User'
+        if: !!options.plugin_user_anonymous
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user_anonymous
 
 # Packages
 
@@ -26,57 +45,77 @@
         @service
           name: "ranger-kafka-plugin"
 
-# Layout
+## Audit Layout
 
-      @call
-        if: ranger.kafka_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-      , ->
-        @system.mkdir
-          target: ranger.kafka_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-          uid: kafka.user.name
-          gid: hadoop_group.name
-          mode: 0o0750
-        @system.execute
-          header: 'Ranger Audit HDFS Layout'
-          cmd: mkcmd.hdfs @, """
-          hdfs dfs -mkdir -p #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
-          hdfs dfs -chown -R #{kafka.user.name}:#{kafka.user.name} #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
-          hdfs dfs -chmod 750 #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
-          """
-      @system.mkdir
-        target: ranger.kafka_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: kafka.user.name
-        gid: hadoop_group.name
+The value present in "XAAUDIT.HDFS.DESTINATION_DIRECTORY" contains variables
+such as "%app-type% and %time:yyyyMMdd%".
+
+      @hdfs_mkdir
+        header: 'HDFS Audit'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        target: "/#{options.user.name}/audit/#{options.service_repo.type}"
         mode: 0o0750
-        if: ranger.kafka_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        parent:
+          mode: 0o0711
+          user: options.user.name
+          group: options.group.name
+        user: options.kafka_user.name
+        group: options.kafka_group.name
+      @system.mkdir
+        header: 'Solr Spool Dir'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.user.name
+        gid: options.hadoop_group.name
+        mode: 0o0750
+      # @call
+      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      # , ->
+      #   @system.mkdir
+      #     target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+      #     uid: options.user.name
+      #     gid: options.hadoop_group.name
+      #     mode: 0o0750
+      #   @system.execute
+      #     header: 'Ranger Audit HDFS Layout'
+      #     cmd: mkcmd.hdfs @, """
+      #     hdfs dfs -mkdir -p #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
+      #     hdfs dfs -chown -R #{options.user.name}:#{options.user.name} #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
+      #     hdfs dfs -chmod 750 #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/kafka
+      #     """
+      # @system.mkdir
+      #   target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+      #   uid: options.user.name
+      #   gid: options.hadoop_group.name
+      #   mode: 0o0750
+      #   if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
-# HDFS Service Repository creation
-Matchs step 1 in [hdfs plugin configuration][hdfs-plugin]. Instead of using the web ui
+## Service Repository creation
+
+Matchs step 1 in [hive plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call
-        if: @contexts('ryba/kafka/broker')[0].config.host is @config.host
-        header: 'Ranger Kafka Repository'
-      , ->
-        @system.execute
-          unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{password} \"#{ranger.kafka_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.kafka_plugin.install['REPOSITORY_NAME']}\"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.kafka_plugin.service_repo}' \
-            -u admin:#{password} \"#{ranger.kafka_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
-          """
-        @krb5.addprinc krb5,
-          if: ranger.kafka_plugin.principal
-          header: 'Ranger Kafka Principal'
-          principal: ranger.kafka_plugin.principal
-          randkey: true
-          password: ranger.kafka_plugin.password
+      @ranger_service
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
+
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
+      @krb5.addprinc options.krb5.admin,
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
 
 # Plugin Scripts 
 
       @call ->
+        # migration, wdavdiw 170918, this is not a j2 template so we should
+        # just generate the file without relying on a template
         @file.render
           header: 'Scripts rendering'
           if: -> version?
@@ -85,7 +124,7 @@ we execute this task using the rest api.
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.kafka_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -94,7 +133,7 @@ we execute this task using the rest api.
           target: "/usr/hdp/#{version}/ranger-kafka-plugin/enable-kafka-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{kafka.broker.conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
             ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/kafka-broker"
@@ -109,18 +148,18 @@ we execute this task using the rest api.
           backup: true
           mode: 0o750
         @file
-          header: 'Fix Kafka Broker classpath'
-          target: "#{kafka.broker.conf_dir}/kafka-env.sh"
+          header: 'Fix Classpath'
+          target: "#{options.conf_dir}/kafka-env.sh"
           write: [
             match: RegExp "^export CLASSPATH=\"$CLASSPATH.*", 'm'
-            replace: "export CLASSPATH=\"$CLASSPATH:${script_dir}:/usr/hdp/#{version}/ranger-kafka-plugin/lib/ranger-kafka-plugin-impl:#{kafka.broker.conf_dir}:/usr/hdp/current/hadoop-hdfs-client/*:/usr/hdp/current/hadoop-hdfs-client/lib/*:/etc/hadoop/conf\" # RYBA, DONT OVERWRITE"
+            replace: "export CLASSPATH=\"$CLASSPATH:${script_dir}:/usr/hdp/#{version}/ranger-kafka-plugin/lib/ranger-kafka-plugin-impl:#{options.conf_dir}:/usr/hdp/current/hadoop-hdfs-client/*:/usr/hdp/current/hadoop-hdfs-client/lib/*:/etc/hadoop/conf\" # RYBA, DONT OVERWRITE"
             append: true
           ]
           backup: true
           eof: true
           mode:0o0750
-          uid: kafka.user.name
-          gid: kafka.group.name
+          uid: options.user.name
+          gid: options.group.name
         @system.execute
           header: 'Script Execution'
           cmd: """
@@ -130,23 +169,23 @@ we execute this task using the rest api.
           fi;
           """
         @system.chmod
-          header: "Fix Kafka Conf Permission"
-          target: kafka.broker.conf_dir
-          uid: kafka.user.name
-          gid: kafka.group.name
+          header: "Fix Permission"
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o755
         @system.chmod
           header: "Fix Ranger Repo Permission"
-          target: "/etc/ranger/#{ranger.kafka_plugin.install['REPOSITORY_NAME']}"
-          uid: kafka.user.name
-          gid: kafka.group.name
+          target: "/etc/ranger/#{options.install['REPOSITORY_NAME']}"
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o750
         @hconfigure
           header: 'Fix ranger-kafka-security conf'
-          target: "#{kafka.broker.conf_dir}/ranger-kafka-security.xml"
+          target: "#{options.conf_dir}/ranger-kafka-security.xml"
           merge: true
           properties:
-            'ranger.plugin.kafka.policy.rest.ssl.config.file': "#{kafka.broker.conf_dir}/ranger-policymgr-ssl.xml"
+            'ranger.plugin.kafka.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
 
 ## Dependencies
 
@@ -154,5 +193,4 @@ we execute this task using the rest api.
     path = require 'path'
     mkcmd = require '../../../lib/mkcmd'
 
-
-[hdfs-plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hdfs_plugin)
+[plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_kafka_plugin

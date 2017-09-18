@@ -1,16 +1,20 @@
 
-    module.exports = header: 'Ranger Knox Gateway Plugin install', handler: ->
-      {knox, ranger, realm, hadoop_group, core_site} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      krb5 = @config.krb5_client.admin[realm]
+# Ranger Knox Plugin Install
+
+    module.exports = header: 'Ranger Knox Plugin', handler: (options) ->
       version = null
 
-# Knox Dependencies
+## Wait
 
-      @call once: true, 'ryba/ranger/admin/wait'
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+
+## Knox Dependencies
+
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
-# Packages
+## Packages
 
       @call header: 'Packages', ->
         @system.execute
@@ -25,55 +29,62 @@
         @service
           name: "ranger-knox-plugin"
 
-# Layout
+## Service Repository creation
 
-      @system.mkdir
-        target: ranger.knox_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: knox.user.name
-        gid: hadoop_group.name
-        mode: 0o0750
-        if: ranger.knox_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-      @system.mkdir
-        target: ranger.knox_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: knox.user.name
-        gid: hadoop_group.name
-        mode: 0o0750
-        if: ranger.knox_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
-
-# Knox Service Repository creation
-Matchs step 1 in [kafka plugin configuration][kafka-plugin]. Instead of using the web ui
+Matchs step 1 in [Knox plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call
-        if: @contexts('ryba/knox')[0].config.host is @config.host
-        header: 'Ranger Knox Repository'
-      , ->
-          @system.execute
-            unless_exec: """
-            curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
-              -u admin:#{password} \"#{ranger.knox_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.knox_plugin.install['REPOSITORY_NAME']}\"
-            """
-            cmd: """
-            curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.knox_plugin.service_repo}' \
-              -u admin:#{password} \"#{ranger.knox_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
-            """
-          @krb5.addprinc krb5,
-            if: ranger.knox_plugin.principal
-            header: 'Ranger Knox Principal'
-            principal: ranger.knox_plugin.principal
-            randkey: true
-            password: ranger.knox_plugin.password
-          @system.execute
-            header: 'Knox plugin audit to HDFS'
-            cmd: mkcmd.hdfs @, """
-            hdfs dfs -mkdir -p #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/knox
-            hdfs dfs -chown -R #{knox.user.name}:#{knox.user.name} #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/knox
-            hdfs dfs -chmod 750 #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/knox
-            """
+      @ranger_service
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
 
-# Plugin Scripts 
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
+      @krb5.addprinc options.krb5.admin,
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
+
+## Audit Layout
+
+The value present in "XAAUDIT.HDFS.DESTINATION_DIRECTORY" contains variables
+such as "%app-type% and %time:yyyyMMdd%".
+
+      @hdfs_mkdir
+        header: 'HDFS Audit'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        target: "/#{options.user.name}/audit/#{options.service_repo.type}"
+        mode: 0o0750
+        parent:
+          mode: 0o0711
+          user: options.user.name
+          group: options.group.name
+        user: options.knox_user.name
+        group: options.knox_group.name
+      # @system.mkdir
+      #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+      #   uid: options.knox_user.name
+      #   gid: options.hadoop_group.name
+      #   mode: 0o0750
+      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      @system.mkdir
+        header: 'Solr Spool Dir'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.knox_user.name
+        gid: options.options.hadoop_group.name
+        mode: 0o0750
+
+## Plugin Scripts 
 
       @call ->
+        # migration, wdavdiw 170918, this is not a j2 template so we should
+        # just generate the file without relying on a template
         @file.render
           header: 'Scripts rendering'
           if: -> version?
@@ -82,7 +93,7 @@ we execute this task using the rest api.
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.knox_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -91,7 +102,7 @@ we execute this task using the rest api.
           target: "/usr/hdp/#{version}/ranger-knox-plugin/enable-knox-plugin.sh"
           write:[
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{knox.conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
           ]
           backup: true
           mode: 0o750
@@ -106,13 +117,13 @@ we execute this task using the rest api.
           """
         @system.execute
           header: 'fix topologies perms'
-          cmd: "chown -R #{knox.user.name}:#{knox.group.name} /usr/hdp/current/knox-server/data/security/keystores/*"
+          cmd: "chown -R #{options.knox_user.name}:#{options.knox_group.name} /usr/hdp/current/knox-server/data/security/keystores/*"
         @system.copy
           source: '/etc/hadoop/conf/core-site.xml'
-          target: "#{knox.conf_dir}/core-site.xml"
+          target: "#{options.conf_dir}/core-site.xml"
         @system.copy
           source: '/etc/hadoop/conf/hdfs-site.xml'
-          target: "#{knox.conf_dir}/hdfs-site.xml"
+          target: "#{options.conf_dir}/hdfs-site.xml"
 
 ## Dependencies
 
@@ -120,4 +131,4 @@ we execute this task using the rest api.
     path = require 'path'
     mkcmd = require '../../../lib/mkcmd'
 
-[kafka-plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_yarn_plugin)
+[plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_knox_plugin

@@ -11,7 +11,7 @@
 
 ## Wait
 
-      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger_admin
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
 
 ## Register
 
@@ -23,6 +23,7 @@
 ## Ranger User
 
       @ranger_user
+        header: 'Ranger User'
         username: options.ranger_admin.username
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']
@@ -43,24 +44,9 @@
         @service
           name: "ranger-hbase-plugin"
 
-## Layout
+## Audit Layout
 
-      @system.mkdir
-        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: options.user.name
-        gid: options.hadoop_group.name
-        mode: 0o0750
-        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-      @system.mkdir
-        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: options.user.name
-        gid: options.hadoop_group.name
-        mode: 0o0750
-        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
-
-## HBase Service Repository creation
-
-Matchs step 1 in [hdfs plugin configuration][hbase-plugin]. Instead of using the web ui
+Matchs step 1 in [hdfs plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
       @call
@@ -77,34 +63,46 @@ we execute this task using the rest api.
               group: options.group.name
             user: options.hbase_user.name
             group: options.hbase_user.name
-            unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
+            # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
         @ranger_policy
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.install['POLICY_MGR_URL']
           policy: options.policy_hdfs_audit
+      # @system.mkdir
+      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+      #   uid: options.user.name
+      #   gid: options.hadoop_group.name
+      #   mode: 0o0750
+      @system.mkdir
+        header: 'Solr Spool Dir'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.user.name
+        gid: options.hadoop_group.name
+        mode: 0o0750
 
 ## Service Repository creation
 
-Matchs step 1 in [hbase plugin configuration][hbase-plugin]. Instead of using the web ui
+Matchs step 1 in [hbase plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-        @ranger_service
-          username: options.ranger_admin.username
-          password: options.ranger_admin.password
-          url: options.install['POLICY_MGR_URL']
-          service: options.service_repo
+      @ranger_service
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
 
-## HBase  Plugin Principal
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
 
-      # migration: wdavidw, 170905, isnt the principal hbase/{fqdn}? If so, then
-      # it should already be provisionned by HBase Master, no ?
-      # @krb5.addprinc options.krb5.admin,
-      #   if: options.principal
-      #   header: 'Ranger HBase Principal'
-      #   principal: ranger.hbase_plugin.principal
-      #   randkey: true
-      #   password: ranger.hbase_plugin.password
+      @krb5.addprinc options.krb5.admin,
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
 
 ## SSL
 
@@ -123,6 +121,8 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
 ## Plugin Scripts 
 
       @call ->
+        # migration, wdavdiw 170918, this is not a j2 template so we should
+        # just generate the file without relying on a template
         @file.render
           header: 'Scripts rendering'
           if: -> version?
@@ -220,5 +220,5 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
     mkcmd = require '../../../lib/mkcmd'
     properties = require '../../../lib/properties'
 
-[hbase-plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hbase_plugin)
-[perms-fix]https://community.hortonworks.com/questions/23717/ranger-solr-on-hdp-234-unable-to-refresh-policies.html
+[plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hbase_plugin)
+[perms-fix]: https://community.hortonworks.com/questions/23717/ranger-solr-on-hdp-234-unable-to-refresh-policies.html

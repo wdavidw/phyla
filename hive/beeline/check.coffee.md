@@ -11,16 +11,27 @@ This module check the Hive Server2 servers using the `beeline` command.
 
 ## Wait
 
-      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin if options.wait_ranger_admin
       @call 'ryba/hive/server2/wait', once: true, options.wait_hive_server2
       @call 'ryba/spark/thrift_server/wait', once: true, options.wait_spark_thrift_server if options.wait_spark_thrift_server
 
-## Add Ranger Policy 
+## Add Ranger Policy
+
+Create the policy to run the checks. The policy can be accessed from the command
+line with: 
+
+```
+curl --fail -k -X GET -H "Content-Type: application/json" \
+-u admin:rangerAdmin123 \
+"https://master03.metal.ryba:6182/service/public/v2/api/service/hadoop-ryba-hive/policy/ryba-check-edge01"
+```
 
       @call
-        header: 'Hive Policy'
+        header: 'Ranger Policy'
         if: !!options.ranger_admin
       , ->
+        # Wait for Ranger admin to be started
+        @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+        # Prepare the list of databases
         dbs = []
         for hive_server2 in options.hive_server2
           dbs.push "check_#{options.hostname}_server2_#{hive_server2.hostname}"
@@ -29,34 +40,54 @@ This module check the Hive Server2 servers using the `beeline` command.
           dbs.push "check_#{options.hostname}_spark_sql_server_#{spark_thrift_server.hostname}"
         # use v1 policy api (old style) from ranger to have an example
         @wait.execute
+          header: 'Wait Service'
           cmd: """
-          curl --fail -H \"Content-Type: application/json\"   -k -X GET  \
+          curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
             \"#{options.ranger_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_install['REPOSITORY_NAME']}\"
           """
-          code_skipped: [1,7,22] #22 is for 404 not found,7 is for not connected to host
+          code_skipped: [1, 7, 22] # 22 is for 404 not found, 7 is for not connected to host
         @ranger_policy
-          header: 'Create Policy'
+          header: 'Create'
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.ranger_install['POLICY_MGR_URL']
           policy:
-            "policyName": "Ranger-Ryba-HIVE-Policy-#{options.hostname}"
-            "repositoryName": "#{options.ranger_install['REPOSITORY_NAME']}"
-            "repositoryType":"hive"
-            "description": 'Ryba check hive policy'
-            "databases": "#{dbs.join ','}"
-            'tables': '*'
-            "columns": "*"
-            "udfs": ""
-            'tableType': 'Inclusion'
-            'columnType': 'Inclusion'
+            'name': "ryba-check-#{options.hostname}"
+            'description': 'Ryba policy used to check the beeline service'
+            'service': options.ranger_install['REPOSITORY_NAME']
             'isEnabled': true
             'isAuditEnabled': true
-            "permMapList": [{
-            		"userList": ["#{options.test.user.name}"],
-            		"permList": ["all"]
-            	}]
+            # 'policyType': 0
+            # 'version': 2
+            'resources':
+              'database':
+                'values': dbs
+                'isExcludes': false
+                'isRecursive': false
+              'table':
+                'values': ['*']
+                'isExcludes': false
+                'isRecursive': false
+              'column':
+                'values': ['*']
+                'isExcludes': false
+                'isRecursive': false
+            'policyItems': [
+              'accesses': [
+                'type': 'all'
+                'isAllowed': true
+              ]
+              'users': [options.test.user.name]
+              'groups': []
+              'conditions': []
+              'delegateAdmin': false
+            ]
+            # "denyPolicyItems": []
+            # "allowExceptions": []
+            # "denyExceptions": []
+            # "dataMaskPolicyItems": []
+            # "rowFilterPolicyItems": []
 
 ## Check Server2
 

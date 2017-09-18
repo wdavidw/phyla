@@ -1,6 +1,8 @@
 
 # Ranger Policy
 
+Create a Ranger policy using the [REST API v2](https://cwiki.apache.org/confluence/display/RANGER/Apache+Ranger+0.6+-+REST+APIs+for+Service+Definition%2C+Service+and+Policy+Management#ApacheRanger0.6-RESTAPIsforServiceDefinition,ServiceandPolicyManagement-CreatePolicy)
+
 * `password` (string)
   Ranger Administrator password.
 * `url` (string)   

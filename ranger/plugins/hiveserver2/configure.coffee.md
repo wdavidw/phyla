@@ -39,10 +39,10 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
 ## Plugin User
 
       options.plugin_user =
-        "name": 'hive'
-        "firstName": 'hive'
-        "lastName": 'hadoop'
-        "emailAddress": 'hive@hadoop.ryba'
+        "name": options.hive_user.name
+        "firstName": ''
+        "lastName": ''
+        "emailAddress": ''
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []
@@ -55,8 +55,6 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
 
 ## Configuration
 
-      # options.principal ?= ranger.plugins.principal
-      # options.password ?= ranger.plugins.password
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       # Should Hive GRANT/REVOKE update XA policies?
@@ -76,7 +74,7 @@ from Hadoop Core.
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.location']
         options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.password']
 
-## HIVE Policy Admin Tool
+##Policy Admin Tool
 
 The repository name should match the reposity name in web ui.
 
@@ -97,15 +95,19 @@ The repository name should match the reposity name in web ui.
       if service.use.hive_server2.options.hive_site['hive.server2.transport.mode'] is 'http'
         hive_url += ";transportMode=#{service.use.hive_server2.options.hive_site['hive.server2.transport.mode']}"
         hive_url += ";httpPath=#{httpPath}"
-      # Set Ranger Admin properties
+
+## Admin properties
+
       options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hive'
-      # Service Configuration
+
+## Service Definition
+
       options.service_repo ?=
-        'description': 'Hive Repo'
-        'isEnabled': true
         'name': options.install['REPOSITORY_NAME']
+        'description': 'Hive Repo'
         'type': 'hive'
+        'isEnabled': true
         'configs':
           # 'username': 'ranger_plugin_hbase'
           # 'password': 'RangerPluginHive123!'
@@ -117,39 +119,13 @@ The repository name should match the reposity name in web ui.
           'policy.download.auth.users': "#{service.use.hive_server2.options.user.name}" #from ranger 0.6
           'tag.download.auth.users': "#{service.use.hive_server2.options.user.name}"
 
-## HDFS Audit Policy
+## Audit
 
-      options.policy_hdfs_audit ?=
-        'name': "hive-ranger-plugin-audit"
-        'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
-        'repositoryType':"hdfs"
-        'description': 'Hive Ranger Plugin audit log policy'
-        'isEnabled': true
-        'isAuditEnabled': true
-        'resources':
-          'path':
-            'isRecursive': 'true'
-            'values': ['/ranger/audit/hiveServer2']
-            'isExcludes': false
-        'policyItems': [
-          'users': ["#{options.hive_user.name}"]
-          'groups': []
-          'delegateAdmin': true
-          'accesses': [
-              "isAllowed": true
-              "type": "read"
-          ,
-              "isAllowed": true
-              "type": "write"
-          ,
-              "isAllowed": true
-              "type": "execute"
-          ]
-          'conditions': []
-        ]
+### HDFS storage
 
-## Audit (HDFS V3 properties)
-
+      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
+      # options.install['XAAUDIT.HDFS.FILE_SPOO
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
@@ -164,14 +140,61 @@ The repository name should match the reposity name in web ui.
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
-## Audit (HDFS Storage)
+## HDFS Policy
 
-      # AUDIT TO HDFS
-      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
-      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.hive_server2.log_dir}/audit/hdfs/spool"
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        options.policy_hdfs_audit ?=
+          'name': "hive-ranger-plugin-audit"
+          'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
+          'repositoryType':"hdfs"
+          'description': 'Hive Ranger Plugin audit log policy'
+          'isEnabled': true
+          'isAuditEnabled': true
+          'resources':
+            'path':
+              'isRecursive': 'true'
+              'values': ['/ranger/audit/hiveServer2']
+              'isExcludes': false
+          'policyItems': [
+            'users': ["#{options.hive_user.name}"]
+            'groups': []
+            'delegateAdmin': true
+            'accesses': [
+                "isAllowed": true
+                "type": "read"
+            ,
+                "isAllowed": true
+                "type": "write"
+            ,
+                "isAllowed": true
+                "type": "execute"
+            ]
+            'conditions': []
+          ]
 
-## Audit (database storage)
+### Solr storage
+
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
+        options.audit ?= {}
+        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
+        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
+        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
+        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
+        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hive_server2.options.log_dir}/audit/solr/spool"
+        options.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] = service.use.hive_server2.options.hive_site['hive.server2.authentication.kerberos.principal'].replace '_HOST', service.node.fqdn
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hive_server2.options.hive_site['hive.server2.authentication.kerberos.keytab']
+
+### Database storage
 
       #Deprecated
       options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
@@ -193,28 +216,6 @@ The repository name should match the reposity name in web ui.
           options.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
-
-## Audit (to SOLR)
-
-      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
-        options.audit ?= {}
-        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
-        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
-        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
-        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
-        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
-        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hive_server2.log_dir}/audit/solr/spool"
-        options.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
-        options.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
-        options.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] = service.use.hive_server2.options.hive_site['hive.server2.authentication.kerberos.principal'].replace '_HOST', service.node.fqdn
-        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hive_server2.options.hive_site['hive.server2.authentication.kerberos.keytab']
 
 ## Wait
 

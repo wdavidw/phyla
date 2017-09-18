@@ -289,10 +289,6 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
         options.wait[protocol] = for srv in service.use.kafka_broker
           host: srv.node.fqdn
           port: options.ports[protocol]
-      options.wait['PLAINTEXT'] ?= []
-      options.wait['SSL'] ?= []
-      options.wait['SASL_PLAINTEXT'] ?= []
-      options.wait['SASL_SSL'] ?= []
 
 ## Dependencies
 

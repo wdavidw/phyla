@@ -16,8 +16,6 @@ The file storing the PID is "/var/run/hbase/hbase-hbase-rest.pid".
 Wait for Kerberos, ZooKeeper, HDFS and Hbase Master to be started.
 
       @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
-      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
-      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn
       @call 'ryba/hbase/master/wait', once: true, options.wait_hbase_master
 
 Start the service.

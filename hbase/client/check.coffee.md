@@ -4,7 +4,7 @@
 Check the HBase client installation by creating a table, inserting a cell and
 scanning the table.
 
-    module.exports =  header: 'HBase Client Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports =  header: 'HBase Client Check', handler: (options) ->
 
 ## Register
 
@@ -23,7 +23,7 @@ Wait for the HBase master to be started.
 
       @call
         header: 'Ranger'
-        if: -> options.ranger_admin
+        if: -> !!options.ranger_admin
       , ->
         @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         @wait.execute
@@ -40,8 +40,9 @@ Wait for the HBase master to be started.
           password: options.ranger_admin.password
           url: options.ranger_install['POLICY_MGR_URL']
           policy:
-            "name": "Ranger-Ryba-HBase-Policy-#{options.hostname}"
-            "service": "#{options.ranger_install['REPOSITORY_NAME']}"
+            "name": "ryba-client-check-#{options.hostname}"
+            'description': 'Ryba policy used to check the HBase client'
+            "service": options.ranger_install['REPOSITORY_NAME']
             "resources":
               "column":
                 "values": ["*"]
@@ -59,12 +60,8 @@ Wait for the HBase master to be started.
                   ]
                 "isExcludes": false
                 "isRecursive": false
-            "repositoryName": "#{options.ranger_install['REPOSITORY_NAME']}"
-            "repositoryType": "hbase"
-            "isEnabled": "true",
-            "isAuditEnabled": true,
-            'tableType': 'Inclusion',
-            'columnType': 'Inclusion',
+            "isEnabled": true
+            "isAuditEnabled": true
             'policyItems': [
                 "accesses": [
                   'type': 'read'
@@ -79,7 +76,7 @@ Wait for the HBase master to be started.
                   'type': 'admin'
                   'isAllowed': true
                 ],
-                'users': ['hbase', "#{options.test.user.name}"]
+                'users': [options.test.user.name]
                 'groups': []
                 'conditions': []
                 'delegateAdmin': true
@@ -103,8 +100,9 @@ namespaces are prefixed with an '@' character.
       @system.execute
         header: 'Grant Permissions'
         cmd: mkcmd.hbase options.admin, """
+        force_check='#{if options.force_check then '1' else ''}'
         if hbase shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
-          if [ ! -z '#{options.force_check or ''}' ]; then
+          if [ ! -z "$force_check" ]; then
             echo [DEBUG] Cleanup existing table and namespace
             hbase shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
               disable '#{options.test.namespace}:#{options.test.table}'
@@ -134,7 +132,7 @@ namespaces are prefixed with an '@' character.
 
 Note, we are re-using the namespace created above.
 
-      @call header: 'Shell', label_true: 'CHECKED', ->
+      @call header: 'Shell', ->
         @wait.execute
           cmd: mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists '#{options.test.namespace}:#{options.test.table}'\" | grep 'Table #{options.test.namespace}:#{options.test.table} does exist'"
         @system.execute
@@ -152,7 +150,7 @@ Note, we are re-using the namespace created above.
 
 ## Check MapReduce
 
-      @call header: 'MapReduce', label_true: 'CHECKED', ->
+      @call header: 'MapReduce', ->
         @system.execute
           cmd: mkcmd.test @, """
           hdfs dfs -rm -skipTrash check-#{options.hostname}-hbase-mapred
@@ -164,7 +162,7 @@ Note, we are re-using the namespace created above.
 
 ## Check Splits
 
-      @call header: 'Splits', label_true: 'CHECKED', ->
+      @call header: 'Splits', ->
         table = "#{options.test.namespace}:check_#{options.hostname}_test_splits"
         @system.execute
           cmd: mkcmd.hbase options.admin, """

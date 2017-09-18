@@ -1,5 +1,5 @@
 
-# Ranger HiveServer2 Plugin Install
+# Ranger Hive Plugin Install
 
     module.exports = header: 'Ranger Hive Plugin', handler: (options) ->
       version = null
@@ -7,7 +7,7 @@
 
 ## Wait
 
-      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger_admin
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
 
 ## Register
 
@@ -20,22 +20,23 @@
 ## Ranger User
 
       @ranger_user
+        header: 'Ranger User'
         username: options.ranger_admin.username
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']
         user: options.plugin_user
 
-## Create Hive Policy for HDFS Repo
+## Audit Layout
 
       @call
         if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        header: 'Audit HDFS Policy'
+        header: 'HDFS Audit'
       , ->
-        @system.mkdir
-          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-          uid: options.hive_user.name
-          gid: options.hive_group.name
-          mode: 0o0750
+        # @system.mkdir
+        #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        #   uid: options.hive_user.name
+        #   gid: options.hive_group.name
+        #   mode: 0o0750
         for target in options.policy_hdfs_audit.resources.path.values
           @hdfs_mkdir
             target: target
@@ -45,13 +46,20 @@
               user: options.user.name
               group: options.group.name
             user: options.hive_user.name
-            group: options.hive_user.name
-            unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
+            group: options.hive_group.name
+            # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
         @ranger_policy
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.install['POLICY_MGR_URL']
           policy: options.policy_hdfs_audit
+      @system.mkdir
+        header: 'Solr Spool Dir'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.hive_user.name
+        gid: options.hive_group.name
+        mode: 0o0750
 
 ## Packages
 
@@ -66,18 +74,9 @@
         @service
           name: "ranger-hive-plugin"
 
-## Hive ranger plugin audit to SOLR
-
-      @system.mkdir
-        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: options.hive_user.name
-        gid: options.hive_group.name
-        mode: 0o0750
-        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
-
 ## Service Repository creation
 
-Matchs step 1 in [hive plugin configuration][hive-plugin]. Instead of using the web ui
+Matchs step 1 in [hive plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
       @ranger_service
@@ -85,16 +84,22 @@ we execute this task using the rest api.
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']
         service: options.service_repo
+
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
       @krb5.addprinc options.krb5.admin,
-        if: options.principal
-        header: 'Ranger HIVE Principal'
-        principal: options.principal
-        randkey: true
-        password: options.password
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
 
 ## Plugin Scripts 
 
       @call ->
+        # migration, wdavdiw 170918, this is not a j2 template so we should
+        # just generate the file without relying on a template
         @file.render
           header: 'Scripts rendering'
           if: -> version?
@@ -204,4 +209,4 @@ we execute this task using the rest api.
     mkcmd = require '../../../lib/mkcmd'
     properties = require '../../../lib/properties'
 
-[hive-plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hive_plugin)
+[plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hive_plugin

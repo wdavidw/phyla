@@ -19,7 +19,7 @@
 # Set environment variables here.
 
 # The java implementation to use. Java 1.7 required.
-export JAVA_HOME={{options.java_home}}
+export JAVA_HOME={{options.env['JAVA_HOME']}}
 
 # HBase Configuration directory
 export HBASE_CONF_DIR=${HBASE_CONF_DIR:-/etc/hbase/conf}

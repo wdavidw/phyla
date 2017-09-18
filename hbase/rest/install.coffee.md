@@ -66,7 +66,7 @@ hbase:x:492:
 
 ## HBase Rest Service
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hbase-rest'
         @hdp_select
@@ -76,7 +76,7 @@ hbase:x:492:
           header: 'Init Script'
           source: "#{__dirname}/../resources/hbase-rest.j2"
           local: true
-          context: @config
+          context: options: options
           target: '/etc/init.d/hbase-rest'
           mode: 0o0755
           unlink: true
@@ -88,7 +88,7 @@ hbase:x:492:
             target: '/usr/lib/systemd/system/hbase-rest.service'
             source: "#{__dirname}/../resources/hbase-rest-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0640
           @system.tmpfs
             header: 'Run dir'
@@ -122,7 +122,7 @@ Environment passed to the HBase Rest Server before it starts.
         target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
-        context: @config
+        context: options: options
         mode: 0o0750
         uid: options.user.name
         gid: options.group.name
