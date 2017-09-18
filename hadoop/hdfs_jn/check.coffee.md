@@ -9,7 +9,7 @@ Wait for the JournalNodes.
 
       @connection.assert
         header: 'RPC'
-        servers: options.wait.rpc
+        servers: options.wait.rpc.filter (server) -> server.host is options.fqdn
         retry: 3
         sleep: 3000
 

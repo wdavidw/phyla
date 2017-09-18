@@ -24,9 +24,9 @@ Example:
         hadoop_core: key: ['ryba']
         hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
         hive_server2: key: ['ryba', 'hive', 'server2']
+        spark_thrift_server: key: ['ryba', 'spark']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ranger_hive: key: ['ryba', 'ranger', 'hive']
-        spark_thrift_server: key: ['ryba', 'spark']
       @config.ryba ?= {}
       @config.ryba.hbase ?= {}
       options = @config.ryba.hive.beeline = service.options
@@ -87,9 +87,9 @@ Example:
 
 ## Wait
 
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
       options.wait_hive_server2 = service.use.hive_server2[0].options.wait
       options.wait_spark_thrift_server = service.use.spark_thrift_server.options.wait if service.use.spark_thrift_server
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
 
 ## Dependencies
 

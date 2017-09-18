@@ -24,11 +24,13 @@
 [Ranger HBase plugin][ranger-hbase] try to mimics grant/revoke by shell.
 
       @call
-        if: -> options.ranger_admin
+        header: 'Ranger Policy'
+        if: !!options.ranger_admin
       , ->
+        # Wait for Ranger admin to be started
         @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         @wait.execute
-          header: 'Wait HBase Ranger repository'
+          header: 'Wait Service'
           cmd: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
@@ -36,52 +38,50 @@
           """
           code_skipped: 22
         @ranger_policy
+          header: 'Create'
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.ranger_install['POLICY_MGR_URL']
           policy:
-            "name": "Ranger-Ryba-HBase-Rest-Policy-#{options.hostname}"
-            "service": "#{options.ranger_install['REPOSITORY_NAME']}"
-            "resources":
-              "column":
-                "values": ["*"]
-                "isExcludes": false
-                "isRecursive": false
-              "column-family":
-                "values": ["*"]
-                "isExcludes": false
-                "isRecursive": false
-              "table":
-                "values": [
+            'name': "ryba-rest-check-#{options.hostname}"
+            'description': 'Ryba policy used to check the HBase REST service'
+            'service': options.ranger_install['REPOSITORY_NAME']
+            'isEnabled': 'true'
+            'isAuditEnabled': true
+            'resources':
+              'table':
+                'values': [
                   "#{options.test.namespace}:#{options.test.table}"
                   ]
-                "isExcludes": false
-                "isRecursive": false
-            "repositoryName": "#{options.ranger_install['REPOSITORY_NAME']}"
-            "repositoryType": "hbase"
-            "isEnabled": "true",
-            "isAuditEnabled": true,
-            'tableType': 'Inclusion',
-            'columnType': 'Inclusion',
+                'isExcludes': false
+                'isRecursive': false
+              'column-family':
+                'values': ['*']
+                'isExcludes': false
+                'isRecursive': false
+              'column':
+                'values': ['*']
+                'isExcludes': false
+                'isRecursive': false
             'policyItems': [
-            		"accesses": [
-            			'type': 'read'
-            			'isAllowed': true
-                ,
-            			'type': 'write'
-            			'isAllowed': true
-            		,
-            			'type': 'create'
-            			'isAllowed': true
-            		,
-            			'type': 'admin'
-            			'isAllowed': true
-            		],
-            		'users': ['hbase', "#{options.user.name}"]
-            		'groups': []
-            		'conditions': []
-            		'delegateAdmin': true
+              'accesses': [
+                'type': 'read'
+                'isAllowed': true
+              ,
+                'type': 'write'
+                'isAllowed': true
+              ,
+                'type': 'create'
+                'isAllowed': true
+              ,
+                'type': 'admin'
+                'isAllowed': true
               ]
+              'users': [options.test.user.name]
+              'groups': []
+              'conditions': []
+              'delegateAdmin': false
+            ]
 
 ## Check Shell
 
@@ -97,7 +97,7 @@
       schema = JSON.stringify ColumnSchema: [name: "#{options.hostname}_rest"]
       rows = JSON.stringify Row: [ key: encode('my_row_rest'), Cell: [column: encode("#{options.hostname}_rest:my_column"), $: encode('my rest value')]]
       @system.execute
-        cmd: mkcmd.hbase @, """
+        cmd: mkcmd.hbase options.admin, """
         if hbase shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
           if [ ! -z '#{options.force_check or ''}' ]; then
             echo [DEBUG] Cleanup existing table and namespace

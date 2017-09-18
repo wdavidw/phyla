@@ -36,8 +36,6 @@
 
       # Layout
       options.conf_dir ?= service.use.hbase_master.options.conf_dir
-      options.log_dir ?= service.use.hbase_master.options.log_dir
-      # Java
       # Java
       options.jre_home ?= service.use.java.options.jre_home
 
@@ -51,11 +49,11 @@ migration: wdavidw 170828, access for the user need to be tested through a HTTP
 REST request.
 
       options.plugin_user = 
-        "name": 'hbase'
+        "name": options.hbase_user.name
         "firstName": ''
-        "lastName": 'hadoop'
-        "emailAddress": 'hbase@hadoop.ryba'
-        "password": 'hbase123'
+        "lastName": ''
+        "emailAddress": ''
+        "password": ''
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []
@@ -71,7 +69,7 @@ REST request.
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       options.install['CUSTOM_USER'] ?= "#{options.hbase_user.name}"
 
-### HBase regionserver env
+## HBase regionserver env
 
 Some ranger plugins needs to have the configuration file on their classpath to 
 make configuration effective.
@@ -85,12 +83,18 @@ make configuration effective.
       #   else if (srv.options.env['HBASE_CLASSPATH'].indexOf(":#{core_site_path}") is -1)
       #     srv.options.env['HBASE_CLASSPATH'] += ":#{core_site_path}"
 
-### HBase Policy Admin Tool
-The repository name should match the reposity name in web ui.
+## Admin properties
 
       options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
+
+## Service Definition
+
       options.service_repo ?=
+        'name': options.install['REPOSITORY_NAME']
+        'description': 'HBase Repo'
+        'type': 'hbase'
+        'isEnabled': true
         'configs':
           # 'username': 'ranger_plugin_hbase'
           # 'password': 'RangerPluginHBase123!'
@@ -106,47 +110,16 @@ The repository name should match the reposity name in web ui.
           'policy.download.auth.users': "#{options.hbase_user.name}" #from ranger 0.6
           'tag.download.auth.users': "#{options.hbase_user.name}"
           'policy.grantrevoke.auth.users': "#{options.hbase_user.name}"
-        'description': 'HBase Repo'
-        'isEnabled': true
-        'name': options.install['REPOSITORY_NAME']
-        'type': 'hbase'
       options.install['XAAUDIT.SUMMARY.ENABLE'] ?= 'true'
       options.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
 
-## HDFS Audit Policy
+## Audit
 
-      options.policy_hdfs_audit =
-        name: "hbase-ranger-plugin-audit"
-        service: "#{options.hdfs_install['REPOSITORY_NAME']}"
-        repositoryType: 'hdfs'
-        description: 'HBase Ranger Plugin audit log policy'
-        isEnabled: true
-        isAuditEnabled: true
-        resources:
-          path:
-            isRecursive: 'true'
-            values: ['/ranger/audit/hbaseRegional','/ranger/audit/hbaseMaster']
-            isExcludes: false
-        policyItems: [{
-          users: ["#{options.hbase_user.name}"]
-          groups: []
-          delegateAdmin: true
-          accesses:[
-              "isAllowed": true
-              "type": "read"
-          ,
-              "isAllowed": true
-              "type": "write"
-          ,
-              "isAllowed": true
-              "type": "execute"
-          ]
-          conditions: []
-          }]
+### HDFS Storage
 
-### Audit (HDFS V3 properties)
-
-      # V3 Configuration
+      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
+      # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
@@ -161,14 +134,59 @@ The repository name should match the reposity name in web ui.
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
-### Audit (HDFS Storage)
+## Audit Policy
 
-      # AUDIT TO HDFS
-      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
-      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        options.policy_hdfs_audit =
+          name: "hbase-ranger-plugin-audit"
+          service: "#{options.hdfs_install['REPOSITORY_NAME']}"
+          repositoryType: 'hdfs'
+          description: 'HBase Ranger Plugin audit log policy'
+          isEnabled: true
+          isAuditEnabled: true
+          resources:
+            path:
+              isRecursive: 'true'
+              values: ['/ranger/audit/hbaseRegional','/ranger/audit/hbaseMaster']
+              isExcludes: false
+          policyItems: [{
+            users: ["#{options.hbase_user.name}"]
+            groups: []
+            delegateAdmin: true
+            accesses:[
+                "isAllowed": true
+                "type": "read"
+            ,
+                "isAllowed": true
+                "type": "write"
+            ,
+                "isAllowed": true
+                "type": "execute"
+            ]
+            conditions: []
+            }]
 
-### Audit (database storage)
+### Solr Storage
+
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
+        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
+        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
+        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
+        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
+        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hbase_master.options.log_dir}/audit/solr/spool"
+
+### Plugin Execution
+
+      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.password']
+
+### Database Storage
 
       # Deprecated
       # migration: wdavidw 170902, in favor of what ?
@@ -191,27 +209,6 @@ The repository name should match the reposity name in web ui.
           options.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
-
-
-### Audit (to SOLR)
-
-      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
-        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
-        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
-        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
-        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
-        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
-        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/solr/spool"
-
-### Plugin Execution
-
-      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
-        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
-        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.location']
-        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.password']
 
 ## Merge hive_plugin conf to ranger admin
 

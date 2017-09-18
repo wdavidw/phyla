@@ -11,6 +11,7 @@ See [REST Gateway Impersonation Configuration][impersonation].
         iptables: key: ['iptables']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
         hadoop_core: key: ['ryba']
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
         hdfs_client: key: ['ryba', 'hdfs_client']
@@ -18,6 +19,8 @@ See [REST Gateway Impersonation Configuration][impersonation].
         hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
         hbase_client: key: ['ryba', 'hbase', 'client']
         hbase_rest: key: ['ryba', 'hbase', 'rest']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_hbase: key: ['ryba', 'ranger', 'hbase']
       @config.ryba ?= {}
       @config.ryba.hbase ?= {}
       options = @config.ryba.hbase.rest = service.options
@@ -95,23 +98,20 @@ See [REST Gateway Impersonation Configuration][impersonation].
 ## Test
 
 
-## Test
-
       options.ranger_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
-      options.test ?= {}
+      options.test = merge {}, service.use.test_user.options, options.test
       options.test.namespace ?= "ryba_check_rest_#{@config.shortname}"
       options.test.table ?= 'a_table'
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client
-      options.wait_zookeeper_server = service.use.zookeeper_server
-      options.wait_hdfs_nn = service.use.hdfs_nn
-      options.wait_hbase_master = service.use.hbase_master
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_hbase_master = service.use.hbase_master[0].options.wait
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
       for srv in service.use.hbase_rest
         srv.options.hbase_site ?= {}
-        srv.options.hbase_site['hbase.rest.port'] ?= '9090'
-        srv.options.hbase_site['hbase.rest.infot.port'] ?= '9095'
+        srv.options.hbase_site['hbase.rest.port'] ?= '60080'
+        srv.options.hbase_site['hbase.rest.info.port'] ?= '60085'
       options.wait = {}
       options.wait.http = for srv in service.use.hbase_rest
         host: srv.node.fqdn

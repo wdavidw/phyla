@@ -7,7 +7,16 @@
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         kafka_broker: module: 'ryba/kafka/broker', local: true, required: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
-        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', local: true, required: true
+        # ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', local: true, required: true
         ranger_kafka: module: 'ryba/ranger/plugins/kafka'
       configure:
         'ryba/ranger/plugins/kafka/configure'
+      plugin: ->
+        options = @config.ryba.ranger.kafka
+        @before
+          type: ['service', 'start']
+          name: 'kafka-broker'
+        , ->
+          @call 'ryba/ranger/plugins/kafka/install', options
+        # @after 'ryba/kafka/broker/install', ->
+        #   @call 'ryba/ranger/plugins/kafka/install', options

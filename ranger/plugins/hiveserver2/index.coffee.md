@@ -10,6 +10,8 @@
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', local: true, required: true
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
+      configure:
+        'ryba/ranger/plugins/hiveserver2/configure'
       plugin: ->
         options = @config.ryba.ranger.hive
         @before
@@ -19,5 +21,3 @@
           @call 'ryba/ranger/plugins/hiveserver2/install', options
         # @after 'ryba/hive/server2/install', ->
         #   @call 'ryba/ranger/plugins/hiveserver2/install', options
-      configure:
-        'ryba/ranger/plugins/hiveserver2/configure'

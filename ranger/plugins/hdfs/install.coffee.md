@@ -3,11 +3,16 @@
 
     module.exports = header: 'Ranger HDFS Plugin', handler: (options) ->
 
-## HDFS Dependencies
+## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+
+## HDFS Dependencies
+
       # @call 'ryba/hadoop/hdfs_client/install' #migation solved it with implicy hdfs_client requirement
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
 ## HDP version
 
@@ -30,13 +35,22 @@
 
 ## Layout
 
-      @system.mkdir
-        header: 'HDFS Spool Dir'
-        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: options.hdfs_user.name
-        gid: options.hadoop_group.name
-        mode: 0o0750
+The value present in "XAAUDIT.HDFS.DESTINATION_DIRECTORY" contains variables
+such as "%app-type% and %time:yyyyMMdd%".
+
+migration: wdavidw 170918, NameNodes are not yet started.
+
+      # @hdfs_mkdir
+      #   header: 'HDFS Audit'
+      #   # target: options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY']
+      #   target: "/#{options.user.name}/audit/#{options.service_repo.type}"
+      #   mode: 0o0750
+      #   parent:
+      #     mode: 0o0711
+      #     user: options.user.name
+      #     group: options.group.name
+      #   user: options.hdfs_user.name
+      #   group: options.hdfs_group.name
       @system.mkdir
         header: 'SOLR Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
@@ -45,13 +59,35 @@
         gid: options.hadoop_group.name
         mode: 0o0750
 
+
+## Service Repository
+
+Based on step 1 in [hdfs plugin configuration][plugin]. Instead of using the web ui
+we execute this task using the rest api.
+
+      @ranger_service
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
+
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
+      @krb5.addprinc options.krb5.admin,
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
+
 ## Plugin Scripts
 
 From HDP 2.5 (Ranger 0.6) hdfs plugin need a Client JAAS configuration file to
 talk with kerberized component.
 The JAAS configuration can be donne with a jaas file and the Namenonde Env property
 auth.to.login.conf or can be set by properties in ranger-hdfs-audit.xml file.
-Not documented be taken from [github-source][hdfs-plugin-source]
+Not documented be taken from [github-source][plugin-source]
 
       @call
         header: 'HDFS Plugin'
@@ -61,6 +97,8 @@ Not documented be taken from [github-source][hdfs-plugin-source]
         current_props = {}
         files_exists = {}
         # wrap into call for version to be not null
+        # migration, wdavdiw 170918, this is not a j2 template so we should
+        # just generate the file without relying on a template
         @file.render
           header: 'Configuration'
           if: -> version?
@@ -152,35 +190,10 @@ Not documented be taken from [github-source][hdfs-plugin-source]
               return callback null, true unless value is current_props["#{file}"][prop]
             return callback null, false
 
-
-## Service Repository
-
-Based on step 1 in [hdfs plugin configuration][hdfs-plugin]. Instead of using the web ui
-we execute this task using the rest api.
-
-      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
-      @system.execute
-        header: 'Ranger HDFS Repository'
-        if: options.repo_create
-        unless_exec: """
-        curl --fail -H "Content-Type: application/json" -k -X GET  \
-          -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
-        """
-        cmd: """
-        curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
-          -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
-        """
-      # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal
-      @krb5.addprinc options.krb5.admin,
-        header: 'Ranger HDFS Principal'
-        # if: options.plugins.principal
-        principal: "#{options.service_repo.configs.principal}@#{options.krb5.realm}"
-        password: options.service_repo.configs.password
-
 ## Dependencies
 
     quote = require 'regexp-quote'
     properties = require '../../../lib/properties'
 
-[hdfs-plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hdfs_plugin
-[hdfs-plugin-source]: https://github.com/apache/incubator-ranger/blob/ranger-0.6/agents-audit/src/main/java/org/apache/ranger/audit/utils/InMemoryJAASConfiguration.java
+[plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hdfs_plugin
+[plugin-source]: https://github.com/apache/incubator-ranger/blob/ranger-0.6/agents-audit/src/main/java/org/apache/ranger/audit/utils/InMemoryJAASConfiguration.java

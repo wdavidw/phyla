@@ -25,6 +25,7 @@ as external.
       options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
       options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
       options.hdfs_user = service.use.hdfs_nn.options.user
+      options.hdfs_group = service.use.hdfs_nn.options.group
       options.hadoop_group = service.use.hdfs_nn.options.hadoop_group
 
 ## Kerberos
@@ -54,14 +55,18 @@ Repository creating is only executed from one NameNode.
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
 
-### Policy Admin Tool
-
-The repository name should match the reposity name in web ui.
-The properties can be found [here][hdfs-repository]
+## Admin properties
 
       options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
+
+## Service Definition
+      
       options.service_repo ?=
+        'name': options.install['REPOSITORY_NAME']
+        'description': 'HDFS Repo'
+        'type': 'hdfs'
+        'isEnabled': true
         'configs':
           # 'username': 'ranger_plugin_hdfs'
           # 'password': 'RangerPluginHDFS123!'
@@ -77,12 +82,20 @@ The properties can be found [here][hdfs-repository]
           'commonNameForCertificate': ''
           'policy.download.auth.users': "#{service.use.hdfs_nn.options.user.name}" #from ranger 0.6
           'tag.download.auth.users': "#{service.use.hdfs_nn.options.user.name}"
-        'description': 'HDFS Repo'
-        'isEnabled': true
-        'name': options.install['REPOSITORY_NAME']
-        'type': 'hdfs'
 
-### Audit (database storage)
+## SSL
+
+      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.location']
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.password']
+
+## Audit Storage
+
+      options.audit ?= {}
+
+### Database Storage
 
       #Deprecated
       options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
@@ -107,15 +120,12 @@ The properties can be found [here][hdfs-repository]
           options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
           options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
 
-### Audit (HDFS Storage)
+### HDFS Storage
 
-Configure Audit to HDFS
-
-      options.audit ?= {}
       # V3 configuration
-      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
-      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.hdfs_nn.options.log_dir}/audit/hdfs/spool"
+      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
+      # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.hdfs_nn.options.log_dir}/audit/hdfs/spool"
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_nn.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
@@ -130,9 +140,7 @@ Configure Audit to HDFS
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
-### Audit (SOLR Storage)
-
-Configure Audit to SOLR
+### Solr Storage
 
       if service.use.ranger_admin.options.install['audit_store'] is 'solr'
         options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
@@ -153,14 +161,6 @@ Configure Audit to SOLR
         options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
         nn_princ = service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', service.node.fqdn
         options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= nn_princ
-
-### SSL
-
-      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.location']
-        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.keystore.password']
-        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.location']
-        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hdfs_nn.options.ssl_server['ssl.server.truststore.password']
 
 ## Wait
 

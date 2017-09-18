@@ -3,9 +3,6 @@
 
 Apache Ranger offers a centralized security framework to manage fine-grained
 access control over Hadoop data access components like Apache Hive and Apache HBase.
-HDfs top of decision
-Ranger permit access
-
 
     module.exports =
       use:
