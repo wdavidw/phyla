@@ -4,10 +4,7 @@
 See the Ambari documentation relative to [Software Requirements][sr] before
 executing this module.
 
-    module.exports = header: 'Ambari Standalone Install', handler: ->
-      options = @config.ryba.ambari_standalone
-      protocol = if options.config['api.ssl'] is 'true' then 'https' else 'http'
-      port = if protocol is 'https' then options.config['client.api.ssl.port'] else options.config['client.api.port']
+    module.exports = header: 'Ambari Standalone Install', handler: (options) ->
 
 ## Registry
 
@@ -20,6 +17,23 @@ By default, the "ambari-server" package does not create any identities.
       @system.group header: 'Group', options.group
       @system.group header: 'Group Hadoop', options.hadoop_group
       @system.user header: 'User', options.user
+
+## IPTables
+
+| Service       | Port  | Proto | Parameter       |
+|---------------|-------|-------|-----------------|
+| Ambari Server | 8080  |  tcp  |  HTTP Port      |
+| Ambari Server | 8842  |  tcp  |  HTTPS Port     |
+
+IPTables rules are only inserted if the parameter "iptables.action" is set to
+"start" (default value).
+
+      port = options.config[unless options.config['api.ssl'] then 'client.api.port' else 'client.api.ssl.port']
+      @tools.iptables
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Ambari REST SSL" }
+        ]
+        if: @config.iptables.action is 'start'
 
 ## Package & Repository
 
@@ -52,22 +66,6 @@ Install Ambari server package.
         header: 'Clean Sudo'
         unless: options.sudo
         target: '/etc/sudoers.d/ambari_server'
-
-## IPTables
-
-| Service       | Port  | Proto | Parameter       |
-|---------------|-------|-------|-----------------|
-| Ambari Server | 8080  |  tcp  |  HTTP Port      |
-| Ambari Server | 8842  |  tcp  |  HTTPS Port     |
-
-IPTables rules are only inserted if the parameter "iptables.action" is set to
-"start" (default value).
-
-      @tools.iptables
-        rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Ambari REST SSL" }
-        ]
-        if: @config.iptables.action is 'start'
 
 ## Database
 
@@ -183,9 +181,11 @@ Ambari will store and work on a copy.
 
 Note, Ambari will change ownership to root.
 
-      @krb5.addprinc options.jaas,
+      @krb5.addprinc options.krb5.admin,
         header: 'JAAS'
         if: options.jaas.enabled
+        principal: options.jaas.principal
+        keytab: options.jaas.keytab
         randkey: true
         uid: 'root'
         gid: options.group.name

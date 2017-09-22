@@ -7,4 +7,4 @@
         location: true
         md5: options.toolkit.md5
         sha256: options.toolkit.sha256
-      , "#{options.toolkit.source}"
+      , options.toolkit.source

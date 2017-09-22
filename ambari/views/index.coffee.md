@@ -1,5 +1,6 @@
 
 # Files View Install
+
 Instantiate a Files view. For now it does only create a single instance of the file view for current cluster.
 It uses the Apache Ambari REST Api.
 
@@ -38,7 +39,7 @@ It uses the Apache Ambari REST Api.
             curl --fail --insecure --user admin:#{options.admin_password} -i -H 'X-Requested-By: ambari' -X GET \
             \"#{url}/api/v1/views/HIVE/versions/#{options.views.hive.version}/instances/RYBA_HIVE_VIEW\"
             """
-          #refers to hortonworks knowledge Base
+          # refers to hortonworks knowledge Base
           # when trying to instantiate a hive view. Some table might bemissing in ambari's database
           # its du to the fact that the page size for a row is to high (physical limit)
           # the table must be created with TEST attribute instead of varying character (2800)

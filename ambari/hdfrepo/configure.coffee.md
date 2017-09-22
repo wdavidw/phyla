@@ -1,9 +1,12 @@
 
-# Ambari Repo
+# Ambari Repo Configuration
 
-    module.exports = ->
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/ambari/hdfrepo', ['ryba', 'ambari', 'hdfrepo'], require('nikita/lib/misc').merge require('.').use, {}
+      @config.ryba ?= {}
       @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.hdfrepo ?= {}
+      options = @config.ryba.ambari.hdfrepo = service.options
+      
       options.source ?= null
       options.target ?= 'ambari.repo'
       options.target = path.resolve '/etc/yum.repos.d', options.target
@@ -12,3 +15,4 @@
 ## Dependencies
 
     path = require('path').posix
+    migration = require 'masson/lib/migration'

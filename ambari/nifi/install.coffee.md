@@ -25,7 +25,7 @@
 
 ## Nifi SSL
 
-      @call header: 'SSL', retry: 0, if: options.ssl.enabled, ->
+      @call header: 'SSL', if: options.ssl.enabled, ->
         # Client: import certificate to all hosts
         # `keytool -list -v -keystore /etc/nifi/conf/truststore.jks -storepass NifiTruststore123-`
         @java.keystore_add
@@ -41,7 +41,7 @@
           @java.keystore_add
             keystore: options.ssl.truststore.target
             storepass: options.ssl.truststore.password
-            caname: "#{hostname}"
+            caname: "#{cert.name}"
             cacert: "#{cert.source}"
             local: cert.local
         # Server: import certificates, private and public keys to hosts with a server
