@@ -2,10 +2,10 @@
 # DB Admin Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/core', ['ryba'], require('nikita/lib/misc').merge require('.').use,
-        mysql: key: ['mysql', 'server']
+      service = migration.call @, service, 'ryba/commons/db_admin', ['ryba', 'db_admin'], require('nikita/lib/misc').merge require('.').use,
         mariadb: key: ['mariadb', 'server']
         postres: key: ['postgres', 'server']
+        mysql: key: ['mysql', 'server']
       options = @config.ryba.db_admin = service.options
 
 ## Engine
@@ -21,9 +21,9 @@ instance of MariaDB and the existance of a usable db object available as the
       if service.use.mariadb
         options.engine ?= 'mariadb'
       else if service.use.postgresql
-        options.engine ?= 'mariadb'
+        options.engine ?= 'postgresql'
       else if service.use.mysql
-        options.engine ?= 'mariadb'
+        options.engine ?= 'mysql'
       else
         options.engine ?= null
 
@@ -125,10 +125,10 @@ properties. Commons properties are:
         throw Error "Required Options: fqdns" unless options.postgresql.fqdns
       # Default value of auto discovered and manual configurattion
       if options.mysql
+        options.mysql.java ?= {}
         options.mysql.java.driver = 'com.mysql.jdbc.Driver'
         options.mysql.java.datasource = 'com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource'
         options.mysql.port ?= 3306
-        options.mysql.java ?= {}
         url = options.mysql.fqdns.map((fqdn)-> "#{fqdn}:#{options.mysql.port}").join(',')
         options.mysql.jdbc ?= "jdbc:mysql://#{url}"
       if options.mysql
@@ -137,7 +137,7 @@ properties. Commons properties are:
 
 ## Wait
 
-      options.wait_mariadb = service.use.wait_mariadb[0].options.wait if service.use.wait_mariadb
+      options.wait_mariadb = service.use.mariadb[0].options.wait if service.use.mariadb
       options.wait_postgresql = service.use.postgresql[0].options.wait if service.use.postgresql
       options.wait_mysql = service.use.mysql[0].options.wait if service.use.mysql
       options.wait = {}

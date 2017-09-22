@@ -68,14 +68,14 @@ hbase:x:492:
 
 ## ACL Table
 
-        @system.execute
-          header: 'ACL Table'
-          cmd: mkcmd.hbase @, """
-          hbase shell 2>/dev/null <<-CMD
-            grant 'hbase_thrift', 'RWCA'
-          CMD
-          """
-          unless: options.hbase_site['hbase.thrift.kerberos.principal'].indexOf 'HTTP' > -1
+      @system.execute
+        header: 'ACL Table'
+        cmd: mkcmd.hbase options.admin, """
+        hbase shell 2>/dev/null <<-CMD
+          grant 'hbase_thrift', 'RWCA'
+        CMD
+        """
+        unless: options.hbase_site['hbase.thrift.kerberos.principal'].indexOf 'HTTP' > -1
 
 ## Configure
 
@@ -118,7 +118,7 @@ Environment passed to the HBase Rest Server before it starts.
 
 ##  Hbase-Thrift Service
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service
           name: 'hbase-thrift'
         @hdp_select
@@ -129,7 +129,7 @@ Environment passed to the HBase Rest Server before it starts.
           target: '/etc/init.d/hbase-thrift'
           source: "#{__dirname}/../resources/hbase-thrift.j2"
           local: true
-          context: @config
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
@@ -139,14 +139,14 @@ Environment passed to the HBase Rest Server before it starts.
             target: '/usr/lib/systemd/system/hbase-thrift.service'
             source: "#{__dirname}/../resources/hbase-thrift-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0640
           @system.tmpfs
             header: 'Run dir'
             mount: options.pid_dir
             uid: options.user.name
             gid: options.group.name
-            perm: '0755'
+            perm: 0o0755
 
 ## Logging
 

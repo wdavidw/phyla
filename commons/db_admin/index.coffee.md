@@ -38,8 +38,8 @@ set it hosts will be constructed on it.
 
     module.exports =
       use:
-        mysql: 'masson/commons/mysql/server'
         mariadb: 'masson/commons/mariadb/server'
         postres: 'masson/commons/postgres/server'
+        mysql: 'masson/commons/mysql/server'
       configure:
         'ryba/commons/db_admin/configure'

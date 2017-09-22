@@ -24,4 +24,5 @@ su -l hbase -c "/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /etc/
 ```
 
       @service.start
+        header: 'Service'
         name: 'hbase-master'

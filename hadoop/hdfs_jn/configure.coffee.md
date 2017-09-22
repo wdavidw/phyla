@@ -61,7 +61,6 @@ Example:
       # Recommandation is to ideally have dedicated disks to optimize fsyncs operation
       options.hdfs_site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
       options.hdfs_site['dfs.journalnode.edits.dir'] = options.hdfs_site['dfs.journalnode.edits.dir'].join ',' if Array.isArray options.hdfs_site['dfs.journalnode.edits.dir']
-      
 
 ## Kerberos
 

@@ -85,52 +85,53 @@
 
 ## Check Shell
 
-      encode = (data) -> (new Buffer data, 'utf8').toString 'base64'
-      decode = (data) -> (new Buffer data, 'base64').toString 'utf8'
-      curl = 'curl -s '
-      curl += '-k ' if options.hbase_site['hbase.rest.ssl.enabled'] is 'true'
-      curl += '--negotiate -u: ' if options.hbase_site['hbase.rest.authentication.type'] is 'kerberos'
-      curl += '-H "Accept: application/json" '
-      curl += '-H "Content-Type: application/json" '
-      protocol = if options.hbase_site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
-      port = options.hbase_site['hbase.rest.port']
-      schema = JSON.stringify ColumnSchema: [name: "#{options.hostname}_rest"]
-      rows = JSON.stringify Row: [ key: encode('my_row_rest'), Cell: [column: encode("#{options.hostname}_rest:my_column"), $: encode('my rest value')]]
-      @system.execute
-        cmd: mkcmd.hbase options.admin, """
-        if hbase shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
-          if [ ! -z '#{options.force_check or ''}' ]; then
-            echo [DEBUG] Cleanup existing table and namespace
-            hbase shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
-              disable '#{options.test.namespace}:#{options.test.table}'
-              drop '#{options.test.namespace}:#{options.test.table}'
-              drop_namespace '#{options.test.namespace}'
-            CMD
-          else
-            echo [INFO] Test is skipped; exit 2;
+      @call header: 'Scan', ->
+        encode = (data) -> (new Buffer data, 'utf8').toString 'base64'
+        decode = (data) -> (new Buffer data, 'base64').toString 'utf8'
+        curl = 'curl -s '
+        curl += '-k ' if options.hbase_site['hbase.rest.ssl.enabled'] is 'true'
+        curl += '--negotiate -u: ' if options.hbase_site['hbase.rest.authentication.type'] is 'kerberos'
+        curl += '-H "Accept: application/json" '
+        curl += '-H "Content-Type: application/json" '
+        protocol = if options.hbase_site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
+        port = options.hbase_site['hbase.rest.port']
+        schema = JSON.stringify ColumnSchema: [name: "#{options.hostname}_rest"]
+        rows = JSON.stringify Row: [ key: encode('my_row_rest'), Cell: [column: encode("#{options.hostname}_rest:my_column"), $: encode('my rest value')]]
+        @system.execute
+          cmd: mkcmd.hbase options.admin, """
+          if hbase shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
+            if [ ! -z '#{options.force_check or ''}' ]; then
+              echo [DEBUG] Cleanup existing table and namespace
+              hbase shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
+                disable '#{options.test.namespace}:#{options.test.table}'
+                drop '#{options.test.namespace}:#{options.test.table}'
+                drop_namespace '#{options.test.namespace}'
+              CMD
+            else
+              echo [INFO] Test is skipped; exit 2;
+            fi
           fi
-        fi
-        hbase shell 2>/dev/null <<-CMD
-          create_namespace '#{options.test.namespace}'
-          grant '#{options.user.name}', 'RWC', '@#{options.test.namespace}'
-          create '#{options.test.namespace}:#{options.test.table}', 'family1'
-        CMD
-        """
-        code_skipped: 2
-        trap: true
-      @system.execute
-        cmd: mkcmd.test @, """
-        #{curl} -X POST --data '#{schema}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/schema
-        #{curl} --data '#{rows}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/___false-row-key___/#{options.hostname}_rest%3A
-        #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
-        """
-        unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
-      , (err, executed, stdout) ->
-        return if err or not executed
-        try
-          data = JSON.parse(stdout)
-        catch e then throw Error "Invalid Command Output: #{JSON.stringify stdout}"
-        return throw Error "Invalid ROW Key: #{JSON.stringify stdout}" unless decode(data?.Row[0]?.key) is 'my_row_rest'
+          hbase shell 2>/dev/null <<-CMD
+            create_namespace '#{options.test.namespace}'
+            grant '#{options.user.name}', 'RWC', '@#{options.test.namespace}'
+            create '#{options.test.namespace}:#{options.test.table}', 'family1'
+          CMD
+          """
+          code_skipped: 2
+          trap: true
+        @system.execute
+          cmd: mkcmd.test @, """
+          #{curl} -X POST --data '#{schema}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/schema
+          #{curl} --data '#{rows}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/___false-row-key___/#{options.hostname}_rest%3A
+          #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
+          """
+          unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
+        , (err, executed, stdout) ->
+          return if err or not executed
+          try
+            data = JSON.parse(stdout)
+          catch e then throw Error "Invalid Command Output: #{JSON.stringify stdout}"
+          return throw Error "Invalid ROW Key: #{JSON.stringify stdout}" unless decode(data?.Row[0]?.key) is 'my_row_rest'
 
 ## Dependencies
 

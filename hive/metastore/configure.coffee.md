@@ -32,7 +32,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       options.db.database ?= 'hive'
       options.db.username ?= 'hive'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
-      throw Error "Required Options: db.password" unless options.db.password
+      throw Error "Required Option: db.password" unless options.db.password
       
       # if options.db.jdbc
       #   # Ensure the url host is the same as the one configured in config.ryba.db_admin
