@@ -2,13 +2,13 @@
 Description=HBase Thrift server
 
 [Service]
-User={{hbase.user.name}}
-Group={{hbase.group.name}}
-PIDFile={{hbase.thrift.pid_dir}}/hbase-hbase-thrift.pid
-ExecStart=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.thrift.conf_dir}} start thrift
-ExecReload=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.thrift.conf_dir}} restart thrift
-ExecStop=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{hbase.thrift.conf_dir}} stop thrift
-LimitNOFILE={{hbase.user.limits.nofile}}
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/hbase-hbase-thrift.pid
+ExecStart=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{options.conf_dir}} start thrift
+ExecReload=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{options.conf_dir}} restart thrift
+ExecStop=/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config {{options.conf_dir}} stop thrift
+LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

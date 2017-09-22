@@ -1,7 +1,7 @@
 
 # NiFi Install
 
-    module.exports = header: 'NiFi Install', handler: ->
+    module.exports = header: 'NiFi Install', handler: (options) ->
       {nifi} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
       {java_home} = @config.java

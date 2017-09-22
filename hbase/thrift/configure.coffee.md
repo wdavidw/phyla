@@ -113,14 +113,12 @@
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client
-      options.wait_zookeeper_server = service.use.zookeeper_server
-      options.wait_hdfs_nn = service.use.hdfs_nn
-      options.wait_hbase_master = service.use.hbase_master
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_hbase_master = service.use.hbase_master[0].options.wait
       for srv in service.use.hbase_thrift
         srv.options.hbase_site ?= {}
         srv.options.hbase_site['hbase.thrift.port'] ?= '9090'
-        srv.options.hbase_site['hbase.thrift.infot.port'] ?= '9095'
+        srv.options.hbase_site['hbase.thrift.info.port'] ?= '9095'
       options.wait = {}
       options.wait.http = for srv in service.use.hbase_thrift
         host: srv.node.fqdn

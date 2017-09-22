@@ -7,6 +7,7 @@
         java: key: ['java']
         hadoop_core: key: ['ryba']
         hbase_master: key: ['ryba', 'hbase', 'master']
+        hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
       @config.ryba.ranger ?= {}
@@ -24,18 +25,20 @@
 
       options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
       options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
-      options.hbase_user = service.use.hbase_master.options.user
-      options.hadoop_group = service.use.hbase_master.options.hadoop_group
+      options.hbase_user = service.use.hbase_master[0].options.user
+      options.hadoop_group = service.use.hbase_master[0].options.hadoop_group
 
 ## Access
 
       options.ranger_admin ?= service.use.ranger_admin.options.admin
-      options.hdfs_install ?= service.use.ranger_hdfs.options.install
+      options.hdfs_install ?= service.use.ranger_hdfs[0].options.install
 
 ## Environment
 
       # Layout
-      options.conf_dir ?= service.use.hbase_master.options.conf_dir
+      options.conf_dir ?= []
+      options.conf_dir.push service.use.hbase_master[0].options.conf_dir if service.use.hbase_master.some (srv) -> srv.node.fqdn is service.node.fqdn
+      options.conf_dir.push service.use.hbase_regionserver.options.conf_dir if service.use.hbase_regionserver
       # Java
       options.jre_home ?= service.use.java.options.jre_home
 
@@ -101,12 +104,12 @@ make configuration effective.
           'username': service.use.ranger_admin.options.plugins.principal
           'password': service.use.ranger_admin.options.plugins.password
           'hadoop.security.authorization': service.use.hadoop_core.options.core_site['hadoop.security.authorization']
-          'hbase.master.kerberos.principal': service.use.hbase_master.options.hbase_site['hbase.master.kerberos.principal']
+          'hbase.master.kerberos.principal': service.use.hbase_master[0].options.hbase_site['hbase.master.kerberos.principal']
           'hadoop.security.authentication': service.use.hadoop_core.options.core_site['hadoop.security.authentication']
-          'hbase.security.authentication': service.use.hbase_master.options.hbase_site['hbase.security.authentication']
-          'hbase.zookeeper.property.clientPort': service.use.hbase_master.options.hbase_site['hbase.zookeeper.property.clientPort']
-          'hbase.zookeeper.quorum': service.use.hbase_master.options.hbase_site['hbase.zookeeper.quorum']
-          'zookeeper.znode.parent': service.use.hbase_master.options.hbase_site['zookeeper.znode.parent']
+          'hbase.security.authentication': service.use.hbase_master[0].options.hbase_site['hbase.security.authentication']
+          'hbase.zookeeper.property.clientPort': service.use.hbase_master[0].options.hbase_site['hbase.zookeeper.property.clientPort']
+          'hbase.zookeeper.quorum': service.use.hbase_master[0].options.hbase_site['hbase.zookeeper.quorum']
+          'zookeeper.znode.parent': service.use.hbase_master[0].options.hbase_site['zookeeper.znode.parent']
           'policy.download.auth.users': "#{options.hbase_user.name}" #from ranger 0.6
           'tag.download.auth.users': "#{options.hbase_user.name}"
           'policy.grantrevoke.auth.users': "#{options.hbase_user.name}"
@@ -175,7 +178,7 @@ make configuration effective.
         options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
         options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
         options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
-        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hbase_master.options.log_dir}/audit/solr/spool"
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.hbase_master[0].options.log_dir}/audit/solr/spool"
 
 ### Plugin Execution
 

@@ -21,4 +21,5 @@ Wait for Kerberos, ZooKeeper, HDFS and Hbase Master to be started.
 Start the service.
 
       @service.start
+        header: 'Service'
         name: 'hbase-rest'

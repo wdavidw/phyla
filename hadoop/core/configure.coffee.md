@@ -423,7 +423,7 @@ keytool -list -v -keystore keystore -alias hadoop
 
       options.ssl = merge {}, service.use.ssl?.options, options.ssl
       options.ssl.enabled = !!service.use.ssl
-      if options.ssl
+      if options.ssl.enabled
         options.ssl_client ?= {}
         options.ssl_server ?= {}
         throw Error "Required Option: ssl.cacert" if not options.ssl.cacert

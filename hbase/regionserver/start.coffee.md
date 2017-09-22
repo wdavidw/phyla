@@ -21,4 +21,5 @@ Wait for Kerberos, ZooKeeper, HDFS and HBase Master to be started.
 Start the service.
 
       @service.start
+        header: 'Service'
         name: 'hbase-regionserver'

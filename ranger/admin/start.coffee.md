@@ -6,6 +6,7 @@ manually with the following command:
 
 ```
 service ranger-admin start
+systemctl start ranger-admin
 ```
 
     module.exports = header: 'Ranger Admin Start', label_true: 'STARTED', handler: ->
