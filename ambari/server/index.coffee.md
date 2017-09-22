@@ -7,23 +7,25 @@ manage and monitor a Hadoop cluster.
 
     module.exports =
       use:
-        ssl: implicit: true, module: 'masson/core/ssl'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: module: 'masson/commons/java', recommanded: true
-        db_admin: implicit: true, module: 'ryba/commons/db_admin'
-        hadoop: 'ryba/hadoop/core'
-        ambari_repo: 'ryba/ambari/repo'
+        ssl: module: 'masson/core/ssl', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true, recommanded: true
+        db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true
+        ambari_repo: module: 'ryba/ambari/repo', local: true, implicit: true
       configure: 'ryba/ambari/server/configure'
+      # configure: ->
+      #   require('./configure').call @, null, 'ambari_server'
       commands:
         'prepare': ->
-          options = @config.ryba.ambari_server
+          options = @config.ryba.ambaricserver
           @call 'ryba/ambari/server/prepare', options
         'ambari_blueprint': 'ryba/ambari/server/blueprint'
         'check': ->
-          options = @config.ryba.ambari_server
+          options = @config.ryba.ambari.server
           @call 'ryba/ambari/server/check', options
         'install': ->
-          options = @config.ryba.ambari_server
+          options = @config.ryba.ambari.server
           @call 'ryba/ambari/server/install', options
           @call 'ryba/ambari/server/start', options
           @call 'ryba/ambari/server/check', options

@@ -35,33 +35,25 @@
 } }
 ```
 
-    module.exports = ->
-      # Dependencies
-      [java_ctx] = @contexts('masson/commons/java').filter (ctx) => ctx.config.host is @config.host
-      [pg_ctx] = @contexts 'masson/commons/postgres/server'
-      [my_ctx] = @contexts 'masson/commons/mysql/server'
-      [maria_ctx] = @contexts 'masson/commons/mariadb/server'
-      [krb5_ctx] = @contexts 'masson/core/krb5_server'
-      [hadoop_ctx] = @contexts 'ryba/hadoop/core'
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/ambari/server', ['ryba', 'ambari', 'server'], require('nikita/lib/misc').merge require('.').use,
+        ssl: key: ['ssl']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        db_admin: key: ['ryba', 'db_admin']
+        hadoop_core: key: ['ryba']
+        ambari_repo: key: ['ryba', 'ambari', 'repo']
       @config.ryba ?= {}
-      {host, ssl} = @config
-      {db_admin} = @config.ryba
-      # Init
-      options = @config.ryba.ambari_server ?= {}
-      options.cluster_name ?= null # Required for blueprint
-      # throw Error "Required Option: cluster_name" unless options.cluster_name
-      throw Error "Required Option: db.password" unless options.db?.password
+      @config.ryba.ambari ?= {}
+      options = @config.ryba.ambari.server = service.options
 
 ## Environnment
 
-      options.fqdn = @config.host
-      options.http ?= '/var/www/html'
+      options.fqdn = service.node.fqdn
+      # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
-      # options.database ?= {}
-      # options.database.engine ?= @config.ryba.db_admin.engine
-      # options.database.password ?= null
       options.sudo ?= false
-      options.java_home ?= java_ctx.config.java.java_home
+      options.java_home ?= service.use.java.options.java_home
       options.master_key ?= null
       options.admin ?= {}
       options.current_admin_password ?= 'admin'
@@ -75,17 +67,18 @@ used in case the server and its agents run as sudoers.
 The non-root user you choose to run the Ambari Server should be part of the 
 Hadoop group. The default group name is "hadoop".
 
-      # Group
-      options.group = name: options.group if typeof options.group is 'string'
-      options.group ?= {}
-      options.group.name ?= 'ambari'
-      options.group.system ?= true
-      options.hadoop_group ?= hadoop_ctx?.config.ryba.hadoop_group
+      # Hadoop Group
+      options.hadoop_group ?= service.use.hadoop_core.options.hadoop_group if service.use.hadoop_core
       options.hadoop_group = name: options.group if typeof options.group is 'string'
       options.hadoop_group ?= {}
       options.hadoop_group.name ?= 'hadoop'
       options.hadoop_group.system ?= true
       options.hadoop_group.comment ?= 'Hadoop Group'
+      # Group
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'ambari'
+      options.group.system ?= true
       # User
       options.user = name: options.user if typeof options.user is 'string'
       options.user ?= {}
@@ -98,11 +91,10 @@ Hadoop group. The default group name is "hadoop".
 
 ## Ambari TLS and Truststore
 
-      options.ssl ?= ssl
-      # ptions.ssl.enabled ?= false
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled = !!service.use.ssl
       options.truststore ?= {}
-      if options.ssl
-      # if options.ssl.enabled
+      if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
         throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
@@ -118,23 +110,22 @@ Multiple ambari instance on a same server involve a different principal or the p
 
 `auth=KERBEROS;proxyuser=ambari`
 
+      # Krb5 Import
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      # Krb5 Validation
+      throw Error "Require Property: krb5.admin.kadmin_principal" unless options.krb5.admin.kadmin_principal
+      throw Error "Require Property: krb5.admin.kadmin_password" unless options.krb5.admin.kadmin_password
+      throw Error "Require Property: krb5.admin.admin_server" unless options.krb5.admin.admin_server
+      # JAAS
       options.jaas ?= {}
       options.jaas.enabled ?= false
       if options.jaas.enabled
-        options.jaas.realm ?= hadoop_ctx?.config.ryba.realm
-        options.jaas.realm ?= options.jaas.principal.split('@')[1] if options.jaas.principal
-        throw Error "Require Property: jaas.realm or jaas.principal" unless options.jaas.realm
-        # Masson 2 will require some adjustment in the way we discover the kerberos admin information
-        krb5 = krb5_ctx.config.krb5_server.admin[options.jaas.realm]
-        options.jaas.kadmin_principal ?= krb5.kadmin_principal
-        throw Error "Require Property: jaas.kadmin_principal" unless options.jaas.kadmin_principal
-        options.jaas.kadmin_password ?= krb5.kadmin_password
-        throw Error "Require Property: jaas.kadmin_password" unless options.jaas.kadmin_password
-        options.jaas.admin_server ?= krb5.admin_server
-        throw Error "Require Property: jaas.admin_server" unless options.jaas.admin_server
         options.jaas.keytab ?= '/etc/ambari-server/conf/ambari.service.keytab'
-        options.jaas.principal ?= "ambari/_HOST@#{hadoop_ctx?.config.ryba.realm}" if hadoop_ctx?.config.ryba.realm
-        options.jaas.principal = options.jaas.principal.replace '_HOST', @config.host
+        options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
+        options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
 
 ## Configuration
 
@@ -167,14 +158,14 @@ The only MPack file to be registered in the configuration is the one for HDF. It
 Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
       options.supported_db_engines ?= ['mysql', 'mariadb', 'postgres']
-      if pg_ctx then options.db.engine ?= 'postgres'
-      else if maria_ctx then options.db.engine ?= 'mariadb'
-      else if my_ctx then options.db.engine ?= 'mysql'
-      else options.db.engine ?= 'derby'
+      options.db ?= {}
+      options.db.engine ?= service.use.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db[k] ?= v for k, v of db_admin[options.db.engine]
+      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
+      options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
+      throw Error "Required Option: db.password" unless options.db?.password
 
 ## Hive provisionning
 
@@ -182,7 +173,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_hive = password: options.db_hive if typeof options.db_hive is 'string'
       if options.db_hive
         options.db_hive.engine ?= options.db.engine
-        options.db_hive[k] ?= v for k, v of db_admin[options.db_hive.engine]
+        options.db_hive = merge {}, service.use.db_admin.options[options.db_hive.engine], options.db_hive
         options.db_hive.database ?= 'hive'
         options.db_hive.username ?= 'hive'
         throw Error "Required Option: db_hive.password" unless options.db_hive.password
@@ -193,7 +184,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_oozie = password: options.db_oozie if typeof options.db_oozie is 'string'
       if options.db_oozie
         options.db_oozie.engine ?= options.db.engine
-        options.db_oozie[k] ?= v for k, v of db_admin[options.db_oozie.engine]
+        options.db_oozie = merge {}, service.use.db_admin.options[options.db_oozie.engine], options.db_oozie
         options.db_oozie.database ?= 'oozie'
         options.db_oozie.username ?= 'oozie'
         throw Error "Required Option: db_oozie.password" unless options.db_oozie.password
@@ -204,11 +195,16 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
       if options.db_ranger
         options.db_ranger.engine ?= options.db.engine
-        options.db_ranger[k] ?= v for k, v of db_admin[options.db_ranger.engine]
+        options.db_ranger = merge {}, service.use.db_admin.options[options.db_ranger.engine], options.db_ranger
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
 
+## Wait
+
+      options.wait_db_admin = service.use.db_admin.options.wait
+
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'
