@@ -7,12 +7,14 @@ manage and monitor a Hadoop cluster.
 
     module.exports =
       use:
+        iptables: module: 'masson/core/iptables', local: true
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         hadoop_core: module: 'ryba/hadoop/core', local: true
         ambari_repo: module: 'ryba/ambari/hdfrepo', local: true, implicit: true
+        ambari_hdfserver: module: 'ryba/ambari/hdfserver'
       configure: 'ryba/ambari/hdfserver/configure'
       # configure: ->
       #   require('../server/configure').call @, null, 'ambari_hdfserver'

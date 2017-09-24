@@ -29,7 +29,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Ambari REST SSL" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Package & Repository
 
@@ -96,14 +96,14 @@ Create the database hosting the Ambari data with restrictive user permissions.
 
         @db.user options.db, database: null,
           header: 'User'
-          if: options.db.engine in ['mysql', 'postgres']
+          if: options.db.engine in ['mysql', 'postgresql']
         @db.database options.db,
           header: 'Database'
           user: options.db.username
-          if: options.db.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db,
           header: 'Schema'
-          if: options.db.engine is 'postgres'
+          if: options.db.engine is 'postgresql'
           schema: options.db.schema or options.db.database
           database: options.db.database
           owner: options.db.username
@@ -114,7 +114,7 @@ Load the database with initial data
           when 'mysql', 'mariadb'
             load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
             created = db.cmd(options.db, 'show tables') + '|  grep clusters'
-          when 'postgres'
+          when 'postgresql'
             load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql'
             created = db.cmd(options.db, null) + 'show tables |  grep clusters'
         @system.execute
@@ -127,14 +127,14 @@ Load the database with initial data
       @call header: 'Hive DB', if: !!options.db_hive, ->
         @db.user options.db_hive, database: null,
           header: 'User'
-          if: options.db_hive.engine in ['mysql', 'postgres']
+          if: options.db_hive.engine in ['mysql', 'postgresql']
         @db.database options.db_hive,
           header: 'Database'
           user: options.db_hive.username
-          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_hive,
           header: 'Schema'
-          if: options.db_hive.engine is 'postgres'
+          if: options.db_hive.engine is 'postgresql'
           schema: options.db_hive.schema or options.db_hive.database
           database: options.db_hive.database
           owner: options.db_hive.username
@@ -144,14 +144,14 @@ Load the database with initial data
       @call header: 'Oozie DB', if: !!options.db_oozie, ->
         @db.user options.db_oozie, database: null,
           header: 'User'
-          if: options.db_oozie.engine in ['mysql', 'postgres']
+          if: options.db_oozie.engine in ['mysql', 'postgresql']
         @db.database options.db_oozie,
           header: 'Database'
           user: options.db_oozie.username
-          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_oozie,
           header: 'Schema'
-          if: options.db_oozie.engine is 'postgres'
+          if: options.db_oozie.engine is 'postgresql'
           schema: options.db_oozie.schema or options.db_oozie.database
           database: options.db_oozie.database
           owner: options.db_oozie.username
@@ -161,14 +161,14 @@ Load the database with initial data
       @call header: 'Ranger DB', if: !!options.db_ranger, ->
         @db.user options.db_ranger, database: null,
           header: 'User'
-          if: options.db_ranger.engine in ['mysql', 'postgres']
+          if: options.db_ranger.engine in ['mysql', 'postgresql']
         @db.database options.db_ranger,
           header: 'Database'
           user: options.db_ranger.username
-          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_ranger,
           header: 'Schema'
-          if: options.db_ranger.engine is 'postgres'
+          if: options.db_ranger.engine is 'postgresql'
           schema: options.db_ranger.schema or options.db_ranger.database
           database: options.db_ranger.database
           owner: options.db_ranger.username
@@ -178,14 +178,14 @@ Load the database with initial data
       @call header: 'Hive DB', if: !!options.db_hive, ->
         @db.user options.db_hive, database: null,
           header: 'User'
-          if: options.db_hive.engine in ['mysql', 'postgres']
+          if: options.db_hive.engine in ['mysql', 'postgresql']
         @db.database options.db_hive,
           header: 'Database'
           user: options.db_hive.username
-          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_hive,
           header: 'Schema'
-          if: options.db_hive.engine is 'postgres'
+          if: options.db_hive.engine is 'postgresql'
           schema: options.db_hive.schema or options.db_hive.database
           database: options.db_hive.database
           owner: options.db_hive.username
@@ -195,14 +195,14 @@ Load the database with initial data
       @call header: 'Oozie DB', if: !!options.db_oozie, ->
         @db.user options.db_oozie, database: null,
           header: 'User'
-          if: options.db_oozie.engine in ['mysql', 'postgres']
+          if: options.db_oozie.engine in ['mysql', 'postgresql']
         @db.database options.db_oozie,
           header: 'Database'
           user: options.db_oozie.username
-          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_oozie,
           header: 'Schema'
-          if: options.db_oozie.engine is 'postgres'
+          if: options.db_oozie.engine is 'postgresql'
           schema: options.db_oozie.schema or options.db_oozie.database
           database: options.db_oozie.database
           owner: options.db_oozie.username
@@ -212,14 +212,14 @@ Load the database with initial data
       @call header: 'Ranger DB', if: !!options.db_ranger, ->
         @db.user options.db_ranger, database: null,
           header: 'User'
-          if: options.db_ranger.engine in ['mysql', 'postgres']
+          if: options.db_ranger.engine in ['mysql', 'postgresql']
         @db.database options.db_ranger,
           header: 'Database'
           user: options.db_ranger.username
-          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db_ranger,
           header: 'Schema'
-          if: options.db_ranger.engine is 'postgres'
+          if: options.db_ranger.engine is 'postgresql'
           schema: options.db_ranger.schema or options.db_ranger.database
           database: options.db_ranger.database
           owner: options.db_ranger.username
@@ -410,12 +410,7 @@ Start the service or restart it if there were any changes.
         name: 'ambari-server'
         action: ['start', 'restart']
         if: -> @status()
-      @call 'ryba/ambari/server/wait',
-        if: -> @status()
-        fqdn: options.fqdn
-        current_admin_password: options.current_admin_password
-        admin_password: options.admin_password
-        config: options.config
+      @call 'ryba/ambari/server/wait', once: true, options.wait
 
 ## Admin Credentials
 
