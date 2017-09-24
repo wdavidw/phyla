@@ -37,12 +37,14 @@
 
     module.exports = (service) ->
       service = migration.call @, service, 'ryba/ambari/hdfserver', ['ryba', 'ambari', 'hdfserver'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         db_admin: key: ['ryba', 'db_admin']
         hadoop_core: key: ['ryba']
         ambari_repo: key: ['ryba', 'ambari', 'repo']
+        ambari_hdfserver: key: ['ryba', 'ambari', 'hdfserver']
       @config.ryba ?= {}
       @config.ryba.ambari ?= {}
       options = @config.ryba.ambari.hdfserver = service.options
@@ -52,6 +54,7 @@
       options.fqdn = service.node.fqdn
       # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.sudo ?= false
       options.java_home ?= service.use.java.options.java_home
       options.master_key ?= null
@@ -157,7 +160,7 @@ The only MPack file to be registered in the configuration is the one for HDF. It
 
 Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
-      options.supported_db_engines ?= ['mysql', 'mariadb', 'postgres']
+      options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
       options.db.engine ?= service.use.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
@@ -203,6 +206,19 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Wait
 
       options.wait_db_admin = service.use.db_admin.options.wait
+      options.wait = {}
+      options.wait.rest = for srv in service.use.ambari_hdfserver
+        clusters_url: url.format
+          protocol: unless srv.options.config['api.ssl'] is 'true'
+          then 'http'
+          else 'https'
+          hostname: srv.options.fqdn
+          port: unless srv.options.config['api.ssl'] is 'true'
+          then srv.options.config['client.api.port']
+          else srv.options.config['client.api.ssl.port']
+          pathname: '/api/v1/clusters'
+        oldcred: "admin:#{srv.options.current_admin_password}"
+        newcred: "admin:#{srv.options.admin_password}"
 
 ## Dependencies
 

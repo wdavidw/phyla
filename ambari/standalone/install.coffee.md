@@ -33,7 +33,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Ambari REST SSL" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Package & Repository
 
@@ -96,14 +96,14 @@ Create the database hosting the Ambari data with restrictive user permissions.
 
         @db.user options.db, database: null,
           header: 'User'
-          if: options.db.engine in ['mysql', 'postgres']
+          if: options.db.engine in ['mysql', 'postgresql']
         @db.database options.db,
           header: 'Database'
           user: options.db.username
-          if: options.db.engine in ['mysql', 'mariadb', 'postgres']
+          if: options.db.engine in ['mysql', 'mariadb', 'postgresql']
         @db.schema options.db,
           header: 'Schema'
-          if: options.db.engine is 'postgres'
+          if: options.db.engine is 'postgresql'
           schema: options.db.schema or options.db.database
           database: options.db.database
           owner: options.db.username
@@ -114,7 +114,7 @@ Load the database with initial data
           when 'mysql', 'mariadb'
             load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
             created = db.cmd(options.db, 'show tables') + '|  grep clusters'
-          when 'postgres'
+          when 'postgresql'
             load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql'
             created = db.cmd(options.db, null) + 'show tables |  grep clusters'
         @system.execute
@@ -310,8 +310,7 @@ Start the service or restart it if there were any changes.
         name: 'ambari-server'
         action: ['start', 'restart']
         if: -> @status()
-      @call 'ryba/ambari/server/wait', options,
-        if: -> @status()
+      @call 'ryba/ambari/server/wait', options.wait, if: -> @status()
 
 ## Admin Credentials
 

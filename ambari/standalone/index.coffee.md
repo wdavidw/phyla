@@ -7,20 +7,22 @@ manage and monitor a Hadoop cluster.
 
     module.exports =
       use:
+        iptables: module: 'masson/core/iptables', local: true
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
-        hadoop_core: 'ryba/hadoop/core', local: true
-        ambari_repo: 'ryba/ambari/repo', local: true
-        hdfs_nn: 'ryba/hadoop/hdfs_nn'
-        hdfs_dn: 'ryba/hadoop/hdfs_dn'
-        yarn_ts: 'ryba/hadoop/yarn_ts'
-        yarn_rm: 'ryba/hadoop/yarn_rm'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        hive_server2: 'ryba/hive/server2'
-        ranger_hive: 'ryba/ranger/plugins/hive'
-        oozie_server: 'ryba/oozie/server'
+        hadoop_core: module: 'ryba/hadoop/core', local: true
+        ambari_repo: module: 'ryba/ambari/repo', local: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        yarn_ts: module: 'ryba/hadoop/yarn_ts'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        hive_server2: module: 'ryba/hive/server2'
+        ranger_hive: module: 'ryba/ranger/plugins/hive'
+        oozie_server: module: 'ryba/oozie/server'
+        ambari_standalone: module: 'ryba/ambari/standalone'
       configure: 'ryba/ambari/standalone/configure'
       commands:
         'ambari_blueprint': 'ryba/ambari/standalone/blueprint'

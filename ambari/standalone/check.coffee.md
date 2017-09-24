@@ -7,11 +7,14 @@ Ambari Standalone is started with the service's syntax command.
 
 Wait for the Ambari Server to be ready.
 
-      @call once: true, 'ryba/ambari/server/wait',
-        fqdn: options.fqdn
-        current_admin_password: options.current_admin_password
-        admin_password: options.admin_password
-        config: options.config
+      @connection.assert
+        header: 'Connection'
+        host: options.fqdn
+        port: unless options.config['api.ssl'] is 'true'
+        then options.config['client.api.port']
+        else options.config['client.api.ssl.port']
+        retry: 3
+        sleep: 3000
 
 ## Check HTTP Server
 

@@ -36,7 +36,8 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/ambari/server', ['ryba', 'ambari', 'server', 'standalone'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ambari/server', ['ryba', 'ambari', 'standalone'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
@@ -51,9 +52,10 @@
         hive_server2: key: ['ryba', 'hive', 'server2']
         ranger_hive: key: ['ryba', 'ranger', 'hive']
         oozie_server: key: ['ryba', 'oozie', 'server']
+        ambari_standalone: key: ['ryba', 'ambari', 'standalone']
       @config.ryba ?= {}
       @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.server.standalone = service.options
+      options = @config.ryba.ambari.standalone = service.options
 
 ## Environnment
 
@@ -61,6 +63,7 @@
       # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
       # options.database ?= {}
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.sudo ?= false
       options.java_home ?= service.use.java.options.java_home
       options.master_key ?= null
@@ -149,7 +152,7 @@ Multiple ambari instance on a same server involve a different principal or the p
 
 Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
-      options.supported_db_engines ?= ['mysql', 'mariadb', 'postgres']
+      options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
       options.db.engine ?= service.use.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
@@ -230,20 +233,20 @@ It has only been tested with HIVe VIEW version 1.5.0 and 2.0.0
           quorum = service.use.hive_server2[0].options.hive_site['hive.zookeeper.quorum']
           namespace = service.use.hive_server2[0].options.hive_site['hive.server2.zookeeper.namespace']
           principal = service.use.hive_server2[0].options.hive_site['hive.server2.authentication.kerberos.principal']
-          url = "jdbc:hive2://#{quorum}/;principal=#{principal};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=#{namespace}"
+          jdbc_url = "jdbc:hive2://#{quorum}/;principal=#{principal};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=#{namespace}"
           if service.use.hive_server2[0].options.hive_site['hive.server2.use.SSL'] is 'true'
-            url += ";ssl=true"
-            url += ";sslTrustStore=#{options.truststore.target}"
-            url += ";trustStorePassword=#{options.truststore.password}"
+            jdbc_url += ";ssl=true"
+            jdbc_url += ";sslTrustStore=#{options.truststore.target}"
+            jdbc_url += ";trustStorePassword=#{options.truststore.password}"
           properties['hive.session.params'] ?= ''
           # if service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode'] is 'http'
           #   properties['hive.session.params'] += ";transportMode=#{service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode']}"
           #   properties['hive.session.params'] += ";httpPath=#{service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.path']}"
           if service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode'] is 'http'
-            url += ";transportMode=#{service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode']}"
-            url += ";httpPath=#{service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.path']}"
+            jdbc_url += ";transportMode=#{service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode']}"
+            jdbc_url += ";httpPath=#{service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.path']}"
           properties['hive.session.params'] = 'hive.server2.proxy.user=${username}'
-          properties['hive.jdbc.url'] ?= url
+          properties['hive.jdbc.url'] ?= jdbc_url
           properties['hive.metastore.warehouse.dir'] ?= '/apps/hive/warehouse'
           properties['scripts.dir'] ?= '/user/${username}/hive/scripts'
           properties['jobs.dir'] ?= '/user/${username}/hive/jobs'
@@ -353,6 +356,25 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
 [hive-view]:(https://github.com/apache/ambari/blob/79cca1c7184f1661236971dac70d85a83fab6c11/contrib/views/hive-next/src/main/resources/view.xml)
 [tez-view-resources]:(https://github.com/apache/ambari/blob/79cca1c7184f1661236971dac70d85a83fab6c11/contrib/views/tez/src/main/resources/view.xml)
 
+## Wait
+
+      # options.wait_ambari_server = service.use.ambari_server
+      options.wait = {}
+      options.wait.rest = for srv in service.use.ambari_standalone
+        clusters_url: url.format
+          protocol: unless srv.options.config['api.ssl'] is 'true'
+          then 'http'
+          else 'https'
+          hostname: srv.options.fqdn
+          port: unless srv.options.config['api.ssl'] is 'true'
+          then srv.options.config['client.api.port']
+          else srv.options.config['client.api.ssl.port']
+          pathname: '/api/v1/clusters'
+        oldcred: "admin:#{srv.options.current_admin_password}"
+        newcred: "admin:#{srv.options.admin_password}"
+
 ## Dependencies
 
+    url = require 'url'
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'
