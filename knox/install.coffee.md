@@ -1,10 +1,7 @@
 
 # Knox Install
 
-    module.exports = header: 'Knox Install', handler: ->
-      {knox, realm} = @config.ryba
-      {java_home, jre_home} = @config.java
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Knox Install', handler: (options) ->
 
 ## Register
 
@@ -14,8 +11,8 @@
 
 ## Identities
 
-      @system.group header: 'Group', knox.group
-      @system.user header: 'User', knox.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -29,7 +26,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: knox.site['gateway.port'], protocol: 'tcp', state: 'NEW', comment: "Knox Gateway" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.gateway_site['gateway.port'], protocol: 'tcp', state: 'NEW', comment: "Knox Gateway" }
         ]
         if: @config.iptables.action is 'start'
 
@@ -51,36 +48,37 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
               @system.remove  target: options.key
         # Fix for the bug with rpm/deb packages. During installation of the package, they re-apply permissions to the folder
         @system.mkdir
-          target: "#{knox.log_dir}"
-          uid: knox.user.name
-          gid: knox.group.name
+          target: "#{options.log_dir}"
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @service.init
           target: '/etc/init.d/knox-server'
           source: "#{__dirname}/resources/knox-server.j2"
           local: true
-          context: @config.ryba.knox
+          context: options: options
           mode: 0o755
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: "/var/run/#{knox.user.name}"
-          uid: knox.user.name
-          gid: knox.group.name
+          mount: "/var/run/#{options.user.name}"
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 ## Configure
 
       @hconfigure
         header: 'Configure'
-        target: "#{knox.conf_dir}/gateway-site.xml"
-        properties: knox.site
+        target: "#{options.conf_dir}/gateway-site.xml"
+        properties: options.gateway_site
         merge: true
 
       @file.render
         header: 'Knox Ldap Caching'
-        target: "#{knox.conf_dir}/ehcache.xml"
+        target: "#{options.conf_dir}/ehcache.xml"
         source: "#{__dirname}/resources/ehcache.j2"
         local: true
+        context: options: options
 
 ## Env
 
@@ -88,12 +86,12 @@ We do not edit knox-env.sh because environnement variables are directly set
 in the gateway.sh service script.
 
       @call header: 'Env', ->
-        knox.env.app_log_opts += " -D#{k}=#{v}" for k,v of knox.log4jopts
+        options.env.app_log_opts += " -D#{k}=#{v}" for k,v of options.log4jopts
         @file
           header: 'Env'
-          target: "#{knox.bin_dir}/gateway.sh"
+          target: "#{options.bin_dir}/gateway.sh"
           mode: 0o0755
-          write: for k, v of knox.env
+          write: for k, v of options.env
             match: RegExp "^#{k.toUpperCase()}=.*$", 'img'
             replace: "#{k.toUpperCase()}=\"#{v}\""
             append: false
@@ -101,31 +99,31 @@ in the gateway.sh service script.
 ## Kerberos
 
       @call header: 'Kerberos', ->
-        @krb5.addprinc krb5,
-          principal: knox.krb5_user.principal
+        @krb5.addprinc options.krb5.admin,
+          principal: options.krb5_user.principal
           randkey: true
-          keytab: knox.krb5_user.keytab
-          uid: knox.user.name
-          gid: knox.group.name
+          keytab: options.krb5_user.keytab
+          uid: options.user.name
+          gid: options.group.name
         @file.jaas
-          target: knox.site['java.security.auth.login.config']
+          target: options.gateway_site['java.security.auth.login.config']
           content: 'com.sun.security.jgss.initiate':
-            principal: knox.krb5_user.principal
-            keyTab: knox.krb5_user.keytab
+            principal: options.krb5_user.principal
+            keyTab: options.krb5_user.keytab
             renewTGT: true
             doNotPrompt: true
             isInitiator: true
             useTicketCache: true
             client: true
           no_entry_check: true
-          uid: knox.user.name
-          gid: knox.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o600
 
 ## Topologies
 
       @call header: 'Topologies', ->
-        for nameservice, topology of knox.topologies
+        for nameservice, topology of options.topologies
           doc = builder.create 'topology', version: '1.0', encoding: 'UTF-8'
           gateway = doc.ele 'gateway' if topology.providers?
           for role, p of topology.providers
@@ -152,13 +150,13 @@ in the gateway.sh service script.
                   service.ele 'value', value
               else if url_params not in [null, ''] then service.ele 'url', url_params
           @file
-            target: "#{knox.conf_dir}/topologies/#{nameservice}.xml"
+            target: "#{options.conf_dir}/topologies/#{nameservice}.xml"
             content: doc.end pretty: true
             backup: true
             eof: true
 
           @file.render
-            target: "#{knox.conf_dir}/#{nameservice}-ehcache.xml"
+            target: "#{options.conf_dir}/#{nameservice}-ehcache.xml"
             source: "#{__dirname}/resources/ehcache.j2"
             local: true
             context: nameservice:nameservice
@@ -170,16 +168,16 @@ in the gateway.sh service script.
         unless_exists: '/usr/hdp/current/knox-server/data/security/master'
       , (options, callback) ->
         options.ssh.shell (err, stream) =>
-          stream.write "su -l #{knox.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
+          stream.write "su -l #{options.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
           stream.on 'data', (data, extended) ->
-            if /Enter master secret/.test data then stream.write "#{knox.ssl.storepass}\n"
+            if /Enter master secret/.test data then stream.write "#{options.ssl.storepass}\n"
             if /Master secret is already present on disk/.test data then callback null, false
             else if /Master secret has been persisted to disk/.test data then callback null, true
           stream.on 'exit', -> callback Error 'Exit before end'
 
       @call header: 'Store Password', ->
         # Create alias to store password used in topology
-        for alias,password of knox.realm_passwords then do (alias,password) =>
+        for alias,password of options.realm_passwords then do (alias,password) =>
           nameservice=alias.split("-")[0]
           @system.execute
             cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias #{alias} --cluster #{nameservice} --value #{password}"
@@ -189,32 +187,32 @@ in the gateway.sh service script.
       @call header: 'SSL Server', ->
         tmp_location = "/var/tmp/ryba/knox_ssl"
         @file.download
-          source: knox.ssl.cacert
+          source: options.ssl.cacert
           target: "#{tmp_location}/cacert"
           mode: 0o0600
           shy: true
         @file.download
-          source: knox.ssl.cert
+          source: options.ssl.cert
           target: "#{tmp_location}/cert"
           mode: 0o0600
           shy: true
         @file.download
-          source: knox.ssl.key
+          source: options.ssl.key
           target: "#{tmp_location}/key"
           mode: 0o0600
           shy: true
         @java.keystore_add
           keystore: '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
-          storepass: knox.ssl.storepass
+          storepass: options.ssl.storepass
           caname: "hadoop_root_ca"
           cacert: "#{tmp_location}/cacert"
           key: "#{tmp_location}/key"
           cert: "#{tmp_location}/cert"
-          keypass: knox.ssl.keypass
+          keypass: options.ssl.keypass
           name: 'gateway-identity'
         @system.execute
           if: -> @status -1
-          cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias gateway-identity-passphrase --value #{knox.ssl.keypass}"
+          cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias gateway-identity-passphrase --value #{options.ssl.keypass}"
 
 Knox use Shiro for LDAP authentication and Shiro cannot be configured for 
 unsecure SSL.
@@ -222,7 +220,7 @@ With LDAPS, the certificate must be imported into the JRE's keystore for the
 client to connect to openldap.
 
         @java.keystore_add
-          keystore: "#{jre_home or java_home}/lib/security/cacerts"
+          keystore: "#{options.jre_home or options.java_home}/lib/security/cacerts"
           storepass: 'changeit'
           caname: 'hadoop_root_ca'
           cacert: "#{tmp_location}/cacert"
@@ -240,10 +238,10 @@ client to connect to openldap.
 
       @file
         header: 'Log4J Properties'
-        target: "#{knox.conf_dir}/gateway-log4j.properties"
+        target: "#{options.conf_dir}/gateway-log4j.properties"
         source: "#{__dirname}/resources/gateway-log4j.properties"
         local: true
-        write: for k, v of knox.log4j
+        write: for k, v of options.log4j
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

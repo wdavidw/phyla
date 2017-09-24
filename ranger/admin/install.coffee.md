@@ -87,9 +87,9 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 Update the file "install.properties" with the properties defined by the
 "install" option.
 
-      @file.render
+      @file
         header: 'Setup Scripts'
-        source: "#{__dirname}/../resources/admin-install.properties.j2"
+        source: "#{__dirname}/../resources/admin-install.properties"
         target: '/usr/hdp/current/ranger-admin/install.properties'
         local: true
         eof: true

@@ -80,10 +80,10 @@ we execute this task using the rest api.
       @call
         header: 'Activation'
       , ->
-        @file.render
+        @file
           header: 'Scripts Rendering'
           if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties.j2"
+          source: "#{__dirname}/../../resources/plugin-install.properties"
           target: "/usr/hdp/#{version}/ranger-yarn-plugin/install.properties"
           local: true
           eof: true

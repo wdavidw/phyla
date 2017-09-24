@@ -18,7 +18,7 @@ value is 50020.
       @connection.assert
         header: 'IPC'
         servers: options.wait.ipc
-        retry: 3
+        retry: 6
         sleep: 3000
 
 ## Wait for all datanode HTTP Ports
@@ -30,7 +30,7 @@ value is 50475.
         header: 'HTTP'
         label_true: 'READY'
         servers: options.wait.http
-        retry: 3
+        retry: 6
         sleep: 3000
 
 ## Check Disk Capacity

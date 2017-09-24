@@ -41,7 +41,7 @@ KNOX_LAUNCH_COMMAND=$1
 KNOX_LAUNCH_USER=$2
 
 #Knox Service User
-SVC_USER={{ user.name }}
+SVC_USER={{ options.user.name }}
 
 #App names
 KNOX_NAME=knox
@@ -51,7 +51,7 @@ GATEWAY_NAME=gateway
 d=`readlink /usr/hdp/current/$KNOX_NAME-server`
 h=`dirname $d`
 export KNOX_HOME="$h/knox"
-CONF_DIR={{ conf_dir }}
+CONF_DIR={{ options.conf_dir }}
 KNOX_SCRIPT_DIR="${KNOX_HOME}/bin"
 
 #Name of PID file

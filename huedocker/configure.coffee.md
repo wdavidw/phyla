@@ -260,7 +260,7 @@ Example:
       hue_docker.db = merge {}, db_admin[hue_docker.db.engine], hue_docker.db
       hue_docker.ini['desktop']['database'] ?= {}
       hue_docker.ini['desktop']['database']['engine'] = hue_docker.db.engine
-      hue_docker.ini['desktop']['database']['engine'] = 'postgres' if hue_docker.db.engine is 'postgresql'
+      hue_docker.ini['desktop']['database']['engine'] = 'postgresql' if hue_docker.db.engine is 'postgresql'
       hue_docker.ini['desktop']['database']['engine'] ?= 'derby'
       engine = hue_docker.ini['desktop']['database']['engine']
       hue_docker.ini['desktop']['database']['host'] ?= db_admin[engine]['host']

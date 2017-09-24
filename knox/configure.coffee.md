@@ -8,124 +8,139 @@ This function declare services if modules are present in the configuration conte
 Configuration like address and port will be then enriched by the configure which
 loop on topologies to provide missing values
 
-    configure_default = () ->
-      services = {}
-      for service, mod of {
-        'namenode': 'ryba/hadoop/hdfs_nn'
-        'webhdfs': 'ryba/hadoop/hdfs_nn'
-        'jobtracker': 'ryba/hadoop/yarn_rm'
-        'hive': 'ryba/hive/server2'
-        'webhcat': 'ryba/hive/webhcat'
-        'oozie': 'ryba/oozie/server'
-        'webhbase': 'ryba/hbase/rest'
-      } then if @contexts(mod).length > 0
-        services[service] = true
-      return "#{@config.ryba.nameservice}": services: services
-
 ## Configure
 
     module.exports = ->
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      knox = @config.ryba.knox ?= {}
+      service = migration.call @, service, 'ryba/ambari/server', ['ryba', 'ambari', 'server', 'standalone'], require('nikita/lib/misc').merge require('.').use,
+        # ssl: key: ['ssl']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        # db_admin: key: ['ryba', 'db_admin']
+        # hadoop_core: key: ['ryba']
+        # ambari_repo: key: ['ryba', 'ambari', 'repo']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        httpfs: key: ['ryba', 'httpfs']
+        # yarn_ts: key: ['ryba', 'yarn', 'ats']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        hive_server2: key: ['ryba', 'hive', 'server2']
+        hive_webhcat: key: ['ryba', 'ranger', 'hive']
+        oozie_server: key: ['ryba', 'oozie', 'server']
+        hbase_rest: key: ['ryba', 'oozie', 'server']
+        knox: key: ['ryba', 'knox']
+      @config.ryba ?= {}
+      @config.ryba.ambari ?= {}
+      options = @config.ryba.ambari.server.standalone = service.options
 
 ## Environment
 
-      knox.conf_dir ?= '/etc/knox/conf'
-      knox.log_dir ?= '/var/log/knox'
-      knox.bin_dir ?= '/usr/hdp/current/knox-server/bin'
+      options.conf_dir ?= '/etc/knox/conf'
+      options.log_dir ?= '/var/log/knox'
+      options.bin_dir ?= '/usr/hdp/current/knox-server/bin'
+      options.fqdn = service.use.fqdn
 
 ## Identities
 
       # Group
-      knox.group = name: knox.group if typeof knox.group is 'string'
-      knox.group ?= {}
-      knox.group.name ?= 'knox'
-      knox.group.system ?= true
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'knox'
+      options.group.system ?= true
       # User
-      knox.user = name: knox.user if typeof knox.user is 'string'
-      knox.user ?= {}
-      knox.user.name ?= 'knox'
-      knox.user.gid = knox.group.name
-      knox.user.system ?= true
-      knox.user.comment ?= 'Knox Gateway User'
-      knox.user.home ?= '/var/lib/knox'
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user ?= {}
+      options.user.name ?= 'knox'
+      options.user.gid = options.group.name
+      options.user.system ?= true
+      options.user.comment ?= 'Knox Gateway User'
+      options.user.home ?= '/var/lib/knox'
 
 ## Kerberos
 
-      knox.krb5_user ?= {}
-      knox.krb5_user.principal ?= "#{knox.user.name}/#{@config.host}@#{@config.ryba.realm}"
-      knox.krb5_user.keytab ?= '/etc/security/keytabs/knox.service.keytab'
-      # Env
-      # Knox reads its own env variable to read configuration.
-      knox.env ?= {}
-      knox.env.app_mem_opts ?= '-Xmx8192m'
-      knox.env.app_log_dir ?= "#{knox.log_dir}"
-      knox.env.app_log_opts ?= ''
-      knox.env.app_dbg_opts ?= ''
-      # Configuration
-      knox.site ?= {}
-      knox.site['gateway.port'] ?= '8443'
-      knox.site['gateway.path'] ?= 'gateway'
-      knox.site['java.security.krb5.conf'] ?= '/etc/krb5.conf'
-      knox.site['java.security.auth.login.config'] ?= "#{knox.conf_dir}/knox.jaas"
-      knox.site['gateway.hadoop.kerberos.secured'] ?= 'true'
-      knox.site['sun.security.krb5.debug'] ?= 'true'
-      knox.ssl ?= {}
-      knox.ssl.storepass ?= 'knox_master_secret_123'
-      knox.ssl.cacert ?= @config.ryba.ssl?.cacert
-      knox.ssl.cert ?= @config.ryba.ssl?.cert
-      knox.ssl.key ?= @config.ryba.ssl?.key
-      knox.ssl.keypass ?= 'knox_master_secret_123'
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5_user ?= {}
+      options.krb5_user.principal ?= "#{options.user.name}/#{options.fqdn}@#{options.krb5.realm}"
+      options.krb5_user.keytab ?= '/etc/security/keytabs/options.service.keytab'
+
+## Env
+
+Knox reads its own env variable to retrieve configuration.
+
+      options.env ?= {}
+      options.env.app_mem_opts ?= '-Xmx8192m'
+      options.env.app_log_dir ?= "#{options.log_dir}"
+      options.env.app_log_opts ?= ''
+      options.env.app_dbg_opts ?= ''
+
+## Java
+
+      options.java_home = service.use.java.options.java_home
+      options.jre_home = service.use.java.options.jre_home
+
+## SSL
+
+      options.ssl ?= {}
+      options.ssl.storepass ?= 'knox_master_secret_123'
+      options.ssl.cacert ?= @config.ryba.ssl?.cacert
+      options.ssl.cert ?= @config.ryba.ssl?.cert
+      options.ssl.key ?= @config.ryba.ssl?.key
+      options.ssl.keypass ?= 'knox_master_secret_123'
       # Knox SSL
-      throw Error 'Required property "ryba.knox.ssl.cacert"' unless knox.ssl.cacert?
-      throw Error 'Required property "ryba.knox.ssl.cert"' unless knox.ssl.cert?
-      throw Error 'Required property "ryba.knox.ssl.key"' unless knox.ssl.key?
-      knox.topologies ?= configure_default.call @
-      knox.realm_passwords = {}
-      knox.config ?= {}
+      throw Error 'Required Options: ssl.cacert' unless options.ssl.cacert?
+      throw Error 'Required Options: ssl.cert' unless options.ssl.cert?
+      throw Error 'Required Options ssl.key' unless options.ssl.key?
 
-## Configuration for Proxy Users
+## Configuration
 
-      knox_hosts = @contexts('ryba/knox').map((ctx) -> ctx.config.host).join ','
-      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
-      for hadoop_ctx in hadoop_ctxs
-        hadoop_ctx.config.ryba ?= {}
-        hadoop_ctx.config.ryba.core_site ?= {}
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{knox.user.name}.groups"] ?= '*'
-      for hdfs_nn_ctx in @contexts 'ryba/hadoop/hdfs_nn'
-        hdfs_nn_ctx.config.ryba ?= {}
-        hdfs_nn_ctx.config.ryba.hdfs ?= {}
-        hdfs_nn_ctx.config.ryba.hdfs.nn.core_site ?= {}
-        hdfs_nn_ctx.config.ryba.hdfs.nn.core_site["hadoop.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        hdfs_nn_ctx.config.ryba.hdfs.nn.core_site["hadoop.proxyuser.#{knox.user.name}.groups"] ?= '*'
-      for yarn_rm_ctx in @contexts 'ryba/hadoop/yarn_rm'
-        yarn_rm_ctx.config.ryba ?= {}
-        yarn_rm_ctx.config.ryba.yarn ?= {}
-        yarn_rm_ctx.config.ryba.yarn.rm ?= {}
-        yarn_rm_ctx.config.ryba.yarn.rm.core_site ?= {}
-        yarn_rm_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        yarn_rm_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{knox.user.name}.groups"] ?= '*'
+      # Configuration
+      options.gateway_site ?= {}
+      options.gateway_site['gateway.port'] ?= '8443'
+      options.gateway_site['gateway.path'] ?= 'gateway'
+      options.gateway_site['java.security.krb5.conf'] ?= '/etc/krb5.conf'
+      options.gateway_site['java.security.auth.login.config'] ?= "#{options.conf_dir}/knox.jaas"
+      options.gateway_site['gateway.hadoop.kerberos.secured'] ?= 'true'
+      options.gateway_site['sun.security.krb5.debug'] ?= 'true'
+      options.realm_passwords = {}
+      options.config ?= {}
+
+## Proxy Users
+
+      enrich_proxy_user (srv) ->
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+        hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or ''
+        hosts = hosts.split ','
+        for fqdn in service.nodes.fqdn
+          hosts.push fqdn unless fqdn in hosts
+        hosts = hosts.join ' '
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
+      enrich_proxy_user srv for srv in service.use.hdfs_nn
+      enrich_proxy_user srv for srv in service.use.hdfs_dn
+      enrich_proxy_user srv for srv in service.use.yarn_rm
+      enrich_proxy_user srv for srv in service.use.yarn_nm
+      enrich_proxy_user srv for srv in service.use.hdfs_nn
+      enrich_proxy_user srv for srv in service.use.hdfs_nn
+      enrich_proxy_user srv for srv in service.use.hbase_rest
       httpfs_ctxs = @contexts 'ryba/hadoop/httpfs'
-      for httpfs_ctx in httpfs_ctxs
-        httpfs_ctx.config.ryba ?= {}
-        httpfs_ctx.config.ryba.httpfs ?= {}
-        httpfs_ctx.config.ryba.httpfs.site ?= {}
-        httpfs_ctx.config.ryba.httpfs.site["httpfs.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        httpfs_ctx.config.ryba.httpfs.site["httpfs.proxyuser.#{knox.user.name}.groups"] ?= '*'
-      oozie_ctxs = @contexts 'ryba/oozie/server'
-      for oozie_ctx in oozie_ctxs
-        oozie_ctx.config.ryba ?= {}
-        oozie_ctx.config.ryba.oozie ?= {}
-        oozie_ctx.config.ryba.oozie.site ?= {}
-        oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.#{knox.user.name}.groups"] ?= '*'
-      hbase_rest_ctxs = @contexts 'ryba/hbase/rest'
-      for hbase_ctx in hbase_rest_ctxs
-        hbase_ctx.config.ryba ?= {}
-        hbase_ctx.config.ryba.core_site ?= {}
-        hbase_ctx.config.ryba.core_site["hadoop.proxyuser.#{knox.user.name}.hosts"] ?= knox_hosts
-        hbase_ctx.config.ryba.core_site["hadoop.proxyuser.#{knox.user.name}.groups"] ?= '*'
+      for srv in service.use.httpfs
+        srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
+        hosts = srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] or ''
+        hosts = hosts.split ','
+        for fqdn in service.nodes.fqdn
+          hosts.push fqdn unless fqdn in hosts
+        hosts = hosts.join ' '
+        srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= hosts
+      for srv in service.user.oozie_server
+        srv.options.httpfs_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
+        hosts = srv.options.httpfs_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or ''
+        hosts = hosts.split ','
+        for fqdn in service.nodes.fqdn
+          hosts.push fqdn unless fqdn in hosts
+        hosts = hosts.join ' '
+        srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= hosts
 
 ## Configure topology
 
@@ -134,52 +149,63 @@ provider to the cluster's topology file. When enabled, the Knox Gateway uses
 Apache Shiro (org.apache.shiro.realm.ldap.JndiLdapRealm) to authenticate users 
 against the configured LDAP store.
 
-      for nameservice,topology of knox.topologies
-        topology ?= {}
+      nameservice = service.use.hdfs_nn[0].options.nameservice
+      options.topologies ?= {}
+      options.topologies[nameservice] ?= {}
+      options.topologies[nameservice].services ?= {}
+      options.topologies[nameservice].services['namenode'] ?= !!service.use.hdfs_nn
+      options.topologies[nameservice].services['webhdfs'] ?= !!service.use.hdfs_nn
+      options.topologies[nameservice].services['jobtracker'] ?= !!service.use.yarn_rm
+      options.topologies[nameservice].services['hive'] ?= !!service.use.hive_server2
+      options.topologies[nameservice].services['webhcat'] ?= !!service.use.hive_webhcat
+      options.topologies[nameservice].services['oozie'] ?= !!service.use.oozie_server
+      options.topologies[nameservice].services['webhbase'] ?= !!service.use.hbase_rest
+      for nameservice, topology of options.topologies
         # Configure providers
         topology.providers ?= {}
-        ldap = topology.providers['authentication'] ?= {}
-        ldap.name ?= 'ShiroProvider'
-        ldap.config ?= {}
-        ldap.config['sessionTimeout'] ?= 30
+        topology.providers['authentication'].name ?= 'ShiroProvider'
+        topology.providers['authentication'].config ?= {}
+        topology.providers['authentication'].config['sessionTimeout'] ?= 30
         # By default, we only configure a simple LDAP Binding (user only)
-        realms = 'ldapRealm': topology
+        # migration: wdavidw 170922, this used to be:
+        # realms = 'ldapRealm': topology
+        realms = 'ldapRealm': {}
         if topology.group
           realms['ldapGroupRealm'] = if topology.group.lookup? then @config.sssd.config[topology.group.lookup] else topology.group
         for realm, realm_config of realms
-          ldap.config["main.#{realm}"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm' # OpenLDAP implementation
-          # ldap.config['main.ldapRealm'] ?= 'org.apache.shiro.realm.ldap.JndiLdapRealm' # AD implementation
-          ldap.config["main.#{realm}".replace('Realm','')+"ContextFactory"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory'
-          ldap.config["main.#{realm}.contextFactory"] ?= '$'+"#{realm}".replace('Realm','')+'ContextFactory'
+          topology.providers['authentication'].config["main.#{realm}"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm' # OpenLDAP implementation
+          # topology.providers['authentication'].config['main.ldapRealm'] ?= 'org.apache.shiro.realm.ldap.JndiLdapRealm' # AD implementation
+          topology.providers['authentication'].config["main.#{realm}".replace('Realm','')+"ContextFactory"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory'
+          topology.providers['authentication'].config["main.#{realm}.contextFactory"] ?= '$'+"#{realm}".replace('Realm','')+'ContextFactory'
           # ctxs = @contexts 'masson/core/openldap_server'
           throw Error 'Required property ldap_uri' unless realm_config['ldap_uri']?
           throw Error 'Required property ldap_default_bind_dn' unless realm_config['ldap_default_bind_dn']?
           throw Error 'Required property ldap_default_authtok' unless realm_config['ldap_default_authtok']?
           throw Error 'Required property ldap_search_base' unless realm_config['ldap_search_base']?
           throw Error 'Required property ldap_search_base' if realm is 'ldapGroupRealm' and not realm_config['ldap_group_search_base']?
-          ldap.config["main.#{realm}.userDnTemplate"] = realm_config['userDnTemplate'] if realm_config['userDnTemplate']?
-          ldap.config["main.#{realm}.contextFactory.url"] = realm_config['ldap_uri'].split(',')[0]
-          ldap.config["main.#{realm}.contextFactory.systemUsername"] = realm_config['ldap_default_bind_dn']
-          ldap.config["main.#{realm}.contextFactory.systemPassword"] = "${ALIAS=#{nameservice}-#{realm}-password}"
+          topology.providers['authentication'].config["main.#{realm}.userDnTemplate"] = realm_config['userDnTemplate'] if realm_config['userDnTemplate']?
+          topology.providers['authentication'].config["main.#{realm}.contextFactory.url"] = realm_config['ldap_uri'].split(',')[0]
+          topology.providers['authentication'].config["main.#{realm}.contextFactory.systemUsername"] = realm_config['ldap_default_bind_dn']
+          topology.providers['authentication'].config["main.#{realm}.contextFactory.systemPassword"] = "${ALIAS=#{nameservice}-#{realm}-password}"
 
-          knox.realm_passwords["#{nameservice}-#{realm}-password"] = realm_config['ldap_default_authtok']
+          options.realm_passwords["#{nameservice}-#{realm}-password"] = realm_config['ldap_default_authtok']
 
-          ldap.config["main.#{realm}.searchBase"] = realm_config["ldap#{if realm == 'ldapGroupRealm' then '_group' else ''}_search_base"]
-          ldap.config["main.#{realm}.contextFactory.authenticationMechanism"] ?= 'simple'
-          ldap.config["main.#{realm}.authorizationEnabled"] ?= 'true'
+          topology.providers['authentication'].config["main.#{realm}.searchBase"] = realm_config["ldap#{if realm == 'ldapGroupRealm' then '_group' else ''}_search_base"]
+          topology.providers['authentication'].config["main.#{realm}.contextFactory.authenticationMechanism"] ?= 'simple'
+          topology.providers['authentication'].config["main.#{realm}.authorizationEnabled"] ?= 'true'
         # we redo the test here, so that these params are rendered at the end of the authentication provider section 
         if topology.group?
-          ldap.config['main.ldapGroupRealm.groupObjectClass'] = topology.group['groupObjectClass'] ?= "posixGroup"
-          ldap.config['main.ldapGroupRealm.memberAttribute'] = topology.group['memberAttribute'] ?= "memberUid"
-          ldap.config['main.ldapGroupRealm.memberAttributeValueTemplate'] = 'uid={0},' + topology['ldap_search_base']
-        ldap.config['urls./**'] ?= 'authcBasic'
-        ldap.config['main.securityManager.realms'] = ["$"+realm for realm, _ of realms].join "," if topology.group?
+          topology.providers['authentication'].config['main.ldapGroupRealm.groupObjectClass'] = topology.group['groupObjectClass'] ?= "posixGroup"
+          topology.providers['authentication'].config['main.ldapGroupRealm.memberAttribute'] = topology.group['memberAttribute'] ?= "memberUid"
+          topology.providers['authentication'].config['main.ldapGroupRealm.memberAttributeValueTemplate'] = 'uid={0},' + topology['ldap_search_base']
+        topology.providers['authentication'].config['urls./**'] ?= 'authcBasic'
+        topology.providers['authentication'].config['main.securityManager.realms'] = ["$"+realm for realm, _ of realms].join "," if topology.group?
 
         # LDAP Authentication Caching
-        ldap.config['main.cacheManager'] = "org.apache.shiro.cache.ehcache.EhCacheManager"
-        ldap.config['main.securityManager.cacheManager'] = "$cacheManager"
-        ldap.config['main.ldapRealm.authenticationCachingEnabled'] = true
-        ldap.config['main.cacheManager.cacheManagerConfigFile'] = "classpath:#{nameservice}-ehcache.xml"
+        topology.providers['authentication'].config['main.cacheManager'] = "org.apache.shiro.cache.ehcache.EhCacheManager"
+        topology.providers['authentication'].config['main.securityManager.cacheManager'] = "$cacheManager"
+        topology.providers['authentication'].config['main.ldapRealm.authenticationCachingEnabled'] = true
+        topology.providers['authentication'].config['main.cacheManager.cacheManagerConfigFile'] = "classpath:#{nameservice}-ehcache.xml"
 
 The Knox Gateway identity-assertion provider maps an authenticated user to an
 internal cluster user and/or group. This allows the Knox Gateway accept requests
@@ -197,11 +223,11 @@ This mechanism can be used to configure a specific gateway without having to dec
 
         # Namenode & WebHDFS
         if topology.services['namenode'] is true
-          if nn_ctxs.length
-            topology.services['namenode'] = nn_ctxs[0].config.ryba.core_site['fs.defaultFS']
+          if service.use.hdfs_nn
+            topology.services['namenode'] = service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
           else throw Error 'Cannot autoconfigure KNOX namenode service, no namenode declared'  
         if topology.services['webhdfs'] is true
-          throw Error 'Cannot autoconfigure KNOX webhdfs service, no namenode declared' unless nn_ctxs.length
+          throw Error 'Cannot autoconfigure KNOX webhdfs service, no namenode declared' unless service.use.hdfs_nn
           # WebHDFS auto configuration rules:
           # We provide by default namenode WebHDFS (default implementation, embedded in namenode) instead of httpfs. Httpfs put request through knox create empty files.
           # We also configure HA for WebHDFS if namenodes are in HA-mode
@@ -213,24 +239,21 @@ This mechanism can be used to configure a specific gateway without having to dec
           #     topology.providers['ha'].config ?= {}
           #     topology.providers['ha'].config['WEBHDFS'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;maxRetryAttempts=300;retrySleep=1000;enabled=true'
           #   topology.services['webhdfs'] = fs_ctxs.map (ctx) -> "http#{if ctx.config.ryba.httpfs.env.HTTPFS_SSL_ENABLED is 'true' then 's' else ''}://#{ctx.config.host}:#{ctx.config.ryba.httpfs.http_port}/webhdfs/v1"
-          if nn_ctxs.length > 1
+          if service.use.hdfs_nn.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['WEBHDFS'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;maxRetryAttempts=300;retrySleep=1000;enabled=true'
             topology.services['webhdfs'] = []
-            for nn_ctx in nn_ctxs
-              protocol = if nn_ctx.config.ryba.hdfs.nn.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-              host = nn_ctx.config.host
-              shortname = nn_ctx.config.shortname
-              port = nn_ctx.config.ryba.hdfs.nn.site["dfs.namenode.#{protocol}-address.#{nn_ctx.config.ryba.nameservice}.#{shortname}"].split(':')[1]
+            for srv in service.use.hdfs_nn
+              protocol = if srv.options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+              port = srv.options.hdfs_site["dfs.namenode.#{protocol}-address.#{srv.options.nameservice}.#{srv.node.hostname}"].split(':')[1]
               # We ensure that the default active namenode is first in the list !
-              action = if host is nn_ctx.config.ryba.active_nn_host then 'unshift' else 'push'
-              topology.services['webhdfs'][action] "#{protocol}://#{host}:#{port}/webhdfs"
+              action = if srv.node.fqdn is srv.options.active_nn_host then 'unshift' else 'push'
+              topology.services['webhdfs'][action] "#{protocol}://#{srv.node.fqdn}:#{port}/webhdfs"
           else
-            protocol = if nn_ctxs[0].config.ryba.hdfs.nn.site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-            host = nn_ctxs[0].config.host
-            port = nn_ctxs[0].config.ryba.hdfs.nn.site["dfs.namenode.#{protocol}-address"].split(':')[1]
-            topology.services['webhdfs'] = "#{protocol}://#{host}:#{port}/webhdfs" 
+            protocol = if srv.use.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+            port = srv.use.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{protocol}-address"].split(':')[1]
+            topology.services['webhdfs'] = "#{protocol}://#{srv.use.hdfs_nn[0].node.fqdn}:#{port}/webhdfs" 
         # Jobtracker
         if topology.services['jobtracker'] is true
           ctxs = @contexts 'ryba/hadoop/yarn_rm'
@@ -293,10 +316,10 @@ This mechanism can be used to configure a specific gateway without having to dec
               protocol = if ctx.config.ryba.hbase.rest.site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
               host = ctx.config.host
               port = ctx.config.ryba.hbase.rest.site['hbase.rest.port']
-              if knox.config.webhbase?
+              if options.config.webhbase?
                 topology.services['webhbase'] =
                   url: "#{protocol}://#{host}:#{port}"
-                  params: knox.config.webhbase
+                  params: options.config.webhbase
               else
                 topology.services['webhbase'].push "#{protocol}://#{host}:#{port}" 
 
@@ -321,30 +344,30 @@ This mechanism can be used to configure a specific gateway without having to dec
 
 ## Configuration for Log4J
 
-      knox.log4j ?= {}
-      knox.log4jopts ?= {}
-      knox.log4jopts['app.log.dir'] ?= "#{knox.log_dir}"
-      knox.log4jopts['log4j.rootLogger'] ?= 'ERROR,rfa'
+      options.log4j ?= {}
+      options.log4jopts ?= {}
+      options.log4jopts['app.log.dir'] ?= "#{options.log_dir}"
+      options.log4jopts['log4j.rootLogger'] ?= 'ERROR,rfa'
       if @config.log4j?.services?
         if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/knox' in @config.log4j?.services)
-          knox.socket_client ?= 'SOCKET'
+          options.socket_client ?= 'SOCKET'
           # Root logger
-          if knox.log4jopts['log4j.rootLogger'].indexOf(knox.socket_client) is -1
-          then knox.log4jopts['log4j.rootLogger'] += ",#{knox.socket_client}"
+          if options.log4jopts['log4j.rootLogger'].indexOf(options.socket_client) is -1
+          then options.log4jopts['log4j.rootLogger'] += ",#{options.socket_client}"
           # Set java opts
-          knox.log4jopts['app.log.application'] ?= 'knox'
-          knox.log4jopts['app.log.remote_host'] ?= @config.log4j.remote_host
-          knox.log4jopts['app.log.remote_port'] ?= @config.log4j.remote_port
-          knox.socket_opts ?=
+          options.log4jopts['app.log.application'] ?= 'knox'
+          options.log4jopts['app.log.remote_host'] ?= @config.log4j.remote_host
+          options.log4jopts['app.log.remote_port'] ?= @config.log4j.remote_port
+          options.socket_opts ?=
             Application: '${app.log.application}'
             RemoteHost: '${app.log.remote_host}'
             Port: '${app.log.remote_port}'
             ReconnectionDelay: '10000'
-          knox.log4j = merge knox.log4j, appender
+          options.log4j = merge options.log4j, appender
             type: 'org.apache.log4j.net.SocketAppender'
-            name: knox.socket_client
-            logj4: knox.log4j
-            properties: knox.socket_opts
+            name: options.socket_client
+            logj4: options.log4j
+            properties: options.socket_opts
 
 ## Dependencies
 

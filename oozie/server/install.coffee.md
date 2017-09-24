@@ -416,14 +416,14 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
             #   'password': password
             @db.user oozie.db, database: null,
               header: 'User'
-              if: oozie.db.engine in ['mysql', 'postgres']
+              if: oozie.db.engine in ['mysql', 'postgresql']
             @db.database oozie.db,
               header: 'Database'
               user: oozie.db.username
-              if: oozie.db.engine in ['mysql', 'postgres']
+              if: oozie.db.engine in ['mysql', 'postgresql']
             @db.schema oozie.db,
               header: 'Schema'
-              if: oozie.db.engine is 'postgres'
+              if: oozie.db.engine is 'postgresql'
               schema: oozie.db.schema or oozie.db.database
               database: oozie.db.database
               owner: oozie.db.username

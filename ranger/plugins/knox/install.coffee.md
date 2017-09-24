@@ -83,12 +83,10 @@ such as "%app-type% and %time:yyyyMMdd%".
 ## Plugin Scripts 
 
       @call ->
-        # migration, wdavdiw 170918, this is not a j2 template so we should
-        # just generate the file without relying on a template
-        @file.render
+        @file
           header: 'Scripts rendering'
           if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties.j2"
+          source: "#{__dirname}/../../resources/plugin-install.properties"
           target: "/usr/hdp/#{version}/ranger-knox-plugin/install.properties"
           local: true
           eof: true

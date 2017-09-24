@@ -146,10 +146,10 @@ Indeed the ranger' lib dir needs to be added to solr's classpath. By default sol
 loads the lib directory found in the `SOLR_HOME`.
 
       @call ->
-        @file.render
+        @file
           header: 'Scripts rendering'
           if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties.j2"
+          source: "#{__dirname}/../../resources/plugin-install.properties"
           target: "/usr/hdp/#{version}/ranger-solr-plugin/install.properties"
           local: true
           eof: true
