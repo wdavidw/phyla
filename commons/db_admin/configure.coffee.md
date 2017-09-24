@@ -4,7 +4,7 @@
     module.exports = (service) ->
       service = migration.call @, service, 'ryba/commons/db_admin', ['ryba', 'db_admin'], require('nikita/lib/misc').merge require('.').use,
         mariadb: key: ['mariadb', 'server']
-        postres: key: ['postgres', 'server']
+        postres: key: ['postgresql', 'server']
         mysql: key: ['mysql', 'server']
       options = @config.ryba.db_admin = service.options
 

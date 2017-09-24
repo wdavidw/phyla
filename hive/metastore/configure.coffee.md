@@ -48,7 +48,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       #       throw new Error "Invalid host configuration" unless admin.length
       #     else throw new Error 'Unsupported database engine'
       # else
-      #   if pg_ctx then options.db.engine ?= 'postgres'
+      #   if pg_ctx then options.db.engine ?= 'postgresql'
       #   else if my_ctx then options.db.engine ?= 'mysql'
       #   else if ma_ctx then options.db.engine ?= 'mysql'
       #   else options.db.engine ?= 'derby'

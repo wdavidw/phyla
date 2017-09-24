@@ -40,7 +40,7 @@
           if: options.db.engine in ['mariadb', 'postgresql', 'mysql']
         @db.schema options.db,
           header: 'Schema'
-          if: options.db.engine is 'postgres'
+          if: options.db.engine is 'postgresql'
           schema: options.db.schema or options.db.database
           database: options.db.database
           owner: options.db.username

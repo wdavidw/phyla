@@ -20,7 +20,7 @@ Check if Hive can authenticate and run a basic query to the database.
       @call header: 'Database', ->
         cmd = switch options.db.engine
           when 'mariadb', 'mysql' then 'SELECT * FROM VERSION'
-          when 'postgres' then '\\dt'
+          when 'postgresql' then '\\dt'
         @system.execute
           cmd: db.cmd options.db, admin_username: null, cmd
 

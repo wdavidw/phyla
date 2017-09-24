@@ -171,10 +171,10 @@ the Hive Metastore service and execute "./bin/hive --service metastore"
         current_version =
           switch options.db.engine
             when 'mariadb', 'mysql' then db.cmd options.db, admin_username: null, 'select SCHEMA_VERSION from VERSION'
-            when 'postgres' then db.cmd options.db, admin_username: null, 'select \\"SCHEMA_VERSION\\" from \\"VERSION\\"'
+            when 'postgresql' then db.cmd options.db, admin_username: null, 'select \\"SCHEMA_VERSION\\" from \\"VERSION\\"'
         engine = options.db.engine
         engine = 'mysql' if engine is 'mariadb'
-        engine = 'postgres' if engine is 'postgresql'
+        engine = 'postgresql' if engine is 'postgresql'
         # migration: wdavidw 170907, used to be hadoop conf_dir
         @system.execute
           header: 'Init Schema'

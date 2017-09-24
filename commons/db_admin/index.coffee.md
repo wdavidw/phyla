@@ -17,7 +17,7 @@ Example:
       path: 'mysql'
       jdbc: 'jdbc:mysql://master1.ryba:3306,master2.ryba:3306'
     postgres:
-      engine: 'postgres'
+      engine: 'postgresql'
       hosts: ['master1.ryba','master2.ryba']
       port: '3306'
       admin_username: 'test'
