@@ -15,11 +15,11 @@
 
 # NOTE: if you change any OPTIONS here, you get what you pay for:
 # this script assumes all options are in the config file.
-CONFIGFILE='{{ryba.mongodb.configsrv.conf_dir}}/mongod.conf'
+CONFIGFILE='{{conf_dir}}/mongod.conf'
 OPTIONS=" -f $CONFIGFILE"
 SYSCONFIG="/etc/sysconfig/mongod"
-PIDDIR={{ryba.mongodb.configsrv.pid_dir}}
-PIDFILEPATH={{ryba.mongodb.configsrv.config.processManagement.pidFilePath}}
+PIDDIR={{pid_dir}}
+PIDFILEPATH={{config.processManagement.pidFilePath}}
 
 #PIDFILEPATH=`awk -F'[:=]' -v IGNORECASE=1 '/^[[:blank:]]*(processManagement\.)?pidfilepath[[:blank:]]*[:=][[:blank:]]*/{print $2}' "$CONFIGFILE" | tr -d "[:blank:]\"'" | awk -F'#' '{print $1}'`
 
@@ -129,7 +129,7 @@ case "$1" in
     [ -f /var/lock/subsys/mongod ] && restart || :
     ;;
   status)
-    status  -p {{ryba.mongodb.configsrv.config.processManagement.pidFilePath}} mongodb-config-server
+    status  -p {{config.processManagement.pidFilePath}} mongodb-config-server
     RETVAL=$?
     ;;
   *)

@@ -1,7 +1,7 @@
 
 # MongoDB Config Server Stop
 
-    module.exports = header: 'MongoDB Config Server Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'MongoDB Config Server Stop', label_true: 'STOPPED', handler: (options) ->
       {configsrv} = @config.ryba.mongodb
 
 ## Stop
@@ -15,10 +15,10 @@ Stop the MongoDB Config Server service.
 ## Clean Logs
 
       @call
-        if:  @config.ryba.clean_logs
+        if:  options.clean_logs
         header: 'Clean Logs'
         label_true: 'CLEANED'
       , ->
         @system.execute
-          cmd: "rm #{configsrv.config.systemLog.path}"
+          cmd: "rm #{options.config.systemLog.path}"
           code_skipped: 1

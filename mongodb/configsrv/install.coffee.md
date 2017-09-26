@@ -1,10 +1,7 @@
 
 # MongoDB Config Server Install
 
-    module.exports =  header: 'MongoDB Config Server Install', handler: ->
-      {mongodb, realm, ssl} = @config.ryba
-      {configsrv} = mongodb
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports =  header: 'MongoDB Config Server Install', handler: (options) ->
 
 ## IPTables
 
@@ -15,17 +12,17 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      @call header: 'IPTables', ->
-        @tools.iptables
-          rules: [
-            { chain: 'INPUT', jump: 'ACCEPT', dport: configsrv.config.net.port, protocol: 'tcp', state: 'NEW', comment: "MongoDB Config Server port" }
-          ]
-          if: @config.iptables.action is 'start'
+      @tools.iptables
+        header: 'IPTables'
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.config.net.port, protocol: 'tcp', state: 'NEW', comment: "MongoDB Config Server port" }
+        ]
+        if: options.iptables.action is 'start'
 
 ## Identities
 
-      @system.group header: 'Group', mongodb.group
-      @system.user header: 'User', mongodb.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Packages
 
@@ -40,7 +37,7 @@ in order to rendered configuration file with custom properties.
           if_os: name: ['redhat','centos'], version: '6'
           source: "#{__dirname}/../resources/mongod-config-server.j2"
           target: '/etc/init.d/mongod-config-server'
-          context: @config
+          context: options
           mode: 0o0750
           local: true
           eof: true
@@ -50,14 +47,14 @@ in order to rendered configuration file with custom properties.
           @service.init
             source: "#{__dirname}/../resources/mongod-config-server-redhat-7.j2"
             target: '/usr/lib/systemd/system/mongod-config-server.service'
-            context: @config
+            context: options
             mode: 0o0640
             local: true
             eof: true
           @system.tmpfs
-            mount: mongodb.configsrv.pid_dir
-            uid: mongodb.user.name
-            gid: mongodb.group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0750'
           @service.startup
             name: 'mongod-config-server'
@@ -70,21 +67,21 @@ Create dir where the mongodb-config-server stores its metadata
       @call header: 'Layout', ->
         @system.mkdir
           target: '/var/lib/mongodb'
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
-          target: mongodb.configsrv.config.storage.dbPath
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          target: options.config.storage.dbPath
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
-          if: mongodb.configsrv.config.storage.repairPath?
-          target: mongodb.configsrv.config.storage.repairPath
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          if: options.config.storage.repairPath?
+          target: options.config.storage.repairPath
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
-          target: mongodb.configsrv.config.net.unixDomainSocket.pathPrefix
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          target: options.config.net.unixDomainSocket.pathPrefix
+          uid: options.user.name
+          gid: options.group.name
 
 ## Configure
 
@@ -92,11 +89,11 @@ Configuration file for mongodb config server.
 
       @call header: 'Configure', ->
         @file.yaml
-          target: "#{mongodb.configsrv.conf_dir}/mongod.conf"
-          content: mongodb.configsrv.config
+          target: "#{options.conf_dir}/mongod.conf"
+          content: options.config
           merge: false
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           backup: true
         @service.stop
@@ -110,46 +107,51 @@ with pem file. So we append to the file the private key and certficate.
 
       @call header: 'SSL', ->
         @file.download
-          source: ssl.cacert
-          target: "#{mongodb.configsrv.conf_dir}/cacert.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+          target: "#{options.conf_dir}/cacert.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.download
-          source: ssl.key
-          target: "#{mongodb.configsrv.conf_dir}/key_file.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.key.source
+          local: options.ssl.key.local
+          target: "#{options.conf_dir}/key_file.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.download
-          source: ssl.cert
-          target: "#{mongodb.configsrv.conf_dir}/cert_file.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.cert.source
+          local: options.ssl.cert.local
+          target: "#{options.conf_dir}/cert_file.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file
-          source: "#{mongodb.configsrv.conf_dir}/cert_file.pem"
-          target: "#{mongodb.configsrv.conf_dir}/key.pem"
+          source: "#{options.conf_dir}/cert_file.pem"
+          target: "#{options.conf_dir}/key.pem"
+          local: false
           append: true
           backup: true
           eof: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
         @file
-          source: "#{mongodb.configsrv.conf_dir}/key_file.pem"
-          target: "#{mongodb.configsrv.conf_dir}/key.pem"
+          source: "#{options.conf_dir}/key_file.pem"
+          target: "#{options.conf_dir}/key.pem"
+          local: false
           eof: true
           append: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
 
 ## Kerberos
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos Admin'
-        principal: "#{mongodb.configsrv.config.security.sasl.serviceName}"#/#{@config.host}@#{realm}"
-        password: mongodb.configsrv.sasl_password
+        principal: "#{options.config.security.sasl.serviceName}"
+        password: options.sasl_password
 
 # User limits
 
       @system.limits
         header: 'User Limits'
-        user: mongodb.user.name
-      , mongodb.user.limits
+        user: options.user.name
+      , options.user.limits
