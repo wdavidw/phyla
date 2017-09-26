@@ -5,6 +5,8 @@
 
 ## Check
 
-      @system.execute
+      @connection.assert
         header: 'TCP'
-        cmd: "echo > /dev/tcp/#{options.fqdn}/#{options.config.net.port}"
+        servers: options.wait.tcp.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000

@@ -2,12 +2,12 @@
 # MongoDB Config Server Replica Set Initialization
 
     module.exports =  header: 'MongoDB ConfigSrv Replicat Set', handler: (options) ->
-      mongo_shell_exec =  "mongo admin --port #{options.config.net.port}"
-      mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{options.admin.name} --password  '#{options.admin.password}'"
-      mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{options.root.name} --password  '#{options.root.password}'"
-      # the userAdminAnyDatabase role is the first account created thanks to locahost exception
-      # it used to manage every other user and their roles, for the root user
-      # having the right to deal with privileges does not give it the role of root (ie  manage replica sets)
+
+The "userAdminAnyDatabase" role is the first account created thanks to 
+localhost exception. It used to manage every other users and their roles. For 
+the root user having the right to deal with privileges does not give him the 
+role of root (ie  manage replica sets).
+
       mongodb_admin =
         user: "#{options.admin.name}"
         pwd: "#{options.admin.password}"
@@ -28,8 +28,14 @@ The root user is needed for replication and has role `root`
         header: 'Roles Admin DB',
         if: -> options.is_master
         unless_exec: """
-          echo exit | #{mongo_shell_admin_exec}
-          echo exit | #{mongo_shell_root_exec}
+          echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.admin.name} \
+            --password  '#{options.admin.password}'
+          echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}'
         """
       , ->
         @service.stop
@@ -48,25 +54,37 @@ The root user is needed for replication and has role `root`
         @connection.wait options.wait.local
         @system.execute
           cmd: """
-          #{mongo_shell_exec} --eval <<-EOF \
+          mongo admin \
+            --port #{options.config.net.port} \
+            --eval <<-EOF \
           'printjson( db.createUser( \
             { user: \"#{options.admin.name}\", pwd: \"#{options.admin.password}\", roles: [ { role: \"userAdminAnyDatabase\", db: \"admin\" }]} \
           ))'
           EOF
           """
           unless_exec: """
-          echo exit | #{mongo_shell_admin_exec} -u #{options.admin.name} --password  '#{options.admin.password}'
+          echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.admin.name} \
+            --password  '#{options.admin.password}''
           """
           code_skipped: 252
         @system.execute
           cmd: """
-          #{mongo_shell_admin_exec} --eval <<-EOF \
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.admin.name} \
+            --password  '#{options.admin.password}' \
+            --eval <<-EOF \
           'printjson(db.createUser( \
             { user: \"#{options.root.name}\", pwd: \"#{options.root.password}\", roles: [ { role: \"root\", db: \"admin\" }]} \
           ))'
           EOF
           """
-          unless_exec: "echo exit | #{mongo_shell_admin_exec} -u #{options.root.name} --password  '#{options.root.password}'"
+          unless_exec: "echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.admin.name} \
+            --password  '#{options.admin.password}'"
           code_skipped: 252
         @file.yaml
           target: "#{options.conf_dir}/mongod.conf"
@@ -90,22 +108,35 @@ The root user is needed for replication and has role `root`
         header: 'Init Master'
         if: -> options.is_master
       , ->
-        message = {}
         config =
           _id: options.config.replication.replSetName
           version: 1
           members: [_id:0, host: "#{options.fqdn}:#{options.config.net.port}"]
         @call (_, callback) ->
           @system.execute
-            cmd: " #{mongo_shell_root_exec}  --eval 'rs.status().ok' | grep -v 'MongoDB.*version' | grep -v 'connecting to:'"
+            cmd: """
+            mongo admin \
+              --port #{options.config.net.port} \
+              --username #{options.root.name} \
+              --password  '#{options.root.password}' \
+              --eval 'rs.status().ok' \
+            | grep -v 'MongoDB.*version' \
+            | grep -v 'connecting to:'
+            """
           , (err, _, stdout) ->
             return callback err if err
             status =  parseInt(stdout)
-            return callback null, true if status == 0
-            callback null, false
+            return callback null, true if +status == 0
+            callback null, +status is 0
         @system.execute
           if: -> @status -1
-          cmd: "#{mongo_shell_root_exec}  --eval 'rs.initiate(#{JSON.stringify config})'"
+          cmd: """
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}' \
+            --eval 'rs.initiate(#{JSON.stringify config})'
+          """
 
 # Replica Set Members
 
@@ -113,10 +144,19 @@ The root user is needed for replication and has role `root`
         header: 'Set Members'
         if: -> options.is_master
       , ->
-        message = {}
-        @call ->
-          replSetName = options.config.replication.replSetName
-          for host in options.replicasets[replSetName].hosts
-            @system.execute
-              cmd: "#{mongo_shell_root_exec} --eval 'rs.add(\"#{host}:#{options.config.net.port}\")'"
-              unless_exec: "#{mongo_shell_root_exec} --eval 'rs.conf().members' | grep '#{host}:#{options.config.net.port}'"
+        @system.execute (
+          cmd: """
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}' \
+            --eval 'rs.add(\"#{host}:#{options.config.net.port}\")'
+          """
+          unless_exec: """
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}' \
+            --eval 'rs.conf().members' | grep '#{host}:#{options.config.net.port}'
+          """
+        ) for host in options.replicasets[options.config.replication.replSetName].hosts
