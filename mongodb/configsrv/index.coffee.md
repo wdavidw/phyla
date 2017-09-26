@@ -10,12 +10,12 @@ changes to cluster metadata.
 
     module.exports =
       use:
-        locale: implicit: true, module: 'masson/core/locale'
-        iptables: implicit: true, module: 'masson/core/iptables'
+        locale: module: 'masson/core/locale', local: true, auto: true, implicit: true
+        iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         ssl: module: 'masson/core/ssl', local: true
-        repo: 'ryba/mongodb/repo'
-        config_servers: 'ryba/mongodb/configsrv'
+        repo: module: 'ryba/mongodb/repo'
+        config_servers: module: 'ryba/mongodb/configsrv'
       configure:
         'ryba/mongodb/configsrv/configure'
       commands:

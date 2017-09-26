@@ -15,8 +15,6 @@ They can be installed and configured on their own.
       @config.ryba ?= {}
       @config.ryba.mongodb ?= {}
       options = @config.ryba.mongodb.configsrv = service.options
-      options.iptables = service.use.iptables
-      configsrv_hosts = service.use.config_servers.map( (srv)-> srv.node.fqdn)
 
 ## Identities
 
@@ -41,69 +39,69 @@ They can be installed and configured on their own.
 
       options.conf_dir ?= '/etc/mongod-config-server/conf'
       options.pid_dir ?= '/var/run/mongod'
-      #mongo admin user
+      # MongoDB admin user
       options.admin ?= {}
       options.admin.name ?= 'admin'
       options.admin.password ?= 'admin123'
       options.root ?= {}
       options.root.name ?= 'root_admin'
       options.root.password ?= 'root123'
-      #Misc
+      # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.clean_logs ?= false
-      config = options.config ?= {}
-      # setting the role of mongod process as a mongodb config server
-      config.sharding ?= {}
-      config.sharding.clusterRole ?= 'configsvr'
+      # Setting the role of mongod process as a mongodb config server
+      options.config.sharding ?= {}
+      options.config.sharding.clusterRole ?= 'configsvr'
 
 ## Logs
 
-      config.systemLog ?= {}
-      config.systemLog.destination ?= 'file'
-      config.systemLog.logAppend ?= true
-      config.systemLog.path ?= "/var/log/mongodb/mongod-config-server-#{service.node.fqdn}.log"
+      options.config.systemLog ?= {}
+      options.config.systemLog.destination ?= 'file'
+      options.config.systemLog.logAppend ?= true
+      options.config.systemLog.path ?= "/var/log/mongodb/mongod-config-server-#{service.node.hostname}.log"
 
 ## Storage
 
 From 3.2, config servers for sharded clusters can be deployed as a replica set.
 The replica set config servers must run the WiredTiger storage engine
 
-      config.storage ?= {}
-      config.storage.dbPath ?= "#{options.user.home}/configsrv/db"
-      config.storage.journal ?= {}
-      config.storage.journal.enabled ?= true
-      config.storage.engine ?= 'wiredTiger'
-      config.storage.repairPath ?= "#{config.storage.dbPath}/repair" unless config.storage.engine is 'wiredTiger'
-      throw Error 'Need WiredTiger Storage for config server as replica set' unless config.storage.engine is 'wiredTiger'
-      if config.storage.repairPath?.indexOf(config.storage.dbPath) is -1
-        throw Error 'Must use a repairpath that is a subdirectory of dbpath when using journaling' if config.storage.journal.enabled
+      options.config.storage ?= {}
+      options.config.storage.dbPath ?= "#{options.user.home}/configsrv/db"
+      options.config.storage.journal ?= {}
+      options.config.storage.journal.enabled ?= true
+      options.config.storage.engine ?= 'wiredTiger'
+      options.config.storage.repairPath ?= "#{options.config.storage.dbPath}/repair" unless options.config.storage.engine is 'wiredTiger'
+      throw Error 'Need WiredTiger Storage for config server as replica set' unless options.config.storage.engine is 'wiredTiger'
+      if options.config.storage.repairPath?.indexOf(options.config.storage.dbPath) is -1
+        throw Error 'Must use a repairpath that is a subdirectory of dbpath when using journaling' if options.config.storage.journal.enabled
 
 ## Process
 
-      config.processManagement ?= {}
-      config.processManagement.fork ?= true
-      config.processManagement.pidFilePath ?= "#{options.pid_dir}/mongod-config-server-#{service.node.fqdn}.pid"
+      options.config.processManagement ?= {}
+      options.config.processManagement.fork ?= true
+      options.config.processManagement.pidFilePath ?= "#{options.pid_dir}/mongod-config-server-#{service.node.hostname}.pid"
 
 ## Network
 
 [Configuring][mongod-ssl] ssl for the mongod process.
 
-      config.net ?= {}
-      config.net.port ?=  27017
-      config.net.bindIp ?=  '0.0.0.0'
+      options.config.net ?= {}
+      options.config.net.port ?= 27017
+      options.config.net.bindIp ?= '0.0.0.0'
 
 ## Security
 
-      # disables the apis
-      config.net.http ?=  {}
-      config.net.http.enabled ?= false
-      config.net.http.JSONPEnabled ?= false
-      config.net.http.RESTInterfaceEnabled ?= false
-      config.net.unixDomainSocket ?= {}
-      config.net.unixDomainSocket.pathPrefix ?= "#{options.pid_dir}"
-      config.security ?= {}
-      config.security.clusterAuthMode ?= 'x509'
+      # Disables the apis
+      options.config.net.http ?= {}
+      options.config.net.http.enabled ?= false
+      options.config.net.http.JSONPEnabled ?= false
+      options.config.net.http.RESTInterfaceEnabled ?= false
+      options.config.net.unixDomainSocket ?= {}
+      options.config.net.unixDomainSocket.pathPrefix ?= "#{options.pid_dir}"
+      options.config.security ?= {}
+      options.config.security.clusterAuthMode ?= 'x509'
 
 ## SSL
 
@@ -113,20 +111,20 @@ The replica set config servers must run the WiredTiger storage engine
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
         throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
-      switch config.security.clusterAuthMode
+      switch options.config.security.clusterAuthMode
         when 'x509'
           throw Error 'can not use x509' unless options.ssl.enabled
-          config.net.ssl ?= {}
-          config.net.ssl.mode ?= 'preferSSL'
-          config.net.ssl.PEMKeyFile ?= "#{options.conf_dir}/key.pem"
-          config.net.ssl.PEMKeyPassword ?= "mongodb123"
+          options.config.net.ssl ?= {}
+          options.config.net.ssl.mode ?= 'preferSSL'
+          options.config.net.ssl.PEMKeyFile ?= "#{options.conf_dir}/key.pem"
+          options.config.net.ssl.PEMKeyPassword ?= "mongodb123"
           # use PEMkeyfile by default for membership authentication
-          # config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
-          # config.net.ssl.clusterPassword ?= "mongodb123"
-          config.net.ssl.CAFile ?=  "#{options.conf_dir}/cacert.pem"
-          config.net.ssl.allowConnectionsWithoutCertificates ?= false
-          config.net.ssl.allowInvalidCertificates ?= false
-          config.net.ssl.allowInvalidHostnames ?= false
+          # options.config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
+          # options.config.net.ssl.clusterPassword ?= "mongodb123"
+          options.config.net.ssl.CAFile ?= "#{options.conf_dir}/cacert.pem"
+          options.config.net.ssl.allowConnectionsWithoutCertificates ?= false
+          options.config.net.ssl.allowInvalidCertificates ?= false
+          options.config.net.ssl.allowInvalidHostnames ?= false
         when 'keyFile'
           options.sharedsecret ?= 'sharedSecretForMongodbCluster'
         else
@@ -134,7 +132,7 @@ The replica set config servers must run the WiredTiger storage engine
 
 ## ACL's
 
-      config.security.authorization ?= 'enabled'
+      options.config.security.authorization ?= 'enabled'
 
 ## Kerberos
 Kerberos authentication is only avaiable in enterprise edition.
@@ -143,10 +141,10 @@ Kerberos authentication is only avaiable in enterprise edition.
       options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
       options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
-      config.security.sasl ?= {}
-      config.security.sasl.hostName ?= service.node.fqdn
-      config.security.sasl.serviceName ?= 'mongodb' # Can override only on enterprise edition
-      options.sasl_password  ?= 'mongodb123'
+      options.config.security.sasl ?= {}
+      options.config.security.sasl.hostName ?= service.node.fqdn
+      options.config.security.sasl.serviceName ?= 'mongodb' # Can override only on enterprise edition
+      options.sasl_password ?= 'mongodb123'
 
 ## Replicat Set Discovery
 Deploys config server as replica set. You can configure a custom layout by giving
@@ -187,7 +185,6 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
 
 ## Dependencies
 
-    path = require 'path'
     migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 

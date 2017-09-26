@@ -17,12 +17,16 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.config.net.port, protocol: 'tcp', state: 'NEW', comment: "MongoDB Config Server port" }
         ]
-        if: options.iptables.action is 'start'
+        if: options.iptables
 
 ## Identities
 
       @system.group header: 'Group', options.group
       @system.user header: 'User', options.user
+      @system.limits
+        header: 'User Limits'
+        user: options.user.name
+      , options.user.limits
 
 ## Packages
 
@@ -148,10 +152,3 @@ with pem file. So we append to the file the private key and certficate.
         header: 'Kerberos Admin'
         principal: "#{options.config.security.sasl.serviceName}"
         password: options.sasl_password
-
-# User limits
-
-      @system.limits
-        header: 'User Limits'
-        user: options.user.name
-      , options.user.limits
