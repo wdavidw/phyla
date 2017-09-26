@@ -16,7 +16,7 @@ format their data is stored — RCFile format, text files, SequenceFiles, or ORC
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
-        mapred_client: module: 'ryba/hadoop/mapred_client', local: true, required: true
+        mapred_client: module: 'ryba/hadoop/mapred_client', local: true, auto: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'

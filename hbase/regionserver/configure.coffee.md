@@ -37,12 +37,12 @@
       # Layout
       options.conf_dir ?= '/etc/hbase-regionserver/conf'
       # We could use hdfs_dn but defaultFS isnt defined
-      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
+      options.hdfs_conf_dir ?= service.use.hdfs_client.options.conf_dir
       options.log_dir ?= '/var/log/hbase'
       options.pid_dir ?= '/var/run/hbase'
       # Env & Java
       options.env ?= {}
-      options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
+      options.env['JAVA_HOME'] ?= service.use.java.options.java_home
       # http://blog.sematext.com/2012/07/16/hbase-memstore-what-you-should-know/
       # Keep hbase.regionserver.hlog.blocksize * hbase.regionserver.maxlogs just
       # Value is a bit above hbase.regionserver.global.memstore.lowerLimit * HBASE_HEAPSIZE

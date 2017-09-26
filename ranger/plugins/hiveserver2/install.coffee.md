@@ -126,7 +126,7 @@ tested.
           backup: true
           mode: 0o750
         @call
-          header: 'Enable Hive Plugin'
+          header: 'Enable'
         , (_, callback) ->
           files = ['ranger-hive-audit.xml','ranger-hive-security.xml','ranger-policymgr-ssl.xml']
           sources_props = {}

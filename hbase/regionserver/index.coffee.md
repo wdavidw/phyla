@@ -13,7 +13,7 @@ In a distributed cluster, a RegionServer runs on a DataNode.
         java: module: 'masson/commons/java', local: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
-        hdfs_client: module: 'ryba/hadoop/hdfs_client'
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn', local: true, required: true
         hbase_master: module: 'ryba/hbase/master', required: true

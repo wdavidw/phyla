@@ -10,8 +10,8 @@
 
 ## Wait
 
-      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
-      @wait once: true, 'ryba/hadoop/hdfs_nn/wait', options.wait_hdfs_nn
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
 ## IPTables
 
@@ -321,7 +321,7 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
         @java.keystore_add
           keystore: options.ssl_client['ssl.client.truststore.location']
           storepass: options.ssl_client['ssl.client.truststore.password']
-          caname: "hadoop_root_ca"
+          caname: 'hadoop_root_ca'
           cacert: options.ssl.cacert.source
           local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
@@ -336,7 +336,7 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
         @java.keystore_add
           keystore: options.ssl_server['ssl.server.keystore.location']
           storepass: options.ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
+          caname: 'hadoop_root_ca'
           cacert: options.ssl.cacert.source
           local: options.ssl.cacert.local
 

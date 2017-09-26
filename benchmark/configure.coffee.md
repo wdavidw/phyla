@@ -24,9 +24,9 @@ Example:
 
       benchmark.datanodes ?= @contexts('ryba/hadoop/hdfs_dn').map (ctx) ->
         {hdfs} = ctx.config.ryba
-        address = if hdfs.site['dfs.http.policy'] is 'HTTP_ONLY'
-        then "http://#{hdfs.site['dfs.datanode.http.address']}"
-        else "https://#{hdfs.site['dfs.datanode.https.address']}"
+        address = if hdfs.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY'
+        then "http://#{hdfs.hdfs_site['dfs.datanode.http.address']}"
+        else "https://#{hdfs.hdfs_site['dfs.datanode.https.address']}"
         "#{address.replace '0.0.0.0', ctx.config.host}/jmx"
       for datanode, i in benchmark.datanodes
         datanode = benchmark.datanodes[i] = url: datanode if typeof datanode is 'string'

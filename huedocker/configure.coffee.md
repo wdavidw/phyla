@@ -194,10 +194,10 @@ Example:
       hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir'] ?= hadoop_conf_dir
       # JobHistoryServer
       jhs_ctx = @contexts('ryba/hadoop/mapred_jhs')[0]
-      jhs_protocol = if jhs_ctx.config.ryba.mapred.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
+      jhs_protocol = if jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
       jhs_port = if jhs_protocol is 'http'
-      then jhs_ctx.config.ryba.mapred.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
-      else jhs_ctx.config.ryba.mapred.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
+      then jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
+      else jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
       hue_docker.ini['hadoop']['yarn_clusters']['default']['history_server_api_url'] ?= "#{jhs_protocol}://#{jhs_ctx.config.host}:#{jhs_port}"
 
       # Oozie
@@ -205,7 +205,7 @@ Example:
       if oozie_ctx
         hue_docker.ini['liboozie'] ?= {}
         hue_docker.ini['liboozie']['security_enabled'] ?= 'true'
-        hue_docker.ini['liboozie']['oozie_url'] ?= oozie_ctx.config.ryba.oozie.site['oozie.base.url']
+        hue_docker.ini['liboozie']['oozie_url'] ?= oozie_ctx.config.ryba.oozie.server.oozie_site['oozie.base.url']
       else
         blacklisted_app.push 'oozie'
       # WebHcat
@@ -433,9 +433,9 @@ Example:
       for oozie_ctx in oozie_ctxs
         oozie_ctx.config.ryba ?= {}
         oozie_ctx.config.ryba.oozie ?= {}
-        oozie_ctx.config.ryba.oozie.site ?= {}
-        oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        oozie_ctx.config.ryba.oozie.site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+        oozie_ctx.config.ryba.oozie.server.oozie_site ?= {}
+        oozie_ctx.config.ryba.oozie.server.oozie_site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
+        oozie_ctx.config.ryba.oozie.server.oozie_site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
       for hive_ctx in hs2_ctxs
         hive_ctx.config.ryba ?= {}
         hive_ctx.config.ryba.core_site ?= {}

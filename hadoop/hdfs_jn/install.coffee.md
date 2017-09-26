@@ -187,25 +187,24 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
         @java.keystore_add
           keystore: options.ssl_client['ssl.client.truststore.location']
           storepass: options.ssl_client['ssl.client.truststore.password']
-          caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
-          local: "#{options.ssl.cacert.local}"
+          caname: 'hadoop_root_ca'
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
           keystore: options.ssl_server['ssl.server.keystore.location']
           storepass: options.ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
-          key: "#{options.ssl.key.source}"
-          cert: "#{options.ssl.cert.source}"
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
           keypass: options.ssl_server['ssl.server.keystore.keypassword']
-          name: "#{options.ssl.key.name}"
-          local:  "#{options.ssl.key.local}"
+          name: options.ssl.key.name
+          local:  options.ssl.key.local
         @java.keystore_add
           keystore: options.ssl_server['ssl.server.keystore.location']
           storepass: options.ssl_server['ssl.server.keystore.password']
-          caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
-          local: "#{options.ssl.cacert.local}"
+          caname: 'hadoop_root_ca'
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 ## Dependencies
 

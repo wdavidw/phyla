@@ -30,8 +30,8 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
           @call 'ryba/hbase/master/check', options
         'install': ->
           options = @config.ryba.hbase.master
-          # @call 'ryba/hbase/master/install', options
-          # @call 'ryba/hbase/master/layout', options
+          @call 'ryba/hbase/master/install', options
+          @call 'ryba/hbase/master/layout', options
           @call 'ryba/hbase/master/start', options
           @call 'ryba/hbase/master/check', options
         'start': ->

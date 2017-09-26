@@ -39,7 +39,7 @@
 https://community.hortonworks.com/articles/81184/understanding-the-initial-admin-identity-access-po.html
 
       options.ssl = merge {}, service.use.ssl?[0]?.options, options.ssl
-      options.ssl.enabled = !!service.use.ssl
+      options.ssl.enabled ?= !!service.use.ssl
       options.ssl.certs = {}
       # options.ssl.truststore ?= {}
       # options.ssl.keystore ?= {}
