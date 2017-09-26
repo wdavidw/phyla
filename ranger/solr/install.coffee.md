@@ -174,8 +174,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 ## Start
 
       @service.start
-        header: 'Solr Start'
+        header: 'Start'
         name: 'solr'
+      @system.execute.assert
+        header: 'Assert'
+        cmd: "curl -k --fail  \"#{if options.solr.ssl.enabled  then 'https://'  else 'http://'}#{options.fqdn}:#{options.solr.port}/solr/admin/cores?wt=json\""
+        retry: 3
+        sleep: 3000
 
 ## Prepare ranger_audits Collection/Core
 
@@ -210,12 +215,10 @@ We manage creating the ranger_audits core/collection in the three modes.
 
 ### Solr Embedded
 
-      @wait.execute
-        cmd: "curl -k --fail  \"#{if options.solr.ssl.enabled  then 'https://'  else 'http://'}#{@config.host}:#{options.solr.port}/solr/admin/cores?wt=json\""
       @system.execute
-        header: 'Create Ranger Core (embedded)'
+        header: 'Create Ranger Core'
         unless_exec: """
-        curl -k --fail  \"#{if options.solr.ssl.enabled  then 'https://'  else 'http://'}#{@config.host}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json\" \
+        curl -k --fail  \"#{if options.solr.ssl.enabled  then 'https://'  else 'http://'}#{options.fqdn}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json\" \
         | grep '\"schema\":\"managed-schema\"'
          """
         cmd: """

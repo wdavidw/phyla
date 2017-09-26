@@ -5,13 +5,23 @@ Check if the JournalNode is running as expected.
 
     module.exports = header: 'HDFS JN Check', label_true: 'CHECKED', handler: (options) ->
 
-Wait for the JournalNodes.
+## Wait
+
+Wait for the JournalNodes to listen for RPC and HTTP connections.
 
       @connection.assert
         header: 'RPC'
         servers: options.wait.rpc.filter (server) -> server.host is options.fqdn
         retry: 3
         sleep: 3000
+
+      @connection.assert
+        header: 'HTTP'
+        servers: options.wait.http.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000
+
+## SPNEGO
 
 Test the HTTP server with a JMX request.
 

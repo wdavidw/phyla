@@ -208,23 +208,25 @@ memory that you can lock than what you have configured.
       options.wait_krb5_client = service.use.krb5_client.options.wait
       options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
       options.wait = {}
-      options.wait.ipc = for srv in service.use.hdfs_dn
-        srv.options.hdfs_site ?= {}
+      options.wait.tcp = for srv in service.use.hdfs_dn
         is_krb5 = options.core_site['hadoop.security.authentication'] is 'kerberos'
-        property = if is_krb5 then else 
-        addr = if srv.options.hdfs_site['dfs.datanode.address']?
+        addr = if srv.options.hdfs_site?['dfs.datanode.address']?
         then srv.options.hdfs_site['dfs.datanode.address']
         else unless is_krb5 then '0.0.0.0:50010' else  '0.0.0.0:1004'
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
+      options.wait.ipc = for srv in service.use.hdfs_dn
+        addr = if srv.options.hdfs_site?['dfs.datanode.ipc.address']?
+        then srv.options.hdfs_site['dfs.datanode.ipc.address']
+        else '0.0.0.0:50020'
+        [_, port] = addr.split ':'
+        host: srv.node.fqdn, port: port
       options.wait.http = for srv in service.use.hdfs_dn
-        srv.options.hdfs_site ?= {}
-        policy = srv.options.hdfs_site['dfs.http.policy']
-        if srv.options.hdfs_site['dfs.http.policy']?
+        policy = if srv.options.hdfs_site?['dfs.http.policy']?
         then srv.options.hdfs_site['dfs.http.policy']
         else options.hdfs_site['dfs.http.policy']
         protocol = if policy is 'HTTP_ONLY' then 'http' else 'https'
-        addr = if srv.options.hdfs_site["dfs.datanode.#{protocol}.address"]?
+        addr = if srv.options.hdfs_site?["dfs.datanode.#{protocol}.address"]?
         then srv.options.hdfs_site["dfs.datanode.#{protocol}.address"]
         else options.hdfs_site["dfs.datanode.#{protocol}.address"]
         [_, port] = addr.split ':'

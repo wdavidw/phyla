@@ -8,18 +8,16 @@
       @connection.assert
         header: 'HTTP'
         servers: options.wait.http.filter (server) -> server.host is options.fqdn
+        attempt: 5
+        sleep: 5000
 
 ## Assert HTTP Info Port
 
       @connection.assert
         header: 'HTTP Info'
         servers: options.wait.http_info.filter (server) -> server.host is options.fqdn
-
-## Check Shell
-
-      @system.execute
-        header: 'TCP'
-        cmd: "echo > /dev/tcp/#{options.fqdn}/#{options.hbase_site['hbase.thrift.port']}"
+        attempt: 5
+        sleep: 5000
 
 # TODO: Novembre 2015 check Thrift  server by interacting with hbase
 

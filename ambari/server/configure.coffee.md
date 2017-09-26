@@ -95,7 +95,7 @@ Hadoop group. The default group name is "hadoop".
 ## Ambari TLS and Truststore
 
       options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled = !!service.use.ssl
+      options.ssl.enabled ?= !!service.use.ssl
       options.truststore ?= {}
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert

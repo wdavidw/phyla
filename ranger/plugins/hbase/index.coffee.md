@@ -24,6 +24,6 @@
         , ->
           @call 'ryba/ranger/plugins/hbase/install', options
       commands:
-        'install': ->
-          options = @config.ryba.ranger.hbase_plugin
+        install: ->
+          options = @config.ryba.ranger.hbase
           @call 'ryba/ranger/plugins/hbase/install', options

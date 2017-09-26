@@ -10,27 +10,40 @@ DataNodes.
 
     module.exports = header: 'HDFS DN Check', label_true: 'CHECKED', handler: (options) ->
 
-## Wait for all datanode IPC Ports
+## Wait for all datanode TCP Ports
 
 Port is defined in the "dfs.datanode.address" property of hdfs-site. The default
 value is 50020.
 
       @connection.assert
+        header: 'TCP'
+        servers: options.wait.tcp
+        retry: 10
+        sleep: 5000
+
+## Wait for all datanode IPC Ports
+
+Port is defined in the "dfs.datanode.ipc.address" property of hdfs-site. The
+default value is 50020. IPC, for InterProcess Communication, is a fast and easy 
+RPC mechanism. It is used as the internal procedure call mechanism for all 
+Hadoop and Nutch.
+
+      @connection.assert
         header: 'IPC'
         servers: options.wait.ipc
-        retry: 6
+        retry: 3
         sleep: 3000
 
 ## Wait for all datanode HTTP Ports
 
-Port is defined in the "dfs.datanode.https.address" property of hdfs-site. The default
+Port is defined in the "dfs.datanode.{http|https}.address" property of hdfs-site. The default
 value is 50475.
 
       @connection.assert
         header: 'HTTP'
         label_true: 'READY'
         servers: options.wait.http
-        retry: 6
+        retry: 3
         sleep: 3000
 
 ## Check Disk Capacity

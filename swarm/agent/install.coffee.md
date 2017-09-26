@@ -81,6 +81,7 @@ on the local engine daemon (before configuring swarm).
           net: if swarm.host_mode then 'host' else null
 
 ## Configure Environment
+
 Write file in profile.d to be able to communicate with swarm master. 
 - DOCKER_HOST: used to designated the docker daemon to communicate with.
 - DOCKER_CERT_PATH: used when TLS is enabled

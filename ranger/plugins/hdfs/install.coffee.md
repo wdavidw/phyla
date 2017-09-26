@@ -89,9 +89,7 @@ The JAAS configuration can be donne with a jaas file and the Namenonde Env prope
 auth.to.login.conf or can be set by properties in ranger-hdfs-audit.xml file.
 Not documented be taken from [github-source][plugin-source]
 
-      @call
-        header: 'HDFS Plugin'
-      , (_, callback) ->
+      @call (_, callback) ->
         files = ['ranger-hdfs-audit.xml','ranger-hdfs-security.xml','ranger-policymgr-ssl.xml', 'hdfs-site.xml']
         sources_props = {}
         current_props = {}
@@ -150,10 +148,7 @@ Not documented be taken from [github-source][plugin-source]
           shy: true
           cmd: """
           export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec
-          if /usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh ;
-          then exit 0 ;
-          else exit 1 ;
-          fi;
+          /usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh
           """
         @hconfigure
           header: 'Fix Conf'

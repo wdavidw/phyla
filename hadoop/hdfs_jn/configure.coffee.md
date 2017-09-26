@@ -59,8 +59,9 @@ Example:
       options.hdfs_site['dfs.journalnode.https-address'] ?= '0.0.0.0:8481'
       options.hdfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY'
       # Recommandation is to ideally have dedicated disks to optimize fsyncs operation
-      options.hdfs_site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
       options.hdfs_site['dfs.journalnode.edits.dir'] = options.hdfs_site['dfs.journalnode.edits.dir'].join ',' if Array.isArray options.hdfs_site['dfs.journalnode.edits.dir']
+      # options.hdfs_site['dfs.journalnode.edits.dir'] ?= ['/var/hdfs/edits']
+      throw Error "Required Option \"hdfs_site['dfs.journalnode.edits.dir']\": got #{JSON.stringify options.hdfs_site['dfs.journalnode.edits.dir']}" unless options.hdfs_site['dfs.journalnode.edits.dir']
 
 ## Kerberos
 
@@ -94,6 +95,14 @@ Example:
         srv.options.hdfs_site ?= {}
         srv.options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
         [_, port] = srv.options.hdfs_site['dfs.journalnode.rpc-address'].split ':'
+        host: srv.node.fqdn, port: port
+      options.wait.http = for srv in service.use.hdfs_jn
+        srv.options.hdfs_site ?= {}
+        policy = srv.options.hdfs_site['dfs.http.policy'] or options.hdfs_site['dfs.http.policy']
+        address = if policy is 'HTTP_ONLY'
+        then srv.options.hdfs_site['dfs.journalnode.http-address'] or '0.0.0.0:8480'
+        else srv.options.hdfs_site['dfs.journalnode.https-address'] or '0.0.0.0:8481'
+        [_, port] = address.split ':'
         host: srv.node.fqdn, port: port
 
 ## Dependencies

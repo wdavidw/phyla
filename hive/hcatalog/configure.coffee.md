@@ -72,6 +72,7 @@ Example:
       options.hostname = service.node.hostname
       options.clean_logs ?= false
       options.tez_enabled ?= service.use.tez
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       # HDFS
       options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
       options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user

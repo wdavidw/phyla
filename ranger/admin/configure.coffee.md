@@ -43,6 +43,7 @@ variables but also inject some function to be executed.
       # Misc
       options.clean_logs ?= false
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.fqdn ?= service.node.fqdn # Used by Solr embedded
 
 ## Kerberos
 

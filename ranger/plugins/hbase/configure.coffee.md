@@ -26,7 +26,9 @@
       options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
       options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
       options.hbase_user = service.use.hbase_master[0].options.user
+      options.hbase_group = service.use.hbase_master[0].options.group
       options.hadoop_group = service.use.hbase_master[0].options.hadoop_group
+      options.hdfs_krb5_user = service.use.hadoop_core.options.krb5_user
 
 ## Access
 

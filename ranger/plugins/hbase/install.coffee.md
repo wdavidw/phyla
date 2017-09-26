@@ -62,6 +62,7 @@ we execute this task using the rest api.
               group: options.group.name
             user: options.hbase_user.name
             group: options.hbase_user.name
+            krb5_user: options.hdfs_krb5_user
             # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
         @ranger_policy
           username: options.ranger_admin.username
@@ -78,8 +79,8 @@ we execute this task using the rest api.
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: options.user.name
-        gid: options.hadoop_group.name
+        uid: options.hbase_user.name
+        gid: options.hbase_group.name
         mode: 0o0750
 
 ## Service Repository creation
@@ -117,96 +118,100 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
         cacert: "#{options.ssl.cacert.source}"
         local: "#{options.ssl.cacert.local}"
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-hbase-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 ## Plugin Scripts 
 
-      @call ->
-        @file
-          header: 'Properties'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-hbase-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
-        @call header: 'Enable', (_, callback) ->
-          @each options.conf_dir, (opt, cb) ->
-            conf_dir = opt.key
-            files = ['ranger-hbase-audit.xml','ranger-hbase-security.xml','ranger-policymgr-ssl.xml']
-            sources_props = {}
-            current_props = {}
-            files_exists = {}
-            @system.execute
-              cmd: """
-              echo '' | keytool -list \
-                -storetype jceks \
-                -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks \
-              | egrep '.*ssltruststore|auditdbcred|sslkeystore'
-              """
-              code_skipped: 1
-            @call
-              if: -> @status -1 # do not need this if the cred.jceks file is not provisioned
-            , ->
-              @each files, (opt, cb) ->
-                file = opt.key
-                target = "#{conf_dir}/#{file}"
-                @fs.exists target, (err, exists) ->
-                  return cb err if err
-                  return cb() unless exists
-                  files_exists[file] = exists
-                  properties.read options.ssh, target, (err, props) ->
-                    return cb err if err
-                    sources_props[file] = props
-                    cb()
-            @file
-              header: 'Script Fix'
-              target: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
-              write:[
-                  match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-                  replace: "HCOMPONENT_CONF_DIR=#{conf_dir}"
-                ,
-                  match: RegExp "\\^HCOMPONENT_LIB_DIR=.*$", 'mg'
-                  replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hbase-client/lib"
-                ]
-              backup: true
-              mode: 0o750
-              shy: true
-            @system.execute
-              header: 'Enable'
-              cmd: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
-            # @system.execute
-            #   header: "Fix Plugin repository permission"
-            #   cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
-            @hconfigure
-              header: 'Security Fix'
-              target: "#{conf_dir}/ranger-hbase-security.xml"
-              merge: true
-              properties:
-                'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
+Activate the plugin.
+
+      @call header: 'Enable', ->
+        @each options.conf_dir, (opt, cb) ->
+          conf_dir = opt.key
+          files = ['ranger-hbase-audit.xml','ranger-hbase-security.xml','ranger-policymgr-ssl.xml']
+          sources_props = {}
+          current_props = {}
+          files_exists = {}
+          @system.execute
+            cmd: """
+            echo '' | keytool -list \
+              -storetype jceks \
+              -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks \
+            | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+            """
+            code_skipped: 1
+          @call
+            if: -> @status -1 # do not need this if the cred.jceks file is not provisioned
+          , ->
             @each files, (opt, cb) ->
               file = opt.key
               target = "#{conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
-                return callback err if err
-                properties.read options.ssh, target , (err, props) ->
+                return cb err if err
+                return cb() unless exists
+                files_exists[file] = exists
+                properties.read options.ssh, target, (err, props) ->
                   return cb err if err
-                  current_props["#{file}"] = props
+                  sources_props[file] = props
                   cb()
-            @call
-              header: 'Diff'
-              shy: true
-            , ->
-              for file in files
-                #do not need to go further if the file did not exist
-                return callback null, true unless sources_props["#{file}"]?
-                for prop, value of current_props["#{file}"]
-                  return callback null, true unless value is sources_props["#{file}"][prop]
-                for prop, value of sources_props["#{file}"]
-                  return callback null, true unless value is current_props["#{file}"][prop]
-                return callback null, false
+          @file
+            header: 'Script Fix'
+            target: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
+            write:[
+                match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
+                replace: "HCOMPONENT_CONF_DIR=#{conf_dir}"
+              ,
+                match: RegExp "\\^HCOMPONENT_LIB_DIR=.*$", 'mg'
+                replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hbase-client/lib"
+              ]
+            backup: true
+            mode: 0o750
+            shy: true
+          @system.execute
+            header: 'Script'
+            cmd: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
+          # @system.execute
+          #   header: "Fix Plugin repository permission"
+          #   cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
+          @hconfigure
+            header: 'Security Fix'
+            target: "#{conf_dir}/ranger-hbase-security.xml"
+            merge: true
+            properties:
+              'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
+          @each files, (opt, cb) ->
+            file = opt.key
+            target = "#{conf_dir}/#{file}"
+            @fs.exists target, (err, exists) ->
+              return cb err if err
+              properties.read options.ssh, target , (err, props) ->
+                return cb err if err
+                current_props["#{file}"] = props
+                cb()
+          @call
+            header: 'Diff'
+            shy: true
+          , ->
+            for file in files
+              #do not need to go further if the file did not exist
+              return cb null, true unless sources_props["#{file}"]?
+              for prop, value of current_props["#{file}"]
+                return cb null, true unless value is sources_props["#{file}"][prop]
+              for prop, value of sources_props["#{file}"]
+                return cb null, true unless value is current_props["#{file}"][prop]
+              return cb null, false
 
 ## Dependencies
 
