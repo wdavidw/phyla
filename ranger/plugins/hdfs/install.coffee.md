@@ -81,6 +81,21 @@ tested.
         principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
         password: options.service_repo.configs.password
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-hdfs-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 ## Plugin Scripts
 
 From HDP 2.5 (Ranger 0.6) hdfs plugin need a Client JAAS configuration file to
@@ -94,19 +109,6 @@ Not documented be taken from [github-source][plugin-source]
         sources_props = {}
         current_props = {}
         files_exists = {}
-        # wrap into call for version to be not null
-        @file
-          header: 'Configuration'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-hdfs-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
         @system.execute
           cmd: """
           echo '' | keytool -list \

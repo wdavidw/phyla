@@ -28,7 +28,7 @@
       options.hbase_user = service.use.hbase_master[0].options.user
       options.hbase_group = service.use.hbase_master[0].options.group
       options.hadoop_group = service.use.hbase_master[0].options.hadoop_group
-      options.hdfs_krb5_user = service.use.hadoop_core.options.krb5_user
+      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Access
 
@@ -125,6 +125,7 @@ make configuration effective.
       # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
       # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
       # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
+      console.log "service.use.hadoop_core.options.core_site['fs.defaultFS']", service.use.hadoop_core.options.core_site['fs.defaultFS']
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"

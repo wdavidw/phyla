@@ -30,6 +30,7 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
       options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
       options.hive_user = service.use.hive_server2.options.user
       options.hive_group = service.use.hive_server2.options.group
+      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Access
 

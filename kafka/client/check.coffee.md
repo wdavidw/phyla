@@ -73,7 +73,7 @@
                 'users': users
                 'groups': []
                 'conditions': []
-                'delegateAdmin': true
+                'delegateAdmin': false
               ]
         @wait
           time: 10000

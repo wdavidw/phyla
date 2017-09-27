@@ -47,6 +47,7 @@
               group: options.group.name
             user: options.hive_user.name
             group: options.hive_group.name
+            krb5_user: options.hdfs_krb5_user
             # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
         @ranger_policy
           username: options.ranger_admin.username
@@ -95,21 +96,24 @@ tested.
         principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
         password: options.service_repo.configs.password
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-hive-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 ## Plugin Scripts 
 
       @call ->
-        @file
-          header: 'Scripts rendering'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-hive-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
         @file
           header: 'Script Fix'
           target: "/usr/hdp/#{version}/ranger-hive-plugin/enable-hive-plugin.sh"

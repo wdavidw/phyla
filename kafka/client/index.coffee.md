@@ -13,6 +13,8 @@ log. It is fast, scalable, durable and distributed by design.
         hdf: module: 'ryba/hdf', local: true
         zookeeper_server: module: 'ryba/zookeeper/server', required: true
         kafka_broker: module: 'ryba/kafka/broker', required: true
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+        ranger_kafka: module: 'ryba/ranger/plugins/kafka'
       configure: 'ryba/kafka/client/configure'
       commands:
         install: ->
