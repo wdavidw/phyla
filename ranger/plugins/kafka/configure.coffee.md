@@ -2,16 +2,25 @@
 # Ranger Kafka Plugin Configure
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/plugins/hive', ['ryba', 'ranger', 'hive'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/ranger/plugins/kafka', ['ryba', 'ranger', 'kafka'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
         kafka_broker: key: ['ryba', 'kafka', 'broker']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         # ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
         ranger_kafka: key: ['ryba', 'ranger', 'kafka']
       @config.ryba.ranger ?= {}
       options = @config.ryba.ranger.kafka = service.options
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Environment
 
@@ -25,6 +34,7 @@
       options.kafka_user = service.use.kafka_broker.options.user
       options.kafka_group = service.use.kafka_broker.options.group
       options.hadoop_group = service.use.hadoop_core.options.hadoop_group
+      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Access
 
@@ -104,12 +114,14 @@ from Hadoop Core.
 
 ## HDFS storage
 
+
+      console.log "service.use.hadoop_core.options.core_site['fs.defaultFS']", service.use.hdfs_client.options.core_site['fs.defaultFS']
       # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
       # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
       # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.kafka_broker.options.log_dir}/audit/hdfs/spool"
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'

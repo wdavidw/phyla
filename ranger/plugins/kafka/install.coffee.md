@@ -1,7 +1,7 @@
 
 # Ranger Kafka Plugin Install
 
-    module.exports = header: 'Ranger Kafka Plugin', handler: ->
+    module.exports = header: 'Ranger Kafka Plugin', handler: (options) ->
       version= null
 
 ## Wait
@@ -12,6 +12,7 @@
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
 ## Ranger User
@@ -61,6 +62,7 @@ such as "%app-type% and %time:yyyyMMdd%".
           group: options.group.name
         user: options.kafka_user.name
         group: options.kafka_group.name
+        krb5_user: options.hdfs_krb5_user
       @system.mkdir
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
@@ -111,21 +113,24 @@ tested.
         principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
         password: options.service_repo.configs.password
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-kafka-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 # Plugin Scripts 
 
       @call ->
-        @file
-          header: 'Scripts rendering'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-kafka-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
         @file
           header: 'Script Fix'
           target: "/usr/hdp/#{version}/ranger-kafka-plugin/enable-kafka-plugin.sh"
@@ -156,8 +161,8 @@ tested.
           backup: true
           eof: true
           mode:0o0750
-          uid: options.user.name
-          gid: options.group.name
+          uid: options.kafka_user.name
+          gid: options.kafka_group.name
         @system.execute
           header: 'Script Execution'
           cmd: """

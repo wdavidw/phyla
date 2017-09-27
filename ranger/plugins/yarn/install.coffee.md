@@ -75,23 +75,26 @@ we execute this task using the rest api.
           hdfs --config #{options.conf_dir} dfs -chmod 750 /#{options.user.name}/audit/yarn
           """
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-yarn-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 ## Activation
 
       @call
         header: 'Activation'
       , ->
-        @file
-          header: 'Scripts Rendering'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-yarn-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
         @file
           header: 'Script Fix'
           target: "/usr/hdp/#{version}/ranger-yarn-plugin/enable-yarn-plugin.sh"

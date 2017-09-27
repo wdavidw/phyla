@@ -23,6 +23,7 @@
       options.knox_user = service.use.knox.options.user
       options.knox_group = service.use.knox.options.group
       options.hadoop_group = service.use.hadoop_core.options.hadoop_group
+      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Access
 

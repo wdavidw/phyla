@@ -11,6 +11,8 @@
         hdf: key: ['ryba', 'hdf']
         zookeeper_server: key: ['ryba', 'zookeeper']
         kafka_broker: key: ['ryba', 'kafka', 'broker']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_kafka: key: ['ryba', 'ranger', 'kafka']
       @config.ryba.kafka ?= {}
       options = @config.ryba.kafka.client = service.options
 
@@ -109,7 +111,7 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## Test
 
-      options.ranger_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
+      options.ranger_install = service.use.ranger_kafka[0].options.install if service.use.ranger_kafka
       options.test = merge {}, service.use.test_user.options, options.test
 
 ## Wait

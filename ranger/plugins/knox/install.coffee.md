@@ -66,6 +66,7 @@ such as "%app-type% and %time:yyyyMMdd%".
           group: options.group.name
         user: options.knox_user.name
         group: options.knox_group.name
+        krb5_user: options.hdfs_krb5_user
       # @system.mkdir
       #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
       #   uid: options.knox_user.name
@@ -80,21 +81,24 @@ such as "%app-type% and %time:yyyyMMdd%".
         gid: options.options.hadoop_group.name
         mode: 0o0750
 
+## Properties
+
+      @call -> @file
+        header: 'Properties'
+        if: -> version?
+        source: "#{__dirname}/../../resources/plugin-install.properties"
+        target: "/usr/hdp/#{version}/ranger-knox-plugin/install.properties"
+        local: true
+        eof: true
+        backup: true
+        write: for k, v of options.install
+          match: RegExp "^#{quote k}=.*$", 'mg'
+          replace: "#{k}=#{v}"
+          append: true
+
 ## Plugin Scripts 
 
       @call ->
-        @file
-          header: 'Scripts rendering'
-          if: -> version?
-          source: "#{__dirname}/../../resources/plugin-install.properties"
-          target: "/usr/hdp/#{version}/ranger-knox-plugin/install.properties"
-          local: true
-          eof: true
-          backup: true
-          write: for k, v of options.install
-            match: RegExp "^#{quote k}=.*$", 'mg'
-            replace: "#{k}=#{v}"
-            append: true
         @file
           header: 'Script Fix'
           target: "/usr/hdp/#{version}/ranger-knox-plugin/enable-knox-plugin.sh"
