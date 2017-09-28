@@ -10,7 +10,7 @@ They can be installed and configured on their own.
         krb5_client: key: ['krb5_client']
         locale: key: ['locale']
         ssl: key: ['ssl']
-        repo: key: ['ryba','mongodb','repo']
+        # repo: key: ['ryba','mongodb','repo']
         config_servers: key: ['ryba', 'mongodb', 'configsrv']
       @config.ryba ?= {}
       @config.ryba.mongodb ?= {}
@@ -52,6 +52,7 @@ They can be installed and configured on their own.
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.clean_logs ?= false
       # Setting the role of mongod process as a mongodb config server
+      options.config ?= {}
       options.config.sharding ?= {}
       options.config.sharding.clusterRole ?= 'configsvr'
 
@@ -119,7 +120,7 @@ The replica set config servers must run the WiredTiger storage engine
           options.config.net.ssl.PEMKeyFile ?= "#{options.conf_dir}/key.pem"
           options.config.net.ssl.PEMKeyPassword ?= "mongodb123"
           # use PEMkeyfile by default for membership authentication
-          # options.config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
+          # options.config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java truststore
           # options.config.net.ssl.clusterPassword ?= "mongodb123"
           options.config.net.ssl.CAFile ?= "#{options.conf_dir}/cacert.pem"
           options.config.net.ssl.allowConnectionsWithoutCertificates ?= false

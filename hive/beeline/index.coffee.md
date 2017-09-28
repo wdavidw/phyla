@@ -8,7 +8,7 @@
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hive_hcatalog: module: 'ryba/hive/hcatalog', required: true
-        hive_server2: module: 'ryba/hive/server2'
+        hive_server2: module: 'ryba/hive/server2', required: true
         spark_thrift_server: module: 'ryba/spark/thrift_server'
         ranger_admin: module: 'ryba/ranger/admin', single: true
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'

@@ -87,8 +87,8 @@ The property `zkCredentialsProvider` is named `zkCredientialsProvider`
       solr.single.ssl ?= {}
       solr.single.ssl.enabled ?= true
       solr.single.port ?= if solr.single.ssl.enabled then 9983 else 8983
-      solr.single.ssl_trustore_path ?= "#{solr.single.conf_dir}/trustore"
-      solr.single.ssl_trustore_pwd ?= 'solr123'
+      solr.single.ssl_truststore_path ?= "#{solr.single.conf_dir}/truststore"
+      solr.single.ssl_truststore_pwd ?= 'solr123'
       solr.single.ssl_keystore_path ?= "#{solr.single.conf_dir}/keystore"
       solr.single.ssl_keystore_pwd ?= 'solr123'
 
@@ -102,8 +102,8 @@ The property `zkCredentialsProvider` is named `zkCredientialsProvider`
       if solr.single.ssl.enabled
         solr.single.env['SOLR_SSL_KEY_STORE'] ?= solr.single.ssl_keystore_path
         solr.single.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.single.ssl_keystore_pwd
-        solr.single.env['SOLR_SSL_TRUST_STORE'] ?= solr.single.ssl_trustore_path
-        solr.single.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.single.ssl_trustore_pwd
+        solr.single.env['SOLR_SSL_TRUST_STORE'] ?= solr.single.ssl_truststore_path
+        solr.single.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.single.ssl_truststore_pwd
         solr.single.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
       # if ryba.security is 'kerberos'
       #   solr.single.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer'

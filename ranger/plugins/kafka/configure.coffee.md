@@ -114,8 +114,6 @@ from Hadoop Core.
 
 ## HDFS storage
 
-
-      console.log "service.use.hadoop_core.options.core_site['fs.defaultFS']", service.use.hdfs_client.options.core_site['fs.defaultFS']
       # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
       # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
       # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.kafka_broker.options.log_dir}/audit/hdfs/spool"

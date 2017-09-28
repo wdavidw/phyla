@@ -268,7 +268,7 @@ HDP has version 5.2.1 of solr, and security plugins are included from 5.3.0
         name: @config.shortname
         local: true
       @java.keystore_add
-        keystore: solr.cloud.ssl_trustore_path
+        keystore: solr.cloud.ssl_truststore_path
         storepass: solr.cloud.ssl_keystore_pwd
         caname: "hadoop_root_ca"
         cacert: "#{ssl.cacert}"

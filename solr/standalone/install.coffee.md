@@ -197,7 +197,7 @@ Create HDFS solr user and its home directory
         name: @config.shortname
         local: true
       @java.keystore_add
-        keystore: solr.single.ssl_trustore_path
+        keystore: solr.single.ssl_truststore_path
         storepass: solr.single.ssl_keystore_pwd
         caname: "hadoop_root_ca"
         cacert: "#{ssl.cacert}"

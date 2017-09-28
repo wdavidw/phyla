@@ -69,7 +69,7 @@
 * shinken: add tests for Phoenix QS, Atlas, Ranger, WebHCat
 * ambari: new standalone service
 * package: latest dependencies
-* ambari server: ssl, trustore and jaas
+* ambari server: ssl, truststore and jaas
 * hdfs: validate hostnames
 * ambari agent: dont wait for ambari server
 * ambari server: create hadoop group

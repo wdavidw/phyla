@@ -8,13 +8,12 @@ Resources:
 
 [Tips and Tricks from Altic Scale][https://www.altiscale.com/blog/tips-and-tricks-for-running-spark-on-hadoop-part-2-2/)   
 
-    module.exports = header: 'Spark Install', handler: ->
-      {ssl, ssl_server, ssl_client, spark, hadoop_group, hadoop_conf_dir, hive} = @config.ryba
-      fs_log_dir = spark.conf['spark.eventLog.dir']
+    module.exports = header: 'Spark Install', handler: (options) ->
 
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
 
 ## Identities
 
@@ -27,50 +26,49 @@ cat /etc/group | grep spark
 spark:x:494:
 ```
 
-      @system.group header: 'Group', spark.group
-      @system.user header: 'User', spark.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Spark Service Installation
 
 Install the spark and python packages.
 
-      @service
-        name: 'spark'
-      @service
-        name: 'spark-python'
+      @call header: 'Packages', ->
+        @service
+          name: 'spark'
+        @service
+          name: 'spark-python'
 
 ## HDFS Layout
 
       status = user_owner = group_owner = null
-      spark_yarn_jar = spark.conf['spark.yarn.jar']
+      spark_yarn_jar = options.conf['spark.yarn.jar']
       @system.execute
         header: 'HDFS Layout'
         cmd: mkcmd.hdfs @, """
-        hdfs dfs -mkdir -p /apps/#{spark.user.name}
-        hdfs dfs -chmod 755 /apps/#{spark.user.name}
+        hdfs dfs -mkdir -p /apps/#{options.user.name}
+        hdfs dfs -chmod 755 /apps/#{options.user.name}
         hdfs dfs -put -f /usr/hdp/current/spark-client/lib/spark-assembly-*.jar #{spark_yarn_jar}
-        hdfs dfs -chown #{spark.user.name}:#{spark.group.name} #{spark_yarn_jar}
+        hdfs dfs -chown #{options.user.name}:#{options.group.name} #{spark_yarn_jar}
         hdfs dfs -chmod 644 #{spark_yarn_jar}
-        hdfs dfs -put /usr/hdp/current/spark-client/lib/spark-examples-*.jar /apps/#{spark.user.name}/spark-examples.jar
-        hdfs dfs -chown -R #{spark.user.name}:#{spark.group.name} /apps/#{spark.user.name}
+        hdfs dfs -put /usr/hdp/current/spark-client/lib/spark-examples-*.jar /apps/#{options.user.name}/spark-examples.jar
+        hdfs dfs -chown -R #{options.user.name}:#{options.group.name} /apps/#{options.user.name}
         """
 
 ## Spark Worker events log dir
 
-      @system.execute
-        header: 'HDFS Home'
-        cmd: mkcmd.hdfs @, """
-        hdfs dfs -mkdir -p /user/#{spark.user.name}
-        hdfs dfs -chmod -R 755 /user/#{spark.user.name}
-        hdfs dfs -chown -R #{spark.user.name}:#{spark.group.name} /user/#{spark.user.name}
-        """
-      @system.execute
-        header: 'HDFS Log Directory'
-        cmd: mkcmd.hdfs @, """
-        hdfs dfs -mkdir -p #{fs_log_dir}
-        hdfs dfs -chown -R  #{spark.user.name}:#{hadoop_group.name} #{fs_log_dir}
-        hdfs dfs -chmod -R 1777 #{fs_log_dir}
-        """
+      @hdfs_mkdir
+        target: "/user/#{options.user.name}"
+        mode: 0o0755
+        user: options.user.name
+        group: options.group.name
+        krb5_user: options.hdfs_krb5_user
+      @hdfs_mkdir
+        target: options.conf['spark.eventLog.dir']
+        mode: 0o1777
+        user: options.user.name
+        group: options.group.name
+        krb5_user: options.hdfs_krb5_user
 
 ## SSL
 
@@ -82,53 +80,31 @@ SSL must be configured on each node and configured for each component involved
 in communication using the particular protocol.
 
       @call
-        header: 'JKS stores'
-        retry: 0
-        if: -> @config.ryba.spark.conf['spark.ssl.enabled'] is 'true'
+        header: 'JKS Keystore'
+        if: -> options.conf['spark.ssl.enabled'] is 'true'
       , ->
-       tmp_location = "/tmp/ryba_hdp_ssl_#{Date.now()}"
-       @file.download
-          source: ssl.cacert
-          target: "#{tmp_location}_cacert"
-          shy: true
-       @file.download
-          source: ssl.cert
-          target: "#{tmp_location}_cert"
-          shy: true
-       @file.download
-          source: ssl.key
-          target: "#{tmp_location}_key"
-          shy: true
-       # Client: import certificate to all hosts
-       @java.keystore_add
-          keystore: spark.conf['spark.ssl.trustStore']
-          storepass: spark.conf['spark.ssl.trustStorePassword']
-          caname: "hadoop_spark_ca"
-          cacert: "#{tmp_location}_cacert"
-       # Server: import certificates, private and public keys to hosts with a server
-       @java.keystore_add
-          keystore: spark.conf['spark.ssl.trustStore']
-          storepass: spark.conf['spark.ssl.trustStorePassword']
-          caname: "hadoop_spark_ca"
-          cacert: "#{tmp_location}_cacert"
-          key: "#{tmp_location}_key"
-          cert: "#{tmp_location}_cert"
-          keypass: spark.conf['spark.ssl.keyPassword']
-          name: @config.shortname
-       @java.keystore_add
-          keystore: spark.conf['spark.ssl.keyStore']
-          storepass: spark.conf['spark.ssl.keyStorePassword']
-          caname: "hadoop_spark_ca"
-          cacert: "#{tmp_location}_cacert"
-       @system.remove
-          target: "#{tmp_location}_cacert"
-          shy: true
-       @system.remove
-          target: "#{tmp_location}_cert"
-          shy: true
-       @system.remove
-          target: "#{tmp_location}_key"
-          shy: true
+        @java.keystore_add
+          header: 'SSL'
+          keystore: options.conf['spark.ssl.keyStore']
+          storepass: options.conf['spark.ssl.keyStorePassword']
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.conf['spark.ssl.keyPassword']
+          name: options.ssl.key.name
+          local: options.ssl.key.local
+        @java.keystore_add
+          keystore: options.conf['spark.ssl.keyStore']
+          storepass: options.conf['spark.ssl.keyStorePassword']
+          caname: 'hadoop_root_ca'
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+      @java.keystore_add
+        header: 'JKS Truststore'
+        keystore: options.conf['spark.ssl.trustStore']
+        storepass: options.conf['spark.ssl.trustStorePassword']
+        caname: 'hadoop_root_ca'
+        cacert: options.ssl.cacert.source
+        local: options.ssl.cacert.local
 
 ## Configuration files
 
@@ -140,39 +116,38 @@ has finished (logs are only available in yarn-cluster mode).
 
       @call header: 'Configure', ->
         hdp_current_version = null
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf'
         @system.execute
           cmd:  "hdp-select versions | tail -1"
         , (err, executed, stdout, stderr) ->
           return err if err
           hdp_current_version = stdout.trim() if executed
-          spark.conf['spark.driver.extraJavaOptions'] ?= "-Dhdp.version=#{hdp_current_version}"
-          spark.conf['spark.yarn.am.extraJavaOptions'] ?= "-Dhdp.version=#{hdp_current_version}"
+          options.conf['spark.driver.extraJavaOptions'] ?= "-Dhdp.version=#{hdp_current_version}"
+          options.conf['spark.yarn.am.extraJavaOptions'] ?= "-Dhdp.version=#{hdp_current_version}"
         @call ->
           @file
-            target: "#{spark.conf_dir}/java-opts"
+            target: "#{options.conf_dir}/java-opts"
             content: "-Dhdp.version=#{hdp_current_version}"
           @hconfigure
             header: 'Hive Site'
-            target: "#{spark.conf_dir}/hive-site.xml"
+            target: "#{options.conf_dir}/hive-site.xml"
             source: "/etc/hive/conf/hive-site.xml"
-            properties: spark.hive.site
+            properties: options.hive_site
             backup: true
           @file.render
-            target: "#{spark.conf_dir}/spark-env.sh"
+            target: "#{options.conf_dir}/spark-env.sh"
             source: "#{__dirname}/../resources/spark-env.sh.j2"
             local: true
             context: @config
             backup: true
           @file.properties
-            target: "#{spark.conf_dir}/spark-defaults.conf"
-            content: spark.conf
+            target: "#{options.conf_dir}/spark-defaults.conf"
+            content: options.conf
             merge: true
             separator: ' '
           @file
-            if: spark.conf['spark.metrics.conf']
-            target: "#{spark.conf_dir}/metrics.properties"
-            write: for k, v of spark.metrics
+            if: options.conf['spark.metrics.conf']
+            target: "#{options.conf_dir}/metrics.properties"
+            write: for k, v of options.metrics
               match: ///^#{quote k}=.*$///mg
               replace: if v is null then "" else "#{k}=#{v}"
               append: v isnt null

@@ -124,7 +124,7 @@ Update the file "server.properties" with the properties defined by the
 
 ## SSL
 
-Imports broker's CA to trustore.
+Imports broker's CA to truststore.
 
       @java.keystore_add
         header: 'SSL Client'

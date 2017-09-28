@@ -2,86 +2,129 @@
 # Apache Spark Configure
 
     module.exports = ->
-      {core_site, hadoop_conf_dir} = @config.ryba
-      nm_ctxs = @contexts 'ryba/hadoop/yarn_nm'
-      graphite_ctxs = @contexts 'ryba/graphite/carbon'
-      [ganglia_ctx] = @contexts 'ryba/ganglia/collector'
-      hcat_ctxs = @contexts 'ryba/hive/hcatalog'
-      throw Error "No HCatalog server declared" unless hcat_ctxs[0]
-      spark = @config.ryba.spark ?= {}
-      spark.conf ?= {}
-      # User
-      spark.user ?= {}
-      spark.user = name: spark.user if typeof spark.user is 'string'
-      spark.user.name ?= 'spark'
-      spark.user.system ?= true
-      spark.user.comment ?= 'Spark User'
-      spark.user.home ?= '/var/lib/spark'
-      spark.user.groups ?= 'hadoop'
+      service = migration.call @, service, 'ryba/spark/client', ['ryba', 'spark', 'client'], require('nikita/lib/misc').merge require('.').use,
+        ssl: key: ['ssl']
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_hive: key: ['ryba', 'ranger', 'hive']
+        hadoop_core: key: ['ryba']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
+        hive_server2: key: ['ryba', 'hive', 'server2']
+        ganglia_collector: key: ['ryba', 'ganglia']
+        graphite: key: ['ryba', 'graphite']
+      @config.ryba ?= {}
+      @config.ryba.spark ?= {}
+      options = @config.ryba.spark.client = service.options
+
+## Environment
+
+      # Layout
+      options.client_dir ?= '/usr/hdp/current/spark-client'
+      options.conf_dir ?= '/etc/spark/conf'
+      # Misc
+      options.hostname = service.node.hostname
+      # options.hdfs_defaultfs = service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
+
+## Test
+
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+      options.ranger_install = service.use.ranger_hive[0].options.install if service.use.ranger_hive
+      options.test = merge {}, service.use.test_user.options, options.test
+      # Hive Server2
+      options.hive_server2 = for srv in service.use.hive_server2
+        fqdn: srv.options.fqdn
+        hostname: srv.options.hostname
+        hive_site: srv.options.hive_site
+
+## Identities
+
       # Group
-      spark.group ?= {}
-      spark.group = name: spark.group if typeof spark.group is 'string'
-      spark.group.name ?= 'spark'
-      spark.group.system ?= true
-      spark.user.gid ?= spark.group.name
-      # Configuration
-      spark.conf ?= {}
-      spark.conf['spark.master'] ?= "local[*]"
+      options.group ?= {}
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group.name ?= 'spark'
+      options.group.system ?= true
+      # User
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= 'spark'
+      options.user.system ?= true
+      options.user.comment ?= 'Spark User'
+      options.user.home ?= '/var/lib/spark'
+      options.user.groups ?= 'hadoop'
+      options.user.gid ?= options.group.name
+      # HDFS Krb5 administrator
+      options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
+
+## Configuration
+
+      options.conf ?= {}
+      options.conf['spark.master'] ?= "local[*]"
       # For [Spark on YARN deployments][[secu]], configuring spark.authenticate to true
       # will automatically handle generating and distributing the shared secret.
       # Each application will use a unique shared secret. 
       # http://spark.apache.org/docs/1.6.0/configuration.html#security
-      spark.conf['spark.authenticate'] ?= "true"
-      if spark.conf['spark.authenticate']
-        spark.conf['spark.authenticate.secret'] ?= 'my-secret-key' 
-        throw Error 'spark.authenticate.secret is needed when spark.authenticate is true' unless spark.conf['spark.authenticate.secret']
+      options.conf['spark.authenticate'] ?= "true"
+      if options.conf['spark.authenticate']
+        options.conf['spark.authenticate.secret'] ?= 'my-secret-key' 
+        throw Error 'spark.authenticate.secret is needed when spark.authenticate is true' unless options.conf['spark.authenticate.secret']
       # This causes Spark applications running on this client to write their history to the directory that the history server reads.
-      spark.conf['spark.eventLog.enabled'] ?= "true"
-      spark.conf['spark.yarn.services'] ?= "org.apache.spark.deploy.yarn.history.YarnHistoryService"
+      options.conf['spark.eventLog.enabled'] ?= "true"
+      options.conf['spark.yarn.services'] ?= "org.apache.spark.deploy.yarn.history.YarnHistoryService"
       # set to only supported one http://spark.apache.org/docs/1.6.0/monitoring.html#viewing-after-the-fact
       # https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_upgrading_hdp_manually/content/upgrade-spark-23.html
-      spark.conf['spark.history.provider'] ?= 'org.apache.spark.deploy.history.FsHistoryProvider'
+      options.conf['spark.history.provider'] ?= 'org.apache.spark.deploy.history.FsHistoryProvider'
       # Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
       # Within this base directory, Spark creates a sub-directory for each application, and logs the events specific to the application in this directory.
       # Users may want to set this to a unified location like an HDFS directory so history files can be read by the history server.
-      spark.conf['spark.eventLog.dir'] ?= "#{core_site['fs.defaultFS']}/user/#{spark.user.name}/applicationHistory"
-      spark.conf['spark.history.fs.logDirectory'] ?= "#{spark.conf['spark.eventLog.dir']}"
-      spark.client_dir ?= '/usr/hdp/current/spark-client'
-      spark.conf_dir ?= '/etc/spark/conf'
-      # For now on spark 1.3, [SSL is falling][secu] even after distributing keystore
-      # and trustore on worker nodes as suggested in official documentation.
-      # Maybe we shall share and deploy public keys instead of just the cacert
-      # Disabling for now 
-      spark.conf['spark.ssl.enabled'] ?= "false"
-      spark.conf['spark.ssl.enabledAlgorithms'] ?= "MD5"
-      spark.conf['spark.ssl.keyPassword'] ?= "ryba123"
-      spark.conf['spark.ssl.keyStore'] ?= "#{spark.conf_dir}/keystore"
-      spark.conf['spark.ssl.keyStorePassword'] ?= "ryba123"
-      spark.conf['spark.ssl.protocol'] ?= "SSLv3"
-      spark.conf['spark.ssl.trustStore'] ?= "#{spark.conf_dir}/trustore"
-      spark.conf['spark.ssl.trustStorePassword'] ?= "ryba123"
-      spark.conf['spark.eventLog.overwrite'] ?= 'true'
-      spark.conf['spark.yarn.jar'] ?= "hdfs:///apps/#{spark.user.name}/spark-assembly.jar"
-      # spark.conf['spark.yarn.applicationMaster.waitTries'] = null Deprecated in favor of "spark.yarn.am.waitTime"
-      spark.conf['spark.yarn.am.waitTime'] ?= '10'
-      spark.conf['spark.yarn.containerLauncherMaxThreads'] ?= '25'
-      spark.conf['spark.yarn.driver.memoryOverhead'] ?= '384'
-      spark.conf['spark.yarn.executor.memoryOverhead'] ?= '384'
-      spark.conf['spark.yarn.max.executor.failures'] ?= '3'
-      spark.conf['spark.yarn.preserve.staging.files'] ?= 'false'
-      spark.conf['spark.yarn.queue'] ?= 'default'
-      spark.conf['spark.yarn.scheduler.heartbeat.interval-ms'] ?= '5000'
-      spark.conf['spark.yarn.services'] ?= 'org.apache.spark.deploy.yarn.history.YarnHistoryService'
-      spark.conf['spark.yarn.submit.file.replication'] ?= '3'
-      spark.dist_files ?= []
+      options.conf['spark.eventLog.dir'] ?= "#{service.use.hdfs_nn[0].options.core_site['fs.defaultFS']}/user/#{options.user.name}/applicationHistory"
+      options.conf['spark.history.fs.logDirectory'] ?= "#{options.conf['spark.eventLog.dir']}"
+      options.conf['spark.eventLog.overwrite'] ?= 'true'
+      options.conf['spark.yarn.jar'] ?= "hdfs:///apps/#{options.user.name}/spark-assembly.jar"
+      # options.conf['spark.yarn.applicationMaster.waitTries'] = null Deprecated in favor of "spark.yarn.am.waitTime"
+      options.conf['spark.yarn.am.waitTime'] ?= '10'
+      options.conf['spark.yarn.containerLauncherMaxThreads'] ?= '25'
+      options.conf['spark.yarn.driver.memoryOverhead'] ?= '384'
+      options.conf['spark.yarn.executor.memoryOverhead'] ?= '384'
+      options.conf['spark.yarn.max.executor.failures'] ?= '3'
+      options.conf['spark.yarn.preserve.staging.files'] ?= 'false'
+      options.conf['spark.yarn.queue'] ?= 'default'
+      options.conf['spark.yarn.scheduler.heartbeat.interval-ms'] ?= '5000'
+      options.conf['spark.yarn.services'] ?= 'org.apache.spark.deploy.yarn.history.YarnHistoryService'
+      options.conf['spark.yarn.submit.file.replication'] ?= '3'
+      options.dist_files ?= []
+
+## SSL
+
+For now on spark 1.3, [SSL is falling][secu] even after distributing keystore
+and truststore on worker nodes as suggested in official documentation.
+Maybe we shall share and deploy public keys instead of just the cacert
+Disabling for now 
+
+Note: 20160928, wdavidw, there was some issue where truststore and keystore
+usage was messed up, the code in install is fixed but ssl is still disable because
+I have no time to test it.
+
+      options.ssl = merge {}, service.use.ssl.options, options.ssl
+      options.conf['spark.ssl.enabled'] ?= "false" # `!!service.use.ssl`
+      options.conf['spark.ssl.enabledAlgorithms'] ?= "MD5"
+      options.conf['spark.ssl.keyPassword'] ?= service.use.ssl.options.keystore.password
+      options.conf['spark.ssl.keyStore'] ?= "#{options.conf_dir}/keystore"
+      options.conf['spark.ssl.keyStorePassword'] ?= service.use.ssl.options.keystore.password
+      options.conf['spark.ssl.protocol'] ?= "SSLv3"
+      options.conf['spark.ssl.trustStore'] ?= "#{options.conf_dir}/truststore"
+      options.conf['spark.ssl.trustStorePassword'] ?= service.use.ssl.options.truststore.password
 
 ## Client Metastore Configuration
 Spark needs hive-site.xml in order to create hive spark context. Spark is client
 towards hive/hcatalog and needs its client configuration.
 the hive-site.xml is set inside /etc/spark/conf/ dir.
 
-      spark.hive ?= {}
-      spark.hive.site ?= {}
+      options.hive_site ?= {}
       for property in [
         'hive.metastore.uris'
         'hive.security.authorization.enabled'
@@ -110,8 +153,8 @@ the hive-site.xml is set inside /etc/spark/conf/ dir.
         'hive.exec.max.created.files'
         'hive.metastore.warehouse.dir'
         # Transaction, read/write locks
-      ] then spark.hive.site[property] ?= hcat_ctxs[0].config.ryba.hive.hcatalog.hive_site[property]
-      spark.hive.site['hive.execution.engine'] ?= 'mr'
+      ] then options.hive_site[property] ?= service.use.hive_hcatalog[0].options.hive_site[property]
+      options.hive_site['hive.execution.engine'] ?= 'mr'
 
 [secu]: http://spark.apache.org/docs/latest/security.html
 
@@ -121,58 +164,54 @@ Configure the "metrics.properties" to connect Spark to a metrics collector like 
 The metrics.properties file needs to be sent to every executor, 
 and spark.metrics.conf=metrics.properties will tell all executors to load that file when initializing their respective MetricsSystems
 
-      # spark.conf['spark.metrics.conf'] ?= 'metrics.properties'
-      spark.conf_metrics ?= false
-      if spark.conf_metrics
-        spark.conf['spark.metrics.conf'] ?= "metrics.properties" # Error, spark complain it cant find if value is 'metrics.properties'
-        if spark.conf['spark.metrics.conf']?
-          spark.dist_files.push "file://#{spark.conf_dir}/metrics.properties" unless spark.dist_files.indexOf "file://#{spark.conf_dir}/metrics.properties" is -1
-        spark.metrics =
+      # options.conf['spark.metrics.conf'] ?= 'metrics.properties'
+      options.conf_metrics ?= false
+      if options.conf_metrics
+        options.conf['spark.metrics.conf'] ?= "metrics.properties" # Error, spark complain it cant find if value is 'metrics.properties'
+        if options.conf['spark.metrics.conf']?
+          options.dist_files.push "file://#{options.conf_dir}/metrics.properties" unless options.dist_files.indexOf "file://#{options.conf_dir}/metrics.properties" is -1
+        options.metrics =
           'master.source.jvm.class':'org.apache.spark.metrics.source.JvmSource'
           'worker.source.jvm.class':'org.apache.spark.metrics.source.JvmSource'
           'driver.source.jvm.class':'org.apache.spark.metrics.source.JvmSource'
           'executor.source.jvm.class':'org.apache.spark.metrics.source.JvmSource'
 
-        if graphite_ctxs.length
-          spark.metrics['*.sink.graphite.class'] = 'org.apache.spark.metrics.sink.GraphiteSink'
-          spark.metrics['*.sink.graphite.host'] = graphite_ctxs.map( (ctx) -> ctx.config.host)
-          spark.metrics['*.sink.graphite.port'] = graphite_ctxs[0].config.ryba.graphite.carbon_aggregator_port
-          spark.metrics['*.sink.graphite.prefix'] = "#{graphite_ctxs[0].config.ryba.graphite.metrics_prefix}.spark"
+        if service.use.graphite
+          options.metrics['*.sink.graphite.class'] = 'org.apache.spark.metrics.sink.GraphiteSink'
+          options.metrics['*.sink.graphite.host'] = service.use.service.use.graphite[0].nodes.map( (node) -> node.fqdn ).join ','
+          options.metrics['*.sink.graphite.port'] = graphite_ctxs[0].config.ryba.graphite[0].options.carbon_aggregator_port
+          options.metrics['*.sink.graphite.prefix'] = "#{graphite_ctxs[0].config.ryba.graphite[0].options.metrics_prefix}.spark"
 
         # TODO : metrics.MetricsSystem: Sink class org.apache.spark.metrics.sink.GangliaSink cannot be instantialized
-        if false #ctx.host_with_module 'ryba/ganglia/collector'
-          ganglia_ctx.config.ryba.ganglia
-          spark.metrics['*.sink.ganglia.class'] = 'org.apache.spark.metrics.sink.GangliaSink'
-          spark.metrics['*.sink.ganglia.host'] = graphite_ctx.map( (ctx) -> ctx.config.host)
-          spark.metrics['*.sink.ganglia.port'] = ganglia_ctx.spark_port
-      spark.conf['spark.yarn.dist.files'] ?= spark.dist_files.join(',') if spark.dist_files.length > 0
+        if service.use.ganglia_collector
+          options.metrics['*.sink.ganglia.class'] = 'org.apache.spark.metrics.sink.GangliaSink'
+          options.metrics['*.sink.ganglia.host'] = service.use.ganglia_collector[0].nodes.map( (node) -> node.fqdn ).join ','
+          options.metrics['*.sink.ganglia.port'] = service.use.ganglia_collector[0].options.spark_port
+      options.conf['spark.yarn.dist.files'] ?= options.dist_files.join(',') if options.dist_files.length > 0
 
 ## Dynamic Resource Allocation
 
 Spark mecanism to set up resources based on cluster availability
 
       #http://spark.apache.org/docs/1.6.0/job-scheduling.html#dynamic-resource-allocation
-      spark.conf['spark.dynamicAllocation.enabled'] ?= 'false' #disable by default
-      spark.conf['spark.shuffle.service.enabled'] ?= spark.conf['spark.dynamicAllocation.enabled']
-      if spark.conf['spark.dynamicAllocation.enabled'] is 'true'
-        spark.conf['spark.shuffle.service.port'] ?= '56789'
-        for nm_ctx in nm_ctxs
-          aux_services  = nm_ctx.config.ryba.yarn.site['yarn.nodemanager.aux-services'].split ','
+      options.conf['spark.dynamicAllocation.enabled'] ?= 'false' #disable by default
+      options.conf['spark.shuffle.service.enabled'] ?= options.conf['spark.dynamicAllocation.enabled']
+      if options.conf['spark.dynamicAllocation.enabled'] is 'true'
+        options.conf['spark.shuffle.service.port'] ?= '56789'
+        for srv in service.use.yarn_nm
+          aux_services  = srv.options.yarn_site['yarn.nodemanager.aux-services'].split ','
           aux_services.push 'spark_shuffle' unless 'spark_shuffle' in aux_services
-          nm_ctx.config.ryba.yarn.site['yarn.nodemanager.aux-services'] = aux_services.join ','
-          nm_ctx.config.ryba.yarn.site['yarn.nodemanager.aux-services.spark_shuffle.class'] ?= 'org.apache.spark.network.yarn.YarnShuffleService'
-          nm_ctx.config.ryba.yarn.site['spark.shuffle.service.enabled'] ?= 'true'
-          nm_ctx
-          .after
-            type: ['hconfigure']
-            target: "#{nm_ctx.config.ryba.yarn.nm.conf_dir}/yarn-site.xml"
-            handler: (options, callback) ->
-              nm_ctx
-              .iptables
-                header: 'Spark YARN Shuffle Service Port'
-                ssh: options.ssh
-                rules: [
-                  { chain: 'INPUT', jump: 'ACCEPT', dport: spark.conf['spark.shuffle.service.port'], protocol: 'tcp', state: 'NEW', comment: "Spark YARN Shuffle Service" }
-                ]
-                if: nm_ctx.config.iptables.action is 'start'
-              .then callback
+          srv.options.yarn_site['yarn.nodemanager.aux-services'] = aux_services.join ','
+          srv.options.yarn_site['yarn.nodemanager.aux-services.spark_shuffle.class'] ?= 'org.apache.spark.network.yarn.YarnShuffleService'
+          srv.options.yarn_site['spark.shuffle.service.enabled'] ?= 'true'
+          srv.options.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.conf['spark.shuffle.service.port'], protocol: 'tcp', state: 'NEW', comment: "Spark YARN Shuffle Service" }
+
+## Wait
+
+      options.wait_yarn_rm = service.use.yarn_rm[0].options.wait
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

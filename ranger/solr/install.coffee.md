@@ -165,7 +165,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           cacert: "#{options.ssl.cacert.source}"
           local: "#{options.ssl.cacert.local}"
         @java.keystore_add
-          keystore: options.solr.ssl_trustore_path
+          keystore: options.solr.ssl_truststore_path
           storepass: options.solr.ssl_keystore_pwd
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
@@ -216,17 +216,21 @@ We manage creating the ranger_audits core/collection in the three modes.
 ### Solr Embedded
 
       @system.execute
-        header: 'Create Ranger Core'
-        unless_exec: """
-        curl -k --fail  \"#{if options.solr.ssl.enabled  then 'https://'  else 'http://'}#{options.fqdn}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json\" \
-        | grep '\"schema\":\"managed-schema\"'
-         """
+        header: 'Create Core'
         cmd: """
-        #{options.solr.latest_dir}/bin/solr create_core -c ranger_audits \
-        -d  #{options.solr.user.home}/ranger_audits
+        # Check if exists
+        protocol='#{if options.solr.ssl.enabled then 'https' else 'http'}'
+        exists_url="$protocol://#{options.fqdn}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json"
+        curl -k --fail '$exists_url' | grep '"schema":"managed-schema"' || exit 3
+        # Run Ranger Script
+        #{options.solr.latest_dir}/bin/solr create_core \
+          -c ranger_audits \
+          -d #{options.solr.user.home}/ranger_audits
         """
+        code_skipped: 3
         retry: 3
         sleep: 3000
+      @call -> process.exitsts
 
 ## Dependencies
 
