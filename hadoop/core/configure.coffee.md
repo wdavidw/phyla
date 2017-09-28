@@ -96,7 +96,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
 
       # Layout
       options.conf_dir ?= '/etc/hadoop/conf'
-      options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib' # refered by oozie-env.sh
+      # options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib' # refered by oozie-env.sh, now hardcoded
       options.hdfs.log_dir ?= '/var/log/hadoop-hdfs'
       options.hdfs.pid_dir ?= '/var/run/hadoop-hdfs'
       options.hdfs.secure_dn_pid_dir ?= '/var/run/hadoop-hdfs' # /$HADOOP_SECURE_DN_USER

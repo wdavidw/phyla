@@ -166,7 +166,7 @@ the "security_enabled" property set to "true".
 
 ## SSL Client
 
-Write trustore into /etc/hue/conf folder for hue to be able to connect as a
+Write truststore into /etc/hue/conf folder for hue to be able to connect as a
 client over ssl. Then the REQUESTS_CA_BUNDLE environment variable is set to the
 path  during docker run.
 

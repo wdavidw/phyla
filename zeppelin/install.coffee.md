@@ -35,7 +35,7 @@ It's the  host' port server map from the container
 
 ## Zeppelin SSL
 
-Installs SSL certificates for Zeppelin. Creates trustore et keystore
+Installs SSL certificates for Zeppelin. Creates truststore et keystore
 SSL only required for the server
 
     # module.exports.push header: 'JKS stores', ->

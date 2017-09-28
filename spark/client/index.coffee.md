@@ -44,21 +44,29 @@ of your cluster.
 
     module.exports =
       use:
-        hdfs: 'ryba/hadoop/hdfs_client'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        hive_client: 'ryba/hive/client'
-        hive_beeline: module: 'ryba/hive/beeline'
-        oozie: 'ryba/ooozie/client'
-        graphite: 'ryba/graphite/carbon'
-        ganglia: 'ryba/ganglia/collector'
+        ssl: module: 'masson/core/ssl', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+        ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        hive_hcatalog: module: 'ryba/hive/hcatalog'
+        hive_server2: module: 'ryba/hive/server2'
+        ganglia_collector: module: 'ryba/ganglia/collector'
+        graphite: module: 'ryba/graphite/carbon'
       configure:
         'ryba/spark/client/configure'
       commands:
-        'install': [
-          'ryba/spark/client/install'
-          'ryba/spark/client/check'
-        ]
-        'check':
-          'ryba/spark/client/check'
+        'install': ->
+          options = @config.ryba.spark.client
+          @call 'ryba/spark/client/install', options
+          @call 'ryba/spark/client/check', options
+        'check': ->
+          options = @config.ryba.spark.client
+          @call 'ryba/spark/client/check', options
 
 [tips]: https://www.altiscale.com/hadoop-blog/spark-on-hadoop/

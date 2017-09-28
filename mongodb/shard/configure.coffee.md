@@ -135,7 +135,7 @@ The Mapping can be defined by the replicat_set variable available in `ryba.mongo
           config.net.ssl.PEMKeyFile ?= "#{mongodb.shard.conf_dir}/key.pem"
           config.net.ssl.PEMKeyPassword ?= "mongodb123"
           # use PEMkeyfile by default for membership authentication
-          # config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
+          # config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java truststore
           # config.net.ssl.clusterPassword ?= "mongodb123"
           config.net.ssl.CAFile ?=  "#{mongodb.shard.conf_dir}/cacert.pem"
           config.net.ssl.allowConnectionsWithoutCertificates ?= false

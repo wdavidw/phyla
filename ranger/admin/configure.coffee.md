@@ -232,7 +232,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             st_ctxs[0]
             .after
               type: ['java','keystore_add']
-              keystore: solr_ctx[0].config.ryba.solr["#{options.solr_type}"]['ssl_trustore_path']
+              keystore: solr_ctx[0].config.ryba.solr["#{options.solr_type}"]['ssl_truststore_path']
               storepass: solr_ctx[0].config.ryba.solr["#{options.solr_type}"]['ssl_keystore_pwd']
               caname: "hadoop_root_ca"
             , -> @call 'ryba/ranger/admin/solr_bootstrap'
@@ -268,8 +268,8 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             options.solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
           options.solr.ssl = merge options.solr.ssl or {}, service.use.hadoop_core.options.ssl
           options.solr.port ?= if options.solr.ssl.enabled then 9983 else 8983
-          options.solr.ssl_trustore_path ?= "#{options.solr.conf_dir}/trustore"
-          options.solr.ssl_trustore_pwd ?= 'solr123'
+          options.solr.ssl_truststore_path ?= "#{options.solr.conf_dir}/truststore"
+          options.solr.ssl_truststore_pwd ?= 'solr123'
           options.solr.ssl_keystore_path ?= "#{options.solr.conf_dir}/keystore"
           options.solr.ssl_keystore_pwd ?= 'solr123'
           options.solr.env['SOLR_JAVA_HOME'] ?= service.use.java.options.java_home
@@ -280,8 +280,8 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           if options.solr.ssl.enabled
             options.solr.env['SOLR_SSL_KEY_STORE'] ?= options.solr.ssl_keystore_path
             options.solr.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= options.solr.ssl_keystore_pwd
-            options.solr.env['SOLR_SSL_TRUST_STORE'] ?= options.solr.ssl_trustore_path
-            options.solr.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.solr.ssl_trustore_pwd
+            options.solr.env['SOLR_SSL_TRUST_STORE'] ?= options.solr.ssl_truststore_path
+            options.solr.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.solr.ssl_truststore_pwd
             options.solr.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
           options.solr.jre_home ?= service.use.java.options.jre_home
           solrs_urls = "#{if options.solr.ssl.enabled then 'https://' else 'http://'}#{service.node.fqdn}:#{options.solr.port}/solr/ranger_audits"

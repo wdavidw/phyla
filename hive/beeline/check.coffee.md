@@ -3,7 +3,7 @@
 
 This module check the Hive Server2 servers using the `beeline` command.
 
-    module.exports =  header: 'Hive Beeline Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports =  header: 'Hive Beeline Check', handler: (options) ->
 
 ## Register
 
@@ -58,8 +58,6 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
             'service': options.ranger_install['REPOSITORY_NAME']
             'isEnabled': true
             'isAuditEnabled': true
-            # 'policyType': 0
-            # 'version': 2
             'resources':
               'database':
                 'values': dbs
@@ -83,11 +81,6 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
               'conditions': []
               'delegateAdmin': false
             ]
-            # "denyPolicyItems": []
-            # "allowExceptions": []
-            # "denyExceptions": []
-            # "dataMaskPolicyItems": []
-            # "rowFilterPolicyItems": []
 
 ## Check Server2
 
@@ -102,7 +95,6 @@ directive once you enter the beeline shell.
 
       @call
         header: 'Server2 (no ZK)'
-        label_true: 'CHECKED'
       , ->
         for hive_server2 in options.hive_server2
           directory = "check-#{options.hostname}-hive_server2-#{hive_server2.hostname}"
@@ -142,10 +134,10 @@ directive once you enter the beeline shell.
 
       @call
         header: 'Server2 (with ZK)'
-        label_true: 'CHECKED'
         if: -> options.hive_server2.length > 1
       , ->
-        urls = for hive_server2 in options.hive_server2
+        urls = options.hive_server2
+        .map (hive_server2) ->
           quorum = hive_server2.hive_site['hive.zookeeper.quorum']
           namespace = hive_server2.hive_site['hive.server2.zookeeper.namespace']
           principal = hive_server2.hive_site['hive.server2.authentication.kerberos.principal']
@@ -158,6 +150,9 @@ directive once you enter the beeline shell.
             url += ";transportMode=#{hive_server2.hive_site['hive.server2.transport.mode']}"
             url += ";httpPath=#{hive_server2.hive_site['hive.server2.thrift.http.path']}"
           url
+        .sort()
+        .filter (c) ->
+          p = current; current = c; p isnt c
         for url in urls
           namespace = /zooKeeperNamespace=(.*?)(;|$)/.exec(url)[1]
           directory = "check-#{options.hostname}-hive_server2-zoo-#{namespace}"
@@ -186,7 +181,6 @@ directive once you enter the beeline shell.
       
       @call
         header: 'Spark SQL Thrift Server'
-        label_true: 'CHECKED'
         if: options.spark_thrift_server.length
       , ->
         for spark_thrift_server in options.spark_thrift_server

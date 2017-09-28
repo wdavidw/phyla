@@ -205,8 +205,8 @@ protocols.
 
 ## SSL Protocol
 
-Check Message by writing to a test topic on the SSL channel.
-Trustore location and password given to line command because if executed before producer install
+Check Message by writing to a test topic on the SSL channel. Truststore location 
+and password given to line command because if executed before producer install
 '/etc/kafka/conf/producer.properties' might be empty.
 
       @call

@@ -14,7 +14,7 @@ changes to cluster metadata.
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         ssl: module: 'masson/core/ssl', local: true
-        repo: module: 'ryba/mongodb/repo'
+        # repo: module: 'ryba/mongodb/repo'
         config_servers: module: 'ryba/mongodb/configsrv'
       configure:
         'ryba/mongodb/configsrv/configure'

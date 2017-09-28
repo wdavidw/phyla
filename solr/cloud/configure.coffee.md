@@ -137,8 +137,8 @@ The property `zkCredentialsProvider` is named `zkCredientialsProvider`
 
       solr.cloud.ssl ?= {}
       solr.cloud.ssl.enabled ?= true
-      solr.cloud.ssl_trustore_path ?= "#{solr.cloud.conf_dir}/trustore"
-      solr.cloud.ssl_trustore_pwd ?= 'solr123'
+      solr.cloud.ssl_truststore_path ?= "#{solr.cloud.conf_dir}/truststore"
+      solr.cloud.ssl_truststore_pwd ?= 'solr123'
       solr.cloud.ssl_keystore_path ?= "#{solr.cloud.conf_dir}/keystore"
       solr.cloud.ssl_keystore_pwd ?= 'solr123'
 
@@ -154,8 +154,8 @@ The property `zkCredentialsProvider` is named `zkCredientialsProvider`
       if solr.cloud.ssl.enabled
         solr.cloud.env['SOLR_SSL_KEY_STORE'] ?= solr.cloud.ssl_keystore_path
         solr.cloud.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.cloud.ssl_keystore_pwd
-        solr.cloud.env['SOLR_SSL_TRUST_STORE'] ?= solr.cloud.ssl_trustore_path
-        solr.cloud.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.cloud.ssl_trustore_pwd
+        solr.cloud.env['SOLR_SSL_TRUST_STORE'] ?= solr.cloud.ssl_truststore_path
+        solr.cloud.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.cloud.ssl_truststore_pwd
         solr.cloud.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
       if ryba.security is 'kerberos'
         solr.cloud.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer'

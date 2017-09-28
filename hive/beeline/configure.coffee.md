@@ -36,7 +36,6 @@ Example:
       options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
       options.group = merge service.use.hive_server2[0].options.group, options.group
       options.user = merge service.use.hive_server2[0].options.user, options.user
-      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
 
 ## Environment
 
@@ -74,6 +73,7 @@ Example:
 
 ## Test
 
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
       options.ranger_install = service.use.ranger_hive[0].options.install if service.use.ranger_hive
       options.test = merge {}, service.use.test_user.options, options.test
       # Hive Server2
@@ -81,6 +81,7 @@ Example:
         fqdn: srv.options.fqdn
         hostname: srv.options.hostname
         hive_site: srv.options.hive_site
+      # Spark Thrift Server
       options.spark_thrift_server = for srv in service.use.spark_thrift_server or []
         fqdn: srv.options.fqdn
         hostname: srv.options.hostname
