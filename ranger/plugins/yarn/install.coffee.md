@@ -27,12 +27,12 @@
 
 ## Layout
 
-      @system.mkdir
-        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        uid: options.yarn_user.name
-        gid: options.hadoop_group.name
-        mode: 0o0750
-        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      # @system.mkdir
+      #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+      #   uid: options.yarn_user.name
+      #   gid: options.hadoop_group.name
+      #   mode: 0o0750
+      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
         uid: options.yarn_user.name
