@@ -1,8 +1,7 @@
 
 # Druid Historical Install
 
-    module.exports = header: 'Druid Historical Install', handler: ->
-      {druid} = @config.ryba
+    module.exports = header: 'Druid Historical Install', handler: (options) ->
 
 ## IPTables
 
@@ -13,9 +12,9 @@
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: druid.historical.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Historical" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Historical" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Configuration
 
@@ -23,36 +22,36 @@
         header: 'rc.d'
         target: "/etc/init.d/druid-historical"
         source: "#{__dirname}/../resources/druid-historical.j2"
-        context: @config
+        context: options: options
         local: true
         backup: true
         mode: 0o0755
       @file.properties
         header: 'Runtime'
-        target: "/opt/druid-#{druid.version}/conf/druid/historical/runtime.properties"
-        content: druid.historical.runtime
+        target: "/opt/druid-#{options.version}/conf/druid/historical/runtime.properties"
+        content: options.runtime
         backup: true
       @file
         header: 'JVM'
-        target: "#{druid.dir}/conf/druid/historical/jvm.config"
+        target: "#{options.dir}/conf/druid/historical/jvm.config"
         write: [
           match: /^-Xms.*$/m
-          replace: "-Xms#{druid.historical.jvm.xms}"
+          replace: "-Xms#{options.jvm.xms}"
         ,
           match: /^-Xmx.*$/m
-          replace: "-Xmx#{druid.historical.jvm.xmx}"
+          replace: "-Xmx#{options.jvm.xmx}"
         ,
           match: /^-XX:MaxDirectMemorySize=.*$/m
-          replace: "-XX:MaxDirectMemorySize=#{druid.historical.jvm.max_direct_memory_size}"
+          replace: "-XX:MaxDirectMemorySize=#{options.jvm.max_direct_memory_size}"
         ,
           match: /^-Duser.timezone=.*$/m
-          replace: "-Duser.timezone=#{druid.timezone}"
+          replace: "-Duser.timezone=#{options.timezone}"
         ]
       @system.mkdir (
-        target: "#{path.resolve druid.dir, location.path}"
-        uid: "#{druid.user.name}"
-        gid: "#{druid.group.name}"
-      ) for location in JSON.parse druid.historical.runtime['druid.segmentCache.locations']
+        target: "#{path.resolve options.dir, location.path}"
+        uid: "#{options.user.name}"
+        gid: "#{options.group.name}"
+      ) for location in JSON.parse options.runtime['druid.segmentCache.locations']
 
 ## Dependencies
 

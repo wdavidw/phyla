@@ -27,6 +27,11 @@
       # Misc
       options.hostname = service.node.hostname
 
+## Kerberos
+
+      # HDFS Super User
+      options.krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
+
 ## Configuration
 
       options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}

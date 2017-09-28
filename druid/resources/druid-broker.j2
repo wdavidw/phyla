@@ -32,9 +32,9 @@
 ### END INIT INFO
 
 NAME='Tranquility'
-USER='{{ryba.druid.user.name}}'
-PID_FILE='{{ryba.druid.pid_dir}}/broker.pid'
-PWD='{{ryba.druid.dir}}'
+USER='{{options.user.name}}'
+PID_FILE='{{options.pid_dir}}/broker.pid'
+PWD='{{options.dir}}'
 CMD="sudo -u $USER sh /opt/druid/bin/broker.sh start"
 KILL_FORCE=0
 KILL_SLEEP=10

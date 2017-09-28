@@ -1,8 +1,7 @@
 
 # Druid Overlord Install
 
-    module.exports = header: 'Druid Overlord Install', handler: ->
-      {druid} = @config.ryba
+    module.exports = header: 'Druid Overlord Install', handler: (options) ->
 
 ## IPTables
 
@@ -13,9 +12,9 @@
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: druid.overlord.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Broker" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Broker" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Configuration
 
@@ -23,23 +22,23 @@
         header: 'rc.d'
         target: "/etc/init.d/druid-overlord"
         source: "#{__dirname}/../resources/druid-overlord.j2"
-        context: @config
+        context: options: options
         local: true
         backup: true
         mode: 0o0755
       @file.properties
-        target: "/opt/druid-#{druid.version}/conf/druid/overlord/runtime.properties"
-        content: druid.overlord.runtime
+        target: "/opt/druid-#{options.version}/conf/druid/overlord/runtime.properties"
+        content: options.runtime
         backup: true
       @file
-        target: "#{druid.dir}/conf/druid/overlord/jvm.config"
+        target: "#{options.dir}/conf/druid/overlord/jvm.config"
         write: [
           match: /^-Xms.*$/m
-          replace: "-Xms#{druid.overlord.jvm.xms}"
+          replace: "-Xms#{options.jvm.xms}"
         ,
           match: /^-Xmx.*$/m
-          replace: "-Xmx#{druid.overlord.jvm.xmx}"
+          replace: "-Xmx#{options.jvm.xmx}"
         ,
           match: /^-Duser.timezone=.*$/m
-          replace: "-Duser.timezone=#{druid.timezone}"
+          replace: "-Duser.timezone=#{options.timezone}"
         ]

@@ -10,12 +10,20 @@ Wait for the DataNode and NameNode.
       @call 'ryba/hadoop/hdfs_dn/wait', once: true, options.wait_hdfs_dn
       @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
-Run an HDFS command requiring a NameNode.
+## NameNode
 
-      @wait.execute
+Run an HDFS command requiring a NameNode. The NameNode will create the home
+directory for the test user, we simply wait for the creation to be made once
+the NameNode has started.
+
+      @system.execute.assert
         header: 'NameNode'
         label_true: 'CHECKED',
         cmd: mkcmd.test @, "hdfs dfs -test -d /user/#{options.test.user.name}"
+        retry: 5
+        sleep: 5000
+
+## DataNode
 
 Run an HDFS command requiring a DataNode.
 

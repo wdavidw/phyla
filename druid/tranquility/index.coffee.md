@@ -13,23 +13,28 @@ from any JVM-based program, such as Spark Streaming or a Kafka consumer.
 
 For examples and more information, please see the [Tranquility README][readme].
 
+The documentation [suggest](http://druid.io/docs/0.10.1/ingestion/stream-push.html) 
+to colocate the Transquility servers with the Druid middleManagers and historical processes.
+
 [Tranquility]: http://druid.io/docs/0.9.1.1/ingestion/stream-ingestion.html#server
 [readme]: https://github.com/druid-io/tranquility
 
     module.exports =
       use:
-        java: 'masson/commons/java'
-        hdfs_client: 'ryba/hadoop/hdfs_client'
-        druid_commons: implicit: true, module: 'ryba/druid'
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true, recommanded: true
+        druid: module: 'ryba/druid/base', local: true, auto: true, implicit: true
+        druid_tranquility: module: 'ryba/druid/tranquility'
       configure:
         'ryba/druid/tranquility/configure'
       commands:
-        'prepare':
-          'ryba/druid/tranquility/prepare'
-        'install': [
-          'ryba/druid/tranquility/install'
-          'ryba/druid/tranquility/start'
-        ]
+        'prepare': ->
+          options = @config.ryba.druid.tranquility
+          @call 'ryba/druid/tranquility/prepare', options
+        'install': ->
+          options = @config.ryba.druid.tranquility
+          @call 'ryba/druid/tranquility/install', options
+          @call 'ryba/druid/tranquility/start', options
         # 'start':
         #   'ryba/druid/tranquility/start'
         # 'status':

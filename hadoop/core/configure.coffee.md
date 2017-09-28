@@ -271,6 +271,100 @@ Configuration for proxy users
       options.core_site['hadoop.proxyuser.HTTP.hosts'] ?= '*'
       options.core_site['hadoop.proxyuser.HTTP.groups'] ?= '*'
 
+# SSL
+
+Hortonworks mentions 2 strategies to [configure SSL][hdp_ssl], the first one
+involves Self-Signed Certificate while the second one use a Certificate
+Authority.
+
+For now, only the second approach has been tested and is supported. For this, 
+you are responsible for creating your own Private Key and Certificate Authority
+(see bellow instructions) and for declaring with the 
+"hdp.private\_key\_location" and "hdp.cacert\_location" property.
+
+It is also recommendate to configure the 
+"hdp.core\_site['ssl.server.truststore.password']" and 
+"hdp.core\_site['ssl.server.keystore.password']" passwords or an error will be 
+thrown.
+
+Here's how to generate your own Private Key and Certificate Authority:
+
+```
+openssl genrsa -out hadoop.key 2048
+openssl req -x509 -new -key hadoop.key -days 300 -out hadoop.pem -subj "/C=FR/ST=IDF/L=Paris/O=Adaltas/CN=adaltas.com/emailAddress=david@adaltas.com"
+```
+
+You can see the content of the root CA certificate with the command:
+
+```
+openssl x509 -text -noout -in hadoop.pem
+```
+
+You can list the content of the keystore with the command:
+
+```
+keytool -list -v -keystore truststore
+keytool -list -v -keystore keystore -alias hadoop
+```
+
+[hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
+
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.use.ssl
+      if options.ssl.enabled
+        options.ssl_client ?= {}
+        options.ssl_server ?= {}
+        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+        throw Error "Required Option: ssl.key" if not options.ssl.key
+        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
+        # SSL for HTTPS connection and RPC Encryption
+        options.core_site['hadoop.ssl.require.client.cert'] ?= 'false'
+        options.core_site['hadoop.ssl.hostname.verifier'] ?= 'DEFAULT'
+        options.core_site['hadoop.ssl.keystores.factory.class'] ?= 'org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory'
+        options.core_site['hadoop.ssl.server.conf'] ?= 'ssl-server.xml'
+        options.core_site['hadoop.ssl.client.conf'] ?= 'ssl-client.xml'
+
+### SSL Client
+
+The "ssl_client" options store information used to write the "ssl-client.xml"
+file in the Hadoop XML configuration format. Some information are derived the 
+the truststore options exported from the SSL service and merged above:
+
+```json
+{ password: 'Truststore123-',
+  target: '/etc/security/jks/truststore.jks',
+  caname: 'ryba_root_ca' }
+```
+
+        options.ssl_client['ssl.client.truststore.password'] ?= options.ssl.truststore.password
+        throw Error "Required Option: ssl_client['ssl.client.truststore.password']" unless options.ssl_client['ssl.client.truststore.password']
+        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
+        options.ssl_client['ssl.client.truststore.type'] ?= 'jks'
+
+### SSL Server
+
+The "ssl_server" options store information used to write the "ssl-server.xml"
+file in the Hadoop XML configuration format. Some information are derived the 
+the keystore options exported from the SSL service and merged above:
+
+```json
+{ password: 'Keystore123-',
+  keypass: 'Keystore123-',
+  target: '/etc/security/jks/keystore.jks',
+  name: 'master01',
+  caname: 'ryba_root_ca' },
+```
+
+        options.ssl_server['ssl.server.keystore.password'] ?= options.ssl.keystore.password
+        throw Error "Required Option: ssl_server['ssl.server.keystore.password']" unless options.ssl_server['ssl.server.keystore.password']
+        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.conf_dir}/keystore"
+        options.ssl_server['ssl.server.keystore.type'] ?= 'jks'
+        options.ssl_server['ssl.server.keystore.keypassword'] ?= options.ssl.keystore.keypass
+        throw Error "Required Option: ssl_server['ssl.server.keystore.keypassword']" unless options.ssl_server['ssl.server.keystore.keypassword']
+        options.ssl_server['ssl.server.truststore.location'] ?= "#{options.conf_dir}/truststore"
+        options.ssl_server['ssl.server.truststore.password'] ?= options.ssl_client['ssl.client.truststore.password']
+        options.ssl_server['ssl.server.truststore.type'] ?= 'jks'
+
 ## Metrics
 
 Configuration of Hadoop metrics system. 
@@ -382,100 +476,6 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
         then if @has_service mod
         then for k in modlist
           options.hadoop_metrics.config["#{k}.sink.graphite.class"] ?= options.metrics_sinks.graphite.class
-
-# SSL
-
-Hortonworks mentions 2 strategies to [configure SSL][hdp_ssl], the first one
-involves Self-Signed Certificate while the second one use a Certificate
-Authority.
-
-For now, only the second approach has been tested and is supported. For this, 
-you are responsible for creating your own Private Key and Certificate Authority
-(see bellow instructions) and for declaring with the 
-"hdp.private\_key\_location" and "hdp.cacert\_location" property.
-
-It is also recommendate to configure the 
-"hdp.core\_site['ssl.server.truststore.password']" and 
-"hdp.core\_site['ssl.server.keystore.password']" passwords or an error will be 
-thrown.
-
-Here's how to generate your own Private Key and Certificate Authority:
-
-```
-openssl genrsa -out hadoop.key 2048
-openssl req -x509 -new -key hadoop.key -days 300 -out hadoop.pem -subj "/C=FR/ST=IDF/L=Paris/O=Adaltas/CN=adaltas.com/emailAddress=david@adaltas.com"
-```
-
-You can see the content of the root CA certificate with the command:
-
-```
-openssl x509 -text -noout -in hadoop.pem
-```
-
-You can list the content of the keystore with the command:
-
-```
-keytool -list -v -keystore truststore
-keytool -list -v -keystore keystore -alias hadoop
-```
-
-[hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
-
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
-      if options.ssl.enabled
-        options.ssl_client ?= {}
-        options.ssl_server ?= {}
-        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
-        throw Error "Required Option: ssl.key" if not options.ssl.key
-        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
-        # SSL for HTTPS connection and RPC Encryption
-        options.core_site['hadoop.ssl.require.client.cert'] ?= 'false'
-        options.core_site['hadoop.ssl.hostname.verifier'] ?= 'DEFAULT'
-        options.core_site['hadoop.ssl.keystores.factory.class'] ?= 'org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory'
-        options.core_site['hadoop.ssl.server.conf'] ?= 'ssl-server.xml'
-        options.core_site['hadoop.ssl.client.conf'] ?= 'ssl-client.xml'
-
-### SSL Client
-
-The "ssl_client" options store information used to write the "ssl-client.xml"
-file in the Hadoop XML configuration format. Some information are derived the 
-the truststore options exported from the SSL service and merged above:
-
-```json
-{ password: 'Truststore123-',
-  target: '/etc/security/jks/truststore.jks',
-  caname: 'ryba_root_ca' }
-```
-
-        options.ssl_client['ssl.client.truststore.password'] ?= options.ssl.truststore.password
-        throw Error "Required Option: ssl_client['ssl.client.truststore.password']" unless options.ssl_client['ssl.client.truststore.password']
-        options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
-        options.ssl_client['ssl.client.truststore.type'] ?= 'jks'
-
-### SSL Server
-
-The "ssl_server" options store information used to write the "ssl-server.xml"
-file in the Hadoop XML configuration format. Some information are derived the 
-the keystore options exported from the SSL service and merged above:
-
-```json
-{ password: 'Keystore123-',
-  keypass: 'Keystore123-',
-  target: '/etc/security/jks/keystore.jks',
-  name: 'master01',
-  caname: 'ryba_root_ca' },
-```
-
-        options.ssl_server['ssl.server.keystore.password'] ?= options.ssl.keystore.password
-        throw Error "Required Option: ssl_server['ssl.server.keystore.password']" unless options.ssl_server['ssl.server.keystore.password']
-        options.ssl_server['ssl.server.keystore.location'] ?= "#{options.conf_dir}/keystore"
-        options.ssl_server['ssl.server.keystore.type'] ?= 'jks'
-        options.ssl_server['ssl.server.keystore.keypassword'] ?= options.ssl.keystore.keypass
-        throw Error "Required Option: ssl_server['ssl.server.keystore.keypassword']" unless options.ssl_server['ssl.server.keystore.keypassword']
-        options.ssl_server['ssl.server.truststore.location'] ?= "#{options.conf_dir}/truststore"
-        options.ssl_server['ssl.server.truststore.password'] ?= options.ssl_client['ssl.client.truststore.password']
-        options.ssl_server['ssl.server.truststore.type'] ?= 'jks'
 
 ## Log4j
 

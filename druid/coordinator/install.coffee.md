@@ -1,8 +1,7 @@
 
 # Druid Coordinator Install
 
-    module.exports = header: 'Druid Coordinator Install', handler: ->
-      {druid} = @config.ryba
+    module.exports = header: 'Druid Coordinator Install', handler: (options) ->
 
 ## IPTables
 
@@ -13,9 +12,9 @@
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: druid.coordinator.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Coordinator" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Coordinator" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Configuration
 
@@ -23,23 +22,23 @@
         header: 'rc.d'
         target: "/etc/init.d/druid-coordinator"
         source: "#{__dirname}/../resources/druid-coordinator.j2"
-        context: @config
+        context: options: options
         local: true
         backup: true
         mode: 0o0755
       @file.properties
-        target: "/opt/druid-#{druid.version}/conf/druid/coordinator/runtime.properties"
-        content: druid.coordinator.runtime
+        target: "/opt/druid-#{options.version}/conf/druid/coordinator/runtime.properties"
+        content: options.runtime
         backup: true
       @file
-        target: "#{druid.dir}/conf/druid/coordinator/jvm.config"
+        target: "#{options.dir}/conf/druid/coordinator/jvm.config"
         write: [
           match: /^-Xms.*$/m
-          replace: "-Xms#{druid.coordinator.jvm.xms}"
+          replace: "-Xms#{options.jvm.xms}"
         ,
           match: /^-Xmx.*$/m
-          replace: "-Xmx#{druid.coordinator.jvm.xmx}"
+          replace: "-Xmx#{options.jvm.xmx}"
         ,
           match: /^-Duser.timezone=.*$/m
-          replace: "-Duser.timezone=#{druid.timezone}"
+          replace: "-Duser.timezone=#{options.timezone}"
         ]
