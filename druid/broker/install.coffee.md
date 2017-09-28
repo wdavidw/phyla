@@ -1,8 +1,7 @@
 
 # Druid Broker Install
 
-    module.exports = header: 'Druid Broker Install', handler: ->
-      {druid} = @config.ryba
+    module.exports = header: 'Druid Broker Install', handler: (options) ->
 
 ## IPTables
 
@@ -13,9 +12,9 @@
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: druid.broker.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Broker" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.runtime['druid.port'], protocol: 'tcp', state: 'NEW', comment: "Druid Broker" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Configuration
 
@@ -23,26 +22,26 @@
         header: 'rc.d'
         target: "/etc/init.d/druid-broker"
         source: "#{__dirname}/../resources/druid-broker.j2"
-        context: @config
+        context: options: options
         local: true
         backup: true
         mode: 0o0755
       @file.properties
-        target: "/opt/druid-#{druid.version}/conf/druid/broker/runtime.properties"
-        content: druid.broker.runtime
+        target: "/opt/druid-#{options.version}/conf/druid/broker/runtime.properties"
+        content: options.runtime
         backup: true
       @file
-        target: "#{druid.dir}/conf/druid/broker/jvm.config"
+        target: "#{options.dir}/conf/druid/broker/jvm.config"
         write: [
           match: /^-Xms.*$/m
-          replace: "-Xms#{druid.broker.jvm.xms}"
+          replace: "-Xms#{options.jvm.xms}"
         ,
           match: /^-Xmx.*$/m
-          replace: "-Xmx#{druid.broker.jvm.xmx}"
+          replace: "-Xmx#{options.jvm.xmx}"
         ,
           match: /^-XX:MaxDirectMemorySize=.*$/m
-          replace: "-XX:MaxDirectMemorySize=#{druid.broker.jvm.max_direct_memory_size}"
+          replace: "-XX:MaxDirectMemorySize=#{options.jvm.max_direct_memory_size}"
         ,
           match: /^-Duser.timezone=.*$/m
-          replace: "-Duser.timezone=#{druid.timezone}"
+          replace: "-Duser.timezone=#{options.timezone}"
         ]

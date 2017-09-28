@@ -10,6 +10,8 @@
       @connection.assert
         header: 'HTTP'
         servers: options.wait.http.filter (server) -> server.host is options.fqdn
+        retry: 3
+        sleep: 3000
 
 ## Check status
 

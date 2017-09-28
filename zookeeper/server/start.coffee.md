@@ -13,7 +13,7 @@ su - zookeeper -c "export ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf; expo
 
 Wait for Kerberos to be started.
 
-      @call once: true, 'masson/core/krb5_client/wait'
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
 
 Start the service.
 

@@ -229,7 +229,7 @@ Create a service principal for this NameNode. The principal is named after
 "nn/#{@config.host}@#{realm}".
 
       @krb5.addprinc options.krb5.admin,
-        header: 'Kerberos'
+        header: 'Krb5 Service'
         principal: options.hdfs_site['dfs.namenode.kerberos.principal'].replace '_HOST', options.fqdn
         keytab: options.hdfs_site['dfs.namenode.keytab.file']
         randkey: true

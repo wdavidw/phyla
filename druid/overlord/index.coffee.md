@@ -13,21 +13,31 @@ separate processes and you can run each on a different server.
 
     module.exports =
       use:
-        java: 'masson/commons/java'
-        hdfs_client: 'ryba/hadoop/hdfs_client'
-        druid_commons: implicit: true, module: 'ryba/druid'
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        java: module: 'masson/commons/java', local: true, recommanded: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        # hdfs_client: module: 'ryba/hadoop/hdfs_client'
+        # mapred_client: module: 'ryba/hadoop/mapred_client'
+        druid: module: 'ryba/druid/base', local: true, auto: true, implicit: true
+        # druid_coordinator: module: 'ryba/druid/coordinator'
+        druid_overlord: module: 'ryba/druid/overlord'
+        # druid_middlemanager: module: 'ryba/druid/middlemanager'
       configure:
         'ryba/druid/overlord/configure'
       commands:
-        'prepare':
-          'ryba/druid/prepare'
-        'install': [
-          'ryba/druid/overlord/install'
-          'ryba/druid/overlord/start'
-        ]
-        'start':
-          'ryba/druid/overlord/start'
+        'prepare': ->
+          options = @config.ryba.druid.overlord
+          @call 'ryba/druid/prepare', options
+        'install': ->
+          options = @config.ryba.druid.overlord
+          @call 'ryba/druid/overlord/install', options
+          @call 'ryba/druid/overlord/start', options
+        'start': ->
+          options = @config.ryba.druid.overlord
+          console.log options.wait_zookeeper_server
+          @call 'ryba/druid/overlord/start', options
         'status':
           'ryba/druid/overlord/status'
-        'stop':
-          'ryba/druid/overlord/stop'
+        'stop': ->
+          options = @config.ryba.druid.overlord
+          @call 'ryba/druid/overlord/stop', options

@@ -40,17 +40,20 @@ Service startup order is documented in the [cludesting page](http://druid.io/doc
 
 If you're using a firewall or some other system that only allows traffic on specific ports, allow inbound connections on the following:
 
-*   1527 (Derby on your Coordinator; not needed if you are using a separate metadata store like MySQL or PostgreSQL)
-*   2181 (ZooKeeper; not needed if you are using a separate ZooKeeper cluster)
-*   8081 (Coordinator)
-*   8082 (Broker)
-*   8083 (Historical)
-*   8084 (Standalone Realtime, if used)
-*   8088 (Router, if used)
-*   8090 (Overlord)
-*   8091, 8100–8199 (Druid Middle Manager; you may need higher than port 8199 if you have a very high druid.worker.capacity)
-*   8200 (Tranquility Server, if used)
+* 1527 (Derby on your Coordinator; not needed if you are using a separate metadata store like MySQL or PostgreSQL)
+* 2181 (ZooKeeper; not needed if you are using a separate ZooKeeper cluster)
+* 8081 (Coordinator)
+* 8082 (Broker)
+* 8083 (Historical)
+* 8084 (Standalone Realtime, if used)
+* 8088 (Router, if used)
+* 8090 (Overlord)
+* 8091, 8100–8199 (Druid Middle Manager; you may need higher than port 8199 if you have a very high druid.worker.capacity)
+* 8200 (Tranquility Server, if used)
 
-UIs:
-*   http://worker1.ryba:8090/console.html
-*   http://worker2.ryba:8081/#/datasources
+## UIs
+
+* Druid Overlord
+http://worker01.metal.ryba:8090/console.html
+* Druid MiddleManager
+http://worker02.metal.ryba:8081/#/datasources

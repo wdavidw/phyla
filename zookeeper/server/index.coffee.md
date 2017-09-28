@@ -29,9 +29,11 @@ differences.
           @call 'ryba/zookeeper/server/install', options
           @call 'ryba/zookeeper/server/start', options
           @call 'ryba/zookeeper/server/check', options
-        'start':
-          'ryba/zookeeper/server/start'
+        'start': ->
+          options = @config.ryba.zookeeper
+          @call 'ryba/zookeeper/server/start', options
         'status':
           'ryba/zookeeper/server/status'
-        'stop':
-          'ryba/zookeeper/server/stop'
+        'stop': ->
+          options = @config.ryba.zookeeper
+          @call 'ryba/zookeeper/server/stop', options
