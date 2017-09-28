@@ -8,6 +8,7 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
         hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
         hive_server2: key: ['ryba', 'hive', 'server2']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
@@ -129,7 +130,7 @@ The repository name should match the reposity name in web ui.
       # options.install['XAAUDIT.HDFS.FILE_SPOO
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'

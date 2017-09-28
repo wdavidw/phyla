@@ -6,6 +6,7 @@
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
         knox: key: ['ryba', 'knox']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
       @config.ryba.ranger ?= {}
@@ -84,11 +85,11 @@
 ## HDFS Storage
 
       # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']]}/#{options.user.name}/audit"
+      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{sservice.use.hdfs_client.options.core_site['fs.defaultFS']]}/#{options.user.name}/audit"
       # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= '/var/log/hadoop/knox/audit/hdfs/spool'
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']]}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'

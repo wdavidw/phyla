@@ -113,9 +113,9 @@ The repository name should match the reposity name in web ui.
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
 
       # AUDIT TO HDFS
-      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.yarn_rm.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
-      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
+      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.yarn_rm.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
+      # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
 
 ## Audit to database storage
 
