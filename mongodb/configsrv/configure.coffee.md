@@ -148,18 +148,12 @@ Kerberos authentication is only avaiable in enterprise edition.
       options.sasl_password ?= 'mongodb123'
 
 ## Replicat Set Discovery
-Deploys config server as replica set. You can configure a custom layout by giving
-an object containing a list of replica set name and the associated hosts.
-By default Ryba deploys only one replica set for all the config server.
 
-By default config servers replica set layout is not defined `mongodb.configsrv.replica_sets`.
-Ryba uses all the config server available to create a replica set of config server.
-Note: September 2017
-Now custom layout is mandatory, ryba does not create replicaset automatically anymore.
+Custom layout is mandatory, ryba does not create replicaset automatically anymore.
 The property `ryba.mongodb.configsrv.replicaset` contains the replicaset name whom the config server belongs to.
 Ryba will go through every ryba/mongodb/configsrv to compute the replica sets and check the layout.
 
-Ryba user must provide the replica set master by set the boolean property `ryba.mongodb.configsrv.replicaset_master`.
+Ryba user must provide the replica set master by set the boolean property `ryba.mongodb.configsrv.is_master`.
 
       throw Error 'Missing Replica Set Name ryba.mongodb.configsrv.replicaset' unless options.replicaset?
       options.replicasets = {}

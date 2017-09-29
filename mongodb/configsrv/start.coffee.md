@@ -21,7 +21,3 @@ su -l mongod -c "/usr/bin/mongod --quiet -f /etc/mongod-config-server/conf/mongo
 ```
 
       @service.start name: 'mongod-config-server'
-
-## Dependencies
-
-    path = require 'path'

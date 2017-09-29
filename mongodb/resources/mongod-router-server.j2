@@ -15,18 +15,18 @@
 
 # NOTE: if you change any OPTIONS here, you get what you pay for:
 # this script assumes all options are in the config file.
-CONFIGFILE='{{ryba.mongodb.router.conf_dir}}/mongos.conf'
+CONFIGFILE='{{options.conf_dir}}/mongos.conf'
 OPTIONS=" -f $CONFIGFILE"
 SYSCONFIG="/etc/sysconfig/mongos"
-PIDDIR={{ryba.mongodb.router.pid_dir}}
-PIDFILEPATH={{ryba.mongodb.router.config.processManagement.pidFilePath}}
+PIDDIR={{options.pid_dir}}
+PIDFILEPATH={{options.config.processManagement.pidFilePath}}
 
 #PIDFILEPATH=`awk -F'[:=]' -v IGNORECASE=1 '/^[[:blank:]]*(processManagement\.)?pidfilepath[[:blank:]]*[:=][[:blank:]]*/{print $2}' "$CONFIGFILE" | tr -d "[:blank:]\"'" | awk -F'#' '{print $1}'`
 
 mongos=/usr/bin/mongos
 
-MONGO_USER={{ryba.mongodb.user.name}}
-MONGO_GROUP={{ryba.mongodb.group.name}}
+MONGO_USER={{options.user.name}}
+MONGO_GROUP={{options.group.name}}
 
 if [ -f "$SYSCONFIG" ]; then
     . "$SYSCONFIG"

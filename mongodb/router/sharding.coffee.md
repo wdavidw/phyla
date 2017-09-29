@@ -9,29 +9,16 @@
  Once done, the Sharded Cluster will be available for the mongodb.
  available does not mean used, the db admin has to manually add a shard to a database
 
-    module.exports =  header: 'MongoDB Router Servers Shard Cluster', handler: ->
-      [mongodb_configsrv] = @contexts 'ryba/mongodb/configsrv'
-      mongodb_shards = @contexts 'ryba/mongodb/shard'
-      {mongodb} = @config.ryba
-      {router} = mongodb
-      {replica_sets} = mongodb_configsrv.config.ryba.mongodb.configsrv
-      shards = mongodb.router.my_shards_repl_sets
-      mongo_shell_exec =  "mongo admin "
-      shard_port = mongodb_shards[0].config.ryba.mongodb.shard.config.net.port
-      shard_root = mongodb_shards[0].config.ryba.mongodb.root
-      mongos_port =  router.config.net.port
+    module.exports =  header: 'MongoDB Router Servers Shard Cluster', handler: (options) ->
+      mongos_port =  options.config.net.port
 
 # Wait Shard to be available
 
 We simply wait to connect to the shards
 
-      @call header: 'Wait Sharding Server', ->
-        @call ->
-          for ctx in mongodb_shards
-            @connection.wait
-              if:  ctx.config.ryba.mongodb.shard.config.replication.replSetName in shards
-              host: ctx.config.host
-              port: ctx.config.ryba.mongodb.shard.config.net.port
+      @connection.wait
+        header: 'Wait Sharding Server'
+        servers: options.wait.shard_tcp
 
 # Add shard to the cluster
 
@@ -42,28 +29,27 @@ We must connect to each server og the replica set manually and check if it is th
 
 
       @call header: 'Add Shard Clusters ', retry: 3, ->
-        @each shards, (options, next) ->
-          shard = options.key
+        @each options.my_shards_repl_sets, (opts, next) ->
+          name = opts.key
+          shard = opts.value
           primary_host = null
-          shard_hosts = mongodb_shards.map (ctx) ->
-            if ctx.config.ryba.mongodb.shard.config.replication.replSetName is shard
-              ctx.config.host
-          shard_quorum = shard_hosts.map( (host) -> "#{host}:#{shard_port}").join(',')
+          shard_hosts = shard.hosts
+          shard_quorum = shard_hosts.map( (host) -> "#{host}:#{shard.port}").join(',')
           @call
             unless_exec: """
-             #{mongo_shell_exec} --host #{@config.host} --port #{mongos_port} \
-               -u #{shard_root.name} --password '#{shard_root.password}' \
-               --eval 'sh.status()' | grep '.*#{shard}.*#{shard}/#{shard_quorum}'
+             mongo admin --host #{options.fqdn} --port #{mongos_port} \
+               -u #{shard.root_name} --password '#{shard.root_password}' \
+               --eval 'sh.status()' | grep '.*#{name}.*#{name}/#{shard_quorum}'
             """
           , ->
-            @each shard_hosts, (options) ->
-              host = options.key
+            @each shard.hosts, (ops) ->
+              host = ops.key
               @system.execute
                 code_skipped: 1
                 cmd: """
-                #{mongo_shell_exec} --host #{host} \
-                  --port #{shard_port} -u #{shard_root.name} --password '#{shard_root.password}' \
-                  --eval 'db.isMaster().primary' | grep '#{host}:#{shard_port}' \
+                mongo admin --host #{host} \
+                  --port #{shard.port} -u #{shard.root_name} --password '#{shard.root_password}' \
+                  --eval 'db.isMaster().primary' | grep '#{host}:#{shard.port}' \
                   | grep -v 'MongoDB.*version' | grep -v 'connecting to:'
                 """
               @call if: (-> @status -1), -> primary_host = host
@@ -71,8 +57,8 @@ We must connect to each server og the replica set manually and check if it is th
               @system.execute
                 if: -> primary_host
                 cmd: """
-                #{mongo_shell_exec} --host #{@config.host} --port #{mongos_port} \
-                  -u #{shard_root.name} --password '#{shard_root.password}' \
-                  --eval 'sh.addShard(\"#{shard}/#{primary_host}:#{shard_port}\")'
+                mongo admin --host #{options.fqdn} --port #{mongos_port} \
+                  -u #{shard.root_name} --password '#{shard.root_password}' \
+                  --eval 'sh.addShard(\"#{name}/#{primary_host}:#{shard.port}\")'
                 """
           @then next

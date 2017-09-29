@@ -1,45 +1,54 @@
 
 ## Configure
 
-    module.exports = ->
-      mongodb_configsrvs = @contexts 'ryba/mongodb/configsrv'
-      throw new Error 'No mongo config server configured ' unless mongodb_configsrvs.length > 0
-      mongodb_shards = @contexts 'ryba/mongodb/shard'
-      mongodb = @config.ryba.mongodb ?= {}
-      mongodb.version ?= '3.4'
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/mongodb/router', ['ryba', 'mongodb', 'router'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        locale: key: ['locale']
+        ssl: key: ['ssl']
+        repo: key: ['ryba','mongodb','repo']
+        config_servers: key: ['ryba', 'mongodb', 'configsrv']
+        shard_servers: key: ['ryba', 'mongodb', 'shard']
+        router_servers: key: ['ryba', 'mongodb', 'router']
+      @config.ryba ?= {}
+      @config.ryba.mongodb ?= {}
+      options = @config.ryba.mongodb.router = service.options
+      options.version ?= '3.4'
 
 ## Identities
 
 By default, merge group and user from the MongoDb config server.
 
-      mongodb.group = merge mongodb_configsrvs[0].config.ryba.mongodb.group, mongodb.group
-      mongodb.user = merge mongodb_configsrvs[0].config.ryba.mongodb.user, mongodb.user
+      options.group = merge service.use.config_servers[0].options.group, options.group
+      options.user = merge service.use.config_servers[0].options.user, options.user
 
 ## Configuration
 
       # Config
-      mongodb.router ?= {}
-      mongodb.router.conf_dir ?= '/etc/mongod-router-server/conf'
-      mongodb.router.pid_dir ?= '/var/run/mongod'
-      config = mongodb.router.config ?= {}
+      options.conf_dir ?= '/etc/mongod-router-server/conf'
+      options.pid_dir ?= '/var/run/mongod'
+      # Misc
+      options.fqdn ?= service.node.fqdn
+      options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.clean_logs ?= false
+      options.config ?= {}
 
 # Replica Set Discovery and Attribution
 
 Each query router (mongos instance) is attributed to a config, and shard server replica set.
 - Config server discovery
-  If only one Replica set of config server is deployed, Ryba attributes it to every router.
-  In case severa Replica set are deployed, the user must configure each mongo with one and only one
-  config server replica set, with the property: `@config.ryba.mongo_router_for_configsrv` (string)
+  Ryba administrators should specify to which config server replicaset the router belongs.
+  a Router can only be assigned to one replicaset.
+  the property is `ryba.mongodb.router.config_replicaset`
 - Shard Config Server discovery
   Router routes Application query to the different Shard Cluster (sharding server replica set).
-  If only one Shard Cluster is deployed, Ryba attributes it to every router.
-  In case several Shard Cluster are deployed, the user must configure each mongo with at least one
-  Shard Cluster Replicat set name
+  Ryba does compute the shard cluster it reroute the query by reading configuration from shard and config
+  replica sets.
 - Notes
   Its mongos router's Job to add a shard Cluster to the mongodb cluster. So by specifying Shard cluster('s')
   to mongo router,  the router will apply the addShard Command, which will designates the
   Shard Cluster metadata to be stored on the Config server Replica Set.
-
 
 ```json
 {
@@ -55,51 +64,46 @@ Each query router (mongos instance) is attributed to a config, and shard server 
       # they need to know which shard are linked with the config server to be able to route the client
       # to the good shards
       # Config Server Replica Set Discovery
-      replSetNames = mongodb_configsrvs[0].config.ryba.mongodb.configsrv.replica_sets
-      throw Error 'No replica sets found for config servers ' unless replSetNames
-      replSetNames = Object.keys replSetNames
-      my_cfgsrv_repl_set = @config.ryba.mongo_router_for_configsrv
-      my_cfgsrv_repl_set = @config.ryba.mongo_router_for_configsrv = replSetNames[0]  if replSetNames.length == 1 and not my_cfgsrv_repl_set?
-      throw Error "No config server replica set attributed for router #{@config.host}"  unless my_cfgsrv_repl_set?
-      throw Error "Only one Replica set of config servers must be attributed to router #{@config.host}" unless typeof my_cfgsrv_repl_set is 'string'
-      throw Error "Unknown Config Server Replicat Set #{my_cfgsrv_repl_set}" unless replSetNames.indexOf my_cfgsrv_repl_set > -1
-      mongodb.router.my_cfgsrv_repl_set = my_cfgsrv_repl_set
-      # we now exactly which config server is attributed to the router
-      # building the quorum of mongodb config server belonging to the replica set attributed to router
-      cfsrv_connect = mongodb_configsrvs.filter( (ctx) ->
-        ctx.config.ryba.mongodb.configsrv.config.replication.replSetName is my_cfgsrv_repl_set
-      ).map( (ctx) ->   "#{ctx.config.host}:#{ctx.config.ryba.mongodb.configsrv.config.net.port}" ).join(',')
-      config.sharding ?= {}
+      throw Error 'missing Config Server Replica set mongodb.router.config_replicaset' unless options.config_replicaset?
+      options.my_shards_repl_sets ?= {}
+      #computing shard  replica sets
+      for srv in service.use.shard_servers
+        #shard server is attribute to config server
+        if srv.options.config_replicaset is options.config_replicaset
+          options.my_shards_repl_sets[srv.options.replicaset] ?= {}
+          options.my_shards_repl_sets[srv.options.replicaset].name ?= srv.options.replicaset
+          options.my_shards_repl_sets[srv.options.replicaset].port ?= srv.options.config.net.port
+          options.my_shards_repl_sets[srv.options.replicaset].root_name ?= srv.options.root.name
+          options.my_shards_repl_sets[srv.options.replicaset].root_password ?= srv.options.root.password
+          options.my_shards_repl_sets[srv.options.replicaset].master ?= srv.node.fqdn if srv.options.is_master
+          options.my_shards_repl_sets[srv.options.replicaset].hosts ?= []
+          options.my_shards_repl_sets[srv.options.replicaset].hosts.push srv.node.fqdn
+
+      options.config.sharding ?= {}
       #autosplit option remove since 3.4
       #https://docs.mongodb.com/manual/reference/configuration-options/#mongos-only-options
-      if (parseInt(mongodb.version[2]) < 4) and (parseInt(mongodb.version[0]) <= 3)
-        config.sharding.chunkSize ?= 64
-        config.sharding.autoSplit ?= true
+      if (parseInt(options.version[2]) < 4) and (parseInt(options.version[0]) <= 3)
+        options.config.sharding.chunkSize ?= 64
+        options.config.sharding.autoSplit ?= true
       else
-        throw Error 'option not supported' if config.sharding.autoSplit? or config.sharding.chunkSize?
-      config.sharding.configDB ?= "#{my_cfgsrv_repl_set}/#{cfsrv_connect}"
+        throw Error 'option not supported' if options.config.sharding.autoSplit? or options.config.sharding.chunkSize?
+      cfsrv_connect = service.use.config_servers.filter( (srv) ->
+        srv.options.config.replication.replSetName is options.config_replicaset
+      ).map( (srv) ->   "#{srv.node.fqdn}:#{srv.options.config.net.port}" ).join(',')
+      options.config.sharding.configDB ?= "#{options.config_replicaset}/#{cfsrv_connect}"
       # size of a chunk in MB
-
-## Shard to ConfigServer Mapping
-Get The Shard Server Replica Set to which the client request will be re-routed based
-on the Config Server Replica Set Name `ryba.mongo_router_for_configsrv`
-
-      mongodb.router.my_shards_repl_sets = []
-      for shardReplSetName, layout of mongodb_shards[0].config.ryba.mongodb.shard.replica_sets
-        mongodb.router.my_shards_repl_sets.push shardReplSetName if layout.configSrvReplSetName is my_cfgsrv_repl_set
-
 ## Logs
 
-      config.systemLog ?= {}
-      config.systemLog.destination ?= 'file'
-      config.systemLog.logAppend ?= true
-      config.systemLog.path ?= "/var/log/mongodb/mongod-router-server-#{@config.host}.log"
+      options.config.systemLog ?= {}
+      options.config.systemLog.destination ?= 'file'
+      options.config.systemLog.logAppend ?= true
+      options.config.systemLog.path ?= "/var/log/mongodb/mongod-router-server-#{@config.host}.log"
 
 ## Process
 
-      config.processManagement ?= {}
-      config.processManagement.fork ?= true
-      config.processManagement.pidFilePath ?= "#{mongodb.router.pid_dir}/mongod-router-server-#{@config.host}.pid"
+      options.config.processManagement ?= {}
+      options.config.processManagement.fork ?= true
+      options.config.processManagement.pidFilePath ?= "#{options.pid_dir}/mongod-router-server-#{@config.host}.pid"
 
 ## Network
 
@@ -107,36 +111,70 @@ on the Config Server Replica Set Name `ryba.mongo_router_for_configsrv`
 
 By changing the default port, we can allow different mongo service to run on the same host
 
-      config.net ?= {}
-      config.net.port ?=  27018
-      config.net.bindIp ?=  '0.0.0.0'
-      config.net.unixDomainSocket ?= {}
-      config.net.unixDomainSocket.pathPrefix ?= "#{mongodb.router.pid_dir}"
+      options.config.net ?= {}
+      options.config.net.port ?= 27018
+      options.config.net.bindIp ?=  '0.0.0.0'
+      options.config.net.unixDomainSocket ?= {}
+      options.config.net.unixDomainSocket.pathPrefix ?= "#{options.pid_dir}"
 
 ## Security
 
       # disables the apis
-      config.net.http ?=  {}
-      config.net.http.enabled ?= false
-      config.security ?= {}
-      config.security.clusterAuthMode ?= 'x509'
+      options.config.net.http ?=  {}
+      options.config.net.http.enabled ?= false
+      options.config.security ?= {}
+      options.config.security.clusterAuthMode ?= 'x509'
 
 ## SSL
 
-      switch config.security.clusterAuthMode
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled = !!service.use.ssl
+      if options.ssl.enabled
+        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
+        throw Error "Required Option: ssl.key" if not options.ssl.key
+        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+      switch options.config.security.clusterAuthMode
         when 'x509'
-          config.net.ssl ?= {}
-          config.net.ssl.mode ?= 'preferSSL'
-          config.net.ssl.PEMKeyFile ?= "#{mongodb.router.conf_dir}/key.pem"
-          config.net.ssl.PEMKeyPassword ?= "mongodb123"
+          options.config.net.ssl ?= {}
+          options.config.net.ssl.mode ?= 'preferSSL'
+          options.config.net.ssl.PEMKeyFile ?= "#{options.conf_dir}/key.pem"
+          options.config.net.ssl.PEMKeyPassword ?= "mongodb123"
           # use PEMkeyfile by default for membership authentication
-          # config.net.ssl.clusterFile ?= "#{mongodb.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
-          # config.net.ssl.clusterPassword ?= "mongodb123"
-          config.net.ssl.CAFile ?=  "#{mongodb.router.conf_dir}/cacert.pem"
-          config.net.ssl.allowConnectionsWithoutCertificates ?= false
-          config.net.ssl.allowInvalidCertificates ?= false
-          config.net.ssl.allowInvalidHostnames ?= false
+          # options.config.net.ssl.clusterFile ?= "#{mongodb.options.configsrv.conf_dir}/cluster.pem" # this is the mongodb version of java trustore
+          # options.config.net.ssl.clusterPassword ?= "mongodb123"
+          options.config.net.ssl.CAFile ?=  "#{options.conf_dir}/cacert.pem"
+          options.config.net.ssl.allowConnectionsWithoutCertificates ?= false
+          options.config.net.ssl.allowInvalidCertificates ?= false
+          options.config.net.ssl.allowInvalidHostnames ?= false
         when 'keyFile'
-          mongodb.sharedsecret ?= 'sharedSecretForMongodbCluster'
+          options.sharedsecret ?= 'sharedSecretForMongodbCluster'
         else
           throw Error ' unsupported cluster authentication Mode'
+
+# Wait
+
+      options.wait = {}
+      options.wait.config_tcp = 
+        (
+          host: srv.node.fqdn
+          port: srv.options.config.net.port
+        ) for srv in service.use.config_servers.filter( (srv) ->
+            srv.options.config.replication.replSetName is options.config_replicaset).filter (srv) ->
+            srv.options.is_master  
+      options.wait.shard_tcp ?= []
+      for name, replicaset in options.my_shards_repl_sets
+        for host in replicaset.hosts
+          options.wait.shard_tcp.push
+            server: host
+            port: service.use.shard_servers[0].options.config.net.port
+      options.wait.tcp = for srv in service.use.config_servers
+        host: srv.node.fqdn
+        port: options.config.net.port
+      options.wait.local =
+        host: service.node.fqdn
+        port: options.config.net.port
+
+## Dependencies
+
+    migration = require 'masson/lib/migration'
+    {merge} = require 'nikita/lib/misc'
