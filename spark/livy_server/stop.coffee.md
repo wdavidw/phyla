@@ -7,7 +7,7 @@ following command:
 service spark-livy-server start
 ```
 
-    module.exports = header: 'Spark Livy Server Stop', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Spark Livy Server Stop', handler: ->
       @service_stop
         name: 'spark-history-server'
         if_exists: '/etc/init.d/spark-livy-server'

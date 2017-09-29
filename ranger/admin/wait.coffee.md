@@ -2,7 +2,7 @@
 
 Wait for Ranger Admin Policy Manager to start.
 
-    module.exports = header: 'Ranger Admin Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'Ranger Admin Wait', handler: (options) ->
 
 ## HTTP
 

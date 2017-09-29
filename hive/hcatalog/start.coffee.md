@@ -3,7 +3,7 @@
 
 Start the Hive HCatalog server. 
 
-    module.exports =  header: 'Hive HCatalog Start', label_true: 'STARTED', handler: (options) ->
+    module.exports =  header: 'Hive HCatalog Start', handler: (options) ->
 
 ## Wait
 
@@ -29,7 +29,6 @@ su -l hive -c 'nohup hive --config /etc/hive-hcatalog/conf --service metastore >
 
       @service.start
         header: 'Start service'
-        label_true: 'STARTED'
         name: 'hive-hcatalog-server'
 
 # Module Dependencies

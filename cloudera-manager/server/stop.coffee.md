@@ -1,6 +1,6 @@
 
 # Cloudera Manager Server stop
 
-    module.exports = header: 'Cloudera Manager Server Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Cloudera Manager Server Stop', handler: ->
       @service.stop
         name: 'cloudera-scm-server'

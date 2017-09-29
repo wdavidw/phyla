@@ -101,7 +101,6 @@ Run the ActiveMQ server container
       @docker.service
         machine: @config.nikita.machine
         header: 'Run ActiveMQ Container'
-        label_true: 'RUNNED'
         docker: @config.docker
         force: -> @status(-1)
         image: "rmohr/activemq:#{activemq.version}"

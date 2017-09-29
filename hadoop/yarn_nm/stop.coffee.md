@@ -1,7 +1,7 @@
 
 # YARN NodeManager Stop
 
-    module.exports = header: 'YARN NM Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'YARN NM Stop', handler: (options) ->
 
 ## Stop Service
 
@@ -17,7 +17,6 @@ The file storing the PID is "/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid
 
       @service.stop
         header: 'YARN NM Stop'
-        label_true: 'STOPPED'
         name: 'hadoop-yarn-nodemanager'
 
 ## Stop Clean Logs

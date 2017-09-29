@@ -3,7 +3,7 @@
 
 Validating Service Connectivity, based on [Hortonworks Documentation][doc].
 
-    module.exports = header: 'Knox Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Knox Check', handler: ->
       return unless options.test_user?.name? and options.test_user?.password?
 
 ## Check WebHDFS Proxy

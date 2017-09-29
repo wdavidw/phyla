@@ -1,7 +1,7 @@
 
 # Shinken Arbiter Check
 
-    module.exports = header: 'Shinken Arbiter Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Arbiter Check', handler: ->
       options = @config.ryba.shinken.arbiter
 
 ## TCP

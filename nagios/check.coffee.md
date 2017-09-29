@@ -43,7 +43,7 @@ php /usr/lib64/nagios/plugins/check_rpcq_latency_ha.php \
 /usr/lib64/nagios/plugins/check_hue_docker_status.sh
 ```
 
-    module.exports = header: 'Nagios Check ', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Nagios Check ', handler: ->
       @system.execute
         header: 'Configuration'
         cmd: "nagios -v /etc/nagios/nagios.cfg"

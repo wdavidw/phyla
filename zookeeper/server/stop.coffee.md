@@ -11,18 +11,16 @@ su - zookeeper -c "export ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf; expo
 
 The file storing the PID is "/var/run/zookeeper/zookeeper_server.pid".
 
-    module.exports = header: 'ZooKeeper Server Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'ZooKeeper Server Stop', handler: (options) ->
 
       @service.stop
         header: 'ZooKeeper Server Stop'
-        label_true: 'STOPPED'
         name: 'zookeeper-server'
 
 ## Clean Logs
 
       @system.execute
         header: 'ZooKeeper Server Clean Logs'
-        label_true: 'CLEANED'
         if: options.clean_logs
         cmd: "rm #{options.log_dir}/*"
         code_skipped: 1

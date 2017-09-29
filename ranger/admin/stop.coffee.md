@@ -7,7 +7,7 @@ manually with the following command:
 service ranger-admin stop
 ```
 
-    module.exports = header: 'Ranger Admin Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'Ranger Admin Stop', handler: (options) ->
 
 ## Service
 

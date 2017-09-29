@@ -8,7 +8,7 @@ Execute these commands on the Ganglia server host machine.
     module.exports.push 'masson/bootstrap/nikita'
 
     # /opt/graphite/bin/carbon-cache.py stop
-    module.exports.push header: 'Graphite Carbon Stop', label_true: 'STOPPED', handler: ->
+    module.exports.push header: 'Graphite Carbon Stop', handler: ->
       @service.stop
         header: 'Start service'
         name: 'carbon-cache'

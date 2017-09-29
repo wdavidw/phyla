@@ -10,7 +10,7 @@ parameter:
 hive -hiveconf hive.root.logger=DEBUG,console
 ```
 
-    module.exports =  header: 'Hive Client Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports =  header: 'Hive Client Check', handler: (options) ->
 
 ## Wait
 
@@ -78,7 +78,7 @@ managed cluster, ACL must be set on HDFS an not on hive.
 Use the [Hive CLI][hivecli] client to execute SQL queries using the MapReduce
 engine.
 
-      @call header: 'Check HCatalog MapReduce', label_true: 'CHECKED', ->
+      @call header: 'Check HCatalog MapReduce', ->
         for hive_hcatalog in options.hive_hcatalog
           directory = "check-#{options.hostname}-hive_hcatalog_mr-#{hive_hcatalog.hostname}"
           db = "check_#{options.hostname}_hive_hcatalog_mr_#{hive_hcatalog.hostname}"
@@ -104,7 +104,7 @@ engine.
 
 Use the [Hive CLI][hivecli] client to execute SQL queries using the Tez engine.
 
-      @call header: 'Check HCatalog Tez', label_true: 'CHECKED', ->
+      @call header: 'Check HCatalog Tez', ->
         for hive_hcatalog in options.hive_hcatalog
           directory = "check-#{options.hostname}-hive_hcatalog_tez-#{hive_hcatalog.hostname}"
           db = "check_#{options.hostname}_hive_hcatalog_tez_#{hive_hcatalog.hostname}"

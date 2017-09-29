@@ -6,7 +6,7 @@ NameNodes. The DataNode doesn't wait for any NameNode to be started. Inside a
 federated cluster, the DataNode may be dependant of multiple NameNode clusters
 and some may be inactive.
 
-    module.exports = header: 'HDFS DN Start', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'HDFS DN Start', handler: (options) ->
 
 ## Wait
 

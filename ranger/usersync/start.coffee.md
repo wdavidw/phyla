@@ -8,6 +8,6 @@ manually with the following command:
 service ranger-usersync start
 ```
 
-    module.exports = header: 'Ranger Usersync Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Ranger Usersync Start', handler: ->
       @service.start
         name: 'ranger-usersync'

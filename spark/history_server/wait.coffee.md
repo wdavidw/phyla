@@ -1,7 +1,7 @@
 
 # Spark History Server Wait
 
-    module.exports = header: 'Spark History Server Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'Spark History Server Wait', handler: ->
       options = {}
       options.wait_ui = for shs_ctx in @contexts 'ryba/spark/history_server'
         host: shs_ctx.config.host

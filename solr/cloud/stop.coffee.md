@@ -1,7 +1,7 @@
 
 # Solr Stop
 
-    module.exports = header: 'Solr Cloud Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Solr Cloud Stop', handler: ->
       @system.execute
         cmd: 'service solr stop'
         code_skipped: 1

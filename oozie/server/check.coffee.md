@@ -1,7 +1,7 @@
 
 # Oozie Server Check
 
-    module.exports =  header: 'Oozie Server Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports =  header: 'Oozie Server Check', handler: (options) ->
 
 ## Assert HTTP Port
 

@@ -1,7 +1,7 @@
 
 # HBase RegionServer Check
 
-    module.exports = header: 'HBase RegionServer Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'HBase RegionServer Check', handler: (options) ->
 
 ## Assert
 
@@ -29,7 +29,6 @@ is added membership to the group hadoop to gain read access.
 
       @system.execute
         header: 'SPNEGO'
-        label_true: 'CHECKED'
         cmd: "su -l #{options.user.name} -c 'test -r #{options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab']}'"
 
 ## Check HTTP JMX
@@ -40,7 +39,6 @@ is added membership to the group hadoop to gain read access.
       url = "#{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=HBase,name=RegionServer,sub=Server"
       @system.execute
         header: 'HTTP JMX'
-        label_true: 'CHECKED'
         retry: 3
         cmd: mkcmd.test @, """
         host=`curl -s -k --negotiate -u : #{url} | grep tag.Hostname | sed 's/^.*:.*"\\(.*\\)".*$/\\1/g'`

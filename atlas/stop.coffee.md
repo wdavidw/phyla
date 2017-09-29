@@ -1,7 +1,7 @@
 
 # Altas Metadata Server Stop
 
-    module.exports = header: 'Atlas Stop', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Atlas Stop', handler: ->
 
 You can stop the service with the following commands.
 * Centos/REHL 6
@@ -20,7 +20,6 @@ You can stop the service with the following commands.
 
       @call
         header: 'Stop Clean Logs'
-        label_true: 'CLEANED'
         if: -> @config.ryba.clean_logs
       , ->
         @system.execute

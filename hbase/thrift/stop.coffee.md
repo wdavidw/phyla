@@ -11,7 +11,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
 ## Service
 
-    module.exports =  header: 'HBase Thrift Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports =  header: 'HBase Thrift Stop', handler: (options) ->
       {hbase} = @config.ryba
       @service.stop
         header: 'Service'
@@ -21,7 +21,6 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
       @call
         header: 'Clean Logs'
-        label_true: 'CLEANED'
         if: -> @config.ryba.clean_logs
       , ->
         @system.execute

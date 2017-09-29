@@ -1,5 +1,5 @@
 
 # OpenTSDB Status
 
-    module.exports = header: 'OpenTSDB Status', label_true: 'STARTED', label_false: 'STOPPED', handler: ->
+    module.exports = header: 'OpenTSDB Status', handler: ->
       @service.status name: 'opentsdb'

@@ -1,7 +1,7 @@
 
 # Shinken Broker Check
 
-    module.exports = header: 'Shinken Broker Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Broker Check', handler: ->
       options = @config.ryba.shinken.broker
 
 ## TCP

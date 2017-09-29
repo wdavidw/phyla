@@ -1,7 +1,7 @@
 
 # Nagios Stop
 
-    module.exports = header: 'Nagios Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Nagios Stop', handler: ->
 
 ## Stop
 

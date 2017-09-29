@@ -1,7 +1,7 @@
 
 # Yarn Client Check
 
-    module.exports = header: 'YARN Client Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'YARN Client Check', handler: (options) ->
 
 ## Wait
 

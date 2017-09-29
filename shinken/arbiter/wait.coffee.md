@@ -1,7 +1,7 @@
 
 # Shinken Arbiter Wait
 
-    module.exports = header: 'Shinken Arbiter Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'Shinken Arbiter Wait', handler: ->
       @connection.wait
         servers: for ctx in @contexts 'ryba/shinken/arbiter'
           host: ctx.config.host

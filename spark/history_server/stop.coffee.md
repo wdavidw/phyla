@@ -8,7 +8,7 @@ following command:
 su -l spark -c '/usr/hdp/current/spark-historyserver/sbin/stop-history-server.sh'
 ```
 
-    module.exports = header: 'Spark History Server Stop', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Spark History Server Stop', handler: ->
       {spark} = @config.ryba
       @service.stop
         name: 'spark-history-server'

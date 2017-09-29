@@ -2,7 +2,7 @@
 # Hadoop HDFS NameNode Stop
 
 
-    module.exports = header: 'HDFS NN Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'HDFS NN Stop', handler: (options) ->
 
 ## Stop Service
 
@@ -19,7 +19,6 @@ The file storing the PID is "/var/run/hadoop-hdfs/hadoop-hdfs-namenode.pid".
 
       @service.stop
         header: 'HDFS NN Stop'
-        label_true: 'STOPPED'
         name: 'hadoop-hdfs-namenode'
 
 ## Stop Clean Logs
@@ -29,7 +28,6 @@ activated.
 
       @system.execute
         header: 'Clean Logs'
-        label_true: 'CLEANED'
         cmd: "rm #{options.log_dir}/*-namenode-*"
         code_skipped: 1
         if: options.clean_logs

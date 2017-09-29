@@ -1,7 +1,7 @@
 
 # Shinken Receiver Check
 
-    module.exports = header: 'Shinken Receiver Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Receiver Check', handler: ->
       options = @config.ryba.shinken.receiver
 
 ## TCP

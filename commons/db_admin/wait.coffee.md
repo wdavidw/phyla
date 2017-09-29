@@ -1,7 +1,7 @@
 
 # DB Admin Wait
 
-    module.exports =  header: 'HBase Master Wait', label_true: 'READY', handler: (options) ->
+    module.exports =  header: 'HBase Master Wait', handler: (options) ->
 
 ## TCP Port
 

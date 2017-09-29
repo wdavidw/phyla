@@ -1,5 +1,5 @@
 
 # Schema Registry Stop
 
-    module.exports = header: 'Schema Registry Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Schema Registry Stop', handler: ->
       @service.stop name: 'registry'

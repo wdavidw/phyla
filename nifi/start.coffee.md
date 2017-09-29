@@ -1,5 +1,5 @@
 
 # NiFi Start
 
-    module.exports = header: 'NiFi Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'NiFi Start', handler: ->
       @service.start name: 'nifi'

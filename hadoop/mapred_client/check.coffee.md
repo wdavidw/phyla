@@ -1,7 +1,7 @@
 
 # MapReduce Client Check
 
-    module.exports = header: 'MapReduce Client Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'MapReduce Client Check', handler: (options) ->
 
 ## Wait
 
@@ -19,7 +19,7 @@ The distributed shell is a yarn client application which submit a command or a
 Shell script to be executed inside one or multiple YARN containers.
 
       # Note: yarn functionnality moved to mapred since it requires mapred-site with memory settings
-      @call header: 'Distributed Shell', label_true: 'CHECKED', handler: ->
+      @call header: 'Distributed Shell', handler: ->
         appname = "ryba_check_#{options.hostname}_distributed_cache_#{Date.now()}"
         scriptpath = "#{options.user.home}/check_distributed_shell.sh"
         @file

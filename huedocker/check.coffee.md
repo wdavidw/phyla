@@ -4,7 +4,7 @@
 For now the check is only checking port state, and will succeed every by waiting
 the server to start...
 
-    module.exports = header: 'Hue Docker Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Hue Docker Check', handler: ->
       {hue_docker} = @config.ryba
 
 ## Wait

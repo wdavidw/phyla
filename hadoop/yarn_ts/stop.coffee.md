@@ -11,12 +11,12 @@ su -l yarn -c "/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh -
 
 The file storing the PID is "/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid".
 
-    module.exports = header: 'YARN ATS Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'YARN ATS Stop', handler: ->
       @service.stop
         header: 'Stop service'
         name: 'hadoop-yarn-timelineserver'
 
-    # module.exports.push header: 'Clean Logs', label_true: 'CLEANED', handler: ->
+    # module.exports.push header: 'Clean Logs', handler: ->
     #   {clean_logs, yarn} = @config.ryba
     #   return unless clean_logs
     #   @system.execute

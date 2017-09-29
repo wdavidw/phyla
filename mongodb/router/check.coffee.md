@@ -1,7 +1,7 @@
 
 # MongoDB Routing Server Check
 
-    module.exports = header: 'MongoDB Router Server Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'MongoDB Router Server Check', handler: (options) ->
       
 ## Check
 

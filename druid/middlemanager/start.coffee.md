@@ -1,7 +1,7 @@
 
 # Druid MiddleManager Start
 
-    module.exports = header: 'Druid MiddleManager Start', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'Druid MiddleManager Start', handler: (options) ->
 
 ## Wait
 

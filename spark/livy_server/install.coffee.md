@@ -164,7 +164,6 @@ Write startup script to /etc/init.d/service-hue-docker
 
       @docker_service
         header: 'Livy Spark Server Run'
-        label_true: 'RUNNED'
         # force: -> @status -1
         image: "#{spark.livy.image}:#{spark.livy.build.version}"
         volume: [

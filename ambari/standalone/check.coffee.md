@@ -3,7 +3,7 @@
 
 Ambari Standalone is started with the service's syntax command.
 
-    module.exports = header: 'Ambari Standalone Check', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'Ambari Standalone Check', handler: (options) ->
 
 Wait for the Ambari Server to be ready.
 

@@ -1,7 +1,7 @@
 
 # MapReduce JobHistoryServer Wait
 
-    module.exports = header: 'MapReduce JHS Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'MapReduce JHS Wait', handler: (options) ->
 
 ## TCP
 

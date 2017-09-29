@@ -3,7 +3,7 @@
 
 Wait for the ResourceManagers RPC and HTTP ports. It supports HTTPS and HA.
 
-    module.exports = header: 'YARN RM Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'YARN RM Wait', handler: (options) ->
 
 ## TCP
 

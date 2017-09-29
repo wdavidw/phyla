@@ -1,7 +1,7 @@
 
 # Shinken Receiver Wait
 
-    module.exports = header: 'Shinken Receiver Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'Shinken Receiver Wait', handler: ->
       @connection.wait
         servers: for ctx in @contexts 'ryba/shinken/receiver'
           host: ctx.config.host

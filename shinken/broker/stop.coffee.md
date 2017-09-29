@@ -1,12 +1,12 @@
 
 # Shinken Broker Stop
 
-    module.exports = header: 'Shinken Broker Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Shinken Broker Stop', handler: ->
       @service.stop name: 'shinken-broker'
 
 ## Clean Logs
 
-      @call header: 'Clean Logs', label_true: 'CLEANED', if: @config.ryba.clean_logs, ->
+      @call header: 'Clean Logs', if: @config.ryba.clean_logs, ->
         @system.execute
           cmd: 'rm /var/log/shinken/brokerd*'
           code_skipped: 1

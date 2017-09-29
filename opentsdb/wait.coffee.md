@@ -3,7 +3,7 @@
 
 Wait for the HTTP port.
 
-    module.exports = header: 'OpenTSDB Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'OpenTSDB Wait', handler: ->
       options = {}
       options.servers =
         host: @config.host

@@ -1,7 +1,7 @@
 
 # Titan Check
 
-    module.exports = header: 'Titan Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Titan Check', handler: ->
       {force_check, hbase, titan} = @config.ryba
       {shortname} = @config
 
@@ -14,7 +14,7 @@
 Creates a configuration file. Always load this file in Gremlin REPL !
 Check the configuration file (current.properties).
 
-      @call header: 'Check Shell', label_true: 'CHECKED', ->
+      @call header: 'Check Shell', ->
         config = {}
         config[k] = v for k, v of titan.config
         config['storage.hbase.table'] = 'titan-test'

@@ -1,7 +1,7 @@
 
 # HBase Master Check
 
-    module.exports = header: 'HBase Master Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'HBase Master Check', handler: (options) ->
 
 ## Assert
 
@@ -30,7 +30,6 @@ Additionnal information may be found on the [CentOS HowTos site][corblk].
 
       @system.execute
         header: 'FSCK'
-        label_true: 'CHECKED'
         cmd: mkcmd.hdfs @, """
         hdfs fsck #{options.hbase_site['hbase.rootdir']}/WALs \
         | grep 'Status: HEALTHY'

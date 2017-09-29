@@ -10,7 +10,7 @@ ps aux | grep "rexster"
 kill ...
 ```
 
-    module.exports = header: 'Rexster Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Rexster Stop', handler: ->
       {titan, rexster} = @config.ryba
       @system.execute
         cmd: """

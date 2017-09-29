@@ -1,7 +1,7 @@
 
 # NiFi Wait
 
-    module.exports = header: 'NiFi Wait', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'NiFi Wait', handler: ->
       options = {}
       options.webui = for nifi_ctx in @contexts 'ryba/nifi'
         {nifi} = nifi_ctx.config.ryba

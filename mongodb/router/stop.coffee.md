@@ -1,7 +1,7 @@
 
 # MongoDB Routing Server Stop
 
-    module.exports = header: 'MongoDB Routing Server Stop', label_true: 'STOPPED', handler: (options)->
+    module.exports = header: 'MongoDB Routing Server Stop', handler: (options)->
 
 ## Stop
 
@@ -15,7 +15,6 @@ Stop the MongoDB Routing Server service.
 
       @call ->
         header: 'Clean Logs'
-        label_true: 'CLEANED'
         if: options.clean_logs
       , ->
         @system.execute

@@ -1,7 +1,7 @@
 
 # Druid Broker Start
 
-    module.exports = header: 'Druid Broker Start', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'Druid Broker Start', handler: (options) ->
 
 ## Wait
 

@@ -1,7 +1,7 @@
 
 # Phoenix QueryServer Check
 
-    module.exports = header: 'Phoenix QueryServer Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Phoenix QueryServer Check', handler: ->
 
 ## Wait
 

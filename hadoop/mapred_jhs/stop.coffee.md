@@ -12,6 +12,6 @@ su -l mapred -c "/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhist
 
 The file storing the PID is "/var/run/hadoop-mapreduce/mapred-mapred-historyserver.pid".
 
-    module.exports = header: 'MapReduce JHS Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'MapReduce JHS Stop', handler: ->
       @service.stop
         name: 'hadoop-mapreduce-historyserver'

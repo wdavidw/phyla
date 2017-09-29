@@ -1,7 +1,7 @@
 
 # Phoenix QueryServer Wait
 
-    module.exports = header: 'Phoenix QueryServer Wait', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Phoenix QueryServer Wait', handler: ->
       [qs_ctx] = @contexts 'ryba/phoenix/queryserver'
       options = {}
       options.http =
