@@ -3,11 +3,15 @@
 
     module.exports =
       use:
-        core_local: implicit: true, module: 'masson/core/locale'
+        locale: module: 'masson/core/locale', local: true, auto: true, implicit: true
+        repo: module: 'ryba/mongodb/repo'
+        config_servers: module: 'ryba/mongodb/configsrv'
       configure:
         'ryba/mongodb/client/configure'
       commands:
-        'install':
-          'ryba/mongodb/client/install'
-        'check':
-          'ryba/mongodb/client/check'
+        'install': ->
+          options = @config.ryba.mongodb.client
+          @call 'ryba/mongodb/client/install', options
+        'check': ->
+          options = @config.ryba.mongodb.client
+          @call 'ryba/mongodb/client/checks', options

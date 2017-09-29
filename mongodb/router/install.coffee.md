@@ -1,9 +1,7 @@
 
 # MongoDB Config Server Install
 
-    module.exports =  header: 'MongoDB Router Install', handler: ->
-      {mongodb, realm, ssl} = @config.ryba
-      {router} = mongodb
+    module.exports =  header: 'MongoDB Router Install', handler: (options) ->
 
 ## IPTables
 
@@ -16,21 +14,29 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: router.config.net.port, protocol: 'tcp', state: 'NEW', comment: "MongoDB Router Server port" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.config.net.port, protocol: 'tcp', state: 'NEW', comment: "MongoDB Router Server port" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Identities
 
-      @system.group header: 'Group', mongodb.group
-      @system.user header: 'User', mongodb.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
+
+# User limits
+
+      @system.limits
+        header: 'User Limits'
+        user: options.user.name
+      , options.user.limits
 
 ## Packages
 
 Install mongod-org-server containing packages for a mongod service. We render the init scripts
 in order to rendered configuration file with custom properties.
 
-      @call header: 'Packages', (options) ->
+      @call header: 'Packages'
+      , ->
         @service name: 'mongodb-org-mongos'
         @service name: 'mongodb-org-shell'
         @service name: 'mongodb-org-tools'
@@ -38,7 +44,7 @@ in order to rendered configuration file with custom properties.
           if_os: name: ['redhat','centos'], version: '6'
           source: "#{__dirname}/../resources/mongod-router-server.j2"
           target: '/etc/init.d/mongod-router-server'
-          context: @config
+          context: options
           unlink: true
           mode: 0o0750
           local: true
@@ -49,14 +55,14 @@ in order to rendered configuration file with custom properties.
           @service.init
             source: "#{__dirname}/../resources/mongod-router-server-redhat-7.j2"
             target: '/usr/lib/systemd/system/mongod-router-server.service'
-            context: @config
+            context: options
             mode: 0o0640
             local: true
             eof: true
           @system.tmpfs
-            mount: mongodb.router.pid_dir
-            uid: mongodb.user.name
-            gid: mongodb.group.name
+            mount: options.pid_dir
+            uid: options.user.name
+            gid: options.group.name
             perm: '0750'
 
 ## Layout
@@ -66,8 +72,8 @@ Create dir where the mongod-config-server stores its metadata
       @system.mkdir
         header: 'Layout'
         target: '/var/lib/mongodb'
-        uid: mongodb.user.name
-        gid: mongodb.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 
 ## Configure
@@ -76,11 +82,11 @@ Configuration file for mongodb config server.
 
       @call header: 'Configure', ->
         @file.yaml
-          target: "#{mongodb.router.conf_dir}/mongos.conf"
-          content: mongodb.router.config
+          target: "#{options.conf_dir}/mongos.conf"
+          content: options.config
           merge: false
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           backup: true
         @service.stop
@@ -94,39 +100,35 @@ with pem file. So we append to the file the private key and certficate.
 
       @call header: 'SSL', ->
         @file.download
-          source: ssl.cacert
-          target: "#{mongodb.router.conf_dir}/cacert.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+          target: "#{options.conf_dir}/cacert.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.download
-          source: ssl.key
-          target: "#{mongodb.router.conf_dir}/key_file.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.key.source
+          local: options.ssl.key.local
+          target: "#{options.conf_dir}/key_file.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.download
-          source: ssl.cert
-          target: "#{mongodb.router.conf_dir}/cert_file.pem"
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          source: options.ssl.cert.source
+          local: options.ssl.cert.local
+          target: "#{options.conf_dir}/cert_file.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file
-          source: "#{mongodb.router.conf_dir}/cert_file.pem"
-          target: "#{mongodb.router.conf_dir}/key.pem"
+          source: "#{options.conf_dir}/cert_file.pem"
+          target: "#{options.conf_dir}/key.pem"
           append: true
           backup: true
           eof: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
         @file
-          source: "#{mongodb.router.conf_dir}/key_file.pem"
-          target: "#{mongodb.router.conf_dir}/key.pem"
+          source: "#{options.conf_dir}/key_file.pem"
+          target: "#{options.conf_dir}/key.pem"
           eof: true
           append: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
-
-# User limits
-
-      @system.limits
-        header: 'User Limits'
-        user: mongodb.user.name
-      , mongodb.user.limits
+          uid: options.user.name
+          gid: options.group.name

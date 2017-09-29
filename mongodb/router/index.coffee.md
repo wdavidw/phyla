@@ -7,28 +7,32 @@ services
 
     module.exports =
       use:
-        core_local: implicit: true, module: 'masson/core/locale'
-        iptables: implicit: true, module: 'masson/core/iptables'
-        mongodb_configsrvs: 'ryba/mongodb/configsrv'
-        mongodb_shards: 'ryba/mongodb/shard'
+        locale: module: 'masson/core/locale', local: true, auto: true, implicit: true
+        iptables: module: 'masson/core/iptables', local: true
+        ssl: module: 'masson/core/ssl', local: true
+        repo: module: 'ryba/mongodb/repo'
+        config_servers: 'ryba/mongodb/configsrv'
+        shard_servers: 'ryba/mongodb/shard'
+        router_servers: 'ryba/mongodb/router'
       configure:
         'ryba/mongodb/router/configure'
       commands:
-        'install': [
-          'ryba/mongodb/router/install'
-          'ryba/mongodb/router/start'
-          'ryba/mongodb/router/sharding'
-          'ryba/mongodb/router/check'
-        ]
-        'start': [
-          'ryba/mongodb/router/start'
-        ]
-        'stop': [
-          'ryba/mongodb/router/stop'
-        ]
-        'status': [
-          'ryba/mongodb/router/status'
-        ]
-        'check': [
-          'ryba/mongodb/router/check'
-        ]
+        'check': ->
+          options = @config.ryba.mongodb.router
+          @call 'ryba/mongodb/router/check', options
+        'install': ->
+          options = @config.ryba.mongodb.router
+          # @call 'ryba/mongodb/router/install', options
+          # @call 'ryba/mongodb/router/start', options
+          # @call 'ryba/mongodb/router/wait', options
+          @call 'ryba/mongodb/router/sharding', options
+          @call 'ryba/mongodb/router/check', options
+        'start': ->
+          options = @config.ryba.mongodb.router
+          @call 'ryba/mongodb/router/start', options
+        'stop': ->
+          options = @config.ryba.mongodb.router
+          @call 'ryba/mongodb/router/stop', options
+        'status': ->
+          options = @config.ryba.mongodb.router
+          @call 'ryba/mongodb/router/status', options

@@ -1,8 +1,7 @@
 
 # MongoDB Routing Server Stop
 
-    module.exports = header: 'MongoDB Routing Server Stop', label_true: 'STOPPED', handler: ->
-      {router} = @config.ryba.mongodb
+    module.exports = header: 'MongoDB Routing Server Stop', label_true: 'STOPPED', handler: (options)->
 
 ## Stop
 
@@ -17,8 +16,8 @@ Stop the MongoDB Routing Server service.
       @call ->
         header: 'Clean Logs'
         label_true: 'CLEANED'
-        if: @config.ryba.clean_logs
+        if: options.clean_logs
       , ->
         @system.execute
-          cmd: "rm #{router.config.logpath}"
+          cmd: "rm #{options.config.logpath}"
           code_skipped: 1

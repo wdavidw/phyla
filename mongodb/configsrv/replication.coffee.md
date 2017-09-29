@@ -83,8 +83,8 @@ The root user is needed for replication and has role `root`
           """
           unless_exec: "echo exit | mongo admin \
             --port #{options.config.net.port} \
-            --username #{options.admin.name} \
-            --password  '#{options.admin.password}'"
+            --username #{options.root.name} \
+            --password  '#{options.root.password}'"
           code_skipped: 252
         @file.yaml
           target: "#{options.conf_dir}/mongod.conf"
@@ -100,7 +100,7 @@ The root user is needed for replication and has role `root`
         @service.start
           if: -> @status -1
           name: 'mongod-config-server'
-        @connection.wait options.wait.local
+      @connection.wait options.wait.local
 
 # Replica Set Initialization
 

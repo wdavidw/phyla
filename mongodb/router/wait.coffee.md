@@ -1,9 +1,5 @@
 
 # MongoDB Routing Server Wait
 
-    module.exports = header: 'MongoDB Routing Server Wait', label_true: 'READY', handler: ->
-      mongodb_configsrvs = @contexts 'ryba/mongodb/configsrv'
-      @connection.wait
-        servers: for ctx in mongodb_configsrvs
-          host: @config.host
-          port: @config.ryba.mongodb.router.config.net.port
+    module.exports = header: 'MongoDB Routing Server Wait', label_true: 'READY', handler: (options) ->
+      @connection.wait options.wait.tcp
