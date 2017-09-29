@@ -28,25 +28,46 @@ Example:
 ```
 
     module.exports = ->
-      # require('masson/core/krb5_client').configure ctx
-      flume = @config.ryba.flume ?= {}
+      service = migration.call @, service, 'ryba/flume', ['ryba', 'flume'], require('nikita/lib/misc').merge require('.').use,
+        krb5_client: key: ['krb5_client']
+        hadoop_core: key: ['ryba']
+      @config.ryba ?= {}
+      @config.ryba.oozie ?= {}
+      options = @config.ryba.flume = service.options
 
 ## Environment
 
-      flume.conf_dir = '/etc/flume/conf'
+      options.conf_dir = '/etc/flume/conf'
 
 ## Identities
 
       # Group
-      flume.group = name: flume.group if typeof flume.group is 'string'
-      flume.group ?= {}
-      flume.group.name ?= 'flume'
-      flume.group.system ?= true
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'flume'
+      options.group.system ?= true
       # User
-      flume.user = name: flume.user if typeof flume.user is 'string'
-      flume.user ?= {}
-      flume.user.name ?= 'flume'
-      flume.user.system ?= true
-      flume.user.gid ?= flume.group.name
-      flume.user.comment ?= 'Flume User'
-      flume.user.home ?= '/var/lib/flume'
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user ?= {}
+      options.user.name ?= 'flume'
+      options.user.system ?= true
+      options.user.gid ?= options.group.name
+      options.user.comment ?= 'Flume User'
+      options.user.home ?= '/var/lib/flume'
+
+## Kerberos
+
+      # Administration
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      # Flume Principal
+      options.krb5_user ?= {}
+      options.krb5_user.principal ?= "#{options.user.name}/#{service.use.fqdn}@#{options.krb5.realm}"
+      options.krb5_user.keytab ?= "#{options.conf_dir}/flume.service.keytab"
+      options.krb5_user.randkey ?= true
+
+## Dependencies
+
+    migration = require 'masson/lib/migration'
