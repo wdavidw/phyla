@@ -1,9 +1,7 @@
 
 # Flume
 
-    module.exports = header: 'Flume Install', handler: ->
-      {flume, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Flume Install', handler: (options) ->
 
 ## Register
 
@@ -23,17 +21,15 @@ flume:x:496:
 Note, the "flume" package rely on the "zookeeper" and "hadoop-hdfs" dependencies
 creating the "zookeeper" and "hdfs" users and the "hadoop" and "hdfs" group.
 
-      @system.group header: 'Group', @config.ryba.flume.group
-      @system.user header: 'User', @config.ryba.flume.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Install
 
 The package "flume" is installed.
 
-      @service
-        name: 'flume'
-      @hdp_select
-        name: 'flume-server'
+      @service 'flume'
+      @hdp_select 'flume-server'
 
 ## Kerberos
 
@@ -42,13 +38,13 @@ later usage. It is placed inside the flume configuration directory, by default
 "/etc/flume/conf/flume.service.keytab" with restrictive permissions set to
 "0600".
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: "#{flume.user.name}/#{@config.host}@#{realm}"
-        randkey: true
-        keytab: "#{flume.conf_dir}/flume.service.keytab"
-        uid: flume.user.name
-        gid: flume.group.name
+        principal: options.krb5_user.principal
+        randkey: options.krb5_user.randkey
+        keytab: options.krb5_user.keytab
+        uid: options.user.name
+        gid: options.group.name
 
 ## Flume inside a Kerberos environment
 
