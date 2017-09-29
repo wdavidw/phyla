@@ -1,12 +1,23 @@
 
-# MongoDB Config Server Stop
+# MongoDB Shard Server Stop
 
-    module.exports = header: 'MongoDB Shard Server Stop', label_true: 'STOPPED', handler: ->
-      {shard} = @config.ryba.mongodb
+Run the command `./bin/ryba stop -m ryba/mongodb/shard` to stop the 
+MongoDB Shard server using Ryba.
 
-## Stop
+    module.exports = header: 'MongoDB Shard Server Stop', label_true: 'STOPPED', handler: (options) ->
 
-Stop the MongoDB Config Server service.
+## Service
+
+Stop the MongDB Shard server. You can also stop the server manually with one of the
+following commands:
+
+```
+service mongod-shard-server stop
+systemctl stop mongod-shard-server
+# todo, find the stop command
+```
+
+The file storing the PID is "/var/run/mongod/mongod-shard.pid".
 
       @service.stop
         header: 'Stop service'
@@ -14,11 +25,11 @@ Stop the MongoDB Config Server service.
 
 ## Clean Logs
 
-      @call
-        if:  @config.ryba.clean_logs
+Remove the "mongod-shard-server-{hostname}.log" log files if the property 
+"clean_logs" is activated.
+
+      @system.execute
         header: 'Clean Logs'
-        label_true: 'CLEANED'
-      , ->
-        @system.execute
-          cmd: "rm #{shard.config.systemLog.path}"
-          code_skipped: 1
+        if:  options.clean_logs
+        cmd: "rm #{options.config.systemLog.path}"
+        code_skipped: 1

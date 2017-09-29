@@ -3,29 +3,37 @@
 
 MongoDB is a document-oriented database. Distributed Version
 
-Config servers are special mongod instances that store the metadata for a
-sharded cluster.
-All config servers must be available to deploy a sharded cluster or to make any
-changes to cluster metadata.
+Shard servers are  mongod instances. They store the actual data of the mongoDB cluster.
+The are deployed as replicaset, each shard replicaset holds shards.
 
     module.exports =
       use:
-        core_local: implicit: true, module: 'masson/core/locale'
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        mongodb_configsrv: 'ryba/mongodb/confisrv'
+        locale: module: 'masson/core/locale', local: true, auto: true, implicit: true
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        ssl: module: 'masson/core/ssl', local: true
+        repo: module: 'ryba/mongodb/repo'
+        config_servers: module: 'ryba/mongodb/configsrv'
+        shard_servers: module: 'ryba/mongodb/shard'
       configure:
         'ryba/mongodb/shard/configure'
       commands:
-        'install': [
-          'ryba/mongodb/shard/install'
-          'ryba/mongodb/shard/start'
-          'ryba/mongodb/shard/replication'
-          'ryba/mongodb/shard/check'
-        ]
-        'start':
-          'ryba/mongodb/shard/start'
-        'stop':
-          'ryba/mongodb/shard/stop'
-        'status':
-          'ryba/mongodb/shard/status'
+        'check': ->
+          options = @config.ryba.mongodb.shard
+          @call 'ryba/mongodb/shard/check', options
+        'install': ->
+          options = @config.ryba.mongodb.shard
+          @call 'ryba/mongodb/shard/install', options
+          @call 'ryba/mongodb/shard/start', options
+          @call 'ryba/mongodb/shard/wait', options
+          @call 'ryba/mongodb/shard/replication', options
+          @call 'ryba/mongodb/shard/check', options
+        'start': ->
+          options = @config.ryba.mongodb.shard
+          @call 'ryba/mongodb/shard/start', options
+        'stop': ->
+          options = @config.ryba.mongodb.shard
+          @call 'ryba/mongodb/shard/stop', options
+        'status': ->
+          options = @config.ryba.mongodb.shard
+          @call 'ryba/mongodb/shard/status', options
