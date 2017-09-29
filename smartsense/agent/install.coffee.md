@@ -1,9 +1,7 @@
 
 # Hortonworks Smartsense Install
 
-    module.exports = header: 'HST Agent Install', handler: ->
-      {smartsense, ssl} = @config.ryba
-      {agent} = smartsense
+    module.exports = header: 'HST Agent Install', handler: (options) ->
 
 ## Wait Server
 
@@ -11,39 +9,40 @@
 
 ## Identities
 
-      @system.group header: 'Group', smartsense.group
-      @system.user header: 'User', smartsense.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Packages
 Note rmp can only be download from the Hortonworks Support Web UI.
 
-      @download
+      @file.download
+        if: options.source?
         header: 'Download HST Package'
-        source: smartsense.source
-        target: "#{smartsense.agent.tmp_dir}/smartsense.rpm"
+        source: options.source
+        target: "#{options.tmp_dir}/smartsense.rpm"
         binary: true
       @system.execute
         header: 'Install HST Package'
-        cmd: "rpm -Uvh #{smartsense.agent.tmp_dir}/smartsense.rpm"
+        cmd: "rpm -Uvh #{options.tmp_dir}/smartsense.rpm"
         if: -> @status -1
 
 ## Layout
 
       @call header: 'Layout Directories', ->
         @system.mkdir
-          target: smartsense.agent.log_dir
-          uid: smartsense.user.name
-          gid: smartsense.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: smartsense.agent.pid_dir
-          uid: smartsense.user.name
-          gid: smartsense.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: smartsense.agent.conf_dir
-          uid: smartsense.user.name
-          gid: smartsense.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
 
 ## Setup
@@ -51,28 +50,28 @@ Note rmp can only be download from the Hortonworks Support Web UI.
       @call header: 'Setup Execution', ->
         @file.ini
           header: 'HST Agent ini file'
-          target: "#{smartsense.agent.conf_dir}/hst-server.ini"
-          content: smartsense.agent.ini
+          target: "#{options.conf_dir}/hst-server.ini"
+          content: options.ini
           parse: misc.ini.parse_multi_brackets_multi_lines
           stringify: misc.ini.stringify_multi_brackets
           indent: ''
           separator: '='
           comment: ';'
-          uid: smartsense.user.name
-          gid: smartsense.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           merge: true
           backup: true
         @system.execute
-          cmd: "hst setup-agent  --server=#{agent.server_host}"
+          cmd: "hst setup-agent  --server=#{options.server_host}"
         @system.execute
           header: 'Remove execution log files'
           shy: true
-          cmd: "rm -f #{smartsense.agent.log_dir}/hst-agent.log"
+          cmd: "rm -f #{options.log_dir}/hst-agent.log"
         @system.execute
           cmd: """
-          if [ $(stat -c "%U" #{smartsense.user.home}) == '#{smartsense.user.name}' ]; then exit 3; fi
-          chown -R #{smartsense.user.name}:#{smartsense.group.name} #{smartsense.user.home}
+          if [ $(stat -c "%U" #{options.user.home}) == '#{options.user.name}' ]; then exit 3; fi
+          chown -R #{options.user.name}:#{options.group.name} #{options.user.home}
           """
           code_skipped: [3,1]
 
