@@ -10,9 +10,7 @@ Additionnal oozie properties may be defined inside the "OOZIE_CLIENT_OPTS"
 environmental variables. For example, HDP declare its version as
 "-Dhdp.version=${HDP_VERSION}".
 
-    module.exports = header: 'Oozie Client Install', handler: ->
-      {oozie, hadoop_conf_dir, yarn, ssl} = @config.ryba
-      {java_home, jre_home} = @config.java
+    module.exports = header: 'Oozie Client Install', handler: (options) ->
 
 ## Register
 
@@ -39,7 +37,7 @@ Expose the "OOZIE_URL" environmental variable to every users.
         # export OOZIE_CLIENT_OPTS='-Djavax.net.ssl.trustStore=/etc/hadoop/conf/truststore'
         content: """
         #!/bin/bash
-        export OOZIE_URL=#{oozie.site['oozie.base.url']}
+        export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
         """
         mode: 0o0755
 
@@ -47,12 +45,12 @@ Expose the "OOZIE_URL" environmental variable to every users.
 
       @hconfigure
         header: 'Oozie site'
-        target: "#{oozie.conf_dir}/oozie-site.xml"
+        target: "#{options.conf_dir}/oozie-site.xml"
         source: "#{__dirname}/../resources/oozie-site.xml"
         local: true
-        properties: oozie.site
-        uid: oozie.user.name
-        gid: oozie.group.name
+        properties: options.oozie_site
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0755
         merge: true
         backup: true
@@ -73,17 +71,10 @@ keytool -keystore ${JAVA_HOME}/jre/lib/security/cacerts -delete -noprompt -alias
 keytool -keystore ${JAVA_HOME}/jre/lib/security/cacerts -import -alias tomcat -file master3_cert.pem
 ```
 
-      @call header: 'Client SSL', ->
-        tmp_location = "/tmp/ryba_oozie_client_#{Date.now()}"
-        @file.download
-          source: ssl.cacert
-          target: "#{tmp_location}_cacert"
-          shy: true
-        @java.keystore_add
-          keystore: "#{jre_home or java_home}/lib/security/cacerts"
-          storepass: "changeit"
-          caname: "ryba_cluster" # was tomcat
-          cacert: "#{tmp_location}_cacert"
-        @system.remove
-          target: "#{tmp_location}_cacert"
-          shy: true
+      @java.keystore_add
+        header: 'JKS Truststore'
+        keystore: "#{options.jre_home or options.java_home}/lib/security/cacerts"
+        storepass: "changeit"
+        caname: "ryba_cluster" # was tomcat
+        cacert: options.ssl.cacert.source
+        local: options.ssl.cacert.local

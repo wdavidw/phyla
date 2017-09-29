@@ -38,7 +38,6 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
           dbs.push "check_#{options.hostname}_hs2_zoo_#{hive_server2.hive_site['hive.server2.zookeeper.namespace']}"
         for spark_thrift_server in options.spark_thrift_server
           dbs.push "check_#{options.hostname}_spark_sql_server_#{spark_thrift_server.hostname}"
-        # use v1 policy api (old style) from ranger to have an example
         @wait.execute
           header: 'Wait Service'
           cmd: """

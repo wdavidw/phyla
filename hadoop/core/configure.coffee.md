@@ -204,7 +204,8 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.core_site['hadoop.security.group.mapping'] ?= 'org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback'
       # Get ZooKeeper Quorum
       zookeeper_quorum = for srv in service.use.zookeeper_server
-        "#{srv.node.fqdn}:#{srv.options.port}"
+        continue unless srv.options.config['peerType'] is 'participant'
+        "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.core_site['ha.zookeeper.quorum'] ?= zookeeper_quorum
       # Topology
       # http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/

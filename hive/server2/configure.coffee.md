@@ -203,7 +203,7 @@ and its value is the server "host:port".
 
       zookeeper_quorum = for srv in service.use.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
-        "#{srv.node.fqdn}:#{srv.options.port}"
+        "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.hive_site['hive.zookeeper.quorum'] ?= zookeeper_quorum.join ','
       options.hive_site['hive.server2.support.dynamic.service.discovery'] ?= if service.use.hive_server2.length > 1 then 'true' else 'false'
       options.hive_site['hive.zookeeper.session.timeout'] ?= '600000' # Default is "600000"

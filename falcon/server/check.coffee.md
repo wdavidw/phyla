@@ -13,7 +13,7 @@ Wait for the Falcon server to become available.
 
 ## Connection
 
-      @assert
+      @connection.assert
         host: hostname
         port: port
 
