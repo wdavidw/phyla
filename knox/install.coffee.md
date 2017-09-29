@@ -28,7 +28,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.gateway_site['gateway.port'], protocol: 'tcp', state: 'NEW', comment: "Knox Gateway" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
@@ -170,7 +170,7 @@ in the gateway.sh service script.
         options.ssh.shell (err, stream) =>
           stream.write "su -l #{options.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
           stream.on 'data', (data, extended) ->
-            if /Enter master secret/.test data then stream.write "#{options.ssl.storepass}\n"
+            if /Enter master secret/.test data then stream.write "#{options.ssl.keystore.password}\n"
             if /Master secret is already present on disk/.test data then callback null, false
             else if /Master secret has been persisted to disk/.test data then callback null, true
           stream.on 'exit', -> callback Error 'Exit before end'
@@ -185,34 +185,48 @@ in the gateway.sh service script.
 ## SSL
 
       @call header: 'SSL Server', ->
-        tmp_location = "/var/tmp/ryba/knox_ssl"
-        @file.download
-          source: options.ssl.cacert
-          target: "#{tmp_location}/cacert"
-          mode: 0o0600
-          shy: true
-        @file.download
-          source: options.ssl.cert
-          target: "#{tmp_location}/cert"
-          mode: 0o0600
-          shy: true
-        @file.download
-          source: options.ssl.key
-          target: "#{tmp_location}/key"
-          mode: 0o0600
-          shy: true
+        # tmp_location = "/var/tmp/ryba/knox_ssl"
+        # @file.download
+        #   source: options.ssl.cacert
+        #   target: "#{tmp_location}/cacert"
+        #   mode: 0o0600
+        #   shy: true
+        # @file.download
+        #   source: options.ssl.cert
+        #   target: "#{tmp_location}/cert"
+        #   mode: 0o0600
+        #   shy: true
+        # @file.download
+        #   source: options.ssl.key
+        #   target: "#{tmp_location}/key"
+        #   mode: 0o0600
+        #   shy: true
+        # @java.keystore_add
+        #   keystore: '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
+        #   storepass: options.ssl.storepass
+        #   caname: "hadoop_root_ca"
+        #   cacert: "#{tmp_location}/cacert"
+        #   key: "#{tmp_location}/key"
+        #   cert: "#{tmp_location}/cert"
+        #   keypass: options.ssl.keypass
+        #   name: 'gateway-identity'
         @java.keystore_add
-          keystore: '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
-          storepass: options.ssl.storepass
-          caname: "hadoop_root_ca"
-          cacert: "#{tmp_location}/cacert"
-          key: "#{tmp_location}/key"
-          cert: "#{tmp_location}/cert"
-          keypass: options.ssl.keypass
-          name: 'gateway-identity'
+          keystore: options.ssl.keystore.target
+          storepass: options.ssl.keystore.password
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
+          keypass: options.ssl.keystore.keypass
+          name: options.ssl.key.name
+          local:  options.ssl.key.local
+        @java.keystore_add
+          keystore: options.ssl.keystore.target
+          storepass: options.ssl.keystore.password
+          caname: options.ssl.truststore.caname
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
         @system.execute
           if: -> @status -1
-          cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias gateway-identity-passphrase --value #{options.ssl.keypass}"
+          cmd: "/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias gateway-identity-passphrase --value #{options.ssl.keystore.keypass}"
 
 Knox use Shiro for LDAP authentication and Shiro cannot be configured for 
 unsecure SSL.
@@ -222,17 +236,18 @@ client to connect to openldap.
         @java.keystore_add
           keystore: "#{options.jre_home or options.java_home}/lib/security/cacerts"
           storepass: 'changeit'
-          caname: 'hadoop_root_ca'
-          cacert: "#{tmp_location}/cacert"
-        @system.remove
-          target: "#{tmp_location}/cacert"
-          shy: true
-        @system.remove
-          target: "#{tmp_location}/cert"
-          shy: true
-        @system.remove
-          target: "#{tmp_location}/key"
-          shy: true
+          caname: options.ssl.truststore.caname
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+        # @system.remove
+        #   target: "#{tmp_location}/cacert"
+        #   shy: true
+        # @system.remove
+        #   target: "#{tmp_location}/cert"
+        #   shy: true
+        # @system.remove
+        #   target: "#{tmp_location}/key"
+        #   shy: true
 
 ## Log4j
 

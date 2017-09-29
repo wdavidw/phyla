@@ -7,35 +7,41 @@ with Hadoop clusters.
 
     module.exports =
       use:
-        'yum': implicit: true, module: 'masson/core/yum'
-        'iptables': implicit: true, module: 'masson/core/iptables'
-        'krb5_client': module: 'masson/core/krb5_client'
-        'java': implicit: true, module: 'masson/commons/java'
-        'hadoop_core': implicit: true, module: 'ryba/hadoop/core'
-        'zoo_server': 'ryba/zookeeper/server'
-        'ranger_admin': 'ryba/ranger/admin'
-        'hdfs_nn': 'ryba/hadoop/hdfs_nn'
-        'yarn_rm': 'ryba/hadoop/yarn_rm'
-        'server2': 'ryba/hive/server2'
-        'webhcat': 'ryba/hive/webhcat'
-        'oozie': 'ryba/oozie/server'
-        'webhbase': 'ryba/hbase/rest'
-      configure: [
+        ssl: module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        hdfs_client: module: 'ryba/hadoop/hdfs_client'
+        httpfs: module: 'ryba/hadoop/httpfs'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        hive_server2: module: 'ryba/hive/server2'
+        hive_webhcat: module: 'ryba/hive/webhcat'
+        oozie_server: module: 'ryba/oozie/server'
+        hbase_rest: module: 'ryba/hbase/rest'
+        knox: module: 'ryba/knox'
+      configure:
         'ryba/knox/configure'
-        'ryba/ranger/plugins/knox/configure'
-      ]
+        # 'ryba/ranger/plugins/knox/configure'
       commands:
-        install: [
-          'ryba/knox/install'
-          'ryba/knox/start'
-          'ryba/knox/check'
-        ]
-        check:
-          'ryba/knox/check'
-        start:
-          'ryba/knox/start'
-        stop:
-          'ryba/knox/stop'
+        install: ->
+          options = @config.ryba.knox
+          @call 'ryba/knox/install', options
+          @call 'ryba/knox/start', options
+          @call 'ryba/knox/check', options
+        check: ->
+          options = @config.ryba.knox
+          @call 'ryba/knox/check', options
+        start: ->
+          options = @config.ryba.knox
+          @call 'ryba/knox/start', options
+        stop: ->
+          options = @config.ryba.knox
+          @call 'ryba/knox/stop', options
         status:
           'ryba/knox/status'
 
