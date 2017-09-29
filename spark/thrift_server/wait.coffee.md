@@ -3,7 +3,7 @@
 
 Wait for the ResourceManager Thrift port (HTTP and BINARY).
 
-    module.exports = header: 'Spark SQL Thrift Server Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'Spark SQL Thrift Server Wait', handler: ->
       options = {}
       options.thrift = for sts_ctx in @contexts 'ryba/spark/thrift_server'
         {hive_site} = sts_ctx.config.ryba.spark.thrift

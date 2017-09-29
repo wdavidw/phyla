@@ -83,7 +83,6 @@ on the local engine daemon (before configuring swarm).
         @docker.service
           header: 'Run Container'
           force: -> @status -1
-          label_true: 'RUNNED'
           docker: @config.docker
           name: swarm.manager.name
           net: if swarm.host_mode then 'host' else null

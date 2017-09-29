@@ -1,7 +1,7 @@
 
 # Shinken Poller Check
 
-    module.exports = header: 'Shinken Poller Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Poller Check', handler: ->
       options = @config.ryba.shinken.poller
 
 ## TCP

@@ -8,7 +8,7 @@ following command:
 su -l falcon -c "/usr/hdp/current/falcon-server/bin/service-stop.sh falcon"
 ```
 
-    module.exports = header: 'Falcon Server Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Falcon Server Stop', handler: ->
       {clean_logs, falcon} = @config.ryba
       throw Error "Invalid log dir" unless falcon.log_dir
 
@@ -20,7 +20,6 @@ su -l falcon -c "/usr/hdp/current/falcon-server/bin/service-stop.sh falcon"
 
       @system.execute
         header: 'Clean Logs'
-        label_true: 'CLEANED'
         if: -> clean_logs
         cmd: "rm #{falcon.log_dir}/*"
         code_skipped: 1

@@ -13,7 +13,7 @@ nikita.hadoop.hdfs_jn.wait({
 })
 ```
 
-    module.exports = header: 'HDFS JN Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'HDFS JN Wait', handler: (options) ->
 
       @connection.wait
         servers: options.rpc

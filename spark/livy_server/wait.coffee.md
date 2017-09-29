@@ -3,7 +3,7 @@
 
 Wait for the Livy Server.
 
-    module.exports = header: 'Spark Livy ServerWait', label_true: 'READY', handler: ->
+    module.exports = header: 'Spark Livy ServerWait', handler: ->
       options = {}
       options.wait_tcp = for sls_ctx in @contexts modules: 'ryba/spark/livy_server'
         host: sls_ctx.config.host

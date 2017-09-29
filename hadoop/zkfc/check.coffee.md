@@ -1,7 +1,7 @@
 
 # Hadoop ZKFC Check
 
-    module.exports = header: 'HDFS ZKFC Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'HDFS ZKFC Check', handler: ->
         {hdfs} = @config.ryba
         nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
 

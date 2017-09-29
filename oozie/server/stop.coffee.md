@@ -6,7 +6,7 @@ server using Ryba.
 
 The file storing the PID is "/var/run/oozie/oozie.pid".
 
-    module.exports = header: 'Oozie Server Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'Oozie Server Stop', handler: (options) ->
 
 ## Service
 

@@ -1,7 +1,7 @@
 
 # Spark History Server Check
 
-    module.exports = header: 'Spark History Server Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Spark History Server Check', handler: ->
       {spark} = @config.ryba
 
       @call  'ryba/spark/history_server/wait'

@@ -1,7 +1,7 @@
 
 # Druid MiddleManager Wait
 
-    module.exports = header: 'Druid MiddleManager Wait', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'Druid MiddleManager Wait', handler: (options) ->
 
 ## TCP Port
 

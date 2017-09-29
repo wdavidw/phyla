@@ -18,7 +18,6 @@ the NameNode has started.
 
       @system.execute.assert
         header: 'NameNode'
-        label_true: 'CHECKED',
         cmd: mkcmd.test @, "hdfs dfs -test -d /user/#{options.test.user.name}"
         retry: 5
         sleep: 5000

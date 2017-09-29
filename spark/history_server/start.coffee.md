@@ -8,7 +8,7 @@ following command:
 su -l spark -c '/usr/hdp/current/spark-historyserver/sbin/start-history-server.sh'
 ```
 
-    module.exports = header: 'Spark History Server Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Spark History Server Start', handler: ->
       {spark, hadoop_group} = @config.ryba
       @wait.execute
         cmd: mkcmd.hdfs @, """

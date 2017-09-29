@@ -8,7 +8,7 @@ following command:
 service spark-thrift-server start
 ```
 
-    module.exports = header: 'Spark SQL Thrift Server Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Spark SQL Thrift Server Start', handler: ->
       {spark} = @config.ryba
       @call once:true, 'ryba/hive/hcatalog/wait'
       @service.start

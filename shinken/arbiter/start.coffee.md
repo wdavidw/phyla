@@ -1,5 +1,5 @@
 
 # Shinken Arbiter Start
 
-    module.exports = header: 'Shinken Arbiter Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Shinken Arbiter Start', handler: ->
       @service.start name: 'shinken-arbiter'

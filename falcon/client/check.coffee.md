@@ -3,7 +3,7 @@
 
 This commands checks if falcons works as required.
 
-    module.exports = header: 'Falcon Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Falcon Check', handler: ->
       {user, falcon} = @config.ryba
 
 ## Register
@@ -18,7 +18,7 @@ This commands checks if falcons works as required.
 
 Follow the [Hortonworks Data Pipelines example][dpe].
 
-      @call header: 'Check Data Pipelines', skip: true, label_true: 'CHECKED', ->
+      @call header: 'Check Data Pipelines', skip: true, ->
         cluster_path = "#{user.home}/check_falcon_#{@config.shortname}/cluster.xml"
         feed_path = "#{user.home}/check_falcon_#{@config.shortname}/feed.xml"
         process_path = "#{user.home}/check_falcon_#{@config.shortname}/process.xml"

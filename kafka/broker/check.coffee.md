@@ -1,7 +1,7 @@
 
 # Kafka Broker Check
 
-    module.exports = header: 'Kafka Broker Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'Kafka Broker Check', handler: (options) ->
 
 ## Assert
       
@@ -29,7 +29,7 @@
 
 Make sure the broker is listening. The default port is "9092".
 
-      # @call header: 'Check TCP', label_true: 'CHECKED', ->
+      # @call header: 'Check TCP', ->
       #   for protocol in kafka.broker.protocols
       #     @system.execute
       #       cmd: "echo > /dev/tcp/#{@config.host}/#{kafka.broker.ports[protocol]}"

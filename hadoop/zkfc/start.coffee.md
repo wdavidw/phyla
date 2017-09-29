@@ -7,7 +7,7 @@ In HA mode, to ensure that the leadership is assigned to the desired active
 NameNode, the ZKFC daemons on the standy NameNodes wait for the one on the
 active NameNode to start first.
 
-    module.exports = header: 'HDFS ZKFC Start', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'HDFS ZKFC Start', handler: (options) ->
 
 ## Wait
 
@@ -22,7 +22,6 @@ Wait for Kerberos, ZooKeeper and HDFS to be started.
 
       @wait.execute
         header: 'Wait Active NN'
-        label_true: 'READY'
         if: options.active_nn_host isnt options.fqdn
         cmd: mkcmd.hdfs @, "hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname}"
         code_skipped: 255

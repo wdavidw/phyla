@@ -1,7 +1,7 @@
 
 # JanusGraph Check
 
-    module.exports = header: 'JanusGraph Check', timeout: -1, label_true: 'CHECKED', handler: ->
+    module.exports = header: 'JanusGraph Check', timeout: -1, handler: ->
       {force_check, hbase, janusgraph} = @config.ryba
       {shortname} = @config
 
@@ -14,7 +14,7 @@
 Creates a configuration file. Always load this file in Gremlin REPL !
 Check the configuration file (current.properties).
 
-      @call header: 'Shell', timeout: -1, label_true: 'CHECKED', handler: ->
+      @call header: 'Shell', timeout: -1, handler: ->
         config = {}
         config[k] = v for k, v of janusgraph.config
         config['storage.hbase.table'] = 'janusgraph-test'

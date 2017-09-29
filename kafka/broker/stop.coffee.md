@@ -3,7 +3,7 @@
 
 Stop the Kafka Broker.
 
-    module.exports = header: 'Kafka Broker Stop', label_true: 'STOPPED', handler: (stop) ->
+    module.exports = header: 'Kafka Broker Stop', handler: (stop) ->
 
 ## Service
 

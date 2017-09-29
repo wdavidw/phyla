@@ -3,7 +3,7 @@
 
 The backup script dump the content of the hive database.
 
-    module.exports =  header: 'Hive Metastore Backup', label_true: 'BACKUPED', handler: (options) ->
+    module.exports =  header: 'Hive Metastore Backup', handler: (options) ->
 
 ## Backup Database
 
@@ -11,7 +11,6 @@ The backup script dump the content of the hive database.
         mysql: "mysqldump -u#{options.db.username} -p#{options.db.password} -h#{options.db.hosts[0]} -P#{options.db.port} #{options.db.database}"
       throw Error 'Database engine not supported' unless engines_cmd[options.db.engine]
       @tools.backup
-        label_true: 'BACKUPED'
         header: 'Backup Database'
         name: 'db'
         cmd: engines_cmd[jdbc.engine]

@@ -3,7 +3,7 @@
 
 Check the Timeline Server.
 
-    module.exports = header: 'YARN ATS Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'YARN ATS Check', handler: (options) ->
 
 ## Assert
 

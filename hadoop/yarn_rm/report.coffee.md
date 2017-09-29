@@ -3,7 +3,7 @@
 
 ## Info Memory
 
-    module.exports = header: 'YARN RM Info Memory', label_true: 'INFO', handler: (options) ->
+    module.exports = header: 'YARN RM Info Memory', handler: (options) ->
       config = null
       @call (_, callback) ->
         properties.read @ssh, "#{options.conf_dir}/yarn-site.xml", (err, config) =>

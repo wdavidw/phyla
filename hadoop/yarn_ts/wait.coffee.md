@@ -3,7 +3,7 @@
 
 Wait for the ResourceManager RPC and HTTP ports. It supports HTTPS and HA.
 
-    module.exports = header: 'YARN ATS Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'YARN ATS Wait', handler: (options) ->
 
 ## Webapp Address
 

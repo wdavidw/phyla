@@ -1,7 +1,7 @@
 
 # Knox Stop
 
-    module.exports = header: 'Knox Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Knox Stop', handler: ->
 
 ## Service
 

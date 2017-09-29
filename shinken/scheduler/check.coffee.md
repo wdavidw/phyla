@@ -1,7 +1,7 @@
 
 # Shinken Scheduler Check
 
-    module.exports = header: 'Shinken Scheduler Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Scheduler Check', handler: ->
       options = @config.ryba.shinken.scheduler
 
 ## TCP

@@ -8,6 +8,6 @@ following command:
 su -l falcon -c "/usr/hdp/current/falcon-server/bin/service-start.sh falcon"
 ```
 
-    module.exports = header: 'Falcon Server Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Falcon Server Start', handler: ->
       @call once: true, 'masson/core/krb5_client/wait'
       @service.start name: 'falcon'

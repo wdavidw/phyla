@@ -1,12 +1,12 @@
 
 # Shinken Poller Stop
 
-    module.exports = header: 'Shinken Poller Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Shinken Poller Stop', handler: ->
       @service.stop name: 'shinken-poller'
 
 ## Clean Logs
 
-      @call header: 'Clean Logs', label_true: 'CLEANED', if: @config.ryba.clean_logs, ->
+      @call header: 'Clean Logs', if: @config.ryba.clean_logs, ->
         @system.execute
           cmd: 'rm /var/log/shinken/pollerd*'
           code_skipped: 1

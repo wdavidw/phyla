@@ -1,7 +1,7 @@
 
 # Hadoop HDFS NameNode Wait
 
-    module.exports = header: 'HDFS HttpFS Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'HDFS HttpFS Wait', handler: (options) ->
 
 ## HTTP Port
 

@@ -9,7 +9,7 @@ service ranger-admin start
 systemctl start ranger-admin
 ```
 
-    module.exports = header: 'Ranger Admin Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Ranger Admin Start', handler: ->
       @service.start
         header: 'Ranger Admin Start'
         name: 'ranger-admin'

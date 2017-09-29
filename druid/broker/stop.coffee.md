@@ -4,7 +4,7 @@
 Run the command `./bin/ryba stop -m ryba/druid/overlord` to stop the Druid 
 Broker server using Ryba.
 
-    module.exports = header: 'Druid Broker Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'Druid Broker Stop', handler: (options) ->
 
 ## Service
 

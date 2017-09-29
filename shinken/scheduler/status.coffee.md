@@ -1,5 +1,5 @@
 
 # Shinken Scheduler Status
 
-    module.exports =  header: 'Shinken Scheduler Status', label_true: 'STARTED', label_false: 'STOPPED', handler: ->
+    module.exports =  header: 'Shinken Scheduler Status', handler: ->
       @service.status name: 'shinken-scheduler'

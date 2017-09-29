@@ -1,7 +1,7 @@
 
 # Pig Check
 
-    module.exports = header: 'Pig Check', label_true: 'CHECKED', handler: ->
+    module.exports = header: 'Pig Check', handler: ->
       {force_check, user} = @config.ryba
 
 ## Wait
@@ -14,7 +14,7 @@ Run a Pig script to test the installation once the ResourceManager is
 installed. The script will only be executed the first time it is deployed
 unless the "hdp.force_check" configuration property is set to "true".
 
-      @call header: 'Pig Check Client', label_true: 'CHECKED', ->
+      @call header: 'Pig Check Client', ->
         @file
           content: """
           data = LOAD '/user/#{user.name}/#{@config.shortname}-pig_tmp/data' USING PigStorage(',') AS (text, number);
@@ -36,7 +36,7 @@ unless the "hdp.force_check" configuration property is set to "true".
 
 ## HCat
 
-      @call header: 'Pig Check HCat', label_true: 'CHECKED', ->
+      @call header: 'Pig Check HCat', ->
         query = (query) -> "hcat -e \"#{query}\" "
         db = "check_#{@config.shortname}_pig_hcat"
         @file

@@ -1,7 +1,7 @@
 
 # Shinken Reactionner Check
 
-    module.exports = header: 'Shinken Reactionner Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Shinken Reactionner Check', handler: ->
       options = @config.ryba.shinken.reactionner
 
 ## TCP

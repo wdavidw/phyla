@@ -1,7 +1,7 @@
 
 # Hue Start
 
-    module.exports = header: 'Hue Docker Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Hue Docker Start', handler: ->
       {hue_docker} = @config.ryba
 
 ## Wait

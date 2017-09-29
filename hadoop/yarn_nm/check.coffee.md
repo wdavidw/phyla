@@ -1,7 +1,7 @@
 
 # YARN NodeManager Check
 
-    module.exports = header: 'YARN NM Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'YARN NM Check', handler: (options) ->
 
 ## TCP Addresss
 

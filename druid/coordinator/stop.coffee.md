@@ -4,7 +4,7 @@
 Run the command `./bin/ryba stop -m ryba/druid/overlord` to stop the Druid 
 Coordinator server using Ryba.
 
-    module.exports = header: 'Druid Coordinator Stop', label_true: 'STOPPED', handler: (options) ->
+    module.exports = header: 'Druid Coordinator Stop', handler: (options) ->
 
 ## Service
 

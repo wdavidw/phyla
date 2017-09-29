@@ -264,7 +264,6 @@ ryba/hue:3.9
       @docker_service
         machine: machine
         header: 'Run'
-        label_true: 'RUNNED'
         force: -> @status -1
         image: "#{hue_docker.image}:#{hue_docker.version}"
         volume: [

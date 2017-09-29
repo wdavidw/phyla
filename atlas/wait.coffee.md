@@ -3,7 +3,7 @@
 
 Wait for Atlas Metadata Server to start.
 
-    module.exports = header: 'Atlas Wait', label_true: 'READY', handler: ->
+    module.exports = header: 'Atlas Wait', handler: ->
       options = {}
       options.wait_http = for atlas_ctx in @contexts 'ryba/atlas'
         host: atlas_ctx.config.host

@@ -3,5 +3,5 @@
 
 This commands checks the status of ElasticSearch (STARTED, STOPPED)
 
-    module.exports = header: 'ES Status', label_true: 'STARTED', label_false: 'STOPPED', handler: ->
+    module.exports = header: 'ES Status', handler: ->
       @service.status name: 'elasticsearch'

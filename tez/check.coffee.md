@@ -1,7 +1,7 @@
 
 # Tez Check
 
-    module.exports = header: 'Tez Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'Tez Check', handler: (options) ->
 
 ## Check HDFS
 

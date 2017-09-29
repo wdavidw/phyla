@@ -2,7 +2,7 @@
 
 Check for the HST server. Check the three ports (two way ssl ports and webui port)
 
-    module.exports = header: 'HST Server Wait', label_true: 'READY', handler: (options) ->
+    module.exports = header: 'HST Server Wait', handler: (options) ->
       @connection.assert
         header: 'TCP'
         servers: options.wait_local

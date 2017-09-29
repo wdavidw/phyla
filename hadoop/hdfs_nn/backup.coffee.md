@@ -29,7 +29,7 @@ dfsadmin -fetchImage
 
 ### Local Backup
 
-    module.exports = header: 'HDFS NN Backup', label_true: 'BACKUPED', handler: ->
+    module.exports = header: 'HDFS NN Backup', handler: ->
       {hdfs} = @config.ryba
 
       @tools.backup

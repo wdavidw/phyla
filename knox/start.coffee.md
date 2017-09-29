@@ -1,7 +1,7 @@
 
 # Knox Start
 
-    module.exports = header: 'Knox Start', label_true: 'STARTED', handler: ->
+    module.exports = header: 'Knox Start', handler: ->
 
 ## Service
 

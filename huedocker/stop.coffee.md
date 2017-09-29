@@ -19,7 +19,6 @@ docker stop hue_server
 
       @call
         header: 'Stop Clean Logs'
-        label_true: 'CLEANED'
         if: -> @config.ryba.clean_logs
         handler: ->
           @system.execute

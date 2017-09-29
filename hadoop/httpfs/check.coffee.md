@@ -1,7 +1,7 @@
 
 # HDFS HttpFS Check
 
-    module.exports = header: 'HDFS HttpFS Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: (options) ->
+    module.exports = header: 'HDFS HttpFS Check', handler: (options) ->
 
 ## Assert Connection
 

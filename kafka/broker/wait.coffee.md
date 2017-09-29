@@ -1,7 +1,7 @@
 
 # HBase Master Wait
 
-    module.exports =  header: 'Kafka Broker Wait', label_true: 'READY', handler: (options) ->
+    module.exports =  header: 'Kafka Broker Wait', handler: (options) ->
 
 ## Broker Port
 

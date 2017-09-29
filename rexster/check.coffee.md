@@ -1,7 +1,7 @@
 
 # Rexster Check
 
-    module.exports = header: 'Rexster Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
+    module.exports = header: 'Rexster Check', handler: ->
       {titan, rexster} = @config.ryba
 
 ## Check Status
@@ -21,7 +21,7 @@ Check status using JMX
 Check REPL (rexster-console.sh). It is not equivalent to Titan REPL, as it use the
 binary protocol RexPro.
 
-      #@call header: 'RexPro', skip: true, label_true: 'CHECKED', ->
+      #@call header: 'RexPro', skip: true, ->
 
 ## Check REST
 

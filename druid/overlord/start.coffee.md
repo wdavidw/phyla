@@ -1,7 +1,7 @@
 
 # Druid Overlord Start
 
-    module.exports = header: 'Druid Overlord Start', label_true: 'STARTED', handler: (options) ->
+    module.exports = header: 'Druid Overlord Start', handler: (options) ->
 
 ## Wait
 

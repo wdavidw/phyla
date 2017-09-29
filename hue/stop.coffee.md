@@ -8,7 +8,7 @@ command:
 service hue stop
 ```
 
-    module.exports = header: 'Hue Stop', label_true: 'STOPPED', handler: ->
+    module.exports = header: 'Hue Stop', handler: ->
       {hue} = @config.ryba
       @service.stop
         header: 'Stop service'
@@ -18,7 +18,6 @@ service hue stop
 
       @system.execute
         header: 'Clean Logs'
-        label_true: 'CLEANED'
         if: -> @config.ryba.clean_logs
         cmd: "rm #{hue.log_dir}/*"
         code_skipped: 1

@@ -3,7 +3,7 @@
 
     module.exports = header: 'MongoDB Shard Check', label_true: 'CHECKED', handler: (options) ->
 
-## Check
+## Check 
 
       @connection.assert
         header: 'TCP'
