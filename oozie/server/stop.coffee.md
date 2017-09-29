@@ -4,29 +4,29 @@
 Run the command `./bin/ryba stop -m ryba/oozie/server` to stop the Oozie
 server using Ryba.
 
+The file storing the PID is "/var/run/oozie/oozie.pid".
+
+    module.exports = header: 'Oozie Server Stop', label_true: 'STOPPED', handler: (options) ->
+
+## Service
+
 Stop the Oozie service. You can also stop the server manually with the
-following command:
+following commands:
 
 ```
-service stop oozie
+service oozie stop
+systemctl stop oozie
 su -l oozie -c "/usr/hdp/current/oozie-server/bin/oozied.sh stop"
 ```
 
-The file storing the PID is "/var/run/oozie/oozie.pid".
-
-    module.exports = header: 'Oozie Server Stop', label_true: 'STOPPED', handler: ->
-      {oozie} = @config.ryba
       @service.stop
         name: 'oozie'
         if_exists: '/etc/init.d/oozie'
 
 ## Stop Clean Logs
 
-      @call
+      @system.execute
         header: 'Stop Clean Logs'
-        label_true: 'CLEANED'
-        if: -> @config.ryba.clean_logs
-      , ->
-        @system.execute
-          cmd: 'rm /var/log/oozie/*'
-          code_skipped: 1
+        if: options.clean_logs
+        cmd: 'rm /var/log/oozie/*'
+        code_skipped: 1

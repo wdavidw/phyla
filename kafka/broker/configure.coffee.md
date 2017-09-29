@@ -85,7 +85,7 @@ Example:
 
       options.zookeeper_quorum ?= for srv in service.use.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
-        "#{srv.node.fqdn}:#{srv.options.port}"
+        "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
 
 ## Configuration
 

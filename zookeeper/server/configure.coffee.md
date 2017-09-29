@@ -37,7 +37,6 @@ Example :
       options.conf_dir ?= '/etc/zookeeper/conf'
       options.log_dir ?= '/var/log/zookeeper'
       options.pid_dir ?= '/var/run/zookeeper'
-      options.port ?= 2181
       options.conf_dir ?= '/etc/zookeeper/conf'
       # Misc
       options.clean_logs ?= false
@@ -104,7 +103,7 @@ Example :
       # Recommandation is 1 dedicated SSD drive.
       options.config['dataDir'] ?= '/var/zookeeper/data/'
       # the port at which the clients will connect
-      options.config['clientPort'] ?= "#{options.port}"
+      options.config['clientPort'] ?= "2181"
       # If zookeeper node is participant (to election) or only observer
       # Adding new observer nodes allow horizontal scaling without slowing write
       options.config['peerType'] ?= 'participant'
@@ -179,6 +178,11 @@ Example :
 
       options.wait_krb5_client = service.use.krb5_client.options.wait
       options.wait = {}
+      options.wait.tcp = for srv in service.use.zookeeper_server
+        srv.options.config ?= {}
+        continue unless srv.options.config['peerType'] is 'participant'
+        host: srv.node.fqdn
+        port: srv.options.config['clientPort'] or '2181'
 
 ## Dependencies
 

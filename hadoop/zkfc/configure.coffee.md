@@ -52,7 +52,7 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       options.core_site ?= merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
       options.core_site['ha.zookeeper.quorum'] ?= service.use.zookeeper_server
       .filter (srv) -> srv.options.config['peerType'] is 'participant'
-      .map (srv)-> "#{srv.node.fqdn}:#{srv.options.port}"
+      .map (srv)-> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       .join(',')
       # Validation
       options.principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']

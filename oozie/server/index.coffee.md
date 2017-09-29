@@ -8,31 +8,43 @@ Please check Oozie page
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        test_user: implicit: true, module: 'ryba/commons/test_user'
-        mysql_server: 'masson/commons/mysql/server'
-        zookeeper: 'ryba/zookeeper/server'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        db_admin: implicit: true, module: 'ryba/commons/db_admin'
-        yarn_client: implicit: true, module: 'ryba/hadoop/yarn_client'
-        spark_client: implicit: true, module: 'ryba/spark/client'
+        ssl: module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        hadoop_core: module: 'ryba/hadoop/core', local: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        hbase_master: module: 'ryba/hbase/master'
+        hive_hcatalog: module: 'ryba/hive/hcatalog'
+        hive_server2: module: 'ryba/hive/server2'
+        hive_webhcat: module: 'ryba/hive/webhcat'
+        spark_client: module: 'ryba/spark/client', local: true, auto: true, implicit: true
+        oozie_server: module: 'ryba/oozie/server'
       configure: 'ryba/oozie/server/configure'
       commands:
-        'install': [
-          'ryba/oozie/server/install'
-          'ryba/oozie/server/start'
-        ]
-        'start':
-          'ryba/oozie/server/start'
-        'status':
-          'ryba/oozie/server/status'
-        'stop':
-          'ryba/oozie/server/stop'
-        'wait':
-          'ryba/oozie/server/wait'
-        'backup':
-          'ryba/oozie/server/backup'
+        backup: ->
+          options = @config.ryba.oozie.server
+          @call 'ryba/oozie/server/backup', options
+        install: ->
+          options = @config.ryba.oozie.server
+          @call 'ryba/oozie/server/install', options
+          @call 'ryba/oozie/server/start', options
+          @call 'ryba/oozie/server/check', options
+        start: ->
+          options = @config.ryba.oozie.server
+          @call 'ryba/oozie/server/start', options
+          @call 'ryba/oozie/server/check', options
+        status: ->
+          options = @config.ryba.oozie.server
+          @call 'ryba/oozie/server/status', options
+        stop: ->
+          options = @config.ryba.oozie.server
+          @call 'ryba/oozie/server/stop', options
 
 [Oozie]: https://oozie.apache.org/docs/3.1.3-incubating/index.html

@@ -78,7 +78,7 @@ KMS delegation token secret manager can be configured with the following propert
 
 ## HTTP Authentication Signature
 
-      # zookeeper_quorum = for srv in service.use.zookeeper_server then "#{srv.node.fqdn}:#{srv.options.port}"
+      # zookeeper_quorum = for srv in service.use.zookeeper_server then "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider'] ?= 'zookeeper'
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.path'] ?= '/hadoop-kms/hadoop-auth-signature-secret'
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string'] ?= "#{zookeeper_quorum}"

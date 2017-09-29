@@ -17,24 +17,24 @@ su -l oozie -c "/usr/hdp/current/oozie-server/bin/oozied.sh start"
 
 Note, there is no need to clean a zombie pid file before starting the server.
 
-    module.exports = header: 'Oozie Server Start', label_true: 'STARTED', handler: ->
-      oozie_ctx = @contexts('ryba/oozie/server')[0]
+    module.exports = header: 'Oozie Server Start', label_true: 'STARTED', handler: (options) ->
+      # oozie_ctx = @contexts('ryba/oozie/server')[0]
 
 Wait for all the dependencies.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/zookeeper/server/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-      @call once: true, 'ryba/hbase/master/wait'
-      @call once: true, 'ryba/hive/hcatalog/wait'
-      @call once: true, 'ryba/hive/server2/wait'
-      @call once: true, 'ryba/hive/webhcat/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.hadoop_conf_dir
+      @call 'ryba/hbase/master/wait', once: true, options.wait_hbase_master
+      @call 'ryba/hive/hcatalog/wait', once: true, options.wait_hive_hcatalog
+      @call 'ryba/hive/server2/wait', once: true, options.wait_hive_server2
+      @call 'ryba/hive/webhcat/wait', once: true, options.wait_hive_webhcat
 
 Start the service
 
-      @connection.wait
-        host: oozie_ctx.config.host
-        port: oozie_ctx.config.ryba.oozie.http_port
-        unless: oozie_ctx.config.host is @config.host
+      # @connection.wait
+      #   host: oozie_ctx.config.host
+      #   port: oozie_ctx.config.ryba.oozie.http_port
+      #   unless: oozie_ctx.config.host is @config.host
       @service.start
         name: 'oozie'
