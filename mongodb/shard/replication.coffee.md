@@ -1,22 +1,22 @@
 
-# MongoDB Router Server Replica Set Initialization
+# MongoDB Shard Server Replica Set Initialization
 
-    module.exports =  header: 'MongoDB Router Servers Replicat Set', handler: ->
-      {mongodb, realm, ssl} = @config.ryba
-      {shard} = mongodb
-      mongo_shell_exec =  "mongo admin --port #{shard.config.net.port}"
-      mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{mongodb.admin.name} --password  '#{mongodb.admin.password}'"
-      mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{mongodb.root.name} --password  '#{mongodb.root.password}'"
-      # the userAdminAnyDatabase role is the first account created thanks to locahost exception
-      # it used to manage every other user and their roles, for the root user
-      # having the right to deal with privileges does not give it the role of root (ie  manage replica sets)
+    module.exports =  header: 'MongoDB Shard Server Replicat Set', handler: (options) ->
+      mongo_shell_exec =  "mongo admin --port #{options.config.net.port}"
+      mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{options.admin.name} --password  '#{options.admin.password}'"
+      mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{options.root.name} --password  '#{options.root.password}'"
+
+The userAdminAnyDatabase role is the first account created thanks to locahost exception
+it used to manage every other user and their roles, for the root user
+having the right to deal with privileges does not give it the role of root (ie  manage replica sets).
+
       mongodb_admin =
-        user: "#{mongodb.admin.name}"
-        pwd: "#{mongodb.admin.password}"
+        user: "#{options.admin.name}"
+        pwd: "#{options.admin.password}"
         roles:  [ { role: "userAdminAnyDatabase", db: "admin" }]
       mongodb_root =
-        user: "#{mongodb.root.name}"
-        pwd: "#{mongodb.root.password}"
+        user: "#{options.root.name}"
+        pwd: "#{options.root.password}"
         roles: [ { role: "root", db: "admin" } ]
 
 ## Wait
@@ -32,56 +32,60 @@ The root user is needed for replication and has role `root`
 
       @call
         header: 'Roles Admin DB',
-        if: @config.host is mongodb.shard.replica_master
+        if: -> options.is_master
         unless_exec: """
-        echo exit | #{mongo_shell_admin_exec}
-        echo exit | #{mongo_shell_root_exec}
+          echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.admin.name} \
+            --password  '#{options.admin.password}'
+          echo exit | mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}'
         """
       , ->
         @service.stop
           name: 'mongod-shard-server'
         @file.yaml
-          target: "#{mongodb.shard.conf_dir}/mongod.conf"
+          target: "#{options.conf_dir}/mongod.conf"
           content:
             replication: null
           merge: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           backup: true
         @service.start
           name: 'mongod-shard-server'
-        @connection.wait
-          host: @config.host
-          port: mongodb.shard.config.net.port
+        @connection.wait options.wait.local
         @system.execute
           cmd: """
           #{mongo_shell_exec} --eval <<-EOF \
           'printjson( db.createUser( \
-            { user: \"#{mongodb.admin.name}\", pwd: \"#{mongodb.admin.password}\", roles: [ { role: \"userAdminAnyDatabase\", db: \"admin\" }]} \
+            { user: \"#{options.admin.name}\", pwd: \"#{options.admin.password}\", roles: [ { role: \"userAdminAnyDatabase\", db: \"admin\" }]} \
           ))'
           EOF
           """
           unless_exec: """
-          echo exit | #{mongo_shell_admin_exec} -u #{mongodb.admin.name} --password  '#{mongodb.admin.password}'
+          echo exit | #{mongo_shell_admin_exec} -u #{options.admin.name} --password  '#{options.admin.password}'
           """
           code_skipped: 252
         @system.execute
           cmd: """
           #{mongo_shell_admin_exec} --eval <<-EOF \
           'printjson(db.createUser( \
-            { user: \"#{mongodb.root.name}\", pwd: \"#{mongodb.root.password}\", roles: [ { role: \"root\", db: \"admin\" }]} \
+            { user: \"#{options.root.name}\", pwd: \"#{options.root.password}\", roles: [ { role: \"root\", db: \"admin\" }]} \
           ))'
           EOF
           """
-          unless_exec: "echo exit | #{mongo_shell_admin_exec} -u #{mongodb.root.name} --password  '#{mongodb.root.password}'"
+          unless_exec: "echo exit | #{mongo_shell_admin_exec} -u #{options.root.name} --password  '#{options.root.password}'"
           code_skipped: 252
         @file.yaml
-          target: "#{mongodb.shard.conf_dir}/mongod.conf"
-          content: mongodb.shard.config
+          target: "#{options.conf_dir}/mongod.conf"
+          content: options.config
           merge: true
-          uid: mongodb.user.name
-          gid: mongodb.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
           backup: true
         @service.stop
@@ -90,9 +94,7 @@ The root user is needed for replication and has role `root`
         @service.start
           if: -> @status -1
           name: 'mongod-shard-server'
-        @connection.wait
-          host: @config.host
-          port: mongodb.shard.config.net.port
+      @connection.wait options.local
 
 
 # Replica Set Initialization
@@ -102,33 +104,46 @@ and launching the 'rs.initiate()' command.
 
       @call
         header: 'Replica Set Init Master'
-        if: @config.host is mongodb.shard.replica_master
+        if: -> options.is_master
       , ->
         message = {}
+        config =
+          _id: options.config.replication.replSetName
+          version: 1
+          members: [_id:0, host: "#{options.fqdn}:#{options.config.net.port}"]
         @call (_, callback) ->
           @system.execute
             cmd: " #{mongo_shell_root_exec}  --eval 'rs.status().ok' | grep -v 'MongoDB.*version' | grep -v 'connecting to:'"
           , (err, _, stdout) ->
             return callback err if err
             status =  parseInt(stdout)
-            return callback null, true if status == 0
+            return callback null, true if +status == 0
             callback null, false
         @system.execute
           if: -> @status -1
-          cmd: "#{mongo_shell_root_exec}  --eval 'rs.initiate()'"
+          cmd: "#{mongo_shell_root_exec}  --eval 'rs.initiate(#{JSON.stringify config})'"
 
 # Replica Set Members
 
 Adds the other shard servers members of the replica set.
 
       @call
-        header: 'Replica Set Members'
-        if: @config.host is mongodb.shard.replica_master
+        header: 'Set Members'
+        if: -> options.is_master
       , ->
-        message = {}
-        @call ->
-          replSetName = mongodb.shard.config.replication.replSetName
-          for host in mongodb.shard.replica_sets[replSetName]
-            @system.execute
-              cmd: "#{mongo_shell_root_exec} --eval 'rs.add(\"#{host}:#{mongodb.shard.config.net.port}\")'"
-              unless_exec: "#{mongo_shell_root_exec} --eval 'rs.conf().members' | grep '#{host}:#{mongodb.shard.config.net.port}'"
+        @system.execute (
+          cmd: """
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}' \
+            --eval 'rs.add(\"#{host}:#{options.config.net.port}\")'
+          """
+          unless_exec: """
+          mongo admin \
+            --port #{options.config.net.port} \
+            --username #{options.root.name} \
+            --password  '#{options.root.password}' \
+            --eval 'rs.conf().members' | grep '#{host}:#{options.config.net.port}'
+          """
+        ) for host in options.replicasets[options.config.replication.replSetName].hosts

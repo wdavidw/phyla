@@ -1,8 +1,12 @@
 
 # MongoDB Shard Check
 
-    module.exports = header: 'MongoDB Shard Check', label_true: 'CHECKED', handler: ->
-      {mongodb} = @config.ryba
-      @system.execute
-        header: 'Check TCP'
-        cmd: "echo > /dev/tcp/#{@config.host}/#{mongodb.shard.config.net.port}"
+    module.exports = header: 'MongoDB Shard Check', label_true: 'CHECKED', handler: (options) ->
+
+## Check
+
+      @connection.assert
+        header: 'TCP'
+        servers: options.wait.local
+        retry: 3
+        sleep: 3000
