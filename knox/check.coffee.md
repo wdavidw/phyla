@@ -1,10 +1,9 @@
 
 # Knox Check
 
-Validating Service Connectivity, based on [Hortonworks Documentation][doc]
+Validating Service Connectivity, based on [Hortonworks Documentation][doc].
 
     module.exports = header: 'Knox Check', label_true: 'CHECKED', label_false: 'SKIPPED', handler: ->
-      {knox} = @config.ryba
       return unless options.test_user?.name? and options.test_user?.password?
 
 ## Check WebHDFS Proxy
