@@ -1,14 +1,21 @@
 
 # Hortonworks Smartsense Start
 
-Start the Hortonworks SmartSense server. You can also start the server
-manually with the following command:
+Run the command `./bin/ryba start -m ryba/smartsense/server` to start the 
+Hortonworks SmartSense server using Ryba.
+
+    module.exports = header: 'HST Server Start', label_true: 'STARTED', handler: (options) ->
+
+## Service
+
+Start the MongDB Config server. You can also start the server manually with one of the
+following commands:
 
 ```
 service hst-server start
+systemctl start hst-server
 ```
 
-    module.exports = header: 'HST Server Start', label_true: 'STARTED', handler: ->
       @service.start
         header: 'HST Server Start'
         name: 'hst-server'

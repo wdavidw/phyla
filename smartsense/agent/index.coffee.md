@@ -7,14 +7,15 @@ to help you troubleshoot support cases.
       use:
         iptables: implicit: true, module: 'masson/core/iptables'
         java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        smartsense_server: 'ryba/smartsense/server'
+        smartsense_servers: 'ryba/smartsense/server'
       configure: 'ryba/smartsense/agent/configure'
       commands:
-        'install': [
-          'ryba/smartsense/agent/install'
-          'ryba/smartsense/agent/check'
-        ]
-        'check': 'ryba/smartsense/agent/check'
+        'install': ->
+          options = @config.ryba.smartsense.agent
+          @call 'ryba/smartsense/agent/install', options
+          @call 'ryba/smartsense/agent/check', options
+        'check': ->
+          options = @config.ryba.smartsense.agent
+          @call 'ryba/smartsense/agent/check', options
 
 [hst]: (http://docs.hortonworks.com/HDPDocuments/SS1/SmartSense-1.3.0/bk_installation/content/architecture_overview.html)

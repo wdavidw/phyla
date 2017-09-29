@@ -5,25 +5,26 @@ to help you troubleshoot support cases.
 
     module.exports =
       use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
+        iptables: module: 'masson/core/iptables', local: true
+        java: module: 'masson/commons/java', local: true
+        ssl: module: 'masson/core/ssl', local: true
       configure: 'ryba/smartsense/server/configure'
       commands:
-        'install': [
-          'ryba/smartsense/server/install'
-          'ryba/smartsense/server/start'
-          'ryba/smartsense/server/wait'
-          'ryba/smartsense/server/check'
-        ]
-        'start': [
-          'ryba/smartsense/server/start'
-        ]
-        'stop': [
-          'ryba/smartsense/server/stop'
-        ]
-        'status': [
-          'ryba/smartsense/server/status'
-        ]
+        'install': ->
+          options = @config.ryba.smartsense.server
+          @call 'ryba/smartsense/server/install' , options
+          @call 'ryba/smartsense/server/start' , options
+          @call 'ryba/smartsense/server/wait' , options
+          @call 'ryba/smartsense/server/check' , options
+        'start': ->
+          options = @config.ryba.smartsense.server
+          @call 'ryba/smartsense/server/start', options
+        'stop': ->
+          options = @config.ryba.smartsense.server
+          @call 'ryba/smartsense/server/start', options
+        'check': ->
+          options = @config.ryba.smartsense.server
+          @call 'ryba/smartsense/server/wait', options
+          @call 'ryba/smartsense/server/check', options
 
 [hst]: (http://docs.hortonworks.com/HDPDocuments/SS1/SmartSense-1.3.0/bk_installation/content/architecture_overview.html)
