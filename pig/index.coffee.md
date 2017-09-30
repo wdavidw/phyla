@@ -9,17 +9,21 @@ which in turns enables them to handle very large data sets.
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hadoop_core: 'ryba/hadoop/core'
-        mapred_client: 'ryba/hadoop/mapred_client'
-        yarn_client: 'ryba/hadoop/yarn_client'
-        hive_client: 'ryba/hive/client' # In case pig is run through hcat
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
+        yarn_client: module: 'ryba/hadoop/yarn_client', local: true, auto: true, implicit: true
+        mapred_client: module: 'ryba/hadoop/mapred_client', local: true, auto: true, implicit: true
+        hive_client: module: 'ryba/hive/client', local: true, auto: true, implicit: true # In case pig is run through hcat
       configure:
         'ryba/pig/configure'
       commands:
-        'check':
-          'ryba/pig/check'
-        'install': [
-           'ryba/pig/install'
-           'ryba/pig/check'
-        ]
+        'check': ->
+          options = @config.ryba.pig
+          @call 'ryba/pig/check', options
+        'install': ->
+          options = @config.ryba.pig
+          @call 'ryba/pig/install', options
+          @call 'ryba/pig/check', options

@@ -29,4 +29,4 @@ systemctl start hive-webhcat-server
 su -l hive -c "/usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh start"
 ```
 
-      @service.start name: 'hive-webhcat-server'
+      @service.start header: 'Service', 'hive-webhcat-server'

@@ -33,7 +33,7 @@
       options.java_home ?= service.use.java.options.java_home
       options.jre_home ?= service.use.java.options.jre_home
       # Misc
-      options.hostname = service.use.hostname
+      options.hostname = service.node.hostname
       options.force_check ?= false
       options.hdfs_defaultfs ?= service.use.hdfs_client.options.core_site['fs.defaultFS']
 
