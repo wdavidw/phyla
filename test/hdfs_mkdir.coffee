@@ -27,7 +27,7 @@ describe 'hdfs mkdir', ->
       ]
     .then next
 
-  it.only 'detect status', (next) ->
+  it 'detect status', (next) ->
     nikita require './config.coffee'
     .register 'hdfs_mkdir', require '../lib/hdfs_mkdir'
     .register 'kexecute', require '../lib/kexecute'
