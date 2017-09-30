@@ -4,51 +4,46 @@
 Learn more about Pig optimization by reading ["Making Pig Fly"][fly].
 
     module.exports = header: 'Pig Install', handler: (options) ->
-      {hadoop_group, pig} = @config.ryba
-      {java_home} = @config.java
+
+## Identities
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Install
 
 The pig package is install.
 
-      @call header: 'Pig Service', ->
-        @service
-          header: 'Service'
-          name: 'pig'
-        options.log 'TODO: pig-client not registered in hdp-select'
-        # pig-client not registered in hdp-select
-        # need to see if hadoop-client will switch pig as well
-        # @call once: true, 'ryba/lib/hdp_select'
-        # @hdp_select
-        #   name: 'pig-client'
-        # 6th feb 2014: pig user isnt created by YUM, might change in a future HDP release
-        @system.execute
-          header: 'Users'
-          cmd: "useradd pig -r -M -g #{hadoop_group.name} -s /bin/bash -c \"Used by Pig service\""
-          code: 0
-          code_skipped: 9
+      @service
+        header: 'Service'
+        name: 'pig'
+      options.log 'TODO: pig-client not registered in hdp-select'
+      # pig-client not registered in hdp-select
+      # need to see if hadoop-client will switch pig as well
+      # @call once: true, 'ryba/lib/hdp_select'
+      # @hdp_select
+      #   name: 'pig-client'
 
 ## Configure
 
 TODO: Generate the "pig.properties" file dynamically, be carefull, the HDP
 companion file defines no properties while the YUM package does.
 
-
       @file.ini
         header: 'Properties'
-        target: "#{pig.conf_dir}/pig.properties"
-        content: pig.config
+        target: "#{options.conf_dir}/pig.properties"
+        content: options.config
         separator: '='
         merge: true
         backup: true
       @file
         header: 'Env'
         source: "#{__dirname}/resources/pig-env.sh"
-        target: "#{pig.conf_dir}/pig-env.sh"
+        target: "#{options.conf_dir}/pig-env.sh"
         local: true
         write: [
           match: /^JAVA_HOME=.*$/mg
-          replace: "JAVA_HOME=#{java_home}"
+          replace: "JAVA_HOME=#{options.java_home}"
         ]
         mode: 0o755
         backup: true

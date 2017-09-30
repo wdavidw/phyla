@@ -73,6 +73,8 @@ Example
       options.pid_dir ?= '/var/run/oozie'
       options.tmp_dir ?= '/var/tmp/oozie'
       options.server_dir ?= '/usr/hdp/current/oozie-client/oozie-server'
+      # Java
+      options.heap_size ?= '256m'
       # Misc
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.default_fs ?= service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
@@ -90,8 +92,6 @@ Example
       options.group = name: options.group if typeof options.group is 'string'
       options.group.name ?= 'oozie'
       options.group.system ?= true
-      # Java
-      options.heap_size ?= '256m'
       # User
       options.user ?= {}
       options.user = name: options.user if typeof options.user is 'string'
