@@ -25,195 +25,226 @@ ryba:
     source: 'http://mirrors.ircam.fr/pub/apache/lucene/solr/6.0.0/solr-6.0.0.tgz'
 ```
 
-    module.exports =  ->
-      {ryba} = @config
-      [java_ctx] = @contexts 'masson/commons/java'
-      java = java_ctx.config.java
-      {solr, realm} = ryba ?= {}
+    module.exports =  (service) ->
+      service = migration.call @, service, 'ryba/solr/cloud', ['ryba', 'solr', 'cloud'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        ssl: key: ['ssl']
+        java: key: ['java']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        solr_cloud: key: ['ryba','solr','cloud']
+      @config.ryba ?= {}
+      @config.ryba.solr ?= {}
+      options = @config.ryba.solr.cloud = service.options
 
 ## Identities
 
       # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
+      options.group ?= {}
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group.name ?= 'solr'
+      options.group.system ?= true
       # User
-      solr.user ?= {}
-      solr.user = name: solr.user if typeof solr.user is 'string'
-      solr.user.name ?= 'solr'
-      solr.user.home ?= "/var/#{solr.user.name}/data"
-      solr.user.system ?= true
-      solr.user.comment ?= 'Solr User'
-      solr.user.groups ?= 'hadoop'
-      solr.user.gid ?= solr.group.name
-      solr.user.limits ?= {}
-      solr.user.limits.nofile ?= 64000
-      solr.user.limits.nproc ?= true
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= 'solr'
+      options.user.home ?= "/var/#{options.user.name}/data"
+      options.user.system ?= true
+      options.user.comment ?= 'Solr User'
+      options.user.groups ?= 'hadoop'
+      options.user.gid ?= options.group.name
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 64000
+      options.user.limits.nproc ?= true
+      options.hadoop_group ?= service.use.hadoop_core[0].options.hadoop_group
 
 ## Environment
 
-      solr.cloud ?= {}
-      solr.cloud.version ?= '6.3.0'
-      solr.cloud.host ?= @config.host # need for rendering xml
-      solr.cloud.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.cloud.version}/solr-#{solr.cloud.version}.tgz"
-      solr.cloud.root_dir ?= '/usr'
-      solr.cloud.install_dir ?= "#{solr.cloud.root_dir}/solr-cloud/#{solr.cloud.version}"
-      solr.cloud.latest_dir ?= "#{solr.cloud.root_dir}/solr-cloud/current"
-      solr.cloud.latest_dir = '/opt/lucidworks-hdpsearch/solr' if solr.cloud.source is 'HDP'
-      solr.cloud.pid_dir ?= '/var/run/solr'
-      solr.cloud.log_dir ?= '/var/log/solr'
-      solr.cloud.conf_dir ?= '/etc/solr-cloud/conf'
+      options.version ?= '6.6.1'
+      options.host ?= service.node.fqdn # need for rendering xml
+      options.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{options.version}/solr-#{options.version}.tgz"
+      options.root_dir ?= '/usr'
+      options.install_dir ?= "#{options.root_dir}/solr-cloud/#{options.version}"
+      options.latest_dir ?= "#{options.root_dir}/solr-cloud/current"
+      options.latest_dir = '/opt/lucidworks-hdpsearch/solr' if options.source is 'HDP'
+      options.pid_dir ?= '/var/run/solr'
+      options.log_dir ?= '/var/log/solr'
+      options.conf_dir ?= '/etc/solr-cloud/conf'
 
 
-## Core Conf
+## Configuration
 Ryba installs solrcloud with a single instance (one core).
 However, once installed, the user can start easily several instances for 
 differents cores ( and so with different ports).
 
+      # Misc
+      options.fqdn ?= service.node.fqdn
+      options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.shards ?= service.use.solr_cloud.length
+      options.clean_logs ?= false
       # Layout
-      solr.cloud.port ?= 8983
-      solr.cloud.env ?= {}
-      zk_hosts = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      solr.cloud.zk_connect = zk_hosts.map( (ctx) -> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.port}").join ','
-      solr.cloud.zk_node ?= 'solr'
-      solr.cloud.zkhosts = "#{solr.cloud.zk_connect}/#{solr.cloud.zk_node}"
-      solr.cloud.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
-      solr.cloud.lock_type = 'native'
+      options.port ?= 8983
+      options.env ?= {}
+      zk_hosts = service.use.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
+      options.zk_connect = zk_hosts.map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+      options.zk_node ?= 'solr'
+      options.zkhosts = "#{options.zk_connect}/#{options.zk_node}"
+      options.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
+      options.lock_type = 'native'
 
 ## Fix Conf
 Before 6.0 version, solr.xml'<solrCloud> section has a mistake:
 The property `zkCredentialsProvider` is named `zkCredientialsProvider`
 
-      solr.cloud.conf_source = if (solr.cloud.version.split('.')[0] < 6) or (solr.cloud.source is 'HDP')
+      options.conf_source = if (options.version.split('.')[0] < 6) or (options.source is 'HDP')
       then "#{__dirname}/../resources/cloud/solr_5.xml.j2"
       else "#{__dirname}/../resources/cloud/solr_6.xml.j2"
 
 ## Security
 
-      solr.cloud.security ?= {}
-      solr.cloud.security["authentication"] ?= {}
-      solr.cloud.security["authentication"]['class'] ?= if  @config.ryba.security is 'kerberos'
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.security ?= {}
+      options.security["authentication"] ?= {}
+      options.security["authentication"]['class'] ?= if  service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
       then 'org.apache.solr.security.KerberosPlugin'
       else 'solr.BasicAuthPlugin'
-      if @config.ryba.security is 'kerberos'
-        # Kerberos
-        solr.admin_principal ?= "#{solr.user.name}@#{realm}"
-        solr.admin_password ?= 'solr123'
-        solr.cloud.admin_principal ?= solr.admin_principal
-        solr.cloud.admin_password ?= solr.admin_password
-        solr.cloud.principal ?= "#{solr.user.name}/#{@config.host}@#{realm}"
-        solr.cloud.keytab ?= '/etc/security/keytabs/solr.service.keytab'
-        solr.cloud.spnego ?= {}
-        solr.cloud.spnego.principal ?= "HTTP/#{@config.host}@#{@config.ryba.realm}"
-        solr.cloud.spnego.keytab ?= '/etc/security/keytabs/spnego.service.keytab'
-        solr.cloud.auth_opts ?= {}
-        solr.cloud.auth_opts['solr.kerberos.cookie.domain'] ?= "#{@config.host}"
-        solr.cloud.auth_opts['java.security.auth.login.config'] ?= "#{solr.cloud.conf_dir}/solr-server.jaas"
-        solr.cloud.auth_opts['solr.kerberos.principal'] ?= solr.cloud.spnego.principal
-        solr.cloud.auth_opts['solr.kerberos.keytab'] ?= solr.cloud.spnego.keytab
-        solr.cloud.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
+      if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+        options.admin_principal ?= "#{options.user.name}@#{options.krb5.realm}"
+        options.admin_password ?= 'solr123'
+        options.admin_principal ?= options.admin_principal
+        options.admin_password ?= options.admin_password
+        options.principal ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
+        options.keytab ?= '/etc/security/keytabs/solr.service.keytab'
+        options.spnego ?= {}
+        options.spnego.principal ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"
+        options.spnego.keytab ?= '/etc/security/keytabs/spnego.service.keytab'
+        options.auth_opts ?= {}
+        options.auth_opts['solr.kerberos.cookie.domain'] ?= "#{service.node.fqdn}"
+        options.auth_opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/solr-server.jaas"
+        options.auth_opts['solr.kerberos.principal'] ?= options.spnego.principal
+        options.auth_opts['solr.kerberos.keytab'] ?= options.spnego.keytab
+        options.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
         # Authentication
         #Acls
         #https://cwiki.apache.org/confluence/display/solr/Rule-Based+Authorization+Plugin
         # ACL are available from solr 5.3 version (HDP verseion has 5.2 (June-2016))
         # Configure roles & acl only on one host
-        if @contexts('ryba/solr/cloud')[0].config.host is @config.host
-          if solr.cloud.source isnt 'HDP'
-            if not /^[0-5].[0-2]/.test solr.cloud.version # version < 5.3
-              solr.cloud.security["authorization"] ?= {}
-              solr.cloud.security["authorization"]['class'] ?= 'solr.RuleBasedAuthorizationPlugin'
-              solr.cloud.security["authorization"]['permissions'] ?= []
-              # solr.cloud.security["authorization"]['permissions'].push name: 'security-edit' , role: 'admin' #define new role
-              # solr.cloud.security["authorization"]['permissions'].push name: 'read' , role: 'reader' #define new role
-              solr.cloud.security["authorization"]['permissions'].push name: 'all' , role: 'manager' #define new role
-              solr.cloud.security["authorization"]['user-role'] ?= {}
-              solr.cloud.security["authorization"]['user-role']["#{solr.cloud.admin_principal}"] ?= 'manager'
-              for host in @contexts('ryba/solr/cloud').map( (c)->c.config.host)
-                solr.cloud.security["authorization"]['user-role']["#{solr.user.name}/#{host}@#{@config.ryba.realm}"] ?= 'manager'
-                solr.cloud.security["authorization"]['user-role']["HTTP/#{host}@#{@config.ryba.realm}"] ?= 'manager'
+        if service.use.solr_cloud[0].node.fqdn is service.node.fqdn
+          if options.source isnt 'HDP'
+            if not /^[0-5].[0-2]/.test options.version # version < 5.3
+              options.security["authorization"] ?= {}
+              options.security["authorization"]['class'] ?= 'solr.RuleBasedAuthorizationPlugin'
+              options.security["authorization"]['permissions'] ?= []
+              # options.security["authorization"]['permissions'].push name: 'security-edit' , role: 'admin' #define new role
+              # options.security["authorization"]['permissions'].push name: 'read' , role: 'reader' #define new role
+              options.security["authorization"]['permissions'].push name: 'all' , role: 'manager' #define new role
+              options.security["authorization"]['user-role'] ?= {}
+              options.security["authorization"]['user-role']["#{options.admin_principal}"] ?= 'manager'
+              for host in service.use.solr_cloud.map( (srv)-> srv.node.fqdn)
+                options.security["authorization"]['user-role']["#{options.user.name}/#{host}@#{options.krb5.realm}"] ?= 'manager'
+                options.security["authorization"]['user-role']["HTTP/#{host}@#{options.krb5.realm}"] ?= 'manager'
 
 ## SSL
 
-      solr.cloud.ssl ?= {}
-      solr.cloud.ssl.enabled ?= true
-      solr.cloud.ssl_truststore_path ?= "#{solr.cloud.conf_dir}/truststore"
-      solr.cloud.ssl_truststore_pwd ?= 'solr123'
-      solr.cloud.ssl_keystore_path ?= "#{solr.cloud.conf_dir}/keystore"
-      solr.cloud.ssl_keystore_pwd ?= 'solr123'
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.use.ssl
+      options.truststore ?= {}
+      options.keystore ?= {}
+      if options.ssl.enabled
+        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
+        throw Error "Required Option: ssl.key" if not options.ssl.key
+        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+        options.truststore.target ?= "#{options.conf_dir}/truststore"
+        throw Error "Required Property: truststore.password" if not options.truststore.password
+        options.keystore.target ?= "#{options.conf_dir}/keystore"
+        throw Error "Required Property: keystore.password" if not options.keystore.password
+        options.truststore.caname ?= 'hadoop_root_ca'
 
 ### Environment and Zookeeper ACL
 
-      solr.cloud.zk_opts ?= {}
-      if java?
-        solr.cloud.env['SOLR_JAVA_HOME'] ?= java.java_home
-      solr.cloud.env['SOLR_HOST'] ?= @config.host
-      solr.cloud.env['ZK_HOST'] ?= solr.cloud.zkhosts
-      solr.cloud.env['SOLR_HEAP'] ?= "512m"
-      solr.cloud.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
-      if solr.cloud.ssl.enabled
-        solr.cloud.env['SOLR_SSL_KEY_STORE'] ?= solr.cloud.ssl_keystore_path
-        solr.cloud.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.cloud.ssl_keystore_pwd
-        solr.cloud.env['SOLR_SSL_TRUST_STORE'] ?= solr.cloud.ssl_truststore_path
-        solr.cloud.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.cloud.ssl_truststore_pwd
-        solr.cloud.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
-      if ryba.security is 'kerberos'
-        solr.cloud.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer'
+      options.zk_opts ?= {}
+      options.env['SOLR_JAVA_HOME'] ?= service.use.java.options.java_home if service.use.java
+      options.env['SOLR_HOST'] ?= service.node.fqdn
+      options.env['ZK_HOST'] ?= options.zkhosts
+      options.env['SOLR_HEAP'] ?= "512m"
+      options.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
+      if options.ssl.enabled
+        options.env['SOLR_SSL_KEY_STORE'] ?= options.keystore.target
+        options.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= options.keystore.password
+        options.env['SOLR_SSL_TRUST_STORE'] ?= options.truststore.target
+        options.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.truststore.password
+        options.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
+      if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+        # options.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.options.client.solrj.impl.Krb5HttpClientConfigurer'
+        options.env['SOLR_AUTH_TYPE'] ?= 'kerberos'
         # Zookeeper ACLs
         # https://cwiki.apache.org/confluence/display/solr/ZooKeeper+Access+Control
-        # solr.cloud.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.DefaultZkCredentialsProvider'
-        # solr.cloud.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
-        # solr.cloud.zk_opts['solr.authorization.superuser'] ?= solr.user.name #default to solr
-        # solr.cloud.env['SOLR_ZK_CREDS_AND_ACLS'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
+        # options.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.DefaultZkCredentialsProvider'
+        # options.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
+        # options.zk_opts['solr.authorization.superuser'] ?= solr.user.name #default to solr
+        # options.env['SOLR_ZK_CREDS_AND_ACLS'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
       else
         #d
-      solr.cloud.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
-      solr.cloud.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.VMParamsAllAndReadonlyDigestZkACLProvider'
-      solr.cloud.zk_opts['zkDigestUsername'] ?= solr.user.name
-      solr.cloud.zk_opts['zkDigestPassword'] ?= 'solr123'
-        # solr.cloud.zk_opts['zkDigestReadonlyUsername'] ?= auser
-        # solr.cloud.zk_opts['zkDigestReadonlyPassword'] ?= 'solr123'
+      options.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
+      options.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.VMParamsAllAndReadonlyDigestZkACLProvider'
+      options.zk_opts['zkDigestUsername'] ?= options.user.name
+      options.zk_opts['zkDigestPassword'] ?= 'solr123'
+        # options.zk_opts['zkDigestReadonlyUsername'] ?= auser
+        # options.zk_opts['zkDigestReadonlyPassword'] ?= 'solr123'
 
 ### Java version
 Solr 6.0 is compiled with java 1.8.
 So it must be run with jdk 1.8.
-The `solr.cloud.jre_home` configuration allow a specific java version to be used by 
+The `options.jre_home` configuration allow a specific java version to be used by 
 solr zkCli script
 
-      solr.cloud.jre_home ?= java.jre_home if java?
+      options.jre_home ?= service.use.java.options.java_home if service.use.java
 
 ### Configure HDFS
 [Configure][solr-hdfs] Solr to index document using hdfs, and document stored in HDFS.
 
-      # TODO: migration should use hadoop_core to avoid cycle in the service graph
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      if nn_ctxs.length > 0
-        solr.cloud.hdfs ?= {}
-        solr.cloud.hdfs.home ?=  "hdfs://#{nn_ctxs[0].config.ryba.core_site['fs.defaultFS']}/user/#{solr.user.name}"
-        solr.cloud.hdfs.blockcache_enabled ?= 'true'
-        solr.cloud.hdfs.blockcache_slab_count ?= '1'
-        solr.cloud.hdfs.blockcache_direct_memory_allocation ?= 'false'
-        solr.cloud.hdfs.blockcache_blocksperbank ?= 16384
-        solr.cloud.hdfs.blockcache_read_enabled ?= 'true'
-        solr.cloud.hdfs.blockcache_write_enabled ?= false
-        solr.cloud.hdfs.nrtcachingdirectory_enable ?= true
-        solr.cloud.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
-        solr.cloud.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'
-        solr.cloud.hdfs.security_kerberos_enabled ?= if @config.ryba.security is 'kerberos' then true else fase
-        solr.cloud.hdfs.security_kerberos_keytabfile ?= solr.cloud.keytab
-        solr.cloud.hdfs.security_kerberos_principal ?= solr.cloud.principal
+      if service.use.hdfs_client?
+        options.hdfs ?= {}
+        options.hdfs.user ?= service.use.hadoop_core[0].options.hdfs.krb5_user
+        options.hdfs.home ?=  "hdfs://#{service.use.hadoop_core[0].options.core_site['fs.defaultFS']}/user/#{options.user.name}"
+        options.hdfs.blockcache_enabled ?= 'true'
+        options.hdfs.blockcache_slab_count ?= '1'
+        options.hdfs.blockcache_direct_memory_allocation ?= 'false'
+        options.hdfs.blockcache_blocksperbank ?= 16384
+        options.hdfs.blockcache_read_enabled ?= 'true'
+        options.hdfs.blockcache_write_enabled ?= false
+        options.hdfs.nrtcachingdirectory_enable ?= true
+        options.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
+        options.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'
+        options.hdfs.security_kerberos_enabled ?= if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos' then 'true' else 'false'
+        options.hdfs.security_kerberos_keytabfile ?= options.keytab
+        options.hdfs.security_kerberos_principal ?= options.principal
         # instruct solr to use hdfs as home dir
-        solr.cloud.dir_factory = 'solr.HdfsDirectoryFactory'
-        solr.cloud.lock_type = 'hdfs'
+        options.dir_factory = 'options.HdfsDirectoryFactory'
+        options.lock_type = 'hdfs'
 
+# Wait
 
-
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait ?= {}
+      options.wait.tcp ?= for srv in service.use.solr_cloud
+        host: srv.node.fqdn
+        port: srv.options.port or '8983'
 
 ## Dependencies
 
-    path = require 'path'
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'
 
 [solr-krb5]:https://cwiki.apache.org/confluence/display/solr/Kerberos+Authentication+Plugin
 [solr-ssl]: https://cwiki.apache.org/confluence/display/solr/Enabling+SSL#EnablingSSL-RunSolrCloudwithSSL
 [solr-auth]: https://cwiki.apache.org/confluence/display/solr/Rule-Based+Authorization+Plugin
 [solr-hdfs]: http://fr.hortonworks.com/hadoop-tutorial/searching-data-solr/
+[solr-6.6.]: https://lucene.apache.org/solr/guide/6_6/kerberos-authentication-plugin.html

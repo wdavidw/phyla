@@ -1,16 +1,11 @@
 
 # Solr Start
 
-    module.exports =  header: 'Solr Cloud Start', handler: ->
+    module.exports =  header: 'Solr Cloud Start', header: 'STARTED', handler: (options) ->
 
 ## Dependencies
 
-      @call 'ryba/zookeeper/server/wait'
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
 
-      @connection.wait
-        unless: (@contexts('ryba/solr/cloud')[0].config.host is @config.host)
-        host: @contexts('ryba/solr/cloud')[0].config.host
-        port: @contexts('ryba/solr/cloud')[0].config.ryba.solr.cloud.port
-      @service.start
-        if_exists: '/etc/init.d/solr'
-        name: 'solr'
+      @service.start 'solr'

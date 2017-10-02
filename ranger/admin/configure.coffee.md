@@ -12,8 +12,6 @@ variables but also inject some function to be executed.
         db_admin: key: ['ryba', 'db_admin']
         hadoop_core: key: ['ryba']
         solr_cloud_docker: key: ['ryba', 'solr', 'cloud_docker']
-        solr_cloud: key: ['ryba', 'solr', 'cloud']
-        solr_standalone: key: ['ryba', 'solr', 'single']    
       @config.ryba.ranger ?= {}
       options = @config.ryba.ranger.admin ?= service.options
 
@@ -244,7 +242,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           options.solr.group.name ?= 'solr'
           options.solr.group.system ?= true
           options.solr.user ?= {}
-          options.solr.user = name: options.solr.user if typeof options.solr.user is 'string'
+          options.solr.user ?= name: options.solr.user if typeof options.solr.user is 'string'
           options.solr.user.name ?= 'solr'
           options.solr.user.gid ?= options.solr.group.name
           options.solr.user.home ?= "/var/lib/#{options.solr.user.name}"
@@ -267,7 +265,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             options.solr.principal ?= "#{options.solr.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
             options.solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
           options.solr.ssl = merge options.solr.ssl or {}, service.use.hadoop_core.options.ssl
-          options.solr.port ?= if options.solr.ssl.enabled then 9983 else 8983
+          options.solr.port ?= if options.solr.ssl.enabled then 19983 else 18983
           options.solr.ssl_truststore_path ?= "#{options.solr.conf_dir}/truststore"
           options.solr.ssl_truststore_pwd ?= 'solr123'
           options.solr.ssl_keystore_path ?= "#{options.solr.conf_dir}/keystore"

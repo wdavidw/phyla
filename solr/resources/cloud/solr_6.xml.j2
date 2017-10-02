@@ -30,16 +30,16 @@
 
   <solrcloud>
 
-    <str name="host">${host:{{ryba.solr.cloud.host}}}</str>
-    <int name="hostPort">${jetty.port:{{ryba.solr.cloud.port}}}</int>
+    <str name="host">${host:{{fqdn}}}</str>
+    <int name="hostPort">${jetty.port:{{port}}}</int>
     <str name="hostContext">${hostContext:solr}</str>
     <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
-    <str name="zkCredentialsProvider">{{ryba.solr.cloud.zk_opts.zkCredentialsProvider}}</str>
-    <str name="zkACLProvider">{{ryba.solr.cloud.zk_opts.zkACLProvider}}</str>
+    <str name="zkCredentialsProvider">{{zk_opts.zkCredentialsProvider}}</str>
+    <str name="zkACLProvider">{{zk_opts.zkACLProvider}}</str>
     <int name="zkClientTimeout">${zkClientTimeout:30000}</int>
     <int name="distribUpdateSoTimeout">${distribUpdateSoTimeout:600000}</int>
     <int name="distribUpdateConnTimeout">${distribUpdateConnTimeout:60000}</int>
-    <str name="zkHost">{{ryba.solr.cloud.zkhosts}}</str>
+    <str name="zkHost">{{zkhosts}}</str>
 
   </solrcloud>
 
