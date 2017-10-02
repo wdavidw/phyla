@@ -94,7 +94,7 @@ The root user is needed for replication and has role `root`
         @service.start
           if: -> @status -1
           name: 'mongod-shard-server'
-      @connection.wait options.local
+      @call 'ryba/mongodb/shard/wait', options.wait
 
 
 # Replica Set Initialization

@@ -7,6 +7,6 @@
 
       @connection.assert
         header: 'TCP'
-        servers: options.wait.local
+        servers: options.wait_local
         retry: 3
         sleep: 3000

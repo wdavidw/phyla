@@ -170,10 +170,10 @@ Should work nonetheless.
       options.wait = {}
       options.wait.tcp = for srv in service.use.shard_servers
         host: srv.node.fqdn
-        port: options.config.net.port
+        port: options.config.net.port or 27019
       options.wait.local =
         host: service.node.fqdn
-        port: options.config.net.port
+        port: options.config.net.port or 27019
 
 ## Dependencies
 
