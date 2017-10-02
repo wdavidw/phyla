@@ -1,5 +1,5 @@
 
-# Apache Spark
+# Apache Spark2
 
 Altiscale describes Spark usage in its [Tips and Tricks for Running Spark][tips]
 article. Here's an extract from the original article.
@@ -22,7 +22,7 @@ yarn-cluster.
     example:   
     ```
     cd $SPARK_HOME
-    ./bin/spark-submit --class org.apache.spark.examples.SparkPi --master yarn –deploy-mode cluster --num-executors 3 --driver-memory 1g --executor-memory 2g --executor-cores 1 --queue thequeue $SPARK_HOME/examples/target/spark-examples_*-1.2.1.jar`   
+    ./bin/spark2-submit --class org.apache.spark.examples.SparkPi --master yarn –deploy-mode cluster --num-executors 3 --driver-memory 1g --executor-memory 2g --executor-cores 1 --queue thequeue $SPARK_HOME/examples/target/spark-examples_*-1.2.1.jar`   
     ```
     Note that in the example above, the –queue option is used to specify the Hadoop queue to which the application is submitted.
 
@@ -44,29 +44,21 @@ of your cluster.
 
     module.exports =
       use:
-        ssl: module: 'masson/core/ssl', local: true
-        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
-        java: module: 'masson/commons/java', local: true
-        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
-        ranger_admin: module: 'ryba/ranger/admin', single: true
-        ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
-        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
-        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
-        yarn_nm: module: 'ryba/hadoop/yarn_nm'
-        yarn_rm: module: 'ryba/hadoop/yarn_rm'
-        hive_hcatalog: module: 'ryba/hive/hcatalog'
-        hive_server2: module: 'ryba/hive/server2'
-        ganglia_collector: module: 'ryba/retired/ganglia/collector'
-        graphite: module: 'ryba/graphite/carbon'
+        hdfs: 'ryba/hadoop/hdfs_client'
+        yarn_nm: 'ryba/hadoop/yarn_nm'
+        hive_client: 'ryba/hive/client'
+        hive_beeline: module: 'ryba/hive/beeline'
+        oozie: 'ryba/ooozie/client'
+        graphite: 'ryba/graphite/carbon'
+        ganglia: 'ryba/retired/ganglia/collector'
       configure:
         'ryba/spark/client/configure'
       commands:
-        'install': ->
-          options = @config.ryba.spark.client
-          @call 'ryba/spark/client/install', options
-          @call 'ryba/spark/client/check', options
-        'check': ->
-          options = @config.ryba.spark.client
-          @call 'ryba/spark/client/check', options
+        'install': [
+          'ryba/spark/client/install'
+          'ryba/spark/client/check'
+        ]
+        'check':
+          'ryba/spark/client/check'
 
 [tips]: https://www.altiscale.com/hadoop-blog/spark-on-hadoop/

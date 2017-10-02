@@ -10,43 +10,42 @@ Version:
   - Hadoop: 2.7 (HDP 2.3)
 
 
-    module.exports = header: 'Zeppelin Prepare', ssh: null, retry: 1, handler: ->
-      {zeppelin} = @config.ryba
+    module.exports = header: 'Zeppelin Prepare', ssh: null, handler: (options) ->
 
 ## Prepare Build
 
 Intermetiate container to build zeppelin from source. Builds ryba/zeppelin-build
 image.
 
-      @docker_build
+      @docker.build
         header: 'Build Image'
-        image: zeppelin.build.tag
-        cwd: zeppelin.build.cwd
-      @docker_run
-        image: zeppelin.build.tag
+        image: options.build.tag
+        cwd: options.build.cwd
+      @docker.run
+        image: options.build.tag
         rm: true
-        volume: "#{@config.nikita.cache_dir}:/target"
+        volume: "#{options.cache_dir}:/target"
       @system.mkdir
-        target: "#{@config.nikita.cache_dir}/zeppelin"
+        target: "#{options.cache_dir}/zeppelin"
       @system.copy
-        source: "#{zeppelin.prod.cwd}/Dockerfile"
-        target: "#{@config.nikita.cache_dir}/zeppelin"
+        source: "#{options.prod.cwd}/Dockerfile"
+        target: "#{options.cache_dir}/zeppelin"
       @system.copy
-        source: "#{@config.nikita.cache_dir}/zeppelin-build.tar.gz"
-        target: "#{@config.nikita.cache_dir}/zeppelin"
+        source: "#{options.cache_dir}/zeppelin-build.tar.gz"
+        target: "#{options.cache_dir}/zeppelin"
 
 ## Prepare Container
 
 Build the Docker container and place it inside the cache directory.
 
-      @docker_build
+      @docker.build
         header: 'Build Container'
-        tag: "#{zeppelin.prod.tag}"
-        cwd: "#{@config.nikita.cache_dir}/zeppelin"
+        tag: "#{options.prod.tag}"
+        cwd: "#{options.cache_dir}/zeppelin"
       @docker_save
         header: 'Export Container'
-        image: "#{zeppelin.prod.tag}"
-        target: "#{@config.nikita.cache_dir}/zeppelin.tar"
+        image: "#{options.prod.tag}"
+        target: "#{options.cache_dir}/zeppelin.tar"
 
 ## Instructions
 

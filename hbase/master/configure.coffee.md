@@ -282,7 +282,7 @@ RS if RS count < 3.
 Configuration of HBase metrics system.
 
 The File sink is activated by default. The Ganglia and Graphite sinks are
-automatically activated if the "ryba/ganglia/collector" and
+automatically activated if the "ryba/retired/ganglia/collecto" and
 "ryba/graphite/collector" are respectively registered on one of the nodes of the
 cluster. You can disable any of those sinks by setting its class to "false", here
 how:

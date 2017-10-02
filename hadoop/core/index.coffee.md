@@ -24,7 +24,7 @@ Managers, Web HDFS interactions, and others.
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         hdp: module: 'ryba/hdp', local: true
         zookeeper_server: module: 'ryba/zookeeper/server'
-        ganglia: module: 'ryba/ganglia', single: true
+        ganglia: module: 'ryba/retired/ganglia/collector', single: true
         graphite: module: 'ryba/graphite', single: true
       configure:
         'ryba/hadoop/core/configure'

@@ -19,7 +19,7 @@ In a distributed cluster, a RegionServer runs on a DataNode.
         hbase_master: module: 'ryba/hbase/master', required: true
         hbase_regionserver: module: 'ryba/hbase/regionserver'
         ranger_admin: module: 'ryba/ranger/admin'
-        ganglia_collector: module: 'ryba/ganglia/collector'
+        ganglia_collector: module: 'ryba/retired/ganglia/collector'
       configure:
         'ryba/hbase/regionserver/configure'
         # 'ryba/ranger/plugins/hbase/configure'
