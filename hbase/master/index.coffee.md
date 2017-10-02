@@ -20,7 +20,7 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
         ranger_admin: module: 'ryba/ranger/admin', single: true
         hbase_master: module: 'ryba/hbase/master'
-        ganglia_collector: module: 'ryba/ganglia/collector', single: true
+        ganglia_collector: module: 'ryba/retired/ganglia/collector', single: true
       configure:
         'ryba/hbase/master/configure'
         # 'ryba/ranger/plugins/hbase/configure'

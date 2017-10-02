@@ -371,7 +371,7 @@ the keystore options exported from the SSL service and merged above:
 Configuration of Hadoop metrics system. 
 
 The File sink is activated by default. The Ganglia and Graphite sinks are
-automatically activated if the "ryba/ganglia/collector" and
+automatically activated if the "ryba/retired/ganglia/collecto" and
 "ryba/graphite/collector" are respectively registered on one of the nodes of the
 cluster. You can disable any of those sinks by setting its class to false, here
 how:

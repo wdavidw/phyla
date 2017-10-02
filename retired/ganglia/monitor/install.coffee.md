@@ -2,7 +2,7 @@
 # Ganglia Monitor Install
 
     module.exports = header: 'Ganglia Monitor Install', handler: ->
-      [collector] = @contexts 'ryba/ganglia/collector'
+      [collector] = @contexts 'ryba/retired/ganglia/collector'
 
 ## Service
 

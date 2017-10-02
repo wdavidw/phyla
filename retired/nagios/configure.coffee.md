@@ -107,7 +107,7 @@ Example
         'agent-servers': [] # @contexts('ryba/ambari/agent'
         'nagios-server': @contexts('ryba/nagios/install').map((ctx) -> ctx.config.host)
         # jobtracker
-        'ganglia-server': @contexts('ryba/ganglia/collector').map((ctx) -> ctx.config.host)
+        'ganglia-server': @contexts('ryba/retired/ganglia/collector').map((ctx) -> ctx.config.host)
         'flume-servers': [] # @contexts('ryba/flume/server'
         'zookeeper-servers': @contexts('ryba/zookeeeper/server').map((ctx) -> ctx.config.host)
         'hbasemasters': @contexts('ryba/hbase/master').map((ctx) -> ctx.config.host)

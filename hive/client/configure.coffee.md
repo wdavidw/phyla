@@ -16,25 +16,17 @@ Example:
 }
 ```
 
-    module.exports = ->
+    module.exports = (service) ->
       service = migration.call @, service, 'ryba/hive/client', ['ryba', 'hive', 'client'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         test_user: key: ['ryba', 'test_user']
-        # mapred_client: key: ['ryba', 'mapred']
-        # zookeeper_server: key: ['ryba', 'zookeeper']
         hadoop_core: key: ['ryba']
         hdfs_client: key: ['ryba', 'hdfs_client']
         yarn_client: key: ['ryba', 'yarn_client']
         mapred_client: key: ['ryba', 'mapred']
         tez: key: ['ryba', 'tez']
-        # hive_metastore: key: ['ryba', 'hive', 'metastore']
         hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
-        # hive_server2: key: ['ryba', 'hive', 'server2']
-        # hive_client: key: ['ryba', 'hive']
-        # hbase_thrift: key: ['ryba', 'hbase', 'thrift']
-        # hbase_client: key: ['ryba', 'hbase', 'client']
-        # phoenix_client: key: ['ryba', 'phoenix'] # actuall, phoenix expose no configuration
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
       @config.ryba ?= {}

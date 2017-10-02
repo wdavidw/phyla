@@ -5,13 +5,26 @@ Install Zeppelin with build dockerized image.
 Configured for a YARN  cluster, running with spark 1.2.1.
 Spark comes with 1.2.1 in HDP 2.2.4.
 
-    module.exports = header: 'Zeppelin Install', handler: ->
-      {zeppelin, core_site, spark} = @config.ryba
-      {hadoop_group, hadoop_conf_dir, hdfs} = @config.ryba
+    module.exports = header: 'Zeppelin Install', handler: (options) ->
 
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+
+## Identitites
+
+By default, the "zeppelin" package create the following
+entries:
+
+```bash
+cat /etc/passwd | grep zeppelin
+zeppelin:x:992:992:Zeppelin:/var/lib/zeppelin:/bin/bash
+cat /etc/group | grep zeppelin
+zeppelin:x:992:
+```
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -29,7 +42,7 @@ It's the  host' port server map from the container
       # @tools.iptables
       #   header: 'IPTables'
       #   rules: [
-      #     { chain: 'INPUT', jump: 'ACCEPT', dport: zeppelin.env.ZEPPELIN_PORT, protocol: 'tcp', state: 'NEW', comment: "Zeppelin Server" }
+      #     { chain: 'INPUT', jump: 'ACCEPT', dport: options.env.ZEPPELIN_PORT, protocol: 'tcp', state: 'NEW', comment: "Zeppelin Server" }
       #   ]
       #   if: @config.iptables.action is 'start'
 
@@ -56,14 +69,14 @@ SSL only required for the server
     #     shy: true
     #  # Client: import certificate to all hosts
     #  @java.keystore_add
-    #     keystore: zeppelin.site['zeppelin.ssl.keystore.path']
-    #     storepass: zeppelin.site['zeppelin.ssl.keystore.password']
+    #     keystore: options.site['zeppelin.ssl.keystore.path']
+    #     storepass: options.site['zeppelin.ssl.keystore.password']
     #     caname: "hadoop_zeppelin_ca"
     #     cacert: "#{tmp_location}_cacert"
     #  # Server: import certificates, private and public keys to hosts with a server
     #  @java.keystore_add
-    #     keystore: zeppelin.site['zeppelin.ssl.truststore.path']
-    #     storepass: zeppelin.site['zeppelin.ssl.truststore.password']
+    #     keystore: options.site['zeppelin.ssl.truststore.path']
+    #     storepass: options.site['zeppelin.ssl.truststore.password']
     #     caname: "hadoop_zeppelin_ca"
     #     cacert: "#{tmp_location}_cacert"
     #     key: "#{tmp_location}_key"
@@ -93,49 +106,53 @@ SSL only required for the server
       , (err, executed, stdout, stderr) ->
         throw err if err
         hdp_select_version = stdout.trim() if executed
-        zeppelin.env['ZEPPELIN_JAVA_OPTS'] ?= "-Dhdp.version=#{hdp_select_version}"
+        options.env['ZEPPELIN_JAVA_OPTS'] ?= "-Dhdp.version=#{hdp_select_version}"
 
 ## Zeppelin spark assemblye Jar
 
 Use the spark yarn assembly jar to execute spark aplication in yarn-client mode.
 
-      @system.execute
-        header: 'Spark'
-        cmd: 'ls -l /usr/hdp/current/spark-client/lib/ | grep -m 1 assembly | awk {\'print $9\'}'
-      , (err, _, stdout) ->
-        throw err if err
-        spark_jar = stdout.trim()
-        zeppelin.env['SPARK_YARN_JAR'] ?= "#{core_site['fs.defaultFS']}/user/#{spark.user.name}/share/lib/#{spark_jar}"
+      # Migration: wdavidw 170930, according to [ZEPPELIN-7](https://issues.apache.org/jira/browse/ZEPPELIN-7), 
+      # declaring SPARK_YARN_JAR is no longer necessary
+      # @system.execute
+      #   header: 'Spark'
+      #   cmd: 'ls -l /usr/hdp/current/spark-client/lib/ | grep -m 1 assembly | awk {\'print $9\'}'
+      # , (err, _, stdout) ->
+      #   throw err if err
+      #   spark_jar = stdout.trim()
+      #   options.env['SPARK_YARN_JAR'] ?= "#{options.hdfs_defaultfs}/user/#{options.spark_user.name}/share/lib/#{spark_jar}"
 
 ## Zeppelin properties configuration
 
       @system.mkdir
         header: 'Directory'
-        target: "#{zeppelin.conf_dir}"
+        target: "#{options.conf_dir}"
         mode: 0o0750
       @hconfigure
         header: 'Configuration'
-        target: "#{zeppelin.conf_dir}/zeppelin-site.xml"
-        default: "#{__dirname}/resources/zeppelin-site.xml"
+        target: "#{options.conf_dir}/zeppelin-site.xml"
+        source: "#{__dirname}/resources/zeppelin-site.xml"
+        local: true
         # local_default: true
-        properties: zeppelin.site
+        properties: options.zeppelin_site
         merge: true
         backup: true
 
 TODO: remove download and write and replace it with a template
 
-      @file.download
+      @file
         header: 'Download Environment'
-        target: "#{zeppelin.conf_dir}/zeppelin-env.sh"
-        source: "#{__dirname}/resources/zeppelin-env.sh"
-        uid: hdfs.user.name
-        gid: hadoop_group.name
-        mode: 0o755
         unless_exists: true
+        target: "#{options.conf_dir}/zeppelin-env.sh"
+        source: "#{__dirname}/resources/zeppelin-env.sh"
+        local: true
+        uid: options.user.name
+        gid: options.group.name
+        mode: 0o755
       @file
         header: 'Update Environment'
-        target: "#{zeppelin.conf_dir}/zeppelin-env.sh"
-        write: for k, v of zeppelin.env
+        target: "#{options.conf_dir}/zeppelin-env.sh"
+        write: for k, v of options.env
           match: RegExp "^export\\s+(#{quote k})(.*)$", 'm'
           replace: "export #{k}=#{v}"
           append: true
@@ -148,21 +165,22 @@ Load Zeppelin docker image from local host
 
       @call header: 'Import', ->
         @file.download
-          source: "#{@config.nikita.cache_dir}/zeppelin.tar"
-          target: "/tmp/zeppelin.tar" # add versioning
+          source: "#{options.cache_dir}/zeppelin.tar"
+          target: "/tmp/zeppelin.tar" # TODO: add versioning
         @docker_load
           machine: 'ryba'
           source: "/tmp/zeppelin.tar"
 
 ## Runs Zeppelin container 
 
-      websocket = parseInt(zeppelin.site['zeppelin.server.port'])+1
-      @docker_run
+      # migration, wdavidw 170930, commenting websocket definition since the variable isnt used anywere
+      # websocket = parseInt(options.site['zeppelin.server.port'])+1
+      @docker.run
         header: 'Run'
-        image: "#{zeppelin.prod.tag}"
+        image: "#{options.prod.tag}"
         volume: [
-          "#{hadoop_conf_dir}:#{hadoop_conf_dir}"
-          "#{zeppelin.conf_dir}:/usr/lib/zeppelin/conf"
+          "#{options.hadoop_conf_dir}:#{options.hadoop_conf_dir}"
+          "#{options.conf_dir}:/usr/lib/zeppelin/conf"
           '/etc/krb5.conf:/etc/krb5.conf'
           '/etc/security/keytabs:/etc/security/keytabs'
           '/usr/bin/hdfs:/usr/bin/hdfs'
@@ -170,7 +188,7 @@ Load Zeppelin docker image from local host
           '/usr/hdp:/usr/hdp'
           '/etc/spark/conf:/etc/spark/conf'
           '/etc/hive/conf:/etc/hive/conf'
-          "#{zeppelin.log_dir}:/usr/lib/zeppelin/logs"
+          "#{options.log_dir}:/usr/lib/zeppelin/logs"
         ]
         net: 'host'
         name: 'zeppelin_notebook'

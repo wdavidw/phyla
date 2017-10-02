@@ -50,7 +50,7 @@ of your cluster.
         hive_beeline: module: 'ryba/hive/beeline'
         oozie: 'ryba/ooozie/client'
         graphite: 'ryba/graphite/carbon'
-        ganglia: 'ryba/ganglia/collector'
+        ganglia: 'ryba/retired/ganglia/collector'
       configure:
         'ryba/spark/client/configure'
       commands:

@@ -56,7 +56,7 @@ of your cluster.
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         hive_hcatalog: module: 'ryba/hive/hcatalog'
         hive_server2: module: 'ryba/hive/server2'
-        ganglia_collector: module: 'ryba/ganglia/collector'
+        ganglia_collector: module: 'ryba/retired/ganglia/collector'
         graphite: module: 'ryba/graphite/carbon'
       configure:
         'ryba/spark/client/configure'
