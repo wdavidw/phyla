@@ -7,14 +7,13 @@ TODO: Cloudera provides some interesting [tests](http://www.cloudera.com/content
 
 ## Wait
 
-      @call once: true, 'ryba/zookeeper/server/wait'
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper_server
 
 ## Telnet
-
-      zk_cxns = @contexts('ryba/zookeeper/server').map((ctx) -> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.port}").join ','
+  
       @system.execute
         retry: 3
         header: 'Shell'
         cmd: """
-        zookeeper-client -server #{zk_cxns} <<< 'ls /' | egrep '\\[.*zookeeper.*\\]'
+          zookeeper-client -server #{options.zookeeper_quorum} <<< 'ls /' | egrep '\\[.*zookeeper.*\\]'
         """

@@ -2,30 +2,29 @@
 # Zookeeper Server Check
 
     module.exports = header: 'ZooKeeper Server Check', handler: (options) ->
-      zoo_ctxs = @contexts 'ryba/zookeeper/server'
 
 ## Wait
 
-      @call once: true, 'ryba/zookeeper/server/wait'
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait
 
 ## Check state
 
       @system.execute
         header: 'Healthy'
-        cmd: "nc #{@config.host} #{options.port} <<< ruok | grep imok"
+        cmd: "nc #{options.fqdn} #{options.config['clientPort']} <<< ruok | grep imok"
 
 ## Check Registration
 
 Execute these commands on the ZooKeeper host machine(s).
 
-      cmds = for zoo_ctx in zoo_ctxs
-        "nc #{zoo_ctx.config.host} #{zoo_ctx.config.ryba.zookeeper.port} <<< conf | sed -n 's/.*serverId=\\(.*\\)/\\1/p'"
+      cmds = for zookeeper in options.zookeeper_server
+        "nc #{zookeeper.fqdn} #{zookeeper.port} <<< conf | sed -n 's/.*serverId=\\(.*\\)/\\1/p'"
       @system.execute
         header: 'Registration'
         cmd: cmds.join ';'
       , (err, _, stdout) ->
         return if err
-        if zoo_ctxs.length is 1 # Standalone mode
+        if options.zookeeper_server.length is 1 # Standalone mode
           unless stdout.trim().split('\n').sort().join(',') is '0'
             throw Error "Server is not properly registered"
         else # Replicated mode
