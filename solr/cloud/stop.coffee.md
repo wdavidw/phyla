@@ -1,8 +1,23 @@
+# Service Solr Stop
+Stop the solr service server. You can also stop the server
+manually with the following command:
 
-# Solr Stop
+```
+service solr stop
+```
 
-    module.exports = header: 'Solr Cloud Stop', handler: ->
+
+    module.exports = header: 'Solr Cloud Stop', handler: (options)->
+
+## Service
+
+      @service.stop
+        name: 'solr'
+
+## Clean Logs
+
       @system.execute
-        cmd: 'service solr stop'
+        header: 'Clean Logs'
+        if: options.clean_logs
+        cmd: 'rm /var/log/solr/*'
         code_skipped: 1
-        if_exists: '/etc/init.d/solr'

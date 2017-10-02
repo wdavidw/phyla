@@ -116,33 +116,33 @@
        persistent, and doesn't work with replication.
     -->
     <directoryFactory name="DirectoryFactory"
-                    class="{{ryba.solr.cloud.dir_factory}}">
+                    class="{{cloud.dir_factory}}">
 
     <!-- These will be used if you are using the solr.HdfsDirectoryFactory,
          otherwise they will be ignored. If you don't plan on using hdfs,
          you can safely remove this section. -->
     <!-- The root directory that collection data should be written to. -->
-    <str name="solr.hdfs.home">${solr.hdfs.home:{{ryba.solr.hdfs.home}}}</str>
+    <str name="solr.hdfs.home">${hdfs.home:/user/{{user.name}}}</str>
     <!-- The hadoop configuration files to use for the hdfs client. -->
-    <str name="solr.hdfs.confdir">${solr.hdfs.confdir:{{ryba.hdfs.conf_dir}}}</str>
+    <str name="solr.hdfs.confdir">${hdfs.confdir:/etc/hadoop/conf}</str>
     <!-- Enable/Disable the hdfs cache. -->
-    <str name="solr.hdfs.blockcache.enabled">${solr.hdfs.blockcache_enabled:true}</str>
+    <str name="solr.hdfs.blockcache.enabled">${hdfs.blockcache_enabled:true}</str>
     <!-- Enable/Disable using one global cache for all SolrCores.
          The settings used will be from the first HdfsDirectoryFactory created. -->
-    <str name="solr.hdfs.blockcache.global">${solr.hdfs.blockcache_global:true}</str>
+    <str name="solr.hdfs.blockcache.global">${hdfs.blockcache_global:true}</str>
     
-    <bool name="solr.hdfs.blockcache.enabled">{{solr.hdfs.blockcache_enabled}}</bool>
-    <int name="solr.hdfs.blockcache.slab.count">{{solr.hdfs.blockcache_slab_count}}</int>
-    <bool name="solr.hdfs.blockcache.direct.memory.allocation">{{solr.hdfs.blockcache_direct_memory_allocation}}</bool>
-    <int name="solr.hdfs.blockcache.blocksperbank">{{solr.hdfs.blockcache_blocksperbank}}</int>
-    <bool name="solr.hdfs.blockcache.read.enabled">{{solr.hdfs.blockcache_read_enabled}}</bool>
-    <bool name="solr.hdfs.blockcache.write.enabled">{{solr.hdfs.blockcache_write_enabled}}</bool>
-    <bool name="solr.hdfs.nrtcachingdirectory.enable">{{solr.hdfs.nrtcachingdirectory_enable}}</bool>
-    <int name="solr.hdfs.nrtcachingdirectory.maxmergesizemb">{{solr.hdfs.nrtcachingdirectory_maxmergesizemb}}</int>
-    <int name="solr.hdfs.nrtcachingdirectory.maxcachedmb">{{solr.hdfs.nrtcachingdirectory_maxcachedmb}}</int>
-    <bool name="solr.hdfs.security.kerberos.enabled">{{solr.hdfs.security_kerberos_enabled}}</bool>
-    <str name="solr.hdfs.security.kerberos.keytabfile">{{solr.hdfs.security_kerberos_keytabfile}}</str>
-    <str name="solr.hdfs.security.kerberos.principal">{{solr.hdfs.security_kerberos_principal}}</str>
+    <bool name="solr.hdfs.blockcache.enabled">{{hdfs.blockcache_enabled}}</bool>
+    <int name="solr.hdfs.blockcache.slab.count">{{hdfs.blockcache_slab_count}}</int>
+    <bool name="solr.hdfs.blockcache.direct.memory.allocation">{{hdfs.blockcache_direct_memory_allocation}}</bool>
+    <int name="solr.hdfs.blockcache.blocksperbank">{{hdfs.blockcache_blocksperbank}}</int>
+    <bool name="solr.hdfs.blockcache.read.enabled">{{hdfs.blockcache_read_enabled}}</bool>
+    <bool name="solr.hdfs.blockcache.write.enabled">{{hdfs.blockcache_write_enabled}}</bool>
+    <bool name="solr.hdfs.nrtcachingdirectory.enable">{{hdfs.nrtcachingdirectory_enable}}</bool>
+    <int name="solr.hdfs.nrtcachingdirectory.maxmergesizemb">{{hdfs.nrtcachingdirectory_maxmergesizemb}}</int>
+    <int name="solr.hdfs.nrtcachingdirectory.maxcachedmb">{{hdfs.nrtcachingdirectory_maxcachedmb}}</int>
+    <bool name="solr.hdfs.security.kerberos.enabled">{{hdfs.security_kerberos_enabled}}</bool>
+    <str name="solr.hdfs.security.kerberos.keytabfile">{{hdfs.security_kerberos_keytabfile}}</str>
+    <str name="solr.hdfs.security.kerberos.principal">{{hdfs.security_kerberos_principal}}</str>
 
   </directoryFactory>
 

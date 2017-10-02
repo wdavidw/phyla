@@ -1,7 +1,5 @@
 
 # Solr Status
 
-    module.exports = header: 'Solr Cloud Status', handler: ->
-      @service.status
-        name: 'solr'
-        code_skipped: 1
+    module.exports = header: 'Solr Cloud Status', handler: (options) ->
+      @service.status 'solr'

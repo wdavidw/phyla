@@ -1,18 +1,15 @@
 
 # Solr Install
 
-    module.exports = header: 'Solr Cloud Install', handler: ->
-      {solr, realm} = @config.ryba
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Solr Cloud Install', handler: (options) ->
       tmp_archive_location = "/var/tmp/ryba/solr.tar.gz"
-      protocol = if solr.cloud.ssl.enabled then 'https' else 'http'
+      protocol = if options.ssl.enabled then 'https' else 'http'
 
 ## Dependencies
+Wait for Kerberos, ZooKeeper
 
-      @call once:true, 'masson/commons/java'
-      @call 'masson/core/krb5_client/wait'
-      @call 'ryba/zookeeper/server/wait'
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper_server
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
 
@@ -26,86 +23,86 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      @call header: 'IPTables', ->
-        return unless @config.iptables.action is 'start'
-        @tools.iptables
-          rules: [
-            { chain: 'INPUT', jump: 'ACCEPT', dport: solr.cloud.port, protocol: 'tcp', state: 'NEW', comment: "Solr Server #{protocol}" }
-          ]
+      @tools.iptables
+        header: 'IPtable'
+        if: options.iptables
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "Solr Server #{protocol}" }
+        ]
 
 ## Layout
 
       @system.mkdir
-        target: solr.user.home
-        uid: solr.user.name
-        gid: solr.group.name
+        target: options.user.home
+        uid: options.user.name
+        gid: options.group.name
       @system.mkdir
-        directory: solr.cloud.conf_dir
-        uid: solr.user.name
-        gid: solr.group.name
+        directory: options.conf_dir
+        uid: options.user.name
+        gid: options.group.name
 
 ## Identities
 
-      @system.group header: 'Group', solr.group
-      @system.user header: 'User', solr.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Packages
 Ryba support installing solr from apache official release or HDP Search repos.
 
       @call header: 'Packages', ->
         @call
-          if:  solr.cloud.source is 'HDP'
+          if:  options.source is 'HDP'
         , ->
           @service
             name: 'lucidworks-hdpsearch'
           @system.chown
-            if: solr.cloud.source is 'HDP'
+            if: options.source is 'HDP'
             target: '/opt/lucidworks-hdpsearch'
-            uid: solr.user.name
-            gid: solr.group.name
+            uid: options.user.name
+            gid: options.group.name
         @call
-          if: solr.cloud.source isnt 'HDP'
+          if: options.source isnt 'HDP'
         , ->
           @file.download
-            source: solr.cloud.source
+            source: options.source
             target: tmp_archive_location
           @system.mkdir
-            target: solr.cloud.install_dir
+            target: options.install_dir
           @tools.extract
             source: tmp_archive_location
-            target: solr.cloud.install_dir
+            target: options.install_dir
             preserve_owner: false
             strip: 1
           @system.link
-            source: solr.cloud.install_dir
-            target: solr.cloud.latest_dir
+            source: options.install_dir
+            target: options.latest_dir
 
 ## Configuration
 
-      @call header: 'Configuration', (options) ->
+      @call header: 'Configuration', ->
         @system.link
-          source: "#{solr.cloud.latest_dir}/conf"
-          target: solr.cloud.conf_dir
+          source: "#{options.latest_dir}/conf"
+          target: options.conf_dir
         @system.remove
           shy: true
-          target: "#{solr.cloud.latest_dir}/bin/solr.in.sh"
+          target: "#{options.latest_dir}/bin/solr.in.sh"
         @system.link
-          source: "#{solr.cloud.conf_dir}/solr.in.sh"
-          target: "#{solr.cloud.latest_dir}/bin/solr.in.sh"
+          source: "#{options.conf_dir}/solr.in.sh"
+          target: "#{options.latest_dir}/bin/solr.in.sh"
         @service.init
           header: 'Init Script'
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
           source: "#{__dirname}/../resources/cloud/solr.j2"
-          target: '/etc/init.d/solr'
+          target: '/etc/init.d/solr-cloud'
           local: true
-          context: @config
+          context: options
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: solr.cloud.pid_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 
@@ -115,30 +112,32 @@ has to be fixe to use jdk 1.8.
 
       @file
         header: 'Fix zKcli script'
-        target: "#{solr.cloud.latest_dir}/server/scripts/cloud-scripts/zkcli.sh"
+        target: "#{options.latest_dir}/server/scripts/cloud-scripts/zkcli.sh"
         write: [
           match: RegExp "^JVM=.*$", 'm'
-          replace: "JVM=\"#{solr.cloud.jre_home}/bin/java\""
+          replace: "JVM=\"#{options.jre_home}/bin/java\""
         ]
+        mode: 0o0750
+        
         backup: false
 
 ## Layout
 
       @call header: 'Solr Layout', ->
         @system.mkdir
-          target: solr.cloud.pid_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: solr.cloud.log_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: solr.user.home
-          uid: solr.user.name
-          gid: solr.group.name
+          target: options.user.home
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
 
 
@@ -147,100 +146,96 @@ Create HDFS solr user and its home directory
 
       @hdfs_mkdir
         header: 'HDFS Layout'
-        if: [
-          solr.cloud.hdfs?
-          @config.host is @contexts('ryba/solr/cloud')[0].config.host
-        ]
-        target: "/user/#{solr.user.name}"
-        user: solr.user.name
-        group: solr.user.name
+        if: options.hdfs?
+        target: "/user/#{options.user.name}"
+        user: options.user.name
+        group: options.user.name
         mode: 0o0775
-        krb5_user: @config.ryba.hdfs.krb5_user
+        krb5_user: options.hdfs.user
 
 ## Config
 
       @call header: 'Configure', ->
-        solr.cloud.env['SOLR_AUTHENTICATION_OPTS'] ?= ''
-        solr.cloud.env['SOLR_AUTHENTICATION_OPTS'] += " -D#{k}=#{v} "  for k, v of solr.cloud.auth_opts
-        writes = for k,v of solr.cloud.env
+        options.env['SOLR_AUTHENTICATION_OPTS'] ?= ''
+        options.env['SOLR_AUTHENTICATION_OPTS'] += " -D#{k}=#{v} "  for k, v of options.auth_opts
+        writes = for k,v of options.env
           match: RegExp "^.*#{k}=.*$", 'mg'
           replace: "#{k}=\"#{v}\" # RYBA DON'T OVERWRITE"
           append: true
-
         @file.render
           header: 'Solr Environment'
           source: "#{__dirname}/../resources/cloud/solr.ini.sh.j2"
-          target: "#{solr.cloud.conf_dir}/solr.in.sh"
-          context: @config
+          target: "#{options.conf_dir}/solr.in.sh"
+          context: options
           write: writes
           local: true
           backup: true
           eof: true
         @file.render
           header: 'Solr Config'
-          source: "#{solr.cloud.conf_source}"
-          target: "#{solr.cloud.conf_dir}/solr.xml"
+          source: "#{options.conf_source}"
+          target: "#{options.conf_dir}/solr.xml"
           local: true
           backup: true
           eof: true
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0755
-          context: @config
+          context: options
         @system.link
-          source: "#{solr.cloud.conf_dir}/solr.xml"
-          target: "#{solr.user.home}/solr.xml"
+          source: "#{options.conf_dir}/solr.xml"
+          target: "#{options.user.home}/solr.xml"
 
 ## Kerberos
 
-      @krb5.addprinc krb5,
-        unless_exists: solr.cloud.spnego.keytab
+      @krb5.addprinc options.krb5.admin,
+        unless_exists: options.spnego.keytab
         header: 'Kerberos SPNEGO'
-        principal: solr.cloud.spnego.principal
+        principal: options.spnego.principal
         randkey: true
-        keytab: solr.cloud.spnego.keytab
-        uid: solr.user.name
-        gid: hadoop_group.name
+        keytab: options.spnego.keytab
+        uid: options.user.name
+        gid: options.hadoop_group.name
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{solr.user.name} -c 'test -r #{solr.cloud.spnego.keytab}'"
-      @krb5.addprinc krb5,
+        cmd: "su -l #{options.user.name} -c 'test -r #{options.spnego.keytab}'"
+      @krb5.addprinc options.krb5.admin,
         header: 'Solr Super User'
-        principal: solr.cloud.admin_principal
-        password: solr.cloud.admin_password
+        principal: options.admin_principal
+        password: options.admin_password
         randkey: true
-        uid: solr.user.name
-        gid: solr.group.name
+        uid: options.user.name
+        gid: options.group.name
       @file.jaas
         header: 'Solr JAAS'
-        target: "#{solr.cloud.conf_dir}/solr-server.jaas"
+        target: "#{options.conf_dir}/solr-server.jaas"
         content:
           Client:
-            principal: solr.cloud.spnego.principal
-            keyTab: solr.cloud.spnego.keytab
+            principal: options.spnego.principal
+            keyTab: options.spnego.keytab
             useKeyTab: true
             storeKey: true
             useTicketCache: true
-        uid: solr.user.name
-        gid: solr.group.name
-      @krb5.addprinc krb5,
+        uid: options.user.name
+        gid: options.group.name
+      @krb5.addprinc options.krb5.admin,
         header: 'Solr Server User'
-        principal: solr.cloud.principal
-        keytab: solr.cloud.keytab
+        principal: options.principal
+        keytab: options.keytab
         randkey: true
-        uid: solr.user.name
-        gid: solr.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## Bootstrap Zookeeper
 
       @system.execute
         header: 'Zookeeper bootstrap'
         cmd: """
-        cd #{solr.cloud.latest_dir}
-        server/scripts/cloud-scripts/zkcli.sh -zkhost #{solr.cloud.zkhosts} \
-        -cmd bootstrap -solrhome #{solr.user.home}
+        cd #{options.latest_dir}
+        server/scripts/cloud-scripts/zkcli.sh -zkhost #{options.zkhosts} \
+        -cmd bootstrap -solrhome #{options.user.home}
         """
-        unless_exec: "zookeeper-client -server #{solr.cloud.zk_connect} ls /#{solr.cloud.zk_node} | grep '#{solr.cloud.zk_node}'"
+        unless_exec: "zookeeper-client -server #{options.zk_connect} ls / | grep '#{options.zk_node}'"
 
 ## Enable Authentication and ACLs
 For now we skip security configuration to solr when source is 'HDP'.
@@ -248,37 +243,36 @@ HDP has version 5.2.1 of solr, and security plugins are included from 5.3.0
 
       @system.execute
         header: "Upload Security conf"
-        if: (@contexts('ryba/solr/cloud')[0].config.host is @config.host)
         cmd: """
-        cd #{solr.cloud.latest_dir}
-        server/scripts/cloud-scripts/zkcli.sh -zkhost #{solr.cloud.zk_connect} \
-        -cmd put /solr/security.json '#{JSON.stringify solr.cloud.security}'
+        cd #{options.latest_dir}
+        server/scripts/cloud-scripts/zkcli.sh -zkhost #{options.zk_connect} \
+        -cmd put /solr/security.json '#{JSON.stringify options.security}'
         """
 
 ## SSL
 
       @java.keystore_add
-        keystore: solr.cloud.ssl_keystore_path
-        storepass: solr.cloud.ssl_keystore_pwd
+        keystore: options.keystore.target
+        storepass: options.keystore.password
+        key: "#{options.ssl.key.source}"
+        cert: "#{options.ssl.cert.source}"
+        keypass: options.keystore.password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        key: "#{ssl.key}"
-        cert: "#{ssl.cert}"
-        keypass: solr.cloud.ssl_keystore_pwd
-        name: @config.shortname
-        local: true
+        cacert: "#{options.ssl.cacert.source}"
+        name: options.fqdn
+        local: options.ssl.key.local
       @java.keystore_add
-        keystore: solr.cloud.ssl_truststore_path
-        storepass: solr.cloud.ssl_keystore_pwd
+        keystore: options.truststore.target
+        storepass: options.truststore.password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
+        cacert: "#{options.ssl.cacert.source}"
+        local: options.ssl.cacert.local
       # not documented but needed when SSL
       @system.execute
         header: "Enable SSL Scheme"
         cmd: """
-        cd #{solr.cloud.latest_dir}
-        server/scripts/cloud-scripts/zkcli.sh -zkhost #{solr.cloud.zkhosts} \
+        cd #{options.latest_dir}
+        server/scripts/cloud-scripts/zkcli.sh -zkhost #{options.zkhosts} \
         -cmd clusterprop -name urlScheme -val #{protocol}
         """
 
