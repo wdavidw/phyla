@@ -5,14 +5,8 @@ Waits the replica set of config server to be initialized and ready before starti
 For this we wait to be able to execute a rs.status() on  the first initiated
 replica set primary server.
 
-    module.exports = header: 'MongoDB Router Server Start', handler: (options) ->
-
-## Wait
-
-      @connection.wait options.wait.config_tcp
-
-## Service
-
+    module.exports = header: 'MongoDB Router Server Start', label_true: 'READY', handler: (options) ->
+      @connection.wait options.wait_configsrv
       @service.start name: 'mongod-router-server'
 
       # mongodb_configsrvs = @contexts 'ryba/mongodb/configsrv'

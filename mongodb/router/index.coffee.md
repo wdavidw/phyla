@@ -22,9 +22,9 @@ services
           @call 'ryba/mongodb/router/check', options
         'install': ->
           options = @config.ryba.mongodb.router
-          # @call 'ryba/mongodb/router/install', options
-          # @call 'ryba/mongodb/router/start', options
-          # @call 'ryba/mongodb/router/wait', options
+          @call 'ryba/mongodb/router/install', options
+          @call 'ryba/mongodb/router/start', options
+          @call 'ryba/mongodb/router/wait', options
           @call 'ryba/mongodb/router/sharding', options
           @call 'ryba/mongodb/router/check', options
         'start': ->

@@ -9,26 +9,24 @@
  Once done, the Sharded Cluster will be available for the mongodb.
  available does not mean used, the db admin has to manually add a shard to a database
 
-    module.exports =  header: 'MongoDB Router Servers Shard Cluster', handler: (options) ->
+    module.exports =  header: 'MongoDB Router Servers Shard Init', handler: (options) ->
       mongos_port =  options.config.net.port
 
 # Wait Shard to be available
 
-We simply wait to connect to the shards
+Wait to connect to the shards
 
-      @connection.wait
-        header: 'Wait Sharding Server'
-        servers: options.wait.shard_tcp
+      @call 'ryba/mongodb/shard/wait', options.wait_shardsrv
 
 # Add shard to the cluster
 
 To add s shard to the cluster, the command `sh.addShard("shardsrvRepSet1/primary.ryba:27017")`
 must be issued to mongos.
 So the primary server must be retrieved before applying this command. Because the replica set has a not a dedicated primary server,
-We must connect to each server og the replica set manually and check if it is the primary one.
+We must connect to each server of the replica set manually and check if it is the primary one.
 
 
-      @call header: 'Add Shard Clusters ', retry: 3, ->
+      @call header: 'Add Shard Replica Set ', retry: 3, ->
         @each options.my_shards_repl_sets, (opts, next) ->
           name = opts.key
           shard = opts.value

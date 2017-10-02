@@ -154,25 +154,14 @@ By changing the default port, we can allow different mongo service to run on the
 # Wait
 
       options.wait = {}
-      options.wait.config_tcp = 
-        (
-          host: srv.node.fqdn
-          port: srv.options.config.net.port
-        ) for srv in service.use.config_servers.filter( (srv) ->
-            srv.options.config.replication.replSetName is options.config_replicaset).filter (srv) ->
-            srv.options.is_master  
-      options.wait.shard_tcp ?= []
-      for name, replicaset in options.my_shards_repl_sets
-        for host in replicaset.hosts
-          options.wait.shard_tcp.push
-            server: host
-            port: service.use.shard_servers[0].options.config.net.port
-      options.wait.tcp = for srv in service.use.config_servers
+      options.wait_configsrv ?= service.use.config_servers[0].options.wait
+      options.wait_shardsrv ?= service.use.shard_servers[0].options.wait
+      options.wait.tcp = for srv in service.use.router_servers
         host: srv.node.fqdn
-        port: options.config.net.port
+        port: options.config.net.port or 27018
       options.wait.local =
         host: service.node.fqdn
-        port: options.config.net.port
+        port: options.config.net.port or 27018
 
 ## Dependencies
 
