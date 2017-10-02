@@ -83,6 +83,7 @@ Example :
         options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dcom.sun.management.jmxremote.rmi.port=$JMXPORT"
       # Internal
       options.id ?= service.use.zookeeper_server.map( (srv) -> srv.node.fqdn ).indexOf(service.node.fqdn)+1
+      options.fqdn ?= service.node.fqdn
       options.peer_port ?= 2888
       options.leader_port ?= 3888
       options.retention ?= 3 # Used to clean data dir
@@ -114,7 +115,6 @@ Example :
         if srv.options.config["server.#{options.id}"]? and srv.options.config["server.#{options.id}"] isnt connect_string
           throw Error "Zk Server id '#{options.id}' is already registered on #{srv.node.fqdn}"
         srv.options.config["server.#{options.id}"] ?= connect_string
-      
       # SASL
       options.config['authProvider.1'] ?= 'org.apache.zookeeper.server.auth.SASLAuthenticationProvider'
       options.config['jaasLoginRenew'] ?= '3600000'
@@ -173,6 +173,13 @@ Example :
         options.log4j.config['log4j.appender.SOCKET.RemoteHost'] ?= options.log4j.remote_host
         options.log4j.config['log4j.appender.SOCKET.Port'] ?= options.log4j.remote_port
         options.log4j.config['log4j.appender.SOCKET.ReconnectionDelay'] ?= '10000'
+
+## Test
+
+      # Zookeeper Server
+      options.zookeeper_server = for srv in service.use.zookeeper_server
+        fqdn: srv.node.fqdn
+        port: srv.options.config['clientPort'] or 2181
 
 ## Wait
 
