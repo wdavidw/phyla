@@ -12,8 +12,8 @@
 
 By default, merge group and user from the Ranger admin configuration.
 
-      smartsense.group = merge ks_ctxs[0].config.ryba.smartsense.group, smartsense.group
-      smartsense.user = merge ks_ctxs[0].config.ryba.smartsense.user, smartsense.user
+      smartsense.group = merge srv_ctx.config.ryba.smartsense.group, smartsense.group
+      smartsense.user = merge srv_ctx.config.ryba.smartsense.user, smartsense.user
 
 ## Environment
       
