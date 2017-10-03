@@ -39,3 +39,7 @@ By default, merge group and user from the Ranger admin configuration.
       # we do not want this behaviour because we manage configuration with ryba
       agent.ini['management'] ?= {}
       agent.ini['management']['patch.auto.apply.enabled'] ?= false
+      
+## Dependencies
+    
+    {merge} = require 'nikita/lib/misc'
