@@ -12,8 +12,8 @@
 
 By default, merge group and user from the Ranger admin configuration.
 
-      ranger.group = merge ks_ctxs[0].config.ryba.ranger.group, ranger.group
-      ranger.user = merge ks_ctxs[0].config.ryba.ranger.user, ranger.user
+      ranger.group = merge ranger_admin_ctx.config.ryba.ranger.group, ranger.group
+      ranger.user = merge ranger_admin_ctx.config.ryba.ranger.user, ranger.user
 
 ## Environment
 
@@ -112,6 +112,7 @@ SSl properties are not documented, they are extracted from setup.py scripts.
 ## Dependencies 
 
     path = require 'path'
+    {merge} = require 'nikita/lib/misc'
 
 [ambari-conf-example]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.0/bk_Ranger_Install_Guide/content/ranger-usersync_settings.html)
 [ranger-usersync]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/install_and_start_user_sync_ranger.html)
