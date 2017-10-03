@@ -5,16 +5,6 @@ Install Nebula on nodes
 
     module.exports = header: 'Nebula Node Install', handler: (options) ->
 
-## Add Nebula repositories
-
-      @tools.repo
-        if: options.repo.source?
-        header: 'Repository'
-        source: options.repo.source
-        target: options.repo.target
-        replace: options.repo.replace
-        update: true
-
 ## Install
 
       @call header: 'Packages', ->
@@ -30,11 +20,11 @@ Install Nebula on nodes
 
 ## Set SSH key of the admin for password less login
 
-      # @file
-      #   header: "Authorized Keys"
-      #   content: options.server_public_key
-      #   target: "/var/lib/one/.ssh/authorized_keys"
-      #   mode: "0600"
-      #   uid: "oneadmin"
-      #   gid: "oneadmin"
-      #   eof: true
+      @file
+        header: "Authorized Keys"
+        target: "/var/lib/one/.ssh/authorized_keys"
+        mode: "0600"
+        uid: "oneadmin"
+        gid: "oneadmin"
+        eof: true
+      , options.public_key

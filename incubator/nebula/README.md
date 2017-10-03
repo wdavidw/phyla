@@ -1,6 +1,9 @@
 
 # OpenNebula
 
+OpenNebula is an open-source management platform to build IaaS private, public 
+and hybrid clouds.
+
 OpenNebula combines existing virtualization technologies with advanced features 
 for multi-tenancy, automatic provision and elasticity, following a bottom-up 
 approach driven by the real needs of sysadmins and devops.
