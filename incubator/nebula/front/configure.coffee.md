@@ -3,6 +3,7 @@
 
     module.exports = ->
       service = migration.call @, service, 'ryba/incubator/nebula/front', ['nebula', 'front'], require('nikita/lib/misc').merge require('.').use,
+        nebula_base: key: ['ryba', 'nebula']
         nebula_node: key: ['ryba', 'nebula', 'node']
       @config.ryba ?= {}
       options = @config.nebula.front = service.options
@@ -42,15 +43,6 @@ and "public\_key" options. They are required and accept the following options:
       throw Error "Required option: private_key.content or private_key.source" unless options.private_key.content or options.private_key.source
       options.public_key ?= {}
       throw Error "Required option: public_key.content or public_key.source" unless options.public_key.content or options.public_key.source
-
-## Repository
-
-      options.repo ?= {}
-      options.repo.source ?= path.resolve __dirname, '../resources/opennebula.repo'
-      options.repo.local ?= true
-      options.repo.target ?= 'opennebula.repo'
-      options.repo.target = path.posix.resolve '/etc/yum.repos.d', options.repo.target
-      options.repo.replace ?= null
 
 ## Dependencies
 

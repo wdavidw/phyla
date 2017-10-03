@@ -5,17 +5,6 @@ Install Nebula front end on the specified hosts.
 http://docs.opennebula.org/5.2/deployment/opennebula_installation/frontend_installation.html
 
     module.exports = header: 'Nebula Front Install', handler: (options) ->
-      nebula = @config.nebula
-
-## Add Nebula repositories
-
-      @tools.repo
-        if: options.repo.source?
-        header: 'Repository'
-        source: options.repo.source
-        target: options.repo.target
-        replace: options.repo.replace
-        update: true
 
 ## Install
 
