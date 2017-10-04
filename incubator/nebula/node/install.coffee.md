@@ -1,9 +1,9 @@
 
-# Open Nebula Node Install
+# OpenNebula Node Install
 
-Install Nebula on nodes
+Install OpenNebula on nodes.
 
-    module.exports = header: 'Nebula Node Install', handler: (options) ->
+    module.exports = header: 'OpenNebula Node Install', handler: (options) ->
 
 ## Install
 
@@ -20,11 +20,11 @@ Install Nebula on nodes
 
 ## Set SSH key of the admin for password less login
 
-      @file
-        header: "Authorized Keys"
-        target: "/var/lib/one/.ssh/authorized_keys"
-        mode: "0600"
-        uid: "oneadmin"
-        gid: "oneadmin"
-        eof: true
-      , options.public_key
+      # @file
+      #   header: "Authorized Keys"
+      #   target: "/var/lib/one/.ssh/authorized_keys"
+      #   mode: "0600"
+      #   uid: "oneadmin"
+      #   gid: "oneadmin"
+      #   eof: true
+      # , options.public_key

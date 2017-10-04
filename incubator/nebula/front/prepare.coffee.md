@@ -1,5 +1,5 @@
 
-# Open Nebula Front Prepare
+# OpenNebula Front Prepare
 
 Ruby version 2.0.0 must be available on the host machine either directly from
 the path or through RVM. If RVM is found, Ruby in version 2.0.0 doesn't need to 
@@ -21,7 +21,7 @@ PKG_CONFIG_PATH=/usr/lib/openssl-1.0/pkgconfig:/usr/lib/pkgconfig rvm install 2.
 ```
 
     module.exports =
-      header: 'Nebula Front Prepare'
+      header: 'OpenNebula Front Prepare'
       if: -> @contexts('./lib/nebula/front')[0]?.config.host is @config.host
       ssh: null
       handler: (options) ->

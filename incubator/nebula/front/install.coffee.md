@@ -1,10 +1,10 @@
 
-# Open Nebula Front Install
+# OpenNebula Front Install
 
 Install Nebula front end on the specified hosts.
 http://docs.opennebula.org/5.2/deployment/opennebula_installation/frontend_installation.html
 
-    module.exports = header: 'Nebula Front Install', handler: (options) ->
+    module.exports = header: 'OpenNebula Front Install', handler: (options) ->
 
 ## Install
 
@@ -30,31 +30,30 @@ http://docs.opennebula.org/5.2/deployment/opennebula_installation/frontend_insta
 
 ## Ruby Runtime installation
 
-        @call header: 'Packages', ->
-          @service
-            header: 'g++'
-            name: 'gcc-c++'
-          @service
-            header: 'gcc'
-            name: 'gcc'
-          @service
-            header: 'curl-devel'
-            name: 'curl-devel'
-          @service
-            header: 'mysql-devell'
-            name: 'mysql-devel'
-          @service
-            header: 'openssl-devel'
-            name: 'openssl-devel'
-          @service
-            header: 'ruby-devel'
-            name: 'ruby-devel'
-          @service
-            header: 'make'
-            name: 'make'
-          @service
-            header: 'rubygems'
-            name: 'rubygems'
+        @service
+          header: 'g++'
+          name: 'gcc-c++'
+        @service
+          header: 'gcc'
+          name: 'gcc'
+        @service
+          header: 'curl-devel'
+          name: 'curl-devel'
+        @service
+          header: 'mysql-devell'
+          name: 'mysql-devel'
+        @service
+          header: 'openssl-devel'
+          name: 'openssl-devel'
+        @service
+          header: 'ruby-devel'
+          name: 'ruby-devel'
+        @service
+          header: 'make'
+          name: 'make'
+        @service
+          header: 'rubygems'
+          name: 'rubygems'
         @call header: 'Gems install', ->
           @tools.rubygems.install
             if: options.cache_dir
@@ -80,33 +79,6 @@ http://docs.opennebula.org/5.2/deployment/opennebula_installation/mysql_setup.ht
           content: "oneadmin:#{options.password}"
           target: "/var/lib/one/.one/one_auth"
           eof: true
-
-## Set private and public key for oneadmin
-
-      # @call if: options.private_key_path, (_, callback) ->
-      #   ssh = if options.local then null else options.ssh
-      #   console.log !!ssh, options.private_key_path
-      #   fs.readFile ssh, options.private_key_path, 'ascii', (err, data) ->
-      #     options.private_key = data unless err
-      #     callback err
-      # @call if: options.public_key_path, (_, callback) ->
-      #   ssh = if options.local then null else options.ssh
-      #   fs.readFile ssh, options.public_key_path, 'ascii', (err, data) ->
-      #     options.public_key = data unless err
-      #     callback err
-      @call header: 'Set keys', ->
-        @file
-          header: "private"
-          target: "/var/lib/one/.ssh/id_rsa"
-          mode: 0o0600
-          eof: true
-        , options.private_key
-        @file
-          header: "public"
-          target: "/var/lib/one/.ssh/id_rsa.pub"
-          mode: 0o0600
-          eof: true
-        , options.public_key
 
 ## Add nodes key to known_hosts
 

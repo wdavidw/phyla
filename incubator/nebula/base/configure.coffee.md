@@ -1,10 +1,10 @@
 
-# Open Nebula Front Configure
+# OpenNebula Front Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/incubator/nebula/base', ['nebula'], require('nikita/lib/misc').merge require('.').use, {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/incubator/nebula/base', ['nebula', 'base'], require('nikita/lib/misc').merge require('.').use, {}
       @config.ryba ?= {}
-      options = @config.nebula = service.options
+      options = @config.nebula.base = service.options
 
 ## Identties
 
@@ -19,7 +19,7 @@
       options.user.name ?= 'oneadmin'
       options.user.gid = options.group.name
       options.user.system ?= true
-      options.user.comment ?= 'Open Nebula User'
+      options.user.comment ?= 'OpenNebula User'
       options.user.home ?= '/var/lib/one'
       options.user.limits ?= {}
       options.user.limits.nofile ?= 64000
@@ -33,6 +33,24 @@
       options.repo.target ?= 'opennebula.repo'
       options.repo.target = path.posix.resolve '/etc/yum.repos.d', options.repo.target
       options.repo.replace ?= null
+
+## Keys
+
+Private and public keys are respectively accessed through the "private\_key" 
+and "public\_key" options. They are required and accept the following options:
+
+* `content` (string)   
+  The content of the key, required unless source is provided
+* `source` (string)   
+  The path to the file storing the key, required unless content is provided
+* `source` (boolean)   
+  Is the source available local or remotely (in case of an remote connection 
+  over SSH), only apply if the "target" option is defined.
+
+      options.private_key ?= {}
+      throw Error "Required option: private_key.content or private_key.source" unless options.private_key.content or options.private_key.source
+      options.public_key ?= {}
+      throw Error "Required option: public_key.content or public_key.source" unless options.public_key.content or options.public_key.source
 
 ## Dependencies
 

@@ -1,9 +1,9 @@
 
-# Open Nebula Node Configure
+# OpenNebula Node Configure
 
-    module.exports = ->
+    module.exports = (service) ->
       service = migration.call @, service, 'ryba/incubator/nebula/node', ['nebula', 'node'], require('nikita/lib/misc').merge require('.').use,
-        nebula_base: key: ['ryba', 'nebula']
+        nebula_base: key: ['ryba', 'nebula', 'base']
       @config.ryba ?= {}
       options = @config.nebula.node = service.options
       
