@@ -1,5 +1,5 @@
 
-# Open Nebula
+# OpenNebula
 
 OpenNebula is an open-source management platform to build IaaS private, public and hybrid clouds.
 
@@ -8,5 +8,5 @@ OpenNebula is an open-source management platform to build IaaS private, public a
       configure: 'ryba/incubator/nebula/base/configure'
       commands:
         install: ->
-          options = @config.nebula
+          options = @config.nebula.base
           @call 'ryba/incubator/nebula/base/install', options

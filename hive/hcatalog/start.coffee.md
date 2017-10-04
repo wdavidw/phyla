@@ -19,7 +19,7 @@ need to functionnal for Hive to answer queries.
 ## Service
 
 You can also start the server manually with the
-following two commands:
+following commands:
 
 ```
 service hive-hcatalog-server start
