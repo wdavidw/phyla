@@ -22,7 +22,7 @@ Example:
 
     module.exports = ->
       @config.ryba ?= {}
-      graphite = @config.ryba.graphite ?= {}
+      options = @config.ryba.graphite ?= {}
       #@config.ryba.graphite.carbon_user = name: @config.ryba.carbon_user if typeof @config.ryba.carbon_user is 'string'
       #@config.ryba.graphite.carbon_user ?= {}
       #@config.ryba.graphite.carbon_user.name ?= 'carbon'
@@ -37,11 +37,11 @@ Example:
       #@config.ryba.graphite.carbon_group.name ?= 'carbon'
       #@config.ryba.graphite.carbon_group.system ?= true
       ## Ports
-      graphite.carbon_port ?= 2023
-      graphite.carbon_cache_port ?= 2003
-      graphite.carbon_aggregator_port ?= 2023
-      graphite.metrics_prefix ?= 'hadoop'
-      graphite.carbon_rewrite_rules ?= [
+      options.carbon_port ?= 2023
+      options.carbon_cache_port ?= 2003
+      options.carbon_aggregator_port ?= 2023
+      options.metrics_prefix ?= 'hadoop'
+      options.carbon_rewrite_rules ?= [
          '[pre]'
          '^(?P<cluster>\w+).hbase.[a-zA-Z0-9_.,:;\x2d\x3D]*Context\x3D(?P<context>\w+).Hostname\x3D(?P<host>\w+).(?P<metric>.\w+)*$ = \g<cluster>.\g<host>.hbase.\g<context>\g<metric>'
          '^(?P<cluster>\w+).(?P<bean>\w+).(?P<foobar>\w+).Hostname\x3D(?P<host>\w+).(?P<metric>.\w+)*$ = \g<cluster>.\g<host>.\g<foobar>\g<metric>'
@@ -52,7 +52,7 @@ Example:
          'rpcdetailed = rpc'
          ]
 
-      graphite.carbon_conf ?= [
+      options.carbon_conf ?= [
          '[aggregator]'
          'LINE_RECEIVER_INTERFACE = 0.0.0.0'
          'LINE_RECEIVER_PORT = 2023'
