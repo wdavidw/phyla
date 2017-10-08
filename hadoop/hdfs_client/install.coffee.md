@@ -68,7 +68,7 @@ Update the "hdfs-site.xml" configuration file with properties from the
         core_jars = Object.keys(options.core_jars).map (k) -> options.core_jars[k]
         remote_files = null
         @call (_, callback) ->
-          @fs.readdir '/usr/hdp/current/hadoop-hdfs-client/lib', (err, files) ->
+          ssh2fs.readdir options.ssh, '/usr/hdp/current/hadoop-hdfs-client/lib', (err, files) ->
             remote_files = files unless err
             callback err
         @call ->
@@ -102,3 +102,7 @@ Update the "hdfs-site.xml" configuration file with properties from the
           caname: "hadoop_root_ca"
           cacert: options.ssl.cacert.source
           local: options.ssl.cacert.local
+
+## Dependencies
+
+    ssh2fs = require 'ssh2-fs'

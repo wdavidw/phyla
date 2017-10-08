@@ -1,14 +1,14 @@
 
 # Apache Atlas Install
 
-    module.exports = header: 'Atlas Install', handler: ->
-      {atlas, db_admin, kafka} = @config.ryba
+    module.exports = header: 'Atlas Install', handler: (options) ->
+      {, kafka} = @config.ryba
       {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
       krb5 = @config.krb5_client.admin[realm]
-      protocol = if atlas.application.properties['atlas.enableTLS'] is 'true' then 'https' else 'http'
+      protocol = if options.application.properties['atlas.enableTLS'] is 'true' then 'https' else 'http'
       [hive_ctx] = @contexts('ryba/hive/server2')
       [ranger_admin] = @contexts 'ryba/ranger/admin'
-      credential_file = atlas.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]
+      credential_file = options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]
       credential_name = path.basename credential_file
       credential_dir = path.dirname credential_file
 
@@ -29,8 +29,8 @@
 
 ## Identities
 
-      @system.group header: 'Group',  atlas.group
-      @system.user header: 'User', atlas.user
+      @system.group header: 'Group',  options.group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -46,7 +46,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         return unless @config.iptables.action is 'start'
         @tools.iptables
           rules: [
-            { chain: 'INPUT', jump: 'ACCEPT', dport: atlas.application.properties["atlas.server.#{protocol}.port"], protocol: 'tcp', state: 'NEW', comment: "Atlas Server #{protocol}" }
+            { chain: 'INPUT', jump: 'ACCEPT', dport: options.application.properties["atlas.server.#{protocol}.port"], protocol: 'tcp', state: 'NEW', comment: "Atlas Server #{protocol}" }
           ]
 
 ## Package & Repository
@@ -70,75 +70,75 @@ Install Atlas packages
 
 ## Layout && Directories
 
-      @call header: 'Layout Directories', (options) ->
+      @call header: 'Layout Directories', ->
         @system.mkdir
-          target: atlas.log_dir
-          uid: atlas.user.name
-          gid: atlas.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
-          target: atlas.pid_dir
-          uid: atlas.user.name
-          gid: atlas.group.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
-          target: atlas.conf_dir
-          uid: atlas.user.name
-          gid: atlas.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
-          target: atlas.env['ATLAS_DATA_DIR']
-          uid: atlas.user.name
-          gid: atlas.group.name
+          target: options.env['ATLAS_DATA_DIR']
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
-          target: atlas.env['ATLAS_EXPANDED_WEBAPP_DIR']
-          uid: atlas.user.name
-          gid: atlas.group.name
+          target: options.env['ATLAS_EXPANDED_WEBAPP_DIR']
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.link
-          target: atlas.conf_dir
+          target: options.conf_dir
           source: '/usr/hdp/current/atlas-server/conf'
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: atlas.pid_dir
-          uid: atlas.user.name
-          gid: atlas.group.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 ## SSL 
 
       # Server: import certificates, private and public keys to hosts with a server
       @java.keystore_add
-        keystore: atlas.application.properties['keystore.file']
-        storepass: atlas.keystore_password
+        keystore: options.application.properties['keystore.file']
+        storepass: options.keystore_password
         caname: "hadoop_root_ca"
         cacert: "#{ssl.cacert}"
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
-        keypass: atlas.serverkey_password
+        keypass: options.serverkey_password
         name: @config.shortname
         local: true
       @java.keystore_add
-        keystore: atlas.application.properties['truststore.file']
-        storepass: atlas.truststore_password
+        keystore: options.application.properties['truststore.file']
+        storepass: options.truststore_password
         caname: "hadoop_root_ca"
         cacert: "#{ssl.cacert}"
         local: true
       @system.chown
-        target: atlas.application.properties['keystore.file']
-        uid: atlas.user.name
-        gid: atlas.group.name
+        target: options.application.properties['keystore.file']
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0755
       @system.chown
-        target: atlas.application.properties['truststore.file']
-        uid: atlas.user.name
-        gid: atlas.group.name
+        target: options.application.properties['truststore.file']
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0755
       @call
         if: -> @status(-3) or @status(-4)
         header: 'Generate Credentials SSL provider file'
-      , (options, callback) ->
+      , (_, callback) ->
         @options.ssh.shell (err, stream) =>
           stream.write 'if /usr/hdp/current/atlas-client/bin/cputil.py ;then exit 0; else exit 1;fi\n'
           data = ''
@@ -148,38 +148,38 @@ Install Atlas packages
             switch
               when /Please enter the full path to the credential provider:/.test data
                 options.log "prompt: #{data}"
-                options.log "writing: #{atlas.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
-                stream.write "#{atlas.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
+                options.log "writing: #{options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
+                stream.write "#{options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
                 data = ''
               when /Please enter the password value for keystore.password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.keystore_password}"
-                stream.write "#{atlas.keystore_password}\n"
+                options.log "write: #{options.keystore_password}"
+                stream.write "#{options.keystore_password}\n"
                 data = ''
               when /Please enter the password value for keystore.password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.keystore_password}"
-                stream.write "#{atlas.keystore_password}\n"
+                options.log "write: #{options.keystore_password}"
+                stream.write "#{options.keystore_password}\n"
                 data = ''
               when /Please enter the password value for truststore.password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.truststore_password}"
-                stream.write "#{atlas.truststore_password}\n"
+                options.log "write: #{options.truststore_password}"
+                stream.write "#{options.truststore_password}\n"
                 data = ''
               when /Please enter the password value for truststore.password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.truststore_password}"
-                stream.write "#{atlas.truststore_password}\n"
+                options.log "write: #{options.truststore_password}"
+                stream.write "#{options.truststore_password}\n"
                 data = ''
               when /Please enter the password value for password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.serverkey_password}"
-                stream.write "#{atlas.serverkey_password}\n"
+                options.log "write: #{options.serverkey_password}"
+                stream.write "#{options.serverkey_password}\n"
                 data = ''
               when /Please enter the password value for password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{atlas.serverkey_password}"
-                stream.write "#{atlas.serverkey_password}\n"
+                options.log "write: #{options.serverkey_password}"
+                stream.write "#{options.serverkey_password}\n"
                 data = ''
               when /Entry for keystore.password already exists/.test data
                 stream.write "y\n"
@@ -199,13 +199,13 @@ Install Atlas packages
             callback null, true
       @system.chown
         target: "#{credential_dir}/#{credential_name}"
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o770
       @system.chown
         target: "#{credential_dir}/.#{credential_name}.crc"
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o770
 
 ## Kerberos
@@ -216,34 +216,34 @@ for atlas to able to open client connection to solr for its indexing backend.
       @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service'
         randkey: true
-        principal: atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
-        keytab: atlas.application.properties['atlas.authentication.keytab']
-        uid: atlas.user.name
-        gid: atlas.name
+        principal: options.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
+        keytab: options.application.properties['atlas.authentication.keytab']
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o660
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{atlas.user.name} -c \'test -r #{atlas.application.properties['atlas.http.authentication.kerberos.keytab']}\'"
+        cmd: "su -l #{options.user.name} -c \'test -r #{options.application.properties['atlas.http.authentication.kerberos.keytab']}\'"
       @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service'
-        principal: atlas.application.properties['atlas.http.authentication.kerberos.principal'].replace '_HOST', @config.host
+        principal: options.application.properties['atlas.http.authentication.kerberos.principal'].replace '_HOST', @config.host
         randkey: true
-        keytab: atlas.application.properties['atlas.http.authentication.kerberos.keytab']
+        keytab: options.application.properties['atlas.http.authentication.kerberos.keytab']
         uid: 'root'
         gid: hadoop_group.name
         mode: 0o660
         unless: -> @status -1
       @file.jaas
-        if: atlas.atlas_opts['java.security.auth.login.config']?
+        if: options.atlas_opts['java.security.auth.login.config']?
         header: 'Atlas Service JAAS'
-        target: atlas.atlas_opts['java.security.auth.login.config']
+        target: options.atlas_opts['java.security.auth.login.config']
         mode: 0o750
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         content:
           KafkaClient:
-            principal: atlas.application.properties['atlas.authentication.principal']
-            keyTab: atlas.application.properties['atlas.authentication.keytab']
+            principal: options.application.properties['atlas.authentication.principal']
+            keyTab: options.application.properties['atlas.authentication.keytab']
             useKeyTab: true
             storeKey: true
             serviceName: 'kafka'
@@ -253,13 +253,13 @@ for atlas to able to open client connection to solr for its indexing backend.
             storeKey: true
             useTicketCache: false
             doNotPrompt: false
-            keyTab: atlas.application.properties['atlas.authentication.keytab']
-            principal: atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
+            keyTab: options.application.properties['atlas.authentication.keytab']
+            principal: options.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
       @krb5.addprinc krb5,
         header: 'Kerberos Atlas Service Admin Users'
-        principal: atlas.admin_principal
+        principal: options.admin_principal
         randkey: true
-        password: atlas.admin_password
+        password: options.admin_password
 
 ## Application Properties
 
@@ -267,11 +267,11 @@ Writes `atlas-application.properties` file.
 
       @file.properties
         header: 'Atlas Application Properties'
-        target: "#{atlas.conf_dir}/atlas-application.properties"
-        content: atlas.application.properties
+        target: "#{options.conf_dir}/atlas-application.properties"
+        content: options.application.properties
         backup: true
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         merge: false
         mode: 0o770
 
@@ -279,11 +279,11 @@ Writes `atlas-application.properties` file.
 
       @file.download
         header: 'Atlas Log4j Properties'
-        target: "#{atlas.conf_dir}/atlas-log4j.xml"
+        target: "#{options.conf_dir}/atlas-log4j.xml"
         source: "#{__dirname}/resources/atlas-log4j.xml"
         local: true
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o770
 
 ## Environment
@@ -291,21 +291,21 @@ Writes `atlas-application.properties` file.
 Render the Atlas Environment file
 
       @call ->
-        atlas.env['METADATA_OPTS'] ?= ''
-        atlas.env['METADATA_OPTS'] += " -D#{k}=#{v} "  for k, v of atlas.metadata_opts
-        atlas.env['ATLAS_OPTS'] ?= ''
-        atlas.env['ATLAS_OPTS'] += " -D#{k}=#{v} "  for k, v of atlas.atlas_opts
-        writes = for k,v of atlas.env
+        options.env['METADATA_OPTS'] ?= ''
+        options.env['METADATA_OPTS'] += " -D#{k}=#{v} "  for k, v of options.metadata_opts
+        options.env['ATLAS_OPTS'] ?= ''
+        options.env['ATLAS_OPTS'] += " -D#{k}=#{v} "  for k, v of options.atlas_opts
+        writes = for k,v of options.env
           match: RegExp "^.*#{k}=.*$", 'mg'
           replace: "export #{k}=\"#{v}\" # RYBA DON'T OVERWRITE"
           append: true
         @file.render
           header: 'Atlas Env'
-          target: "#{atlas.conf_dir}/atlas-env.sh"
+          target: "#{options.conf_dir}/atlas-env.sh"
           source: "#{__dirname}/resources/atlas-env.sh.j2"
           backup: true
-          uid: atlas.user.name
-          gid: atlas.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o770
           local: true
           context: @config
@@ -315,43 +315,43 @@ Render the Atlas Environment file
 
 ## Deploy Atlas War
 
-Need to copy the atlas war file if `atlas.env['ATLAS_EXPANDED_WEBAPP_DIR']` is
+Need to copy the atlas war file if `env['ATLAS_EXPANDED_WEBAPP_DIR']` is
 set to other than the default
 
       @system.copy
         header: 'Atlas webapp war'
         source: '/usr/hdp/current/atlas-server/server/webapp/atlas.war'
-        target: "#{atlas.env['ATLAS_EXPANDED_WEBAPP_DIR']}/atlas.war"
+        target: "#{options.env['ATLAS_EXPANDED_WEBAPP_DIR']}/atlas.war"
 
 ## HBase Layout
 
       @system.copy
         header: 'HBase Client Site'
         source: "#{@config.ryba.hbase.conf_dir}/hbase-site.xml"
-        target: "#{atlas.conf_dir}/hbase/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase/hbase-site.xml"
       # @system.copy
       #   header: 'HBase Client Env'
       #   source: "#{@config.ryba.hbase.conf_dir}/hbase-env.sh"
       #   target: "#{atlas.conf_dir}/hbase/hbase-env.sh"
       @file.render
         header: 'HBase Client Env'
-        target: "#{atlas.conf_dir}/hbase/hbase-env.sh"
+        target: "#{options.conf_dir}/hbase/hbase-env.sh"
         source: "#{__dirname}/../hbase/resources/hbase-env.sh.j2"
         context: @config
-        uid: atlas.user.name
-        gid: atlas.group.name
+        uid: options.user.name
+        gid: options.group.name
         local: true
         eof: true
         # Fix mapreduce looking for "mapreduce.tar.gz"
         write: [
           match: /^export HBASE_OPTS=\"(.*)\$\{HBASE_OPTS\} -Djava.security.auth.login.config(.*)$/m
-          replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{atlas.conf_dir}/atlas-server.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
+          replace: "export HBASE_OPTS=\"${HBASE_OPTS} -Dhdp.version=$HDP_VERSION -Djava.security.auth.login.config=#{options.conf_dir}/atlas-server.jaas\" # HDP VERSION FIX RYBA, HBASE CLIENT ONLY"
           append: true
         ]
       @system.copy
         header: 'HBase Client HDFS site'
         source: "/etc/hadoop/conf/hdfs-site.xml"
-        target: "#{atlas.conf_dir}/hbase/hdfs-site.xml"
+        target: "#{options.conf_dir}/hbase/hdfs-site.xml"
       @system.execute
         header: 'Create HBase Namespace'
         cmd: mkcmd.hbase @, """
@@ -385,8 +385,8 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
               "isRecursive": false
             "table":
               "values": [
-                "#{atlas.application.properties['atlas.graph.storage.hbase.table']}",
-                "#{atlas.application.properties['atlas.audit.hbase.tablename']}"
+                "#{options.application.properties['atlas.graph.storage.hbase.table']}",
+                "#{options.application.properties['atlas.audit.hbase.tablename']}"
                 ]
               "isExcludes": false
               "isRecursive": false
@@ -410,7 +410,7 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
           			'type': 'admin'
           			'isAllowed': true
           		],
-          		'users': ["#{atlas.user.name}"]
+          		'users': ["#{options.user.name}"]
           		'groups': []
           		'conditions': []
           		'delegateAdmin': true
@@ -427,13 +427,13 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
         @system.execute
           cmd: """
           curl --fail -H "Content-Type: application/json"   -k -X POST \ 
-          -d '#{JSON.stringify atlas.ranger_user}' -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
+          -d '#{JSON.stringify options.ranger_user}' -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
           \"#{ranger_admin.config.ryba.ranger.admin.install['policymgr_external_url']}/service/xusers/secure/users\"
           """
           unless_exec: """
           curl --fail -H "Content-Type: application/json"   -k -X GET \ 
           -u admin:#{ranger_admin.config.ryba.ranger.admin.password} \
-          \"#{ranger_admin.config.ryba.ranger.admin.install['policymgr_external_url']}/service/xusers/users/userName/#{atlas.ranger_user.name}\"
+          \"#{ranger_admin.config.ryba.ranger.admin.install['policymgr_external_url']}/service/xusers/users/userName/#{options.ranger_user.name}\"
           """
         @system.execute
           header: 'Ranger Ryba Policy'
@@ -454,10 +454,10 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
       , ->
         @system.execute
           header: 'Grant Permissions'
-          unless_exec: mkcmd.hbase @, "hbase shell 2>/dev/null <<< \"user_permission '@#{atlas.application.namespace}'\" |  egrep \"^\\s(#{atlas.user.name})\\s*(#{atlas.user.name}).*\\[Permission: actions=(READ|EXEC|WRITE|CREATE|ADMIN|,){9}\\]$\""
+          unless_exec: mkcmd.hbase @, "hbase shell 2>/dev/null <<< \"user_permission '@#{options.application.namespace}'\" |  egrep \"^\\s(#{options.user.name})\\s*(#{options.user.name}).*\\[Permission: actions=(READ|EXEC|WRITE|CREATE|ADMIN|,){9}\\]$\""
           cmd: mkcmd.hbase @, """
           hbase shell 2>/dev/null <<-CMD
-            grant '#{atlas.user.name}', 'RWCA', '@#{atlas.application.namespace}'
+            grant '#{options.user.name}', 'RWCA', '@#{options.application.namespace}'
           CMD
           """
           trap: true
@@ -466,6 +466,7 @@ Grant Permission to atlas for its titan' tables through ranger or from hbase she
 
 Convert the user_creds object into a file of credentials. See [how to generate][atlas-credential-file] atlas
 credential based on file.
+
 ```cson
   user_creds
     'toto':
@@ -479,26 +480,29 @@ credential based on file.
 ```
 
       @call
-        if: atlas.application.properties['atlas.authentication.method.file'] is 'true'
+        if: options.application.properties['atlas.authentication.method.file'] is 'true'
         header: 'Render Credentials file'
       , ->
         old_lines = []
         new_lines = []
         content = ''
         @call header: 'Read Current Credential', (_, callback )  ->
-          fs.readFile @options.ssh, atlas.application.properties['atlas.authentication.method.file.filename'], 'utf8', (err, content) ->
+          fs.readFile @options.ssh, options.application.properties['atlas.authentication.method.file.filename'], 'utf8', (err, content) ->
             return callback null, true if err and err.code is 'ENOENT'
             return callback err if err
             old_lines = string.lines content
             return if old_lines.length > 0 then callback null, true else callback null, false
-        @call header: 'Merge user credentials', if: (-> @status -1), ->
+        @call
+          header: 'Merge user credentials'
+          if: -> @status -1
+        , ->
           for line in old_lines
             name = line.split(':')[0]
-            new_lines.push unless name in Object.keys(atlas.user_creds)#keep track of old user if not present in current config
+            new_lines.push unless name in Object.keys(options.user_creds)#keep track of old user if not present in current config
         @call header: 'Generate credential file', ->
-          @each atlas.user_creds, (options, callback) ->
-            name = options.key
-            user = options.value
+          @each options.user_creds, (opt, callback) ->
+            name = opt.key
+            user = opt.value
             line = "#{user.name}=#{user.group}"
             @system.execute
               header: 'Generate new credential'
@@ -511,12 +515,12 @@ credential based on file.
           @call ->
             @file
               content: new_lines.join "/n"
-              target: atlas.application.properties['atlas.authentication.method.file.filename']
+              target: options.application.properties['atlas.authentication.method.file.filename']
               mode: 0o740
               eof: true
               backup: true
-              uid: atlas.user.name
-              gid: atlas.user.name
+              uid: options.user.name
+              gid: options.user.name
 
 ## Kafka Layout
 
@@ -527,17 +531,17 @@ kakfa client become an implicit dependance. Its properties can be used.
       @call
         header: "Kafka Topic Layout"
         retry: 3
-        if: atlas.application.properties['atlas.notification.create.topics'] is 'false'
+        if: options.application.properties['atlas.notification.create.topics'] is 'false'
       , ->
         ks_ctxs = @contexts 'ryba/kafka/broker'
-        zoo_connect = atlas.application.properties['atlas.kafka.zookeeper.connect']
-        topics = atlas.application.properties['atlas.notification.topics'].split ','
+        zoo_connect = options.application.properties['atlas.kafka.zookeeper.connect']
+        topics = options.application.properties['atlas.notification.topics'].split ','
         for topic in topics
           [ATLAS_HOOK_TOPIC,ATLAS_ENTITIES_TOPIC] = topics
           group_id = null
           switch topic
-            when ATLAS_HOOK_TOPIC then group_id = atlas.application.properties['atlas.kafka.hook.group.id']
-            when ATLAS_ENTITIES_TOPIC then group_id = atlas.application.properties['atlas.kafka.entities.group.id']
+            when ATLAS_HOOK_TOPIC then group_id = options.application.properties['atlas.kafka.hook.group.id']
+            when ATLAS_ENTITIES_TOPIC then group_id = options.application.properties['atlas.kafka.entities.group.id']
           @system.execute
             header: "Create #{topic} (Kerberos)"
             if: kafka.consumer.env['KAFKA_KERBEROS_PARAMS']?
@@ -568,10 +572,10 @@ kakfa client become an implicit dependance. Its properties can be used.
           @call header: 'KafKa Topic ACL (Ranger)', if: ranger_admin?, ->
             {install} = ranger_admin.config.ryba.ranger.kafka_plugin
             policy_name = "atlas-metadata-server-#{@config.host}"
-            atlas_protocol = atlas.application.properties['atlas.kafka.security.protocol']
+            atlas_protocol = options.application.properties['atlas.kafka.security.protocol']
             hive_protocol = hive_ctx.config.ryba.hive.server2.atlas.application.properties['atlas.kafka.security.protocol']
-            users = ["#{atlas.user.name}"]
-            users.push "#{hive_ctx.config.ryba.hive.user.name}" if hive_protocol in ['SASL_PLAINTEXT','SASL_SSL'] and atlas.hive_bridge_enabled
+            users = ["#{options.user.name}"]
+            users.push "#{hive_ctx.config.ryba.hive.user.name}" if hive_protocol in ['SASL_PLAINTEXT','SASL_SSL'] and options.hive_bridge_enabled
             users.push 'ANONYMOUS' if (atlas_protocol in ['PLAINTEXT','SSL']) or (hive_protocol in ['PLAINTEXT','SSL'])
             kafka_policy =
               service: "#{install['REPOSITORY_NAME']}"
@@ -646,17 +650,17 @@ The commands a divided per user, as the hive bridge is not mandatory.
             header: 'KafKa Topic ACL Atlas User (Simple)'
             cmd: mkcmd.kafka @, """
             /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
-              --add --allow-principal User:#{atlas.user.name}  --group #{group_id} \
+              --add --allow-principal User:#{options.user.name}  --group #{group_id} \
               --operation All --topic #{topic}
             """
             unless_exec: mkcmd.kafka @, """
             /usr/hdp/current/kafka-broker/bin/kafka-acls.sh  --list \
               --authorizer-properties zookeeper.connect=#{zoo_connect}  \
-              --topic #{topic} | grep 'User:#{atlas.user.name} has Allow permission for operations: Write from hosts: *'
+              --topic #{topic} | grep 'User:#{options.user.name} has Allow permission for operations: Write from hosts: *'
             """
           @system.execute
             header: 'KafKa Topic ACL Hive User (Simple)'
-            if: atlas.hive_bridge_enabled
+            if: options.hive_bridge_enabled
             cmd: mkcmd.kafka @, """
             /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer-properties zookeeper.connect=#{zoo_connect} \
               --add --allow-principal User:#{hive_ctx.config.ryba.hive.user.name}  --group #{group_id} \
@@ -672,13 +676,13 @@ The commands a divided per user, as the hive bridge is not mandatory.
 
       @call
         header: 'Titan Solr ACL (Ranger)'
-        if: ranger_admin? and atlas.ranger_solr_plugin
+        if: ranger_admin? and options.ranger_solr_plugin
       , ->
-        {install} = ranger_admin.config.ryba.ranger.solr_plugins[atlas.solr_cluster_name]
+        {install} = ranger_admin.config.ryba.ranger.solr_plugins[options.solr_cluster_name]
         policy_name = "atlas-metadata-server-#{@config.host}"
-        users = ["#{atlas.user.name}"]
+        users = ["#{options.user.name}"]
         solr_policy =
-          service: "#{atlas.solr_cluster_name}"
+          service: "#{options.solr_cluster_name}"
           name: policy_name
           description: "Atlas MetaData Server ACL"
           isAuditEnabled: true
@@ -754,22 +758,22 @@ Populates the Oozie directory with the Atlas server JAR files.
           throw Error 'No Oozie Sharelib installed' if (sharelib.length is 0)
           return 
         @call header: 'Upload Atlas Jars to Oozie ShareLib', (_, callback) ->
-          @fs.readdir '/usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/', (err, files) =>
+          fs.readdir options.ssh, '/usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/', (err, files) =>
             throw err if err
-            @each files, (options) =>
+            @each files, (opt) =>
               @system.execute
                 retry: 2
                 cmd: mkcmd.hdfs @, """
-                hdfs dfs -put /usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/#{options.key} \
+                hdfs dfs -put /usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/#{opt.key} \
                 #{sharelib}/hive/
                 """
-                unless_exec: mkcmd.hdfs @, "hdfs dfs -stat #{sharelib}/hive/#{options.key}"
+                unless_exec: mkcmd.hdfs @, "hdfs dfs -stat #{sharelib}/hive/#{opt.key}"
               @system.execute
                 retry: 2
                 if: -> @status -1
                 cmd: mkcmd.hdfs @, """
-                  hdfs dfs -chown #{user}:#{user} #{sharelib}/hive/#{options.key}
-                  hdfs dfs -chmod 755 #{sharelib}/hive/#{options.key}
+                  hdfs dfs -chown #{user}:#{user} #{sharelib}/hive/#{opt.key}
+                  hdfs dfs -chmod 755 #{sharelib}/hive/#{opt.key}
                   """
             @then callback
 

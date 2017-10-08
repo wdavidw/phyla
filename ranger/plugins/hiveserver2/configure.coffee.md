@@ -12,8 +12,8 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
         hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
         hive_server2: key: ['ryba', 'hive', 'server2']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
-        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
         ranger_hive: key: ['ryba', 'ranger', 'hive']
+        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
       @config.ryba.ranger ?= {}
       options = @config.ryba.ranger.hive = service.options
 

@@ -1,7 +1,7 @@
 
 ## Ranger HBase Plugin Configure
 
-    module.exports = ->
+    module.exports = (service) ->
       service = migration.call @, service, 'ryba/ranger/plugins/hbase', ['ryba', 'ranger', 'hbase'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         java: key: ['java']

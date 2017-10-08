@@ -19,15 +19,6 @@
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
 
-## Ranger User
-
-      @ranger_user
-        header: 'Ranger User'
-        username: options.ranger_admin.username
-        password: options.ranger_admin.password
-        url: options.install['POLICY_MGR_URL']
-        user: options.plugin_user
-
 ## Packages
 
       @call header: 'Packages', ->
@@ -42,6 +33,15 @@
             version = stdout.trim()
         @service
           name: "ranger-hbase-plugin"
+
+## Ranger User
+
+      @ranger_user
+        header: 'Ranger User'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
 
 ## Audit Layout
 

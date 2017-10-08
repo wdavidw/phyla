@@ -4,15 +4,15 @@
     module.exports = header: 'Ranger Knox Plugin', handler: (options) ->
       version = null
 
-## Wait
-
-      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
-
-## Knox Dependencies
+## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
+
+## Wait
+
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
 
 ## Packages
 
@@ -35,6 +35,7 @@ Matchs step 1 in [Knox plugin configuration][plugin]. Instead of using the web u
 we execute this task using the rest api.
 
       @ranger_service
+        header: 'Ranger Repository'
         username: options.ranger_admin.username
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']
