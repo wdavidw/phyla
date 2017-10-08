@@ -4,138 +4,210 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
 
 
     module.exports = ->
-      atlas_ctxs = @contexts 'ryba/atlas'
+      service = migration.call @, service, 'ryba/ranger/plugins/atlas', ['ryba', 'ranger', 'atlas'], require('nikita/lib/misc').merge require('.').use,
+        krb5_client: key: ['krb5_client']
+        java: key: ['java']
+        hadoop_core: key: ['ryba']
+        # hdfs_client: key: ['ryba', 'hdfs_client']
+        atlas: key: ['ryba', 'atlas']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
+      @config.ryba.ranger ?= {}
+      options = @config.ryba.ranger.atlas = service.options
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+
       [ranger_admin_ctx] = @contexts 'ryba/ranger/admin'
-      return unless ranger_admin_ctx?
+
       {ryba} = @config
       {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
       ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
-      ranger.plugins.atlas_enabled ?= if atlas_ctxs.length > 0 then true else false
-      if ranger.plugins.atlas_enabled
-        throw Error 'Need Atlas to enable ranger Atlas Plugin' unless atlas_ctxs.length > 0
-        # Ranger Yarn User
-        ranger.users['atlas'] ?=
-          "name": 'atlas'
-          "firstName": 'atlas'
-          "lastName": 'hadoop'
-          "emailAddress": 'atlas@hadoop.ryba'
-          'userSource': 1
-          'userRoleList': ['ROLE_USER']
-          'groups': []
-          'status': 1
-        # Atlas Plugin configuration
-        atlas_plugin = @config.ryba.ranger.atlas_plugin ?= {}
-        atlas_plugin.principal ?= ranger.plugins.principal
-        atlas_plugin.password ?= ranger.plugins.password
-        atlas_plugin.install ?= {}
-        atlas_plugin.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
-        # Should Atlas GRANT/REVOKE update XA policies?
-        atlas_plugin.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
-        atlas_plugin.install['CUSTOM_USER'] ?= "#{@config.ryba.atlas.user.name}"
-        atlas_plugin.install['CUSTOM_GROUP'] ?= "#{hadoop_group.name}"
 
-### Atlas Policy Admin Tool
-The repository name should match the reposity name in web ui.
+## Identities
 
-        atlas_plugin.install['POLICY_MGR_URL'] ?= ranger.install['policymgr_external_url']
-        atlas_plugin.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-atlas'
-        atlas_plugin.service_repo ?=
-          'description': 'Atlas Repo'
-          'isEnabled': true
-          'name': atlas_plugin.install['REPOSITORY_NAME']
-          'type': 'atlas'
-          'configs':
-            'atlas.rest.address': @config.ryba.atlas.application.properties['atlas.rest.address']
-            'policy.download.auth.users': "#{@config.ryba.atlas.user.name}" #from ranger 0.6
-            'tag.download.auth.users': "#{@config.ryba.atlas.user.name}"
-        if @config.ryba.atlas.application.properties['atlas.authentication.method'] is 'kerberos'
-          atlas_plugin.service_repo['configs']['username'] ?= @config.ryba.atlas.admin_principal
-          atlas_plugin.service_repo['configs']['password'] ?= @config.ryba.atlas.admin_password
-        else
-          throw Error 'Authentication not support for ranger - atlas - plugin'
+      options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
+      options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
+
+## Access
+
+      options.ranger_admin ?= service.use.ranger_admin.options.admin
+      options.hdfs_install ?= service.use.ranger_hdfs.options.install
+      options.atlas_user = service.use.atlas.options.user
+      options.atlas_group = service.use.atlas.options.group
+      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
+
+## Plugin User
+
+      options.plugin_user = 
+        "name": options.atlas_user.name
+        "firstName": ''
+        "lastName": ''
+        "emailAddress": ''
+        "password": ''
+        'userSource': 1
+        'userRoleList': ['ROLE_USER']
+        'groups': []
+        'status': 1
+        
+## Configuration
+
+      options.install ?= {}
+      options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
+      # Should Atlas GRANT/REVOKE update XA policies?
+      options.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
+      options.install['CUSTOM_USER'] ?= "#{@config.ryba.atlas.user.name}"
+      options.install['CUSTOM_GROUP'] ?= "#{hadoop_group.name}"
+
+## Admin properties
+
+      options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
+      options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-atlas'
+
+## Service Definition
+
+      options.service_repo ?=
+        'name': options.install['REPOSITORY_NAME']
+        'description': 'Atlas Repo'
+        'type': 'atlas'
+        'isEnabled': true
+        'configs':
+          # 'username': 'ranger_plugin_atlas'
+          # 'password': 'RangerPluginAtlas123!'
+          'username': service.use.ranger_admin.options.plugins.principal
+          'password': service.use.ranger_admin.options.plugins.password
+          'atlas.rest.address': @config.ryba.atlas.application.properties['atlas.rest.address']
+          'policy.download.auth.users': "#{@config.ryba.atlas.user.name}" #from ranger 0.6
+          'tag.download.auth.users': "#{@config.ryba.atlas.user.name}"
 
 ### Atlas Plugin audit
 
-        atlas_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
-        if atlas_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-          atlas_plugin.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
-          atlas_plugin.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
-          atlas_plugin.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
-          atlas_plugin.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
-          atlas_plugin.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
-          atlas_plugin.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
+      options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
+        options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
+        options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
+        options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
+        options.install['XAAUDIT.HDFS.DESTINATION _OPEN_RETRY_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] ?= '%time:yyyyMMdd-HHmm.ss%.log'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
+        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
+        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
+        # AUDIT TO HDFS
+        # atlas_plugin.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+        # atlas_plugin.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
+        # atlas_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{@config.ryba.atlas.log_dir}/audit/hdfs/spool"
+
+## HDFS Policy
+
+      if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        throw Error 'HDFS Ranger Plugin required' unless options.hdfs_install
+        options.policy_hdfs_audit ?=
+          'name': "atlas-ranger-plugin-audit"
+          'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
+          'repositoryType':"hdfs"
+          'description': 'Atlas Ranger Plugin audit log policy'
+          'isEnabled': true
+          'isAuditEnabled': true
+          'resources':
+            'path':
+              'isRecursive': 'true'
+              'values': ['/ranger/audit/atlas']
+              'isExcludes': false
+          'policyItems': [
+            'users': ["#{options.atlas_user.name}"]
+            'groups': []
+            'delegateAdmin': true
+            'accesses': [
+                "isAllowed": true
+                "type": "read"
+            ,
+                "isAllowed": true
+                "type": "write"
+            ,
+                "isAllowed": true
+                "type": "execute"
+            ]
+            'conditions': []
+          ]
+        
 
 ### Atlas Audit (HDFS Storage)
 
-        # AUDIT TO HDFS
-        atlas_plugin.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-        atlas_plugin.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
-        atlas_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{@config.ryba.atlas.log_dir}/audit/hdfs/spool"
+      # AUDIT TO HDFS
+      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{options.user.name}/audit"
+      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.atlas.options.log_dir}/audit/hdfs/spool"
 
 ### Atlas Audit (database storage)
 
-        #Deprecated
-        atlas_plugin.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
-        if atlas_plugin.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
-          atlas_plugin.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
-          switch atlas_plugin.install['XAAUDIT.DB.FLAVOUR']
-            when 'MYSQL'
-              atlas_plugin.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
-              atlas_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= ranger.install['db_host']
-              atlas_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= ranger.install['audit_db_name']
-              atlas_plugin.install['XAAUDIT.DB.USER_NAME'] ?= ranger.install['audit_db_user']
-              atlas_plugin.install['XAAUDIT.DB.PASSWORD'] ?= ranger.install['audit_db_password']
-            when 'ORACLE'
-              throw Error 'Ryba does not support ORACLE Based Ranger Installation'
-            else
-              throw Error "Apache Ranger does not support chosen DB FLAVOUR"
-        else
-            atlas_plugin.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
-            atlas_plugin.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
-            atlas_plugin.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
-            atlas_plugin.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
+      #Deprecated
+      options.install['XAAUDIT.DB.IS_ENABLED'] ?= 'false'
+      if options.install['XAAUDIT.DB.IS_ENABLED'] is 'true'
+        options.install['XAAUDIT.DB.FLAVOUR'] ?= 'MYSQL'
+        switch options.install['XAAUDIT.DB.FLAVOUR']
+          when 'MYSQL'
+            options.install['SQL_CONNECTOR_JAR'] ?= '/usr/share/java/mysql-connector-java.jar'
+            options.install['XAAUDIT.DB.HOSTNAME'] ?= service.use.ranger_admin.options.install['db_host']
+            options.install['XAAUDIT.DB.DATABASE_NAME'] ?= service.use.ranger_admin.options.install['audit_db_name']
+            options.install['XAAUDIT.DB.USER_NAME'] ?= service.use.ranger_admin.options.install['audit_db_user']
+            options.install['XAAUDIT.DB.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_db_password']
+          when 'ORACLE'
+            throw Error 'Ryba does not support ORACLE Based Ranger Installation'
+          else
+            throw Error "Apache Ranger does not support chosen DB FLAVOUR"
+      else
+          options.install['XAAUDIT.DB.HOSTNAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.DATABASE_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.USER_NAME'] ?= 'NONE'
+          options.install['XAAUDIT.DB.PASSWORD'] ?= 'NONE'
 
 ### Atlas Audit (to SOLR)
 
-        if ranger.install['audit_store'] is 'solr'
-          atlas_plugin.audit ?= {}
-          atlas_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
-          atlas_plugin.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
-          atlas_plugin.install['XAAUDIT.SOLR.URL'] ?= ranger.install['audit_solr_urls']
-          atlas_plugin.install['XAAUDIT.SOLR.USER'] ?= ranger.install['audit_solr_user']
-          atlas_plugin.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= ranger.install['audit_solr_zookeepers']
-          atlas_plugin.install['XAAUDIT.SOLR.PASSWORD'] ?= ranger.install['audit_solr_password']
-          atlas_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{@config.ryba.atlas.log_dir}/audit/solr/spool"
-          atlas_plugin.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
-          atlas_princ = @config.ryba.atlas.application.properties['atlas.authentication.principal'].replace '_HOST', @config.host
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= atlas_princ
-          atlas_plugin.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= @config.ryba.atlas.application.properties['atlas.authentication.keytab']
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
+        options.audit ?= {}
+        options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
+        options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
+        options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
+        options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
+        options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.atlas.options.log_dir}/audit/solr/spool"
+        options.audit['xasecure.audit.destination.solr.force.use.inmemory.jaas.config'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
+        options.audit['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
+        atlas_princ = @config.ryba.atlas.application.properties['atlas.authentication.principal'].replace '_HOST', service.use.atlas.node.fqdn
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= atlas_princ
+        options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.atlas.options.application.properties['atlas.authentication.keytab']
 
-### Atlas Plugin SSL
+### Plugin Execution
+
 Used only if SSL is enabled between Policy Admin Tool and Plugin
 
-        if ranger.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-          atlas_plugin.install['SSL_KEYSTORE_FILE_PATH'] ?= @config.ryba.ssl_server['ssl.server.keystore.location']
-          atlas_plugin.install['SSL_KEYSTORE_PASSWORD'] ?= @config.ryba.ssl_server['ssl.server.keystore.password']
-          atlas_plugin.install['SSL_TRUSTSTORE_FILE_PATH'] ?= @config.ryba.ssl_client['ssl.client.truststore.location']
-          atlas_plugin.install['SSL_TRUSTSTORE_PASSWORD'] ?= @config.ryba.ssl_client['ssl.client.truststore.password']
+      if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+        options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.truststore.password']
 
-## Merge atlas_plugin conf to ranger admin
+## Wait
 
-        ranger_admin_ctx.config.ryba.ranger.atlas_plugin = merge atlas_plugin
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

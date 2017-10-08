@@ -121,8 +121,6 @@ activate or desactivate the RegionServer.
 
 ## Configuration Distributed mode
 
-      zk_hosts = service.use.zookeeper_server.map( (srv) -> srv.node.fqdn).join ','
-      zk_port = service.use.zookeeper_server[0].options.port
       options.hbase_site['zookeeper.znode.parent'] ?= '/hbase'
       # The mode the cluster will be in. Possible values are
       # false: standalone and pseudo-distributed setups with managed Zookeeper
@@ -134,8 +132,10 @@ activate or desactivate the RegionServer.
       options.hbase_site['hbase.rootdir'] ?= "#{service.use.hdfs_nn[0].options.core_site['fs.defaultFS']}/apps/hbase/data"
       # Comma separated list of Zookeeper servers (match to
       # what is specified in zoo.cfg but without portnumbers)
-      options.hbase_site['hbase.zookeeper.quorum'] = "#{zk_hosts}"
-      options.hbase_site['hbase.zookeeper.property.clientPort'] = "#{zk_port}"
+      options.hbase_site['hbase.zookeeper.quorum'] ?= service.use.zookeeper_server.map( (srv) -> srv.node.fqdn ).join ','
+      options.hbase_site['hbase.zookeeper.property.clientPort'] ?= service.use.zookeeper_server[0].options.config['clientPort']
+      throw Error "Required Option: hbase_site['hbase.zookeeper.quorum']" unless options.hbase_site['hbase.zookeeper.quorum']
+      throw Error "Required Option: hbase_site['hbase.zookeeper.property.clientPort']" unless options.hbase_site['hbase.zookeeper.property.clientPort']
       # Short-circuit are true but socket.path isnt defined for hbase, only for hdfs, see http://osdir.com/ml/hbase-user-hadoop-apache/2013-03/msg00007.html
       # options.hbase_site['dfs.domain.socket.path'] ?= hdfs.site['dfs.domain.socket.path']
       options.hbase_site['dfs.domain.socket.path'] ?= '/var/lib/hadoop-hdfs/dn_socket'

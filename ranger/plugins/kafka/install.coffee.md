@@ -4,16 +4,31 @@
     module.exports = header: 'Ranger Kafka Plugin', handler: (options) ->
       version= null
 
-## Wait
-
-      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
-      
 # Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
+
+## Wait
+
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+
+# Packages
+
+      @call header: 'Packages', ->
+        @system.execute
+          header: 'Setup Execution'
+          shy:true
+          cmd: """
+          hdp-select versions | tail -1
+          """
+         , (err, executed,stdout, stderr) ->
+            return  err if err or not executed
+            version = stdout.trim() if executed
+        @service
+          name: "ranger-kafka-plugin"
 
 ## Ranger User
 
@@ -30,21 +45,6 @@
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']
         user: options.plugin_user_anonymous
-
-# Packages
-
-      @call header: 'Packages', ->
-        @system.execute
-          header: 'Setup Execution'
-          shy:true
-          cmd: """
-          hdp-select versions | tail -1
-          """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
-        @service
-          name: "ranger-kafka-plugin"
 
 ## Audit Layout
 
@@ -98,6 +98,7 @@ Matchs step 1 in [hive plugin configuration][plugin]. Instead of using the web u
 we execute this task using the rest api.
 
       @ranger_service
+        header: 'Ranger Repository'
         username: options.ranger_admin.username
         password: options.ranger_admin.password
         url: options.install['POLICY_MGR_URL']

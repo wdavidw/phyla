@@ -1,75 +1,21 @@
 
 # Ranger Atlas Metadata Server Ranger Plugin Install
 
-    module.exports = header: 'Ranger Atlas Plugin install', handler: ->
-      {ranger, atlas, realm, hadoop_group, core_site} = @config.ryba
-      {password} = @contexts('ryba/ranger/admin')[0].config.ryba.ranger.admin
-      hdfs_plugin = @contexts('ryba/hadoop/hdfs_nn')[0].config.ryba.ranger.hdfs_plugin
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'Ranger Atlas Plugin install', handler: (options) ->
       version = null
       #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
 
-# Dependencies
+## Register
 
-      @call once: true, 'ryba/ranger/admin/wait'
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
 
-# Create Atlas Policy for On HDFS Repo
+## Wait
 
-      @call
-        if: ranger.atlas_plugin.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        header: 'Atlas ranger plugin audit to HDFS'
-      , ->
-        @system.mkdir
-          target: ranger.atlas_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-          uid: atlas.user.name
-          gid: hadoop_group.name
-          mode: 0o0750
-        @call
-          if: @contexts('ryba/ranger/admin')[0].config.ryba.ranger.plugins.hdfs_enabled
-        , ->
-          atlas_policy =
-            name: "atlas-ranger-plugin-audit"
-            service: "#{hdfs_plugin.install['REPOSITORY_NAME']}"
-            repositoryType:"hdfs"
-            description: 'Atlas Ranger Plugin audit log policy'
-            isEnabled: true
-            isAuditEnabled: true
-            resources:
-              path:
-                isRecursive: 'true'
-                values: ['/ranger/audit/atlas']
-                isExcludes: false
-            policyItems: [{
-              users: ["#{atlas.user.name}"]
-              groups: []
-              delegateAdmin: true
-              accesses:[
-                  "isAllowed": true
-                  "type": "read"
-              ,
-                  "isAllowed": true
-                  "type": "write"
-              ,
-                  "isAllowed": true
-                  "type": "execute"
-              ]
-              conditions: []
-              }]
-          @system.execute
-            cmd: """
-            curl --fail -H "Content-Type: application/json" -k -X POST \
-              -d '#{JSON.stringify atlas_policy}' \
-              -u admin:#{password} \
-              \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/policy\"
-            """
-            unless_exec: """
-            curl --fail -H \"Content-Type: application/json\" -k -X GET  \
-              -u admin:#{password} \
-              \"#{hdfs_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/#{hdfs_plugin.install['REPOSITORY_NAME']}/policy/atlas-ranger-plugin-audit\"
-            """
-            code_skippe: 22
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
 
 # Packages
 
@@ -86,45 +32,77 @@
         @service
           name: "ranger-atlas-plugin"
 
+## Ranger User
+
+      @ranger_user
+        header: 'Ranger User'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
+
+## Audit Layout
+
+
+# Create Atlas Policy for On HDFS Repo
+
+      @call
+        header: 'Audit HDFS Policy'
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      , ->
+        @hdfs_mkdir (
+          target: target
+          mode: 0o0750
+          parent:
+            mode: 0o0711
+            user: options.user.name
+            group: options.group.name
+          user: options.atlas_user.name
+          group: options.atlas_group.name
+          krb5_user: options.hdfs_krb5_user
+        ) for target in options.policy_hdfs_audit.resources.path.values
+        # @system.mkdir
+        #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        #   uid: options.atlas_user.name
+        #   gid: options.atlas_group.name
+        #   mode: 0o0750
+        @ranger_policy
+          if: options.policy_hdfs_audit
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          policy: options.policy_hdfs_audit
+
 # Atlas ranger plugin audit to SOLR
 
       @system.mkdir
-        target: ranger.atlas_plugin.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: atlas.user.name
-        gid: hadoop_group.name
+        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        uid: options.atlas_user.name
+        gid: options.atlas_group.name
         mode: 0o0750
-        if: ranger.atlas_plugin.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
-# Atlas Service Repository creation
-Matchs step 1 in [atlas plugin configuration][atlas-plugin]. Instead of using the web ui
+## Service Repository creation
+
+Matchs step 1 in [Atlas plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call
-        if: @contexts('ryba/atlas')[0].config.host is @config.host
-        header: 'Ranger Atlas Repository'
-      ,  ->
-        @system.execute
-          unless_exec: """
-          curl --fail -H  \"Content-Type: application/json\"   -k -X GET  \
-            -u admin:#{password} \"#{ranger.atlas_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{ranger.atlas_plugin.install['REPOSITORY_NAME']}\"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify ranger.atlas_plugin.service_repo}' \
-            -u admin:#{password} \"#{ranger.atlas_plugin.install['POLICY_MGR_URL']}/service/public/v2/api/service/\"
-          """
-        @krb5.addprinc krb5,
-          if: ranger.atlas_plugin.principal
-          header: 'Ranger Atlas Principal'
-          principal: ranger.atlas_plugin.principal
-          randkey: true
-          password: ranger.atlas_plugin.password
-        @hdfs_mkdir
-          header: 'Ranger Audit atlas Layout'
-          target: "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/atlas"
-          mode: 0o750
-          user: atlas.user.name
-          group: atlas.user.name
-          unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{core_site['fs.defaultFS']}/#{ranger.user.name}/audit/atlas"
+      @ranger_service
+        header: 'Ranger Repository'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
+
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
+      @krb5.addprinc options.krb5.admin,
+        header: 'Plugin Principal'
+        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        password: options.service_repo.configs.password
 
 # Plugin Scripts 
 
@@ -137,7 +115,7 @@ we execute this task using the rest api.
           local: true
           eof: true
           backup: true
-          write: for k, v of ranger.atlas_plugin.install
+          write: for k, v of options.install
             match: RegExp "^#{quote k}=.*$", 'mg'
             replace: "#{k}=#{v}"
             append: true
@@ -146,7 +124,7 @@ we execute this task using the rest api.
           target: "/usr/hdp/#{version}/ranger-atlas-plugin/enable-atlas-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{atlas.conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
             ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/atlas-server"
@@ -165,7 +143,7 @@ we execute this task using the rest api.
             cmd: """
             echo '' | keytool -list \
               -storetype jceks \
-              -keystore /etc/ranger/#{ranger.atlas_plugin.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
+              -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
             code_skipped: 1
           @call
@@ -173,7 +151,7 @@ we execute this task using the rest api.
           , ->
             @each files, (options, cb) ->
               file = options.key
-              target = "#{atlas.conf_dir}/#{file}"
+              target = "#{options.conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
@@ -192,23 +170,23 @@ we execute this task using the rest api.
             """
           @hconfigure
             header: 'Fix ranger-atlas-security conf'
-            target: "#{atlas.conf_dir}/ranger-atlas-security.xml"
+            target: "#{options.conf_dir}/ranger-atlas-security.xml"
             merge: true
             properties:
-              'ranger.plugin.atlas.policy.rest.ssl.config.file': "#{atlas.conf_dir}/ranger-policymgr-ssl.xml"
+              'ranger.plugin.atlas.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
           @system.chown
             header: 'Fix Permissions'
-            target: "/etc/ranger/#{ranger.atlas_plugin.install['REPOSITORY_NAME']}/.cred.jceks.crc"
-            uid: atlas.user.name
-            gid: atlas.group.name
+            target: "/etc/ranger/#{options.install['REPOSITORY_NAME']}/.cred.jceks.crc"
+            uid: options.atlas_user.name
+            gid: options.atlas_group.name
           @hconfigure
             header: 'JAAS Properties for solr'
-            target: "#{atlas.conf_dir}/ranger-atlas-audit.xml"
+            target: "#{options.conf_dir}/ranger-atlas-audit.xml"
             merge: true
-            properties: ranger.atlas_plugin.audit
+            properties: options.audit
           @each files, (options, cb) ->
             file = options.key
-            target = "#{atlas.conf_dir}/#{file}"
+            target = "#{options.conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return callback err if err
               properties.read options.ssh, target , (err, props) ->

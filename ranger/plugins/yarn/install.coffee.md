@@ -41,6 +41,7 @@
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
 ## YARN Service Repository creation
+
 Matchs step 1 in [hdfs plugin configuration][yarn-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 

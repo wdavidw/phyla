@@ -281,8 +281,6 @@
           uid: options.test.user.name
           gid: options.test.group.name
           eof: true
-        console.log options.hive_server2[0].hive_site
-        console.log 'hive.metastore.uris', options.hive_server2[0].hive_site['hive.metastore.uris']
         @file
           content: """
           <workflow-app name='check-#{options.hostname}-oozie-pig' xmlns='uri:oozie:workflow:0.4'>
