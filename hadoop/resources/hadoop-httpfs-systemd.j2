@@ -9,6 +9,7 @@ PIDFile={{options.pid_dir}}/httpfs.pid
 ExecStart=/usr/hdp/current/hadoop-httpfs/sbin/httpfs.sh start
 ExecReload=/usr/hdp/current/hadoop-httpfs/sbin/httpfs.sh restart
 ExecStop=/usr/hdp/current/hadoop-httpfs/sbin/httpfs.sh stop
+LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

@@ -8,6 +8,7 @@ PIDFile={{options.pid_dir}}/yarn-yarn-timelineserver.pid
 ExecStart=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} start timelineserver
 ExecReload=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} restart timelineserver
 ExecStop=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} stop timelineserver
+LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target
