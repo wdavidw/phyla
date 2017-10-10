@@ -131,8 +131,8 @@ HA properties must be available to masters and regionservers.
 
 ## Configuration Quota
 
-      hbase.rs.site['hbase.quota.enabled'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.enabled']
-      hbase.rs.site['hbase.quota.refresh.period'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.refresh.period']
+      options.hbase_site['hbase.quota.enabled'] ?= service.use.hbase_master[0].options.hbase_site['hbase.quota.enabled']
+      options.hbase_site['hbase.quota.refresh.period'] ?= service.use.hbase_master[0].options.hbase_site['hbase.quota.refresh.period']
 
 ## Ranger Plugin Configuration
 

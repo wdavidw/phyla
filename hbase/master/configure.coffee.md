@@ -236,8 +236,8 @@ RS if RS count < 3.
 
 ## Configuration Quota
 
-      hbase.master.site['hbase.quota.enabled'] ?= 'false'
-      hbase.master.site['hbase.quota.refresh.period'] ?= 300000
+      options.hbase_site['hbase.quota.enabled'] ?= 'false'
+      options.hbase_site['hbase.quota.refresh.period'] ?= 300000
 
 ## Ranger Plugin Configuration
 

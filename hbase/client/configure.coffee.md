@@ -83,6 +83,11 @@
         'dfs.domain.socket.path'
       ] then options.hbase_site[property] ?= service.use.hbase_master[0].options.hbase_site[property]
 
+## Configuration Quota
+
+      options.hbase_site['hbase.quota.enabled'] ?= service.use.hbase_master[0].options.hbase_site['hbase.quota.enabled']
+      options.hbase_site['hbase.quota.refresh.period'] ?= service.use.hbase_master[0].options.hbase_site['hbase.quota.refresh.period']
+
 ## Wait
 
       options.wait_hbase_master = service.use.hbase_master[0].options.wait
