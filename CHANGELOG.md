@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* hbase: add quota support
 * hbase: create tmp_dir config key
 * hbase/master: add compression libs
 * druid: support for non-UTC timezone

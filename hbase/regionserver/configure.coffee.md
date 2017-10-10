@@ -91,6 +91,11 @@ HA properties must be available to masters and regionservers.
       hbase.rs.site['hbase.superuser'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.superuser']
       hbase.rs.site['hbase.bulkload.staging.dir'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.bulkload.staging.dir']
 
+## Configuration Quota
+
+      hbase.rs.site['hbase.quota.enabled'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.enabled']
+      hbase.rs.site['hbase.quota.refresh.period'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.refresh.period']
+
 ## Ranger Plugin Configuration
 
       @config.ryba.hbase_plugin_is_master = false
