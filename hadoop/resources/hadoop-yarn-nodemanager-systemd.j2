@@ -8,6 +8,7 @@ PIDFile={{yarn.nm.pid_dir}}/yarn-yarn-nodemanager.pid
 ExecStart=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{yarn.nm.conf_dir}} start nodemanager
 ExecReload=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{yarn.nm.conf_dir}} restart nodemanager
 ExecStop=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{yarn.nm.conf_dir}} stop nodemanager
+LimitNOFILE={{yarn.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

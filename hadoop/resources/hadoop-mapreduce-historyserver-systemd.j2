@@ -8,6 +8,7 @@ PIDFile={{mapred.pid_dir}}/mapred-mapred-historyserver.pid
 ExecStart=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} start historyserver
 ExecReload=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} restart historyserver
 ExecStop=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{mapred.jhs.conf_dir}} stop historyserver
+LimitNOFILE={{mapred.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

@@ -8,6 +8,7 @@ PIDFile={{hdfs.pid_dir}}/hadoop-hdfs-namenode.pid
 ExecStart=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.nn.conf_dir}} --script hdfs start namenode
 ExecReload=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.nn.conf_dir}} --script hdfs restart namenode
 ExecStop=/usr/hdp/current/hadoop-hdfs-namenode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.nn.conf_dir}} --script hdfs stop namenode
+LimitNOFILE={{hdfs.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target

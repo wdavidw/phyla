@@ -9,6 +9,7 @@ PIDFile={{hdfs.pid_dir}}/hadoop-hdfs-journalnode.pid
 ExecStart=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.jn.conf_dir}} --script hdfs start journalnode
 ExecReload=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.jn.conf_dir}} --script hdfs restart journalnode
 ExecStop=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{hdfs.jn.conf_dir}} --script hdfs stop journalnode
+LimitNOFILE={{hdfs.user.limits.nofile}}
 
 [Install]
 WantedBy=multi-user.target
