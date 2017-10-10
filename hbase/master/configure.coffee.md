@@ -234,6 +234,11 @@ RS if RS count < 3.
 
       options.hbase_site['hbase.replication'] ?= 'true' if options.replicated_clusters
 
+## Configuration Quota
+
+      options.hbase_site['hbase.quota.enabled'] ?= 'false'
+      options.hbase_site['hbase.quota.refresh.period'] ?= 300000
+
 ## Ranger Plugin Configuration
 
       # @config.ryba.hbase_plugin_is_master = true
