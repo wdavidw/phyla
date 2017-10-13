@@ -45,28 +45,31 @@
         if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         header: 'HDFS Audit'
       , ->
-        # @system.mkdir
-        #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        #   uid: options.hive_user.name
-        #   gid: options.hive_group.name
-        #   mode: 0o0750
-        for target in options.policy_hdfs_audit.resources.path.values
-          @hdfs_mkdir
-            target: target
-            mode: 0o0750
-            parent:
-              mode: 0o0711
-              user: options.user.name
-              group: options.group.name
-            user: options.hive_user.name
-            group: options.hive_group.name
-            krb5_user: options.hdfs_krb5_user
-            # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
         @ranger_policy
+          header: 'HDFS Audit'
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.install['POLICY_MGR_URL']
           policy: options.policy_hdfs_audit
+        @system.mkdir
+          header: 'HDFS Spool Dir'
+          if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          uid: options.hive_user.name
+          gid: options.hive_group.name
+          mode: 0o0750
+        @call ->
+          for target in options.policy_hdfs_audit.resources.path.values
+            @hdfs_mkdir
+              target: target
+              mode: 0o0750
+              parent:
+                mode: 0o0711
+                user: options.user.name
+                group: options.group.name
+                uid: options.hive_user.name
+                gid: options.hive_group.name
+              krb5_user: options.hdfs_krb5_user
       @system.mkdir
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'

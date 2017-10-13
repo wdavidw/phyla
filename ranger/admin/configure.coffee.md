@@ -265,6 +265,9 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             options.solr.principal ?= "#{options.solr.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
             options.solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
           options.solr.ssl = merge options.solr.ssl or {}, service.use.hadoop_core.options.ssl
+          # lucasbak 11102017
+          # in HDP 2.5.3 SSL enabled solr sink is not supported
+          options.solr.ssl.enabled = false
           options.solr.port ?= if options.solr.ssl.enabled then 19983 else 18983
           options.solr.ssl_truststore_path ?= "#{options.solr.conf_dir}/truststore"
           options.solr.ssl_truststore_pwd ?= 'solr123'
