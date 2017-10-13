@@ -98,7 +98,7 @@ The properties can be found [here][kafka-repository]
 ## SSL
 
 Used only if SSL is enabled between Policy Admin Tool and Plugin. The path to
-keystore is derived from Hive Server2. The path to the truststore is derived
+keystore is derived from Kafka server. The path to the truststore is derived
 from Hadoop Core.
 
       if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
@@ -114,14 +114,16 @@ from Hadoop Core.
 
 ## HDFS storage
 
-      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hadoop_core.options.core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
-      # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.kafka_broker.options.log_dir}/audit/hdfs/spool"
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        # migration: lucasbak 11102017
+        # honored but not used by plugin
+        # options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
+        # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
+        options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
-        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
+        options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
+        options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.kafka_broker.options.log_dir}/audit/hdfs/spool"
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
         options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
         options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
@@ -130,7 +132,34 @@ from Hadoop Core.
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
-      # migration: wdavidw 190915, no Ranger policy for HDFS ?
+        options.policy_hdfs_audit ?=
+          'name': "kafka-ranger-plugin-audit"
+          'service': "#{options.install['REPOSITORY_NAME']}"
+          'repositoryType':"hdfs"
+          'description': 'Kafka Ranger Plugin audit log policy'
+          'isEnabled': true
+          'isAuditEnabled': true
+          'resources':
+            'path':
+              'isRecursive': 'true'
+              'values': ['/ranger/audit/kafka']
+              'isExcludes': false
+          'policyItems': [
+            'users': ["#{options.kafka_user.name}"]
+            'groups': []
+            'delegateAdmin': true
+            'accesses': [
+                "isAllowed": true
+                "type": "read"
+            ,
+                "isAllowed": true
+                "type": "write"
+            ,
+                "isAllowed": true
+                "type": "execute"
+            ]
+            'conditions': []
+          ]
 
 ## Solr storage
 

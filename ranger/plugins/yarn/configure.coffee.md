@@ -10,6 +10,7 @@ variables but also inject some function to be executed.
       service = migration.call @, service, 'ryba/ranger/plugins/yarn', ['ryba', 'ranger', 'yarn'], require('nikita/lib/misc').merge require('.').use,
         krb5_client: key: ['krb5_client']
         hadoop_core: key: ['ryba']
+        hdfs_client: key: ['ryba', 'hdfs_client']
         yarn_rm: key: ['ryba', 'yarn', 'rm']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
       @config.ryba.ranger ?= {}
@@ -100,9 +101,13 @@ The repository name should match the reposity name in web ui.
 
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.yarn_rm.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-        options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
-        options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
+        # migration: lucasbak 11102017
+        # honored but not used by plugin
+        # options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
+        # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
+        options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.yarn_rm.options.log_dir}/audit/hdfs/spool"
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
         options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
         options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
@@ -111,11 +116,34 @@ The repository name should match the reposity name in web ui.
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] ?= '60'
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
-
-      # AUDIT TO HDFS
-      # options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      # options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.yarn_rm.options.core_site['fs.defaultFS']}/#{service.use.ranger_admin.options.user.name}/audit"
-      # options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
+      options.policy_hdfs_audit ?=
+        'name': "yarn-ranger-plugin-audit"
+        'service': "#{options.install['REPOSITORY_NAME']}"
+        'repositoryType':"hdfs"
+        'description': 'Kafka Ranger Plugin audit log policy'
+        'isEnabled': true
+        'isAuditEnabled': true
+        'resources':
+          'path':
+            'isRecursive': 'true'
+            'values': ['/ranger/audit/yarn']
+            'isExcludes': false
+        'policyItems': [
+          'users': ["#{options.yarn_user.name}"]
+          'groups': []
+          'delegateAdmin': true
+          'accesses': [
+              "isAllowed": true
+              "type": "read"
+          ,
+              "isAllowed": true
+              "type": "write"
+          ,
+              "isAllowed": true
+              "type": "execute"
+          ]
+          'conditions': []
+        ]
 
 ## Audit to database storage
 

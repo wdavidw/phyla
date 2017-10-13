@@ -77,4 +77,4 @@ nikita
           -u #{options.username}:#{options.password} \
           "#{options.url}/service/public/v2/api/service/#{options.policy.service}/policy/#{options.policy.name}"
         """
-        code_skippe: 22
+        code_skipped: 22

@@ -9,6 +9,7 @@
 ## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
 
 ## Packages
 
@@ -27,12 +28,36 @@
 
 ## Layout
 
-      # @system.mkdir
-      #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-      #   uid: options.yarn_user.name
-      #   gid: options.hadoop_group.name
-      #   mode: 0o0750
-      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      
+      @call
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        header: 'HDFS Audit'
+      , ->
+        @ranger_policy
+          header: 'HDFS Audit'
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          policy: options.policy_hdfs_audit
+        @system.mkdir
+          header: 'HDFS Spool Dir'
+          if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          uid: options.yarn_user.name
+          gid: options.hadoop_group.name
+          mode: 0o0750
+        @call ->
+          for target in options.policy_hdfs_audit.resources.path.values
+            @hdfs_mkdir
+              target: target
+              mode: 0o0750
+              parent:
+                mode: 0o0711
+                user: options.user.name
+                group: options.group.name
+                uid: options.yarn_user.name
+                gid: options.hadoop_group.name
+              krb5_user: options.hdfs_krb5_user
       @system.mkdir
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
         uid: options.yarn_user.name

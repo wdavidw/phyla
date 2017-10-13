@@ -13,6 +13,7 @@
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
 
 ## HDP version
 
@@ -40,17 +41,23 @@ such as "%app-type% and %time:yyyyMMdd%".
 
 migration: wdavidw 170918, NameNodes are not yet started.
 
-      # @hdfs_mkdir
-      #   header: 'HDFS Audit'
-      #   # target: options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY']
-      #   target: "/#{options.user.name}/audit/#{options.service_repo.type}"
-      #   mode: 0o0750
-      #   parent:
-      #     mode: 0o0711
-      #     user: options.user.name
-      #     group: options.group.name
-      #   user: options.hdfs_user.name
-      #   group: options.hdfs_group.name
+      @call
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+        header: 'Audit HDFS Policy'
+      , ->
+        @ranger_policy
+          header: 'HDFS Audit'
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.install['POLICY_MGR_URL']
+          policy: options.policy_hdfs_audit
+        @system.mkdir
+          header: 'HDFS Spool Dir'
+          if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          uid: options.hdfs_user.name
+          gid: options.hadoop_group.name
+          mode: 0o0750
       @system.mkdir
         header: 'SOLR Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
