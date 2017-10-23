@@ -12,14 +12,20 @@ to communicate by default with the `ryba/swarm/manager`.
 
     module.exports =
       use:
-        docker: implicit:true, module: 'masson/commons/docker'
-        zookeeper: module: 'ryba/zookeeper/server'
+        docker: module: 'masson/commons/docker', local: true, required: true, auto: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
+        swarm_manager: 'ryba/swarm/manager'
+        iptables: module: 'masson/core/iptables', local: true
       configure:
         'ryba/swarm/manager/configure'
       commands:
-        install: [
-          'ryba/swarm/manager/install'
-          'ryba/swarm/manager/start'
-        ]
-        start: 'ryba/swarm/manager/start'
-        stop: 'ryba/swarm/manager/stop'
+        install: ->
+          options = @config.ryba.swarm.manager
+          @call 'ryba/swarm/manager/install', options
+          @call 'ryba/swarm/manager/start', options
+        stop: ->
+          options = @config.ryba.swarm.manager
+          @call 'ryba/swarm/manager/stop', options
+        start: ->
+          options = @config.ryba.swarm.manager
+          @call 'ryba/swarm/manager/start', options

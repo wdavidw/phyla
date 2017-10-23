@@ -3,7 +3,7 @@
 
 Stop the docker container using docker stop commande.
 
-    module.exports = header: 'Swarm Agent Stop', handler: ->
+    module.exports = header: 'Swarm Agent Stop', handler: (options) ->
       @docker.stop
-        docker: @config.docker
-        container: @config.ryba.swarm.agent.name
+        docker: options.docker
+        container: options.name

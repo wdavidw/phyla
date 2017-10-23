@@ -1,15 +1,12 @@
 
-# Install Swarm Manager Node
+# Install Swarm Agent Node
 
-    module.exports = header: 'Swarm Manager Install', handler: ->
-      {swarm} = @config.ryba
-      tmp_dir  = swarm.tmp_dir ?= "/var/tmp/ryba/swarm"
-      swarm_ctxs = @contexts 'ryba/swarm/manager'
-      [primary_ctx] = swarm_ctxs.filter( (ctx) -> ctx.config.ryba.swarm_primary is true)
+    module.exports = header: 'Swarm Agent Install', handler: (options) ->
+      tmp_dir  = options.tmp_dir ?= "/var/tmp/ryba/swarm"
 
 ## Wait dependencies
 
-      @call 'ryba/zookeeper/server/wait'
+      @connection.wait options.wait_manager.tcp
 
 ## IPTables
 
@@ -20,9 +17,9 @@
 
       @tools.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: swarm.agent.advertise_port, protocol: 'tcp', state: 'NEW', comment: "Docker Engine Port" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.advertise_port, protocol: 'tcp', state: 'NEW', comment: "Docker Engine Port" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Container
 Ryba install official docker/swarm image.
@@ -31,21 +28,21 @@ Try to pull the image first, or upload from cache if not pull possible.
       @call header: 'Download Container', ->
         exists = false
         @docker.checksum
-          image: swarm.image
-          tag: swarm.tag
+          image: options.image
+          tag: options.tag
         , (err, status, checksum) ->
           throw err if err
           exists = checksum
         @docker.pull
           header: 'from registry'
           if: -> not exists
-          tag: swarm.image
+          tag: options.image
           code_skipped: 1
         @file.download
           unless: -> @status(-1) or @status(-2)
           binary: true
           header: 'from cache'
-          source: "#{@config.nikita.cache_dir}/swarm.tar"
+          source: "#{options.cache_dir}/swarm.tar"
           target: "#{tmp_dir}/swarm.tar"
         @docker.load
           header: 'Load'
@@ -59,26 +56,25 @@ on the local engine daemon (before configuring swarm).
 
       @connection.wait
         header: 'Wait Manager'
-        host: primary_ctx.config.host
-        port: primary_ctx.config.ryba.swarm.manager.advertise_port
+      , options.wait_manager
       @call =>
         args = []
         args.push [
-          "--advertise=#{swarm.agent.advertise_host}:#{swarm.agent.advertise_port}"
-          "#{swarm.cluster.zk_store}"
+          "--advertise=#{options.advertise_host}:#{options.advertise_port}"
+          "#{options.cluster.zk_store}"
           ]...
         @docker.service
           header: 'Run Container'
           force: -> @status -1
-          name: swarm.agent.name
-          image: swarm.image
-          docker: @config.docker
+          name: options.name
+          image: options.image
+          docker: options.docker
           volume: [
-            "#{@config.docker.conf_dir}/certs.d/:/certs:ro"
+            "#{options.docker.conf_dir}/certs.d/:/certs:ro"
           ]
           cmd: "join #{args.join ' '}"
           args: args
-          net: if swarm.host_mode then 'host' else null
+          net: if options.host_mode then 'host' else null
 
 ## Configure Environment
 
@@ -91,15 +87,15 @@ Write file in profile.d to be able to communicate with swarm master.
           target: '/etc/profile.d/docker.sh'
           write: [
             match: /^export DOCKER_HOST=.*$/mg
-            replace: "export DOCKER_HOST=tcp://#{primary_ctx.config.host}:#{primary_ctx.config.ryba.swarm.manager.listen_port}"
+            replace: "export DOCKER_HOST=#{options.swarm_manager_host}"
             append: true
           ,
             match: /^export DOCKER_CERT_PATH=.*$/mg
-            replace: "export DOCKER_CERT_PATH=#{@config.docker.conf_dir}/certs.d"
+            replace: "export DOCKER_CERT_PATH=#{options.docker.conf_dir}/certs.d"
             append: true
           ,
             match: /^export DOCKER_TLS_VERIFY=.*$/mg
-            replace: "export DOCKER_TLS_VERIFY=#{if @config.docker.ssl.enabled then 1 else 0}"
+            replace: "export DOCKER_TLS_VERIFY=#{if options.ssl.enabled then 1 else 0}"
             append: true
           ]
           backup: true

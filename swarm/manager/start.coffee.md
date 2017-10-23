@@ -3,8 +3,8 @@
 
 Start the docker container using docker start command.
 
-    module.exports = header: 'Swarm Manager Start', handler: ->
-      @call 'ryba/zookeeper/server/wait'
+    module.exports = header: 'Swarm Manager Start', handler: (options) ->
+      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper
       @docker.start
-        docker: @config.docker
-        container: @config.ryba.swarm.manager.name
+        docker: options.docker
+        container: options.name
