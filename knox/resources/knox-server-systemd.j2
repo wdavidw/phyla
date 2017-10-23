@@ -1,0 +1,15 @@
+[Unit]
+Description=Knox Gateway Server
+
+[Service]
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/gateway.pid
+Environment=JAVA_HOME={{options.java_home}}
+WorkingDirectory={{options.user.home}}
+ExecStart=/usr/hdp/current/knox-server/bin/gateway.sh start
+ExecStop=/usr/hdp/current/knox-server/bin/gateway.sh stop
+LimitNOFILE={{options.user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target

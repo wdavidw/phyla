@@ -11,8 +11,9 @@ loop on topologies to provide missing values
 ## Configure
 
     module.exports = ->
-      service = migration.call @, service, 'ryba/knox', ['ryba', 'knox'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, 'ryba/knox/server', ['ryba', 'knox'], require('nikita/lib/misc').merge require('.').use,
         ssl: key: ['ssl']
+        sssd: key: ['sssd']
         iptables: key: ['iptables']
         krb5_client: key: ['krb5_client']
         java: key: ['java']
@@ -25,10 +26,12 @@ loop on topologies to provide missing values
         yarn_rm: key: ['ryba', 'yarn', 'rm']
         yarn_nm: key: ['ryba', 'yarn', 'nm']
         hive_server2: key: ['ryba', 'hive', 'server2']
-        hive_webhcat: key: ['ryba', 'hive', 'webhcat']
+        hive_webhcat: key: ['ryba', 'webhcat']
         oozie_server: key: ['ryba', 'oozie', 'server']
-        hbase_rest: key: ['ryba', 'oozie', 'server']
-        knox: key: ['ryba', 'knox']
+        hbase_rest: key: ['ryba', 'hbase', 'rest']
+        knox_server: key: ['ryba', 'knox']
+        ranger_admin: key: ['ryba', 'ranger', 'admin']
+        # ranger_knox: key: ['ryba', 'ranger', 'knox']
       @config.ryba ?= {}
       options = @config.ryba.knox = service.options
 
@@ -37,9 +40,11 @@ loop on topologies to provide missing values
       # Layout
       options.conf_dir ?= '/etc/knox/conf'
       options.log_dir ?= '/var/log/knox'
+      options.pid_dir ?= '/var/run/knox'
       options.bin_dir ?= '/usr/hdp/current/knox-server/bin'
       # Misc
-      options.fqdn = service.use.fqdn
+      options.fqdn = service.node.fqdn
+      options.hostname = service.node.hostname
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
 
 ## Identities
@@ -57,6 +62,9 @@ loop on topologies to provide missing values
       options.user.system ?= true
       options.user.comment ?= 'Knox Gateway User'
       options.user.home ?= '/var/lib/knox'
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 64000
+      options.user.limits.nproc ?= true
 
 ## Kerberos
 
@@ -70,9 +78,20 @@ loop on topologies to provide missing values
 
 ## Test
 
-      # options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
-      # options.ranger_install = service.use.ranger_hive[0].options.install if service.use.ranger_hive
+      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
       options.test = merge {}, service.use.test_user.options, options.test
+      if service.use.ranger_admin?
+        service.use.ranger_admin.options.users ?= {}
+        service.use.ranger_admin.options.users[options.test.user.name] ?=
+          "name": options.test.user.name
+          "firstName": options.test.user.name
+          "lastName": 'hadoop'
+          "emailAddress": "#{options.test.user.name}@hadoop.ryba"
+          "password": options.test.user.password
+          'userSource': 1
+          'userRoleList': ['ROLE_USER']
+          'groups': []
+          'status': 1
 
 ## Env
 
@@ -99,7 +118,9 @@ Knox reads its own env variable to retrieve configuration.
         throw Error "Required Option: ssl.key" if not options.ssl.key
         throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
         options.ssl.keystore.target = '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
-        # options.ssl.key.name = 'gateway-identity'
+        # migration: lucasbak 16102017
+        # knox search by default gateway-identity as default keystore
+        options.ssl.key.name = 'gateway-identity'
         throw Error "Required Property: truststore.password" if not options.ssl.truststore.password
         options.ssl.truststore.caname ?= 'hadoop_root_ca'
       # options.ssl.storepass ?= 'knox_master_secret_123'
@@ -133,7 +154,7 @@ Knox reads its own env variable to retrieve configuration.
         hosts = hosts.split ','
         for node in service.nodes
           hosts.push node.fqdn unless node.fqdn in hosts
-        hosts = hosts.join ' '
+        hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
       enrich_proxy_user srv for srv in service.use.hdfs_nn
       enrich_proxy_user srv for srv in service.use.hdfs_dn
@@ -165,19 +186,45 @@ LDAP authentication is configured by adding a "ShiroProvider" authentication
 provider to the cluster's topology file. When enabled, the Knox Gateway uses 
 Apache Shiro (org.apache.shiro.realm.ldap.JndiLdapRealm) to authenticate users 
 against the configured LDAP store.
+Administrators can use `myrealm.sssd_lookup` to read ldap config from `masson/core/sssd`
+module. If sssd is not used, administrators should set the value of the target ldap
+by setting the properties `myrealm.ldap_uri`, `myrealm.ldap_default_bind_dn`, `myrealm.ldap_default_authtok`.
+By default `sssd_lookup` is false.
+Inspired from [knox-repo][knox-conf-example]
+
+Example:
+```
+  realms:
+    ldapRealm:
+      ldap_search_base: 'ou=users,dc=ryba'
+      ldap_group_search_base: 'ou=groups,dc=ryba'
+      ldap_uri: 'ldaps://master03.metal.ryba:636'
+      ldap_tls_cacertdir: '/etc/openldap/cacerts'
+      ldap_default_bind_dn: 'cn=ldapadm,dc=ryba'
+      ldap_default_authtok: 'test'
+      groupSearchBase:  'ou=groups,dc=ryba'
+      groupIdAttribute: 'cn'
+      groupObjectClass: 'posixGroup'
+      memberAttribute: 'memberUId'
+      memberAttributeValueTemplate: 'uid={0},ou=uses,dc=ryba'
+      userDnTemplate:'cn={0},ou=users,dc=ryba'
+      userSearchAttributeName: 'cn'
+      userObjectClass: 'person'
+```
+
 
       nameservice = service.use.hdfs_nn[0].options.nameservice
       options.topologies ?= {}
-      options.topologies[nameservice] ?= {}
-      options.topologies[nameservice].services ?= {}
-      options.topologies[nameservice].services['namenode'] ?= !!service.use.hdfs_nn
-      options.topologies[nameservice].services['webhdfs'] ?= !!service.use.hdfs_nn
-      options.topologies[nameservice].services['jobtracker'] ?= !!service.use.yarn_rm
-      options.topologies[nameservice].services['hive'] ?= !!service.use.hive_server2
-      options.topologies[nameservice].services['webhcat'] ?= !!service.use.hive_webhcat
-      options.topologies[nameservice].services['oozie'] ?= !!service.use.oozie_server
-      options.topologies[nameservice].services['webhbase'] ?= !!service.use.hbase_rest
       for nameservice, topology of options.topologies
+        topology[nameservice] ?= {}
+        topology[nameservice].services ?= {}
+        topology[nameservice].services['namenode'] ?= !!service.use.hdfs_nn
+        topology[nameservice].services['webhdfs'] ?= !!service.use.hdfs_nn
+        topology[nameservice].services['jobtracker'] ?= !!service.use.yarn_rm
+        topology[nameservice].services['hive'] ?= !!service.use.hive_server2
+        topology[nameservice].services['webhcat'] ?= !!service.use.hive_webhcat
+        topology[nameservice].services['oozie'] ?= !!service.use.oozie_server
+        topology[nameservice].services['webhbase'] ?= !!service.use.hbase_rest
         # Configure providers
         topology.providers ?= {}
         topology.providers['authentication'] ?= {}
@@ -187,37 +234,45 @@ against the configured LDAP store.
         # By default, we only configure a simple LDAP Binding (user only)
         # migration: wdavidw 170922, this used to be:
         # realms = 'ldapRealm': topology
-        realms = 'ldapRealm': {}
-        if topology.group
-          realms['ldapGroupRealm'] = if topology.group.lookup? then @config.sssd.config[topology.group.lookup] else topology.group
-        for realm, realm_config of realms
+        # migration: lucasbak 10102017 change how realms are configured
+        throw Error 'Need One Realm when ShiroProvider is used' unless topology.realms?
+        for realm, realm_config of topology.realms
+          if realm_config.sssd_lookup
+            throw Error 'masson/core/sssd must be used when realm.sssd_lookup is set' unless service.use.sssd?
+            throw Error "masson/core/sssd ldap domain #{realm_config.sssd_lookup} does not exist" unless service.use.sssd.options.config[realm_config.sssd_lookup]?
+            realm_config = merge {}, realm_config, service.use.sssd.options.config[realm_config.sssd_lookup]
+          else
+            throw Error 'Required property ldap_uri' unless realm_config['ldap_uri']?
+            throw Error 'Required property ldap_default_bind_dn' unless realm_config['ldap_default_bind_dn']?
+            throw Error 'Required property ldap_default_authtok' unless realm_config['ldap_default_authtok']?
+          for property in [
+            'groupSearchBase'
+            'groupIdAttribute'
+            'groupObjectClass'
+            'memberAttribute'
+            'memberAttributeValueTemplate'
+            'userDnTemplate'
+            'userSearchAttributeName'
+            'userObjectClass'
+            'userSearchBase'
+          ] then do ->
+            topology.providers['authentication'].config["main.#{realm}.#{property}"] ?= realm_config["#{property}"] if realm_config["#{property}"]?
+          #configure use ldap authentication
           topology.providers['authentication'].config["main.#{realm}"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm' # OpenLDAP implementation
           # topology.providers['authentication'].config['main.ldapRealm'] ?= 'org.apache.shiro.realm.ldap.JndiLdapRealm' # AD implementation
           topology.providers['authentication'].config["main.#{realm}".replace('Realm','')+"ContextFactory"] ?= 'org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory'
           topology.providers['authentication'].config["main.#{realm}.contextFactory"] ?= '$'+"#{realm}".replace('Realm','')+'ContextFactory'
-          throw Error 'Required property ldap_uri' unless realm_config['ldap_uri']?
-          throw Error 'Required property ldap_default_bind_dn' unless realm_config['ldap_default_bind_dn']?
-          throw Error 'Required property ldap_default_authtok' unless realm_config['ldap_default_authtok']?
-          throw Error 'Required property ldap_search_base' unless realm_config['ldap_search_base']?
-          throw Error 'Required property ldap_search_base' if realm is 'ldapGroupRealm' and not realm_config['ldap_group_search_base']?
+
           topology.providers['authentication'].config["main.#{realm}.userDnTemplate"] = realm_config['userDnTemplate'] if realm_config['userDnTemplate']?
           topology.providers['authentication'].config["main.#{realm}.contextFactory.url"] = realm_config['ldap_uri'].split(',')[0]
           topology.providers['authentication'].config["main.#{realm}.contextFactory.systemUsername"] = realm_config['ldap_default_bind_dn']
           topology.providers['authentication'].config["main.#{realm}.contextFactory.systemPassword"] = "${ALIAS=#{nameservice}-#{realm}-password}"
-
           options.realm_passwords["#{nameservice}-#{realm}-password"] = realm_config['ldap_default_authtok']
-
           topology.providers['authentication'].config["main.#{realm}.searchBase"] = realm_config["ldap#{if realm == 'ldapGroupRealm' then '_group' else ''}_search_base"]
           topology.providers['authentication'].config["main.#{realm}.contextFactory.authenticationMechanism"] ?= 'simple'
           topology.providers['authentication'].config["main.#{realm}.authorizationEnabled"] ?= 'true'
-        # we redo the test here, so that these params are rendered at the end of the authentication provider section 
-        if topology.group?
-          topology.providers['authentication'].config['main.ldapGroupRealm.groupObjectClass'] = topology.group['groupObjectClass'] ?= "posixGroup"
-          topology.providers['authentication'].config['main.ldapGroupRealm.memberAttribute'] = topology.group['memberAttribute'] ?= "memberUid"
-          topology.providers['authentication'].config['main.ldapGroupRealm.memberAttributeValueTemplate'] = 'uid={0},' + topology['ldap_search_base']
         topology.providers['authentication'].config['urls./**'] ?= 'authcBasic'
-        topology.providers['authentication'].config['main.securityManager.realms'] = ["$"+realm for realm, _ of realms].join "," if topology.group?
-
+        topology.providers['authentication'].config['main.securityManager.realms'] = ["$"+realm for realm, _ of topology.realms].join ","
         # LDAP Authentication Caching
         topology.providers['authentication'].config['main.cacheManager'] = "org.apache.shiro.cache.ehcache.EhCacheManager"
         topology.providers['authentication'].config['main.securityManager.cacheManager'] = "$cacheManager"
@@ -229,7 +284,7 @@ internal cluster user and/or group. This allows the Knox Gateway accept requests
 from external users without requiring internal cluster user names to be exposed.
 
         topology.providers['identity-assertion'] ?= name: 'Pseudo'
-        topology.providers['authorization'] ?= name: 'AclsAuthz'
+        topology.providers['authorization'] ?= if service.use.ranger_admin? then name: 'XASecurePDPKnox' else name: 'AclsAuthz'
         ## Services
         topology.services ?= {}
         topology.services.knox ?= ''
@@ -319,7 +374,7 @@ This mechanism can be used to configure a specific gateway without having to dec
           throw Error 'Cannot autoconfigure KNOX oozie service, no oozie declared' unless service.use.oozie_server
           topology.services['oozie'] = []
           for srv in service.use.oozie_server
-            topology.services['oozie'].push service.use.oozie_server.options.oozie_site['oozie.base.url']
+            topology.services['oozie'].push srv.options.oozie_site['oozie.base.url']
           if service.use.oozie_server.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
@@ -332,7 +387,7 @@ This mechanism can be used to configure a specific gateway without having to dec
           topology.services['webhbase'] = []
           for srv in service.use.hbase_rest
             protocol = if srv.options.hbase_site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
-            port = service.use.hbase_rest.hbase_site['hbase.rest.port']
+            port = srv.options.hbase_site['hbase.rest.port']
             if options.config.webhbase?
               topology.services['webhbase'] =
                 url: "#{protocol}://#{srv.node.fqdn}:#{port}"
@@ -381,8 +436,18 @@ This mechanism can be used to configure a specific gateway without having to dec
             logj4: options.log4j
             properties: options.socket_opts
 
+## Wait
+
+      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+      options.wait ?= {}
+      options.wait.tcp = for srv in service.use.knox_server
+        host: srv.node.fqdn
+        port: options.gateway_site['gateway.port']
+
 ## Dependencies
 
-    appender = require '../lib/appender'
+    appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
     migration = require 'masson/lib/migration'
+
+[knox-conf-example]:https://github.com/apache/knox/blob/master/gateway-release/home/templates/sandbox.knoxrealm2.xml

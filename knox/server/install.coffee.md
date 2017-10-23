@@ -53,17 +53,29 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           gid: options.group.name
           mode: 0o0755
         @service.init
+          if_os: name: ['redhat','centos'], version: '6'
+          header: 'Initd Script'
           target: '/etc/init.d/knox-server'
-          source: "#{__dirname}/resources/knox-server.j2"
+          source: "#{__dirname}/../resources/knox-server.j2"
           local: true
           context: options: options
           mode: 0o755
-        @system.tmpfs
+        @call
           if_os: name: ['redhat','centos'], version: '7'
-          mount: "/var/run/#{options.user.name}"
-          uid: options.user.name
-          gid: options.group.name
-          perm: '0750'
+        , ->
+          @service.init
+            header: 'Systemd Script'
+            target: '/usr/lib/systemd/system/knox-server.service'
+            source: "#{__dirname}/../resources/knox-server-systemd.j2"
+            local: true
+            context: options: options
+            mode: 0o0644
+          @system.tmpfs
+            if_os: name: ['redhat','centos'], version: '7'
+            mount: "#{options.pid_dir}"
+            uid: options.user.name
+            gid: options.group.name
+            perm: '0755'
 
 ## Configure
 
@@ -76,7 +88,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @file.render
         header: 'Knox Ldap Caching'
         target: "#{options.conf_dir}/ehcache.xml"
-        source: "#{__dirname}/resources/ehcache.j2"
+        source: "#{__dirname}/../resources/ehcache.j2"
         local: true
         context: options: options
 
@@ -157,7 +169,7 @@ in the gateway.sh service script.
 
           @file.render
             target: "#{options.conf_dir}/#{nameservice}-ehcache.xml"
-            source: "#{__dirname}/resources/ehcache.j2"
+            source: "#{__dirname}/../resources/ehcache.j2"
             local: true
             context: nameservice:nameservice
 
@@ -166,7 +178,7 @@ in the gateway.sh service script.
       @call
         header: 'Create Keystore'
         unless_exists: '/usr/hdp/current/knox-server/data/security/master'
-      , (options, callback) ->
+      , (_, callback) ->
         options.ssh.shell (err, stream) =>
           stream.write "su -l #{options.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
           stream.on 'data', (data, extended) ->
@@ -185,6 +197,7 @@ in the gateway.sh service script.
 ## SSL
 
       @call header: 'SSL Server', ->
+        
         # tmp_location = "/var/tmp/ryba/knox_ssl"
         # @file.download
         #   source: options.ssl.cacert
@@ -254,18 +267,12 @@ client to connect to openldap.
       @file
         header: 'Log4J Properties'
         target: "#{options.conf_dir}/gateway-log4j.properties"
-        source: "#{__dirname}/resources/gateway-log4j.properties"
+        source: "#{__dirname}/../resources/gateway-log4j.properties"
         local: true
         write: for k, v of options.log4j
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true
-
-## Ranger HBase Plugin Install
-
-      @call
-        if: -> @contexts('ryba/ranger/admin').length > 0
-      , 'ryba/ranger/plugins/knox/install'
 
 ## Dependencies
 
