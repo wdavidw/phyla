@@ -68,18 +68,18 @@ such as "%app-type% and %time:yyyyMMdd%".
         user: options.knox_user.name
         group: options.knox_group.name
         krb5_user: options.hdfs_krb5_user
-      # @system.mkdir
-      #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-      #   uid: options.knox_user.name
-      #   gid: options.hadoop_group.name
-      #   mode: 0o0750
-      #   if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+      @system.mkdir
+        target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        uid: options.knox_user.name
+        gid: options.hadoop_group.name
+        mode: 0o0750
+        if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       @system.mkdir
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
         uid: options.knox_user.name
-        gid: options.options.hadoop_group.name
+        gid: options.hadoop_group.name
         mode: 0o0750
 
 ## Properties
@@ -120,7 +120,7 @@ such as "%app-type% and %time:yyyyMMdd%".
           """
         @system.execute
           header: 'fix topologies perms'
-          cmd: "chown -R #{options.knox_user.name}:#{options.knox_group.name} /usr/hdp/current/knox-server/data/security/keystores/*"
+          cmd: "chown -R #{options.knox_user.name}:#{options.knox_user.name} /usr/hdp/current/knox-server/data/security/keystores/*"
         @system.copy
           source: '/etc/hadoop/conf/core-site.xml'
           target: "#{options.conf_dir}/core-site.xml"

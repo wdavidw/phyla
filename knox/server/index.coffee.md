@@ -8,6 +8,7 @@ with Hadoop clusters.
     module.exports =
       use:
         ssl: module: 'masson/core/ssl', local: true
+        sssd: module: 'masson/core/sssd', local: true
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -23,27 +24,28 @@ with Hadoop clusters.
         hive_webhcat: module: 'ryba/hive/webhcat'
         oozie_server: module: 'ryba/oozie/server'
         hbase_rest: module: 'ryba/hbase/rest'
-        knox: module: 'ryba/knox'
+        knox_server: module: 'ryba/knox/server'
+        ranger_admin: module: 'ryba/ranger/admin', single: true
       configure:
-        'ryba/knox/configure'
-        # 'ryba/ranger/plugins/knox/configure'
+        'ryba/knox/server/configure'
       commands:
         install: ->
           options = @config.ryba.knox
-          @call 'ryba/knox/install', options
-          @call 'ryba/knox/start', options
-          @call 'ryba/knox/check', options
+          @call 'ryba/knox/server/install', options
+          @call 'ryba/knox/server/start', options
+          @call 'ryba/knox/server/check', options
         check: ->
           options = @config.ryba.knox
-          @call 'ryba/knox/check', options
+          @call 'ryba/knox/server/check', options
         start: ->
           options = @config.ryba.knox
-          @call 'ryba/knox/start', options
+          @call 'ryba/knox/server/start', options
         stop: ->
           options = @config.ryba.knox
-          @call 'ryba/knox/stop', options
-        status:
-          'ryba/knox/status'
+          @call 'ryba/knox/server/stop', options
+        status: ->
+          options = @config.ryba.knox
+          @call 'ryba/knox/server/status', options
 
 # Knox Installation and configuration
 

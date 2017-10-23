@@ -17,6 +17,14 @@
       # Layout
       options.conf_dir ?= service.use.knox.options.conf_dir
 
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+
 ## Identities
 
       options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
@@ -35,7 +43,8 @@
       # Knox Plugin configuration
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
-      options.install['CUSTOM_USER'] ?= "#{options.user.name}"
+      options.install['CUSTOM_USER'] ?= "#{options.knox_user.name}"
+      options.install['CUSTOM_GROUP'] ?= "#{options.knox_group.name}"
       options.install['KNOX_HOME'] ?= '/usr/hdp/current/knox-server'
 
 ## Admin properties
@@ -46,7 +55,7 @@
 ## Plugin User
 
       options.plugin_user ?=
-        'name': options.knox_user.user.name
+        'name': options.knox_user.name
         'firstName': ''
         'lastName': ''
         'emailAddress': ''
@@ -59,7 +68,7 @@
 
       knox_protocol = if service.use.knox.options.ssl then 'https' else 'http'
       knox_url = "#{knox_protocol}://#{service.use.knox.node.fqdn}"
-      knox_url += ":#{service.use.knox.options.site['gateway.port']}/#{service.use.knox.options.site['gateway.path']}"
+      knox_url += ":#{service.use.knox.options.gateway_site['gateway.port']}/#{service.use.knox.options.gateway_site['gateway.path']}"
       knox_url += '/admin/api/v1/topologies'
       options.service_repo ?=
         'name': options.install['REPOSITORY_NAME']
@@ -77,10 +86,11 @@
 ## Knox Plugin SSL
 
       if service.use.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.ssl_server['ssl.server.keystore.location']
-        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.ssl_server['ssl.server.keystore.password']
-        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.ssl_server['ssl.server.truststore.location']
-        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.ssl_server['ssl.server.truststore.password']
+        options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.knox.options.ssl.keystore.target
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.use.knox.options.ssl.keystore.password
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.password']
 
 ## HDFS Storage
 
@@ -91,6 +101,7 @@
         # options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
         # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
         options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
         options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.knox.options.log_dir}/audit/hdfs/spool"
@@ -105,14 +116,14 @@
 
 ## Solr Storage
 
-      if options.install['audit_store'] is 'solr'
+      if service.use.ranger_admin.options.install['audit_store'] is 'solr'
         options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
         options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
         options.install['XAAUDIT.SOLR.URL'] ?= service.use.ranger_admin.options.install['audit_solr_urls']
         options.install['XAAUDIT.SOLR.USER'] ?= service.use.ranger_admin.options.install['audit_solr_user']
         options.install['XAAUDIT.SOLR.ZOOKEEPER'] ?= service.use.ranger_admin.options.install['audit_solr_zookeepers']
         options.install['XAAUDIT.SOLR.PASSWORD'] ?= service.use.ranger_admin.options.install['audit_solr_password']
-        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.solr.options.log_dir}/audit/solr/spool"
+        options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR'] ?= "#{service.use.knox.options.log_dir}/audit/solr/spool"
 
 ## Database Storage
 
@@ -144,3 +155,4 @@
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'
