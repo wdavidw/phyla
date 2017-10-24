@@ -83,7 +83,7 @@ Make configuration options more restrictive
             "#{config.data_dir}:/var/solr/data",
             "#{config.log_dir}:#{options.log_dir}",
             "/etc/security/keytabs:/etc/security/keytabs",
-            "#{config.conf_dir}/zkCli.sh:/usr/solr-cloud/current/server/scripts/cloud-scripts/zkli.sh",
+            "#{config.conf_dir}/zkCli.sh:/usr/solr-cloud/current/server/scripts/cloud-scripts/zkcli.sh",
             "/etc/krb5.conf:/etc/krb5.conf" ] 
         volumes.push config.volumes...
         config.master_configured = false
