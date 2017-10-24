@@ -37,137 +37,202 @@ ryba:
     source: 'http://mirrors.ircam.fr/pub/apache/lucene/solr/6.0.0/solr-6.0.0.tgz'
 ```
 
-    module.exports = ->
-      {java, ryba} = @config
-      {solr, realm} = ryba ?= {}
+    module.exports =  (service) ->
+      service = migration.call @, service, 'ryba/solr/cloud_docker', ['ryba', 'solr', 'cloud_docker'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        docker: key: ['docker']
+        krb5_client: key: ['krb5_client']
+        ssl: key: ['ssl']
+        java: key: ['java']
+        zookeeper_server: key: ['ryba', 'zookeeper']
+        hadoop_core: key: ['ryba']
+        # hdfs_client: key: ['ryba', 'hdfs_client']
+        solr_cloud_docker: key: ['ryba','solr','cloud_docker']
+        swarm_agent: key: ['ryba', 'swarm', 'agent']
+      @config.ryba ?= {}
+      @config.ryba.solr ?= {}
+      options = @config.ryba.solr.cloud_docker = service.options
 
 ## Identities
 
       # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
+      options.group ?= {}
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group.name ?= 'solr'
+      options.group.system ?= true
       # User
-      solr.user ?= {}
-      solr.user = name: solr.user if typeof solr.user is 'string'
-      solr.user.name ?= 'solr'
-      solr.user.home ?= "/var/#{solr.user.name}/data"
-      solr.user.system ?= true
-      solr.user.comment ?= 'Solr User'
-      solr.user.groups ?= 'hadoop'
-      solr.user.gid ?= solr.group.name
-      solr.user.limits ?= {}
-      solr.user.limits.nofile ?= 64000
-      solr.user.limits.nproc ?= true
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= 'solr'
+      options.user.home ?= "/var/#{options.user.name}/data"
+      options.user.system ?= true
+      options.user.comment ?= 'Solr User'
+      options.user.groups ?= 'hadoop'
+      options.user.gid ?= options.group.name
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 64000
+      options.user.limits.nproc ?= true
+      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+
 
 ## Environment
 
-      solr.cloud_docker ?= {}
-      solr.cloud_docker.version ?= '6.3.0'
-      solr.cloud_docker.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.cloud_docker.version}/solr-#{solr.cloud_docker.version}.tgz"
-      solr.cloud_docker.root_dir ?= '/usr'
-      solr.cloud_docker.install_dir ?= "#{solr.cloud_docker.root_dir}/solr-cloud/#{solr.cloud_docker.version}"
-      solr.cloud_docker.latest_dir ?= "#{solr.cloud_docker.root_dir}/solr-cloud/current"
-      solr.cloud_docker.latest_dir = '/opt/lucidworks-hdpsearch/solr' if solr.cloud_docker.source is 'HDP'
-      solr.cloud_docker.pid_dir ?= '/var/run/solr'
-      solr.cloud_docker.log_dir ?= '/var/log/solr'
-      solr.cloud_docker.conf_dir ?= '/etc/solr-cloud-docker/conf'
-      solr.cloud_docker.build ?= {}
-      solr.cloud_docker.build.dir ?= "#{@config.nikita.cache_dir}/solr"
-      solr.cloud_docker.build.image ?= "ryba/solr"
-      solr.cloud_docker.build.tar ?= "solr_image.tar"
-      solr.cloud_docker.build.source ?= "#{solr.cloud_docker.build.dir}/#{solr.cloud_docker.build.tar}"
-      solr.cloud_docker.docker_compose_version ?= '1'
+      options ?= {}
+      options.version ?= '6.3.0'
+      options.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{options.version}/solr-#{options.version}.tgz"
+      options.root_dir ?= '/usr'
+      options.install_dir ?= "#{options.root_dir}/solr-cloud/#{options.version}"
+      options.latest_dir ?= "#{options.root_dir}/solr-cloud/current"
+      options.latest_dir = '/opt/lucidworks-hdpsearch/solr' if options.source is 'HDP'
+      options.pid_dir ?= '/var/run/solr'
+      options.log_dir ?= '/var/log/solr'
+      options.conf_dir ?= '/etc/solr-cloud-docker/conf'
+      options.build ?= {}
+      options.build.dir ?= "#{options.cache_dir}/solr"
+      options.build.image ?= "ryba/solr"
+      options.build.tar ?= "solr_image.tar"
+      options.build.source ?= "#{options.build.dir}/#{options.build.tar}"
+      options.docker_compose_version ?= '2'
 
-## Core Conf
+## Docker Daemon
+
+      options.docker ?= {}
+      options.docker[opt] ?= service.use.docker.options[opt] for opt in [
+        'host'
+        'default_port'
+        'tlscacert'
+        'tlscert'
+        'tlskey'
+        'tlsverify'
+        'conf_dir'
+      ]
+
+## Configuration
 
       # Layout
-      solr.cloud_docker.log_dir ?= '/var/log/solr'
-      solr.cloud_docker.pid_dir ?= '/var/run/solr'
-      solr.cloud_docker.env ?= {}
-      zk_hosts = @contexts('ryba/zookeeper/server').filter( (ctx) -> ctx.config.ryba.zookeeper.config['peerType'] is 'participant')
-      solr.cloud_docker.zk_connect = zk_hosts.map( (ctx) -> "#{ctx.config.host}:#{ctx.config.ryba.zookeeper.port}").join ','
-      solr.cloud_docker.zkhosts = "#{solr.cloud_docker.zk_connect}/solr"
-      solr.cloud_docker.zk_node = "/solr"
-      solr.cloud_docker.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
-      solr.cloud_docker.lock_type = 'native'
+      options.log_dir ?= '/var/log/solr'
+      options.pid_dir ?= '/var/run/solr'
+      zk_hosts = service.use.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
+      options.zk_connect = zk_hosts.map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+      options.zkhosts = "#{options.zk_connect}/solr"
+      options.zk_node = "/solr"
+      options.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
+      options.lock_type = 'native'
+      # Misc
+      options.clean_logs ?= false
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.fqdn ?= service.node.fqdn
 
-## Fix Conf
+## Version Fix
 Before 6.0 version, solr.xml'<solrCloud> section has a mistake:
 The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 
-      solr.cloud_docker.conf_source = if (solr.cloud_docker.version.split('.')[0] < 6) or (solr.cloud_docker.source is 'HDP')
+      options.conf_source = if (options.version.split('.')[0] < 6) or (options.source is 'HDP')
       then "#{__dirname}/../resources/cloud/solr_5.xml.j2"
       else "#{__dirname}/../resources/cloud/solr_6.xml.j2"
 
 ## Security
 
-      solr.cloud_docker.security ?= {}
-      solr.cloud_docker.security["authentication"] ?= {}
-      solr.cloud_docker.security["authentication"]['class'] ?= if  @config.ryba.security is 'kerberos'
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.security ?= {}
+      options.security["authentication"] ?= {}
+      options.security["authentication"]['class'] ?= if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
       then 'org.apache.solr.security.KerberosPlugin'
       else 'solr.BasicAuthPlugin'
-      if @config.ryba.security is 'kerberos'
+      if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
         # Kerberos
-        solr.admin_principal ?= "#{solr.user.name}@#{realm}"
-        solr.admin_password ?= 'solr123'
-        solr.cloud_docker.admin_principal ?= solr.admin_principal
-        solr.cloud_docker.admin_password ?= solr.admin_password
-        solr.cloud_docker.principal ?= "#{solr.user.name}/#{@config.host}@#{realm}"
-        solr.cloud_docker.keytab ?= '/etc/security/keytabs/solr.service.keytab'
-        solr.cloud_docker.spnego ?= {}
-        solr.cloud_docker.spnego.principal ?= "HTTP/#{@config.host}@#{@config.ryba.realm}"
-        solr.cloud_docker.spnego.keytab ?= '/etc/security/keytabs/spnego.service.keytab'
-        solr.cloud_docker.auth_opts ?= {}
-        solr.cloud_docker.auth_opts['solr.kerberos.cookie.domain'] ?= "#{@config.host}"
-        solr.cloud_docker.auth_opts['java.security.auth.login.config'] ?= "#{solr.cloud_docker.conf_dir}/solr-server.jaas"
-        solr.cloud_docker.auth_opts['solr.kerberos.principal'] ?= solr.cloud_docker.spnego.principal
-        solr.cloud_docker.auth_opts['solr.kerberos.keytab'] ?= solr.cloud_docker.spnego.keytab
-        solr.cloud_docker.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
+        options.admin_principal ?= "#{options.user.name}@#{options.krb5.realm}"
+        throw Error 'Missing Keberos Admin Principal Password (solr.cloud_docker.admin_password)' unless options.admin_password?
+        options.admin_principal ?= solr.admin_principal
+        options.admin_password ?= solr.admin_password
+        options.principal ?= "#{options.user.name}/#{@config.host}@#{options.krb5.realm}"
+        options.keytab ?= '/etc/security/keytabs/solr.service.keytab'
+        options.spnego ?= {}
+        options.spnego.principal ?= "HTTP/#{@config.host}@#{options.krb5.realm}"
+        options.spnego.keytab ?= '/etc/security/keytabs/spnego.service.keytab'
+        options.auth_opts ?= {}
+        options.auth_opts['solr.kerberos.cookie.domain'] ?= "#{@config.host}"
+        options.auth_opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/solr-server.jaas"
+        options.auth_opts['solr.kerberos.principal'] ?= options.spnego.principal
+        options.auth_opts['solr.kerberos.keytab'] ?= options.spnego.keytab
+        options.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
         # Authentication
 
 ## SSL
 
-      solr.cloud ?= {}
-      solr.cloud.port ?= 8893
-      solr.cloud_docker.ssl ?= {}
-      solr.cloud_docker.ssl.enabled ?= true
-      solr.cloud_docker.ssl_truststore_path ?= "#{solr.cloud_docker.conf_dir}/truststore"
-      solr.cloud_docker.ssl_truststore_pwd ?= 'solr123'
-      solr.cloud_docker.ssl_keystore_path ?= "#{solr.cloud_docker.conf_dir}/keystore"
-      solr.cloud_docker.ssl_keystore_pwd ?= 'solr123'
+      options.port ?= 8893
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.use.ssl
+      options.truststore ?= {}
+      options.keystore ?= {}
+      if options.ssl.enabled
+        throw Error "Required Option: ssl.cert" if  not options.ssl.cert
+        throw Error "Required Option: ssl.key" if not options.ssl.key
+        throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+        options.truststore.target ?= "#{options.conf_dir}/truststore"
+        throw Error "Required Property: truststore.password" if not options.truststore.password
+        options.keystore.target ?= "#{options.conf_dir}/keystore"
+        throw Error "Required Property: keystore.password" if not options.keystore.password
+        options.truststore.caname ?= 'hadoop_root_ca'
 
-## Swarn Config
+## Docker Daemon config
 
-      if @config.nikita.swarm
-        solr.cloud_docker.swarm_conf ?=
-          host: "tcp://#{@config.host}:#{solr.cloud_docker.port ? 2376}"
+      if service.use.swarm_agent?
+        options.swarm_conf ?=
+          host: "tcp://#{service.use.swarm_agent.options.advertise_host}:#{service.use.swarm_agent.options.advertise_port ? 2376}"
           tlsverify:" "
           tlscacert: "/etc/docker/certs.d/ca.pem"
           tlscert: "/etc/docker/certs.d/cert.pem"
           tlskey: "/etc/docker/certs.d/key.pem"
       else
-        solr.cloud_docker.swarm_conf = null
+        options.swarm_conf = null
+      options.docker ?= {}
+      options.docker[opt] ?= service.use.docker.options[opt] for opt in [
+        'host'
+        'default_port'
+        'tlscacert'
+        'tlscert'
+        'tlskey'
+        'tlsverify'
+        'conf_dir'
+      ]
+      options.fqdn ?= service.node.fqdn
 
 ## Environment
 
-      solr.cloud_docker.env['SOLR_JAVA_HOME'] ?= java.java_home
-      solr.cloud_docker.env['SOLR_HOST'] ?= @config.host
-      solr.cloud_docker.env['SOLR_PID_DIR'] ?= solr.cloud_docker.pid_dir
-      solr.cloud_docker.env['SOLR_HEAP'] ?= "512m"
-      solr.cloud_docker.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
-      if solr.cloud_docker.ssl.enabled
-        solr.cloud_docker.env['SOLR_SSL_KEY_STORE'] ?= solr.cloud_docker.ssl_keystore_path
-        solr.cloud_docker.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.cloud_docker.ssl_keystore_pwd
-        solr.cloud_docker.env['SOLR_SSL_TRUST_STORE'] ?= solr.cloud_docker.ssl_truststore_path
-        solr.cloud_docker.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.cloud_docker.ssl_truststore_pwd
-        solr.cloud_docker.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'#require client authentication  by using cert
+      options.env ?= {}
+      options.env['SOLR_JAVA_HOME'] ?= service.use.java.options.java_home
+      options.env['SOLR_HOST'] ?= service.node.fqdn
+      options.env['SOLR_PID_DIR'] ?= options.pid_dir
+      options.env['SOLR_HEAP'] ?= "512m"
+      options.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
+      if options.ssl.enabled
+        options.env['SOLR_SSL_KEY_STORE'] ?= options.keystore.target
+        options.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= options.keystore.password
+        options.env['SOLR_SSL_TRUST_STORE'] ?= options.truststore.target
+        options.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.truststore.password
+        options.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'#require client authentication  by using cert
 
       # configure all cluster present in conf/config.coffee solr configuration
-      for name,config of solr.cloud_docker.clusters
-        configure_solr_cluster @ , name,config
+      options.hosts = service.use.solr_cloud_docker.map (srv) -> srv.node.fqdn
+      #need
+      # - options (to have global solr/cloud_docker configuration)
+      # - cluster_name ( to name configs respectively to clusters)
+      # - cluster_config (to override default values like master nodes)
+      options.clusters ?= {}
+      for cluster_name, cluster_config of options.clusters
+        cluster = configure_solr_cluster options, cluster_name, cluster_config
+
+# Wait
+
+      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
 
 ## Dependencies
 
     configure_solr_cluster = require './clusterize'
+    {merge} = require 'nikita/lib/misc'
+    migration = require 'masson/lib/migration'

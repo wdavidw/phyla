@@ -11,14 +11,20 @@ but does not start the clusters.
     module.exports =
       use:
         iptables: module: 'masson/core/iptables', local: true
+        ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         docker: module: 'masson/commons/docker', required: true, local: true, auto: true
         java: module: 'masson/commons/java', local: true
         zookeeper_server: module: 'ryba/zookeeper/server', required: true
-        hadoop_core: module: 'ryba/hadoop/core', required: true
-        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true
+        # hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
+        swarm_agent: module: 'ryba/swarm/agent', local: true
         solr_cloud_docker: 'ryba/solr/cloud_docker'
       configure: 'ryba/solr/cloud_docker/configure'
       commands:
-        'prepare': 'ryba/solr/cloud_docker/prepare'
-        'install': 'ryba/solr/cloud_docker/install'
+        'prepare': ->
+          options = @config.ryba.solr.cloud_docker
+          @call 'ryba/solr/cloud_docker/prepare', options
+        'install': ->
+          options = @config.ryba.solr.cloud_docker
+          @call 'ryba/solr/cloud_docker/install', options

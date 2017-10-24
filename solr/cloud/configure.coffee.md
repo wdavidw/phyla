@@ -25,7 +25,7 @@ ryba:
     source: 'http://mirrors.ircam.fr/pub/apache/lucene/solr/6.0.0/solr-6.0.0.tgz'
 ```
 
-    module.exports =  (service) ->
+    module.exports = (service) ->
       service = migration.call @, service, 'ryba/solr/cloud', ['ryba', 'solr', 'cloud'], require('nikita/lib/misc').merge require('.').use,
         iptables: key: ['iptables']
         krb5_client: key: ['krb5_client']

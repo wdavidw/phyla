@@ -33,10 +33,10 @@
 #   update-rc.d solr enable
 
 # Where you extracted the Solr distribution bundle
-SOLR_INSTALL_DIR={{ryba.solr.cloud_docker.latest_dir}}
-SOLR_CONF_DIR={{ryba.solr.cloud_docker.conf_dir}}
-SOLR_ENV={{ryba.solr.cloud_docker.conf_dir}}/solr.in.sh
-RUNAS={{ryba.solr.user.name}}
+SOLR_INSTALL_DIR={{latest_dir}}
+SOLR_CONF_DIR={{conf_dir}}
+SOLR_ENV={{conf_dir}}/solr.in.sh
+RUNAS={{user.name}}
 ZK_NODE=
 PORT=
 EXEC_BOOTSTRAP=false
@@ -71,26 +71,26 @@ fi
     #echo "No --port option specified"
   #else
     #echo "Setting Solr Instance port to ${PORT}"
-    #echo "SOLR_PORT=\"${PORT}\" # RYBA DON'T OVERWRITE" >> {{ryba.solr.cloud_docker.conf_dir}}/solr.in.sh
+    #echo "SOLR_PORT=\"${PORT}\" # RYBA DON'T OVERWRITE" >> {{conf_dir}}/solr.in.sh
 #fi
 
 echo "Linking solr.xml file"
-if [ -L  "{{ryba.solr.user.home}}/solr.xml" ] || [ -e "{{ryba.solr.user.home}}/default" ] ; 
+if [ -L  "{{user.home}}/solr.xml" ] || [ -e "{{user.home}}/default" ] ; 
   then 
-    source=`readlink {{ryba.solr.user.home}}/default`
-    if [ "$source" == "{{ryba.solr.cloud_docker.conf_dir}}/solr.xml" ];
+    source=`readlink {{user.home}}/default`
+    if [ "$source" == "{{conf_dir}}/solr.xml" ];
       then 
         echo 'File solr.xml is already linked'
       else
-        rm -f {{ryba.solr.user.home}}/solr.xml
-        ln -sf {{ryba.solr.cloud_docker.conf_dir}}/solr.xml  {{ryba.solr.user.home}}/solr.xml;
+        rm -f {{user.home}}/solr.xml
+        ln -sf {{conf_dir}}/solr.xml  {{user.home}}/solr.xml;
     fi;
   else
-    rm -f {{ryba.solr.user.home}}/solr.xml
-    ln -sf {{ryba.solr.cloud_docker.conf_dir}}/solr.xml  {{ryba.solr.user.home}}/solr.xml;
+    rm -f {{user.home}}/solr.xml
+    ln -sf {{conf_dir}}/solr.xml  {{user.home}}/solr.xml;
 fi;
 
-CMD="{{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -cmd list"
+CMD="{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd list"
 
 
 if $EXEC_BOOTSTRAP;
@@ -100,18 +100,18 @@ if $EXEC_BOOTSTRAP;
       echo "Skipping: Zookeeper - Node already exists"
     else
       echo "Bootstrap Zookeeper Node ${ZK_NODE}"
-      echo "{{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -cmd bootstrap -solrhome {{ryba.solr.user.home}}"
+      echo "{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd bootstrap -solrhome {{user.home}}"
       ls -l /var/solr/data
-      {{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -cmd bootstrap -solrhome {{ryba.solr.user.home}}
+      {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd bootstrap -solrhome {{user.home}}
       echo "Uploading Security Configuration"
-      {{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}} -cmd putfile /${ZK_NODE}/security.json {{ryba.solr.user.home}}/security.json
+      {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}} -cmd putfile /${ZK_NODE}/security.json {{user.home}}/security.json
       if [ "$SSL_ENABLED" == "true" ] ;
         then 
           echo "Enable SSL Scheme in Zookeeper";
-          {{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val https ;
+          {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val https ;
         else
           echo "Disable SSL Scheme in Zookeeper";
-          {{ryba.solr.cloud_docker.latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val http ;
+          {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val http ;
       fi;
     fi;
 fi    
@@ -140,4 +140,4 @@ fi
 
 
 
-  ${SOLR_INSTALL_DIR}/bin/solr start -c -z {{ryba.solr.cloud_docker.zk_connect}}/${ZK_NODE} -s /var/solr/data -Dsolr.log.muteconsole -f
+  ${SOLR_INSTALL_DIR}/bin/solr start -c -z {{zk_connect}}/${ZK_NODE} -s /var/solr/data -Dsolr.log.muteconsole -f

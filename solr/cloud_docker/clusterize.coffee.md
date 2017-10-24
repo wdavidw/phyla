@@ -2,7 +2,7 @@
 # Configure SolrCloud Clusters
 
 This module enable adminstrator to instantiate several solrcloud clusters.
-The clusters are described in `solr.cloud_docker.clusters` property.
+The clusters are described in `options.clusters` property.
 Example of config for a solr cluster.
 The Settings for each solr node in a solrcloud cluster will be the same.
 
@@ -34,37 +34,37 @@ network_mode: host (port collision).
 
 Makes this method public to let other services use its configuration logic (ranger for example)
 You can check the [docker-compose file reference](https://docs.docker.com/compose/compose-file/)
+Note: October 2017
+Make configuration options more restrictive
+  - hosts are required
 
-      module.exports = (context, name, config={}) ->
-        config.hosts ?= context.contexts('ryba/solr/cloud_docker').map (c)-> c.config.host
+      module.exports = (options, name, config={}) ->
+        config.hosts ?= options.hosts
         throw Error "Malformed Master for cluster: #{name}" unless config.hosts.indexOf config['master'] > -1
         throw Error "Missing port for cluster: #{name}"  unless config.port?
         throw Error "Name should not contain -" if /-+/.test name
-        {solr} = context.config.ryba
         # Cluster config 
         # Docker-compose config
         config.name ?= name
         config.hosts = config.hosts.slice(0,config.containers) if config.containers isnt config.hosts.length
-        config.docker_compose_version ?= solr.cloud_docker.docker_compose_version ?= '1'
+        config.docker_compose_version ?= options.docker_compose_version ?= '1'
         config.mem_limit ?= '1g'
         config.port ?= '8983'
         # config.cpu_shares ?= 5
         # config.cpu_quota ?= 50 * 1000
         config.is_ssl_enabled ?= true
         config.heap_size ?= '1024m'
-        config.data_dir ?= "#{solr.user.home}/#{name}"
-        config.log_dir ?= "#{solr.cloud_docker.log_dir}/#{name}"
-        config.pid_dir ?= "#{solr.cloud_docker.pid_dir}/#{name}"
+        config.data_dir ?= "#{options.user.home}/#{name}"
+        config.log_dir ?= "#{options.log_dir}/#{name}"
+        config.pid_dir ?= "#{options.pid_dir}/#{name}"
         config.zk_node ?= "solr_#{name}"
-        config.zk_connect ?= "#{solr.cloud_docker.zk_connect}"
-        config.zk_urls ?= "#{solr.cloud_docker.zk_connect}/#{config.zk_node}"
-        config.admin_principal ?= solr.cloud_docker.admin_principal
-        config.admin_password ?= solr.cloud_docker.admin_password
-        config.conf_dir ?= "#{solr.cloud_docker.conf_dir}/clusters/#{name}"
+        config.zk_connect ?= "#{options.zk_connect}"
+        config.zk_urls ?= "#{options.zk_connect}/#{config.zk_node}"
+        config.admin_principal ?= options.admin_principal
+        config.admin_password ?= options.admin_password
+        config.conf_dir ?= "#{options.conf_dir}/clusters/#{name}"
         config.rangerEnabled ?= false
-        config.authentication_class ?= if context.config.ryba.security is 'kerberos'
-        then 'org.apache.solr.security.KerberosPlugin'
-        else 'solr.BasicAuthPlugin'
+        config.authentication_class ?= options.security["authentication"]['class']
         config.authorization_class ?= if config.rangerEnabled
         then 'org.apache.ranger.authorization.solr.authorizer.RangerSolrAuthorizer'
         else 'solr.RuleBasedAuthorizationPlugin'
@@ -75,15 +75,15 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
         config['env']['SOLR_HEAP'] ?= config.heap_size
         volumes = [
             "#{config.conf_dir}/docker_entrypoint.sh:/docker_entrypoint.sh",
-            "#{solr.cloud_docker.conf_dir}/keystore:#{solr.cloud_docker.conf_dir}/keystore",
-            "#{solr.cloud_docker.conf_dir}/truststore:#{solr.cloud_docker.conf_dir}/truststore",
-            "#{solr.cloud_docker.conf_dir}/solr-server.jaas:#{solr.cloud_docker.conf_dir}/solr-server.jaas",
-            "#{config.conf_dir}/solr.in.sh:#{solr.cloud_docker.conf_dir}/solr.in.sh",
-            "#{config.conf_dir}/solr.xml:#{solr.cloud_docker.conf_dir}/solr.xml",
+            "#{options.conf_dir}/keystore:#{options.conf_dir}/keystore",
+            "#{options.conf_dir}/truststore:#{options.conf_dir}/truststore",
+            "#{options.conf_dir}/solr-server.jaas:#{options.conf_dir}/solr-server.jaas",
+            "#{config.conf_dir}/solr.in.sh:#{options.conf_dir}/solr.in.sh",
+            "#{config.conf_dir}/solr.xml:#{options.conf_dir}/solr.xml",
             "#{config.data_dir}:/var/solr/data",
-            "#{config.log_dir}:#{solr.cloud_docker.latest_dir}/server/logs",
+            "#{config.log_dir}:#{options.log_dir}",
             "/etc/security/keytabs:/etc/security/keytabs",
-            "#{config.conf_dir}/zkCli.sh:/usr/solr-cloud/current/server/scripts/cloud-scripts/zkcli.sh",
+            "#{config.conf_dir}/zkCli.sh:/usr/solr-cloud/current/server/scripts/cloud-scripts/zkli.sh",
             "/etc/krb5.conf:/etc/krb5.conf" ] 
         volumes.push config.volumes...
         config.master_configured = false
@@ -114,7 +114,7 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
             switch config.docker_compose_version
               when '1'
                 config.service_def[container_name]=
-                  'image' : "#{solr.cloud_docker.build.image}:#{solr.cloud_docker.version}"
+                  'image' : "#{options.build.image}:#{options.version}"
                   # 'restart': "always"
                   'command': command
                   'volumes': volumes
@@ -126,7 +126,7 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
                 config.service_def[container_name]['environment'] = environment if  environment.length > 0
               when '2'
                 config.service_def[container_name]=
-                  'image' : "#{solr.cloud_docker.build.image}:#{solr.cloud_docker.version}"
+                  'image' : "#{options.build.image}:#{options.version}"
                   # 'restart': "always"
                   'command': command
                   'volumes': volumes
@@ -141,12 +141,12 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
             config_host = config_hosts["#{host}"] ?= {}
             # Configure host environment config
             config_host['env'] ?= {}
-            config_host['env']['SOLR_HOME'] ?= "#{solr.user.home}"
+            config_host['env']['SOLR_HOME'] ?= "#{options.user.home}"
             config_host['env']['SOLR_PORT'] ?= "#{config.port}"
             config_host['env']['SOLR_HOST'] ?= "#{host}"
             config_host['env']['SOLR_HEAP'] ?= config.env['SOLR_HEAP']
             config_host['env']['SOLR_AUTHENTICATION_OPTS'] ?= "-Djetty.port=#{config.port}" #backward compatibility
-            config_host['env']['ZK_HOST'] ?= "#{solr.cloud_docker.zk_connect}/#{config.zk_node}"
+            config_host['env']['ZK_HOST'] ?= "#{options.zk_connect}/#{config.zk_node}"
             props = [
               'SOLR_JAVA_HOME'
               'SOLR_PID_DIR'
@@ -160,7 +160,7 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
                 'SOLR_SSL_TRUST_STORE_PASSWORD'
                 'SOLR_SSL_NEED_CLIENT_AUTH'
               ]...
-            for prop in props then config_host['env'][prop] ?= config_host['env'][prop] ?= config['env'][prop] ?= solr.cloud_docker['env'][prop] 
+            for prop in props then config_host['env'][prop] ?= config_host['env'][prop] ?= config['env'][prop] ?= options['env'][prop] 
             # Authentication & Authorization
             config_host.security = config.security ?= {}
             config_host.security["authentication"] ?= {}
@@ -184,10 +184,10 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
               # config_host.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
               # config_host.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
               config_host.security["authorization"]['user-role']["#{config.admin_principal}"] ?= 'manager'
-              config_host.zk_opts['solr.authorization.superuser'] ?= solr.user.name #default to solr
+              config_host.zk_opts['solr.authorization.superuser'] ?= options.user.name #default to solr
               for host in config.hosts
-                config_host.security["authorization"]['user-role']["#{solr.user.name}/#{host}@#{context.config.ryba.realm}"] ?= 'manager'
-                config_host.security["authorization"]['user-role']["HTTP/#{host}@#{context.config.ryba.realm}"] ?= 'manager'
+                config_host.security["authorization"]['user-role']["#{options.user.name}/#{host}@#{options.krb5.realm}"] ?= 'manager'
+                config_host.security["authorization"]['user-role']["HTTP/#{host}@#{options.krb5.realm}"] ?= 'manager'
             else
               # Control ACL with auth/digest
               # config_host.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
@@ -201,20 +201,20 @@ You can check the [docker-compose file reference](https://docs.docker.com/compos
               config_host.security["authorization"]['user-role']['solr'] ?= 'admin'
             # Env opts
             config_host.auth_opts ?= {}
-            config_host.auth_opts['solr.kerberos.cookie.domain'] ?= "#{context.config.host}"
-            config_host.auth_opts['java.security.auth.login.config'] ?= "#{solr.cloud_docker.conf_dir}/solr-server.jaas"
-            config_host.auth_opts['solr.kerberos.principal'] ?= "HTTP/#{context.config.host}@#{context.config.ryba.realm}"
-            config_host.auth_opts['solr.kerberos.keytab'] ?= solr.cloud_docker.spnego.keytab
+            config_host.auth_opts['solr.kerberos.cookie.domain'] ?= "#{options.fqdn}"
+            config_host.auth_opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/solr-server.jaas"
+            config_host.auth_opts['solr.kerberos.principal'] ?= "HTTP/#{options.fqdn}@#{options.krb5.realm}"
+            config_host.auth_opts['solr.kerberos.keytab'] ?= options.spnego.keytab
             config_host.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
 
             # Rangerize
-            if context.contexts('ryba/ranger/admin').length > 0
-              context.config.rangerized ?= []
-              nodePluginName = "#{name}-#{context.config.host}"
-              rangerize(context, name, config, config_host) if config.rangerEnabled and context.config.rangerized.indexOf(nodePluginName) is -1
-              context.config.rangerized.push nodePluginName
+            # if context.contexts('ryba/ranger/admin').length > 0
+            #   context.config.rangerized ?= []
+            #   nodePluginName = "#{name}-#{options.fqdn}"
+            #   rangerize(context, name, config, config_host) if config.rangerEnabled and context.config.rangerized.indexOf(nodePluginName) is -1
+            #   context.config.rangerized.push nodePluginName
         return config
 
 ## Dependencies
 
-      rangerize = require "#{__dirname}/../../ranger/plugins/solr_cloud_docker/rangerize"
+      # rangerize = require "#{__dirname}/../../ranger/plugins/solr_cloud_docker/rangerize"
