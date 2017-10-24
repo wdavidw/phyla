@@ -15,7 +15,7 @@ if [ -n "$LOG4J_PROPS" ]; then
 else
   log4j_config="file:$sdir/log4j.properties"
 fi
-JAAS_PATH={{solr.cloud_docker.conf_dir}}/solr-server.jaas
+JAAS_PATH={{options.conf_dir}}/solr-server.jaas
 # Settings for ZK ACL
 #SOLR_ZK_CREDS_AND_ACLS="-DzkACLProvider=org.apache.solr.common.cloud.VMParamsAllAndReadonlyDigestZkACLProvider \
 #  -DzkCredentialsProvider=org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider \

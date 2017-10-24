@@ -1,99 +1,95 @@
 
 # Solr Cloud Docker Install
 
-    module.exports = header: 'Solr Cloud Docker Install', handler: ->
-      {solr, realm} = @config.ryba
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm, hadoop_group} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
-      tmp_dir  = solr.cloud_docker.tmp_dir ?= "/var/tmp/ryba/solr"
-      hosts = @contexts('ryba/solr/cloud_docker').map (ctx) -> ctx.config.host
-      solr.cloud_docker.build.dir = '/tmp/solr/build'
+    module.exports = header: 'Solr Cloud Docker Install', handler: (options) ->
+      tmp_dir  = options.tmp_dir ?= "/var/tmp/ryba/solr"
+      options.build.dir = '/tmp/solr/build'
 
 ## Dependencies
-
-      @call 'masson/core/krb5_client/wait'
-      @call 'ryba/zookeeper/server/wait'
+      
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 
 ## Identities
 
 Create user and groups for solr user.
 
-      @system.mkdir
-        target: solr.user.home
-        uid: solr.user.name
-        gid: solr.group.name
-      @system.group header: 'Group', solr.group
-      @system.user header: 'User', solr.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Layout
 
       @system.mkdir
-        target: solr.user.home
-        uid: solr.user.name
-        gid: solr.group.name
+        target: options.user.home
+        uid: options.user.name
+        gid: options.group.name
       @system.mkdir
-        directory: solr.cloud_docker.conf_dir
-        uid: solr.user.name
-        gid: solr.group.name
+        directory: options.conf_dir
+        uid: options.user.name
+        gid: options.group.name
+      @system.mkdir
+        target: options.user.home
+        uid: options.user.name
+        gid: options.group.name
 
 ## Kerberos
 
-      @krb5.addprinc krb5,
-        unless_exists: solr.cloud_docker.spnego.keytab
+      @krb5.addprinc options.krb5.admin,
+        unless_exists: options.spnego.keytab
         header: 'Kerberos SPNEGO'
-        principal: solr.cloud_docker.spnego.principal
+        principal: options.spnego.principal
         randkey: true
-        keytab: solr.cloud_docker.spnego.keytab
-        gid: hadoop_group.name
+        keytab: options.spnego.keytab
+        gid: options.hadoop_group.name
         mode: 0o660
       @system.execute
         header: 'SPNEGO'
-        cmd: "su -l #{solr.user.name} -c 'test -r #{solr.cloud_docker.spnego.keytab}'"
-      @krb5.addprinc krb5,
+        cmd: "su -l #{options.user.name} -c 'test -r #{options.spnego.keytab}'"
+      @krb5.addprinc options.krb5.admin,
         header: 'Solr Super User'
-        principal: solr.cloud_docker.admin_principal
-        password: solr.cloud_docker.admin_password
+        principal: options.admin_principal
+        password: options.admin_password
         randkey: true
-        uid: solr.user.name
-        gid: solr.group.name
+        uid: options.user.name
+        gid: options.group.name
       @file.jaas
         header: 'Solr JAAS'
-        target: "#{solr.cloud_docker.conf_dir}/solr-server.jaas"
+        target: "#{options.conf_dir}/solr-server.jaas"
         content:
           Client:
-            principal: solr.cloud_docker.principal
-            keyTab: solr.cloud_docker.keytab
+            principal: options.principal
+            keyTab: options.keytab
             useKeyTab: true
             storeKey: true
             useTicketCache: true
-        uid: solr.user.name
-        gid: solr.group.name
-      @krb5.addprinc krb5,
+        uid: options.user.name
+        gid: options.group.name
+      @krb5.addprinc options.krb5.admin,
         header: 'Solr Server User'
-        principal: solr.cloud_docker.principal
-        keytab: solr.cloud_docker.keytab
+        principal: options.principal
+        keytab: options.keytab
         randkey: true
-        uid: solr.user.name
-        gid: solr.group.name
+        uid: options.user.name
+        gid: options.group.name
 
 ## SSL Certificate
 
       @file.download
-        source: ssl.cacert
+        source: options.ssl.cacert.source
+        local: options.ssl.cacert.local
         target: "/etc/docker/certs.d/ca.pem"
         mode: 0o0640
-        shy: true
       @file.download
-        source: ssl.cert
+        source: options.ssl.cert.source
+        local: options.ssl.cert.local
         target: "/etc/docker/certs.d/cert.pem"
         mode: 0o0640
-        shy: true
       @file.download
-        source: ssl.key
+        source: options.ssl.key.source
+        local: options.ssl.key.local
         target: "/etc/docker/certs.d/key.pem"
         mode: 0o0640
-        shy: true
 
 ## Container
 Ryba support installing solr from apache official release or HDP Search repos.
@@ -103,82 +99,71 @@ be prepared in the nikita cache dir.
       @call header: 'Load Container', ->
         exists = false
         @docker.checksum
-          docker: solr.cloud_docker.swarm_conf
-          image: solr.cloud_docker.build.image
-          tag: solr.cloud_docker.version
+          docker: options.swarm_conf
+          image: options.build.image
+          tag: options.version
         , (err, status, checksum) ->
           throw err if err
           exists = checksum
         @docker.pull
           header: 'Pull container'
           if: -> not exists
-          tag: solr.cloud_docker.build.image
-          version: solr.cloud_docker.version
+          tag: options.build.image
+          version: options.version
           code_skipped: 1
         @file.download
           unless: -> @status(-1) or @status(-2)
           binary: true
           header: 'Download container'
-          source: solr.cloud_docker.build.source
+          source: options.build.source
           target: "#{tmp_dir}/solr.tar"
         @docker.load
           header: 'Load container to docker'
           unless: -> @status(-3)
           if_exists: "#{tmp_dir}/solr.tar"
           source: "#{tmp_dir}/solr.tar"
-          docker: solr.cloud_docker.swarm_conf
+          docker: options.swarm_conf
 
 ## User Limits
 
       @system.limits
         header: 'Ulimit'
-        user: solr.user.name
-      , solr.user.limits
+        user: options.user.name
+      , options.user.limits
 
 ## SSL
 
       @java.keystore_add
-        keystore: solr.cloud_docker.ssl_keystore_path
-        storepass: solr.cloud_docker.ssl_keystore_pwd
+        keystore:  options.keystore.target
+        storepass:  options.keystore.password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        key: "#{ssl.key}"
-        cert: "#{ssl.cert}"
-        keypass: solr.cloud_docker.ssl_keystore_pwd
-        name: @config.shortname
+        key: "#{options.ssl.key.source}"
+        cert: "#{options.ssl.cert.source}"
+        keypass: options.keystore.password
+        name: options.fqdn
         local: true
-        uid: solr.user.name
-        gid: solr.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0755
       @java.keystore_add
-        keystore: solr.cloud_docker.ssl_truststore_path
-        storepass: solr.cloud_docker.ssl_truststore_pwd
+        keystore: options.truststore.target
+        storepass: options.truststore.password
         caname: "hadoop_root_ca"
-        cacert: "#{ssl.cacert}"
-        local: true
-        uid: solr.user.name
-        gid: solr.group.name
-        mode: 0o0755
-      @system.chown
-        target: solr.cloud_docker.ssl_truststore_path
-        uid: solr.user.name
-        gid: solr.group.name
-        mode: 0o0755
-      @system.chown
-        target: solr.cloud_docker.ssl_keystore_path
-        uid: solr.user.name
-        gid: solr.group.name
+        cacert: "#{options.ssl.cacert.source}"
+        local: options.ssl.cacert.local
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0755
 
 ## Cluster Specific configuration
 Here we loop through the clusters definition to write container specific file
 configuration like solr.in.sh or solr.xml.
 
-      @each solr.cloud_docker.clusters, (options, callback) ->
+      @each options.clusters, (opts, callback) ->
         counter = 0
-        name = options.key
-        config = solr.cloud_docker.clusters[name] # get cluster config
-        config_host = config.config_hosts["#{@config.host}"] # get host config for the cluster
+        name = opts.key
+        config = options.clusters[name] # get cluster config
+        config_host = config.config_hosts["#{options.fqdn}"] # get host config for the cluster
         return callback() unless config_host?
         config_host.env['SOLR_AUTHENTICATION_OPTS'] ?= ''
         config_host.env['SOLR_AUTHENTICATION_OPTS'] += " -D#{k}=#{v} "  for k, v of config_host.auth_opts
@@ -186,35 +171,34 @@ configuration like solr.in.sh or solr.xml.
           match: RegExp "^.*#{k}=.*$", 'mg'
           replace: "#{k}=\"#{v}\" # RYBA DON'T OVERWRITE"
           append: true
-        @call header: 'IPTables', ->
-          return unless @config.iptables.action is 'start'
-          @tools.iptables
-            rules: [
-              { chain: 'INPUT', jump: 'ACCEPT', dport: config.port, protocol: 'tcp', state: 'NEW', comment: "Solr Cluster #{name}" }
-            ]
+        @tools.iptables
+          if: options.iptables
+          rules: [
+            { chain: 'INPUT', jump: 'ACCEPT', dport: config.port, protocol: 'tcp', state: 'NEW', comment: "Solr Cluster #{name}" }
+          ]
         @system.mkdir
           header: 'Solr Cluster Configuration'
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}"
-          uid: solr.user.name
-          gid: solr.group.name
+          target: "#{options.conf_dir}/clusters/#{name}"
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
           header: 'Solr Cluster Log dir'
           target: config.log_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.mkdir
           header: 'Solr Cluster Pid dir'
           target: config.pid_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
           mount: config.pid_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
         @system.mkdir
           header: 'Solr Cluster Data dir'
@@ -222,47 +206,46 @@ configuration like solr.in.sh or solr.xml.
           mode: 0o0750
         @system.chown
           target: config.data_dir
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @file
           header: 'Security config'
           content: JSON.stringify config_host.security
           target: "#{config.data_dir}/security.json"
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @file.render
           source:"#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh"
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/docker_entrypoint.sh"
-          context: @config
+          target: "#{options.conf_dir}/clusters/#{name}/docker_entrypoint.sh"
+          context: options
           local: true
           local: true
           backup: true
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @file.render
           source:"#{__dirname}/../resources/cloud_docker/zkCli.sh.j2"
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/zkCli.sh"
-          context: @config.ryba
-          local: true
+          target: "#{options.conf_dir}/clusters/#{name}/zkCli.sh"
+          context: options
           local: true
           backup: true
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @file.render
           header: 'Solr Environment'
           source: "#{__dirname}/../resources/cloud/solr.ini.sh.j2"
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/solr.in.sh"
-          context: @config
+          target: "#{options.conf_dir}/clusters/#{name}/solr.in.sh"
+          context: options
           write: writes
           local: true
           backup: true
           eof: true
-          uid: solr.user.name
-          gid: solr.group.name
+          uid: options.user.name
+          gid: options.group.name
           mode: 0o0750
         @call
           unless: config.docker_compose_version is '1'
@@ -276,7 +259,7 @@ configuration like solr.in.sh or solr.xml.
           for host in config.hosts
             root = builder.create('solr').dec '1.0', 'UTF-8', true
             solrcloud = root.ele 'solrcloud'
-            solrcloud.ele 'str', {'name':'host'}, "#{@config.host}"
+            solrcloud.ele 'str', {'name':'host'}, "#{options.fqdn}"
             solrcloud.ele 'str', {'name':'hostPort'}, "#{config.port}"
             solrcloud.ele 'str', {'name':'hostContext'}, '${hostContext:solr}'
             solrcloud.ele 'bool', {'name':'genericCoreNodeNames'}, '${genericCoreNodeNames:true}'
@@ -290,20 +273,21 @@ configuration like solr.in.sh or solr.xml.
             shardHandlerFactory.ele 'int', {'name':'socketTimeout'}, '${socketTimeout:600000}'
             shardHandlerFactory.ele 'int', {'name':'connTimeout'}, '${connTimeout:60000}'
             @file
-              if: host is @config.host
+              if: host is options.fqdn
               header: 'Solr Config'
-              target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/solr.xml"
-              uid: solr.user.name
-              gid: solr.group.name
+              target: "#{options.conf_dir}/clusters/#{name}/solr.xml"
+              uid: options.user.name
+              gid: options.group.name
               content: root.end pretty:true
               mode: 0o0750
               backup: true
               eof: true
             @file.render
-              if: host is @config.host
+              if: host is options.fqdn
               header: 'Log4j'
               source: "#{__dirname}/../resources/log4j.properties.j2"
-              target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/log4j.properties"
+              target: "#{options.conf_dir}/clusters/#{name}/log4j.properties"
+              context: options
               local: true
             @call
               header: "Dockerfile"
@@ -311,31 +295,31 @@ configuration like solr.in.sh or solr.xml.
               dockerfile = null
               switch config.docker_compose_version
                 when '1'
-                  dockerfile = @config.ryba.solr.cloud_docker.clusters[name].service_def
+                  dockerfile = options.clusters[name].service_def
                   break;
                 when '2'
                   dockerfile =
                     version:'2'
-                    services: @config.ryba.solr.cloud_docker.clusters[name].service_def
+                    services: options.clusters[name].service_def
                   break;
               @call ->
                 @file.yaml
-                  if: @config.host is config['master'] or not @config.docker.swarm?
-                  target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/docker-compose.yml"
+                  if: options.fqdn is config['master'] or not options.swarm_conf?
+                  target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
                   content: dockerfile
-                  uid: solr.user.name
-                  gid: solr.group.name
+                  uid: options.user.name
+                  gid: options.group.name
                   mode: 0o0750
         @docker.compose.up
           header: 'Compose up through swarm'
-          if: @config.host is config['master'] and (@has_service('ryba/swarm/agent') or @has_service('ryba/swarm/master'))
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/docker-compose.yml"
+          if: options.fqdn is config['master'] and options.swarm_conf?
+          target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
         @docker.compose.up
           header: 'Compose up without swarm'
-          docker: @config.docker
-          unless: (@has_service('ryba/swarm/agent') or @has_service('ryba/swarm/master'))
-          services: "node_#{hosts.indexOf(@config.host)+1}"
-          target: "#{solr.cloud_docker.conf_dir}/clusters/#{name}/docker-compose.yml"
+          docker: options.docker
+          unless: options.swarm_conf?
+          services: "node_#{options.hosts.indexOf(options.fqdn)+1}"
+          target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
         @then callback
 
 ## Dependencies
