@@ -233,7 +233,7 @@ hdfs_client configuration directory.
         hosts = hosts.split ','
         for node in service.nodes
           hosts.push node.fqdn unless node.fqdn in hosts
-        hosts = hosts.join ' '
+        hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
       enrich_proxy_user srv for srv in service.use.hdfs_nn
       enrich_proxy_user srv for srv in service.use.hdfs_dn
@@ -303,7 +303,7 @@ the same database. It uses zookeeper for enabling HA.
       options.wait.http = for srv in service.use.oozie_server
         # {fqdn, port} = url.parse oozie_ctx.config.ryba.oozie.site['oozie.base.url']
         host: srv.node.fqdn
-        port: srv.options.http_port or if srv.options.ssl.enabled or options.ssl.enabled then 11443 else 11000
+        port: srv.options.http_port or if srv.options.ssl?.enabled or options.ssl.enabled then 11443 else 11000
 
 ## Dependencies
 
