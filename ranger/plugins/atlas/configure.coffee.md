@@ -8,7 +8,7 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
         krb5_client: key: ['krb5_client']
         java: key: ['java']
         hadoop_core: key: ['ryba']
-        # hdfs_client: key: ['ryba', 'hdfs_client']
+        hdfs_client: key: ['ryba', 'hdfs_client']
         atlas: key: ['ryba', 'atlas']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
@@ -23,12 +23,6 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
       # Admin Information
       options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
 
-      [ranger_admin_ctx] = @contexts 'ryba/ranger/admin'
-
-      {ryba} = @config
-      {realm, ssl, core_site, hdfs, hadoop_group, hadoop_conf_dir} = ryba
-      ranger = ranger_admin_ctx.config.ryba.ranger.admin ?= {}
-
 ## Identities
 
       options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
@@ -37,9 +31,11 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
 ## Access
 
       options.ranger_admin ?= service.use.ranger_admin.options.admin
-      options.hdfs_install ?= service.use.ranger_hdfs.options.install
+      options.ranger_ranger_hdfs_install ?= service.use.ranger_hdfs[0].options.install
       options.atlas_user = service.use.atlas.options.user
       options.atlas_group = service.use.atlas.options.group
+      options.hdfs_client = service.use.hdfs_client[0]
+      options.ranger_hdfs_install = service.use.ranger_hdfs
       options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
 
 ## Plugin User
@@ -61,8 +57,9 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       # Should Atlas GRANT/REVOKE update XA policies?
       options.install['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] ?= 'true'
-      options.install['CUSTOM_USER'] ?= "#{@config.ryba.atlas.user.name}"
-      options.install['CUSTOM_GROUP'] ?= "#{hadoop_group.name}"
+      options.install['CUSTOM_USER'] ?= "#{options.atlas_user.name}"
+      options.install['CUSTOM_GROUP'] ?= "#{options.atlas_group.name}"
+      options.conf_dir ?= service.use.atlas.options.conf_dir
 
 ## Admin properties
 
@@ -81,15 +78,22 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
           # 'password': 'RangerPluginAtlas123!'
           'username': service.use.ranger_admin.options.plugins.principal
           'password': service.use.ranger_admin.options.plugins.password
-          'atlas.rest.address': @config.ryba.atlas.application.properties['atlas.rest.address']
-          'policy.download.auth.users': "#{@config.ryba.atlas.user.name}" #from ranger 0.6
-          'tag.download.auth.users': "#{@config.ryba.atlas.user.name}"
+          'atlas.rest.address': service.use.atlas.options.application.properties['atlas.rest.address']
+          'policy.download.auth.users': "#{options.atlas_user.name}" #from ranger 0.6
+          'tag.download.auth.users': "#{options.atlas_group.name}"
 
-### Atlas Plugin audit
+### HDFS Storage
 
       options.install['XAAUDIT.HDFS.IS_ENABLED'] ?= 'true'
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+        # migration: lucasbak 11102017
+        # honored but not used by plugin
+        # options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
+        # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
+        options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
+        options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{options.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
+        options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.atlas.options.log_dir}/audit/hdfs/spool"
+        options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{options.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= '/var/log/ranger/%app-type%/audit'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= '/var/log/ranger/%app-type%/archive'
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
@@ -101,17 +105,14 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
         options.install['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] ?= '600'
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
         # AUDIT TO HDFS
-        # atlas_plugin.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-        # atlas_plugin.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{ranger.user.name}/audit"
-        # atlas_plugin.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{@config.ryba.atlas.log_dir}/audit/hdfs/spool"
 
 ## HDFS Policy
 
       if options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
-        throw Error 'HDFS Ranger Plugin required' unless options.hdfs_install
+        throw Error 'HDFS Ranger Plugin required' unless options.ranger_hdfs_install
         options.policy_hdfs_audit ?=
           'name': "atlas-ranger-plugin-audit"
-          'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
+          'service': "#{options.ranger_hdfs_install['REPOSITORY_NAME']}"
           'repositoryType':"hdfs"
           'description': 'Atlas Ranger Plugin audit log policy'
           'isEnabled': true
@@ -137,14 +138,6 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
             ]
             'conditions': []
           ]
-        
-
-### Atlas Audit (HDFS Storage)
-
-      # AUDIT TO HDFS
-      options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-      options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{core_site['fs.defaultFS']}/#{options.user.name}/audit"
-      options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.use.atlas.options.log_dir}/audit/hdfs/spool"
 
 ### Atlas Audit (database storage)
 
@@ -188,7 +181,7 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
         options.audit['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
         options.audit['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
         options.audit['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
-        atlas_princ = @config.ryba.atlas.application.properties['atlas.authentication.principal'].replace '_HOST', service.use.atlas.node.fqdn
+        atlas_princ = service.use.atlas.options.application.properties['atlas.authentication.principal'].replace '_HOST', service.use.atlas.node.fqdn
         options.audit['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= atlas_princ
         options.audit['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.use.atlas.options.application.properties['atlas.authentication.keytab']
 
