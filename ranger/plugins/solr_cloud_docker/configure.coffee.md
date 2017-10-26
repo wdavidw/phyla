@@ -16,7 +16,6 @@ the same machine.
         hadoop_core: key: ['ryba']
         hdfs_client: key: ['ryba', 'hdfs_client']
         solr_cloud_docker: key: ['ryba', 'solr', 'cloud_docker']
-        atlas: key: ['ryba', 'atlas']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
         ranger_solr_cloud_docker: key: ['ryba', 'ranger','solr_cloud_docker']
