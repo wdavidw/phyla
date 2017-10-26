@@ -6,9 +6,11 @@ Atlas server to be active.
 
     module.exports =
       use:
-        kafka_broker: module: 'ryba/kafka/broker', requried: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        kafka_broker: module: 'ryba/kafka/broker', reguired: true
         hive_server2: module: 'ryba/hive/server2', local: true, required: true
-        atlas: module: 'ryba/atlas', required: true
+        oozie_server: module: 'ryba/oozie/server'
+        atlas: module: 'ryba/atlas'
       configure:
         'ryba/atlas/hive/configure'
       plugin: ->
@@ -17,9 +19,7 @@ Atlas server to be active.
           type: ['service','start']
           name: 'hive-server2'
         , ->
-          @registry.register 'hdp_select', 'ryba/lib/hdp_select'
-          @service 'atlas-metadata*hive-plugin*'
-          @hdp_select 'atlas-client' #needed by hive server2 aux jars
+          @call 'ryba/atlas/hive/install', options
         @after
           type: ['hconfigure']
           target: "#{options.conf_dir}/hive-site.xml"
@@ -36,11 +36,11 @@ Atlas server to be active.
             header: 'Atlas Hiveserver2 Application Properties'
             target: "#{options.conf_dir}/atlas-application.properties"
             content: options.application.properties
-        @before
-          type: ['service', 'start']
-          name: 'hadoop-hdfs-namenode'
-        , ->
-          @call 'ryba/ranger/plugins/hdfs/install', options
-        
+      commands:
+        install: ->
+          options = @config.ryba.atlas.hive
+          
+          
+            
 
 [atlas-apache]: http://atlas.incubator.apache.org

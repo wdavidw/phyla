@@ -8,20 +8,19 @@ Apache Atlas Needs the following components to be started.
 - Ranger Admin
 - Solr Cloud
 
-    module.exports = header: 'Atlas Start', handler: ->
+    module.exports = header: 'Atlas Start', handler: (options) ->
 
 Wait for Kerberos, HBase, Hive, Kafka and Ranger.
 
-      @call once: true, 'masson/core/krb5_client/wait'
-      @call once: true, 'ryba/hbase/regionserver/wait'
-      @call once: true, 'ryba/kafka/broker/wait'
-      @call once: true, 'ryba/ranger/admin/wait'
-
-      switch @config.ryba.atlas.solr_type
-        when 'cloud_docker'
-          @connection.wait
-            host: @config.ryba.atlas.cluster_config['master']
-            port: @config.ryba.atlas.cluster_config['port']
+      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
+      @call once: true, 'ryba/hbase/regionserver/wait', options.wait_hbase
+      @call once: true, 'ryba/kafka/broker/wait', options.wait_kafka
+      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger
+      
+      @connection.wait
+        if: options.solr_type is 'cloud_docker'
+        host: options.solr.cluster_config['master']
+        port: options.solr.cluster_config['port']
 
 ## Start the service
 You can start the service with the following commands.
