@@ -1011,7 +1011,7 @@ Theses functions are used to generate business rules
               create_dependency 'Hue - Certificate', 'Hue - WebUI', host
             else
               options.services['Hue - WebUI'].check_command ?= "check_tcp!#{ryba.hue_docker.ini.desktop.http_port}"
-          if 'ryba/knox' in ctx.services
+          if 'ryba/knox/server' in ctx.services
             w.modules.push 'knox' unless 'knox' in w.modules
             h.hostgroups.push 'knox' unless 'knox' in h.hostgroups
             options.services['Knox - WebService'] ?= {}

@@ -41,7 +41,7 @@ It supports:
         kafka_broker: 'ryba/kafka/broker'
         kafka_consumer: 'ryba/kafka/consumer'
         kafka_producer: 'ryba/kafka/producer'
-        knox: 'ryba/knox'
+        knox: 'ryba/knox/server'
         oozie_client: 'ryba/oozie/client'
         oozie_server: 'ryba/oozie/server'
         opentsdb: 'ryba/opentsdb'
