@@ -176,6 +176,13 @@ configuration like solr.in.sh or solr.xml.
           rules: [
             { chain: 'INPUT', jump: 'ACCEPT', dport: config.port, protocol: 'tcp', state: 'NEW', comment: "Solr Cluster #{name}" }
           ]
+        @krb5.addprinc options.krb5.admin,
+          header: 'Cluster admin principal'
+          principal: config.admin_principal
+          password: config.admin_password
+          randkey: true
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
           header: 'Solr Cluster Configuration'
           target: "#{options.conf_dir}/clusters/#{name}"

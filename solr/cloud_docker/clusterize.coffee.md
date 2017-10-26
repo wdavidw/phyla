@@ -63,11 +63,9 @@ Make configuration options more restrictive
         config.admin_principal ?= options.admin_principal
         config.admin_password ?= options.admin_password
         config.conf_dir ?= "#{options.conf_dir}/clusters/#{name}"
-        config.rangerEnabled ?= false
+        config.solr_urls ?= config.hosts.map( (host) -> "#{if config.is_ssl_enabled  then 'https://' else 'http://'}#{host}:#{config['port']}").join(',')
         config.authentication_class ?= options.security["authentication"]['class']
-        config.authorization_class ?= if config.rangerEnabled
-        then 'org.apache.ranger.authorization.solr.authorizer.RangerSolrAuthorizer'
-        else 'solr.RuleBasedAuthorizationPlugin'
+        config.authorization_class ?= 'solr.RuleBasedAuthorizationPlugin'
         config.service_def ?= {}
         config['env'] ?= {}
         ## allow administrators to disable ssl on solr cloud docker clusters.
@@ -151,6 +149,7 @@ Make configuration options more restrictive
               'SOLR_JAVA_HOME'
               'SOLR_PID_DIR'
               'ENABLE_REMOTE_JMX_OPTS'
+              # 'SOLR_AUTH_TYPE'
             ]
             if config.is_ssl_enabled
               props.push [
@@ -160,7 +159,7 @@ Make configuration options more restrictive
                 'SOLR_SSL_TRUST_STORE_PASSWORD'
                 'SOLR_SSL_NEED_CLIENT_AUTH'
               ]...
-            for prop in props then config_host['env'][prop] ?= config_host['env'][prop] ?= config['env'][prop] ?= options['env'][prop] 
+            for prop in props then config_host['env'][prop] ?= config_host['env'][prop] ?= config['env'][prop] ?= options['env'][prop]
             # Authentication & Authorization
             config_host.security = config.security ?= {}
             config_host.security["authentication"] ?= {}
@@ -201,18 +200,11 @@ Make configuration options more restrictive
               config_host.security["authorization"]['user-role']['solr'] ?= 'admin'
             # Env opts
             config_host.auth_opts ?= {}
-            config_host.auth_opts['solr.kerberos.cookie.domain'] ?= "#{options.fqdn}"
+            config_host.auth_opts['solr.kerberos.cookie.domain'] = "#{config_host['env']['SOLR_HOST']}"
             config_host.auth_opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/solr-server.jaas"
-            config_host.auth_opts['solr.kerberos.principal'] ?= "HTTP/#{options.fqdn}@#{options.krb5.realm}"
+            config_host.auth_opts['solr.kerberos.principal'] = "HTTP/#{config_host['env']['SOLR_HOST']}@#{options.krb5.realm}"
             config_host.auth_opts['solr.kerberos.keytab'] ?= options.spnego.keytab
             config_host.auth_opts['solr.kerberos.name.rules'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
-
-            # Rangerize
-            # if context.contexts('ryba/ranger/admin').length > 0
-            #   context.config.rangerized ?= []
-            #   nodePluginName = "#{name}-#{options.fqdn}"
-            #   rangerize(context, name, config, config_host) if config.rangerEnabled and context.config.rangerized.indexOf(nodePluginName) is -1
-            #   context.config.rangerized.push nodePluginName
         return config
 
 ## Dependencies

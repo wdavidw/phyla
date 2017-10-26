@@ -78,7 +78,7 @@ ryba:
 ## Environment
 
       options ?= {}
-      options.version ?= '6.3.0'
+      options.version ?= '6.6.1'
       options.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{options.version}/solr-#{options.version}.tgz"
       options.root_dir ?= '/usr'
       options.install_dir ?= "#{options.root_dir}/solr-cloud/#{options.version}"
@@ -122,6 +122,7 @@ ryba:
       options.clean_logs ?= false
       options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
       options.fqdn ?= service.node.fqdn
+      options.jaas_path ?= "#{options.conf_dir}/solr-server.jaas"
 
 ## Version Fix
 Before 6.0 version, solr.xml'<solrCloud> section has a mistake:
@@ -208,6 +209,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
       options.env['SOLR_HOST'] ?= service.node.fqdn
       options.env['SOLR_PID_DIR'] ?= options.pid_dir
       options.env['SOLR_HEAP'] ?= "512m"
+      # options.env['SOLR_AUTH_TYPE'] ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication']
       options.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
       if options.ssl.enabled
         options.env['SOLR_SSL_KEY_STORE'] ?= options.keystore.target
@@ -225,6 +227,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
       options.clusters ?= {}
       for cluster_name, cluster_config of options.clusters
         cluster = configure_solr_cluster options, cluster_name, cluster_config
+      #https://community.hortonworks.com/articles/15159/securing-solr-collections-with-ranger-kerberos.html
 
 # Wait
 

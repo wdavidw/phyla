@@ -94,6 +94,7 @@ differents cores ( and so with different ports).
       options.zkhosts = "#{options.zk_connect}/#{options.zk_node}"
       options.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
       options.lock_type = 'native'
+      options.jaas_path ?= "#{options.conf_dir}/solr-server.jaas"
 
 ## Fix Conf
 Before 6.0 version, solr.xml'<solrCloud> section has a mistake:

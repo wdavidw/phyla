@@ -5,7 +5,7 @@ Build container and save it.
 
     module.exports =
       header: 'Solr Cloud Docker Prepare'
-      if: -> @contexts('ryba/solr/cloud_docker')[0]?.config.host is @config.host
+      ssh: null
       handler: (options) ->
         @system.mkdir
           target: options.build.dir
@@ -14,11 +14,11 @@ Build container and save it.
         @file.render
           source: "#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh"
           target: "#{options.build.dir}/build/docker_entrypoint.sh"
-          context: @config
+          context: options
         @file.render
           source: "#{__dirname}/../resources/cloud_docker/Dockerfile"
           target: "#{options.build.dir}/build/Dockerfile"
-          context: @config
+          context: options
         @docker.build
           image: "#{options.build.image}:#{options.version}"
           file: "#{options.build.dir}/build/Dockerfile"
