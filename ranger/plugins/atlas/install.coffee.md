@@ -50,37 +50,36 @@
         header: 'Audit HDFS Policy'
         if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
       , ->
-        @hdfs_mkdir (
-          target: target
+        @system.mkdir
+          header: 'HDFS Spool Dir'
+          if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
+          target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+          uid: options.atlas_user.name
+          gid: options.atlas_group.name
           mode: 0o0750
-          parent:
-            mode: 0o0711
-            user: options.user.name
-            group: options.group.name
-          user: options.atlas_user.name
-          group: options.atlas_group.name
-          krb5_user: options.hdfs_krb5_user
-        ) for target in options.policy_hdfs_audit.resources.path.values
-        # @system.mkdir
-        #   target: options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
-        #   uid: options.atlas_user.name
-        #   gid: options.atlas_group.name
-        #   mode: 0o0750
+        @system.mkdir
+          target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+          uid: options.atlas_user.name
+          gid: options.atlas_group.name
+          mode: 0o0750
+          if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
+        @call ->
+          for target in options.policy_hdfs_audit.resources.path.values
+            @hdfs_mkdir
+              target: target
+              mode: 0o0750
+              parent:
+                mode: 0o0711
+                user: options.user.name
+                group: options.group.name
+              uid: options.atlas_user.name
+              gid: options.atlas_group.name
+              krb5_user: options.hdfs_krb5_user
         @ranger_policy
-          if: options.policy_hdfs_audit
           username: options.ranger_admin.username
           password: options.ranger_admin.password
           url: options.install['POLICY_MGR_URL']
           policy: options.policy_hdfs_audit
-
-# Atlas ranger plugin audit to SOLR
-
-      @system.mkdir
-        target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: options.atlas_user.name
-        gid: options.atlas_group.name
-        mode: 0o0750
-        if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
 
 ## Service Repository creation
 
@@ -134,7 +133,7 @@ tested.
           ]
           backup: true
           mode: 0o750
-        @call header: 'Enable Atlas Plugin', (options, callback) ->
+        @call header: 'Enable Atlas Plugin', (_, callback) ->
           files = ['ranger-atlas-audit.xml','ranger-atlas-security.xml','ranger-policymgr-ssl.xml']
           sources_props = {}
           current_props = {}
@@ -149,8 +148,8 @@ tested.
           @call
             if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
           , ->
-            @each files, (options, cb) ->
-              file = options.key
+            @each files, (opts, cb) ->
+              file = opts.key
               target = "#{options.conf_dir}/#{file}"
               @fs.exists target, (err, exists) ->
                 return cb err if err
@@ -184,8 +183,8 @@ tested.
             target: "#{options.conf_dir}/ranger-atlas-audit.xml"
             merge: true
             properties: options.audit
-          @each files, (options, cb) ->
-            file = options.key
+          @each files, (opts, cb) ->
+            file = opts.key
             target = "#{options.conf_dir}/#{file}"
             @fs.exists target, (err, exists) ->
               return callback err if err
