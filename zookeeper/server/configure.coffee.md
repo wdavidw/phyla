@@ -134,7 +134,7 @@ Example :
       options.krb5.principal ?= "zookeeper/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5.keytab ?= '/etc/security/keytabs/zookeeper.service.keytab'
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= @config.krb5_client.admin[options.krb5.realm]
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Log4J
 
