@@ -73,8 +73,8 @@ module.exports.kafka = (krb5_user, cmd) ->
   then "echo '#{krb5_user.password}' | kinit #{krb5_user.principal} >/dev/null && {\n#{cmd}\n}"
   else "su -l #{hbase.user.name} -c \"#{cmd}\""
 
-module.exports.solr = (ctx, cmd) ->
-  {security, solr} = ctx.config.ryba
-  if security is 'kerberos'
-  then "echo '#{solr.admin_password}' | kinit #{solr.admin_principal} >/dev/null && {\n#{cmd}\n}"
-  else "su -l #{solr.user.name} -c \"#{cmd}\""
+module.exports.solr = (opts, cmd) ->
+  {authentication} = opts
+  if authentication is 'kerberos'
+  then "echo '#{opts.admin_password}' | kinit #{opts.admin_principal} >/dev/null && {\n#{cmd}\n}"
+  else "su -l #{opts.user.name} -c \"#{cmd}\""
