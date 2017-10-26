@@ -11,7 +11,6 @@ Install Solr Plugin by default on solr_cloud_docker host.
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
         ranger_solr_cloud_docker: module: 'ryba/ranger/plugins/solr_cloud_docker'
-        atlas: module: 'ryba/atlas'
       configure:
         'ryba/ranger/plugins/solr_cloud_docker/configure'
       plugin: ->
