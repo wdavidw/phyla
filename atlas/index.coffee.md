@@ -36,8 +36,8 @@ Atlas enables Hadoop users to manage more efficiently their data:
       commands:
         'install': ->
           options = @config.ryba.atlas
-          # @call 'ryba/atlas/install', options
-          # @call 'ryba/atlas/solr_bootstrap', options
+          @call 'ryba/atlas/install', options
+          @call 'ryba/atlas/solr_bootstrap', options
           @call 'ryba/atlas/start', options
           @call 'ryba/atlas/check', options
         'start': ->
