@@ -48,7 +48,7 @@ hard coded.
       options.application.properties['atlas.hook.hive.maxThreads'] ?= '5'
       options.application.properties['atlas.hook.hive.keepAliveTime'] ?= '10'
       options.application.properties['atlas.hook.hive.queueSize'] ?= '10000'
-      service.use.hive_server2.options.hive_site['atlas.cluster.name'] ?= "#{options.cluster_name}"
+      service.use.hive_server2.options.hive_site['atlas.cluster.name'] ?= "#{options.atlas.options.cluster_name}"
       # Step 1 - check if the rest adress already written
       # Step 2 (only if 1) Check if an url is already written
       service.use.hive_server2.options.hive_site['atlas.rest.address'] = add_prop service.use.hive_server2.options.hive_site['atlas.rest.address'], options.atlas.options.application.urls, ','
@@ -88,6 +88,12 @@ hard coded.
       else
         throw Error "Atlas Hive Bridge Hook Selected Protocol #{options.application.kafka_chanel} is not allowed by Kafka Brokers configuration"
       #Kafka Ranger PLugin authorization
+      if options.application.properties['atlas.kafka.security.protocol'] in  ['SASL_PLAINTEXT','SASL_SSL']
+        options.atlas.options.kafka_policy.policyItems[0].users.push "#{service.use.hive_server2.options.user.name}"
+      if options.application.properties['atlas.kafka.security.protocol'] in  ['PLAINTEXT','SSL']
+        options.atlas.options.kafka_policy.policyItems[0].users.push 'ANONYMOUS'
+      if (options.application.properties['atlas.kafka.security.protocol'] in ['PLAINTEXT','SSL'])
+        options.atlas.options.kafka_policy.policyItems[0].users.push 'ANONYMOUS'
 
 ## utility function
 
