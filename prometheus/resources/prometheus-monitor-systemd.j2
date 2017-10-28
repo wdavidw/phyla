@@ -1,0 +1,13 @@
+
+[Unit]
+Description=Prometheus Monitor
+
+[Service]
+User={{user.name}}
+Group={{group.name}}
+PIDFile=/var/run/prometheus/prometheus-monitor.pid
+ExecStart={{latest_dir}}/prometheus -config.file={{conf_dir}}/prometheus.yaml -web.listen-address ':{{port}}' -storage.local.path={{storage.path}}
+LimitNOFILE={{user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target
