@@ -21,7 +21,7 @@ The file storing the PID is "/var/run/webhcat/webhcat.pid".
 
       @service.stop
         header: 'Stop service'
-        name: 'mongod-router-server'
+        name: 'mongod-config-server'
 
 ## Clean Logs
 
@@ -31,5 +31,5 @@ Remove the "mongod-router-server-{hostname}.log" log files if the property
       @system.execute
         header: 'Clean Logs'
         if:  options.clean_logs
-        cmd: "rm #{options.router.systemLog.path}"
+        cmd: "rm #{options.config.systemLog.path}"
         code_skipped: 1
