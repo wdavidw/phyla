@@ -64,6 +64,15 @@ Example :
       options.user.comment ?= 'Zookeeper User'
       options.user.home ?= '/var/lib/zookeeper'
 
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xmx'] ?= '1024m'
+      options.opts.jvm['-Xms'] ?= '1024m'
+
 ## Configuration
 
       options.env ?= {}
@@ -71,16 +80,18 @@ Example :
       options.env['ZOO_AUTH_TO_LOCAL'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
       options.env['ZOO_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['ZOOPIDFILE'] ?= "#{options.pid_dir}/zookeeper_server.pid"
-      options.env['SERVER_JVMFLAGS'] ?= "-Xmx1024m -Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-server.jaas"
+      options.env['JAVA_OPTS'] ?= options.opts.base
+      options.env['SERVER_JVMFLAGS'] ?= "-Xmx1024m -Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-server.jaas ${JAVA_OPTS}"
       options.env['CLIENT_JVMFLAGS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-client.jaas"
       options.env['JAVA'] ?= '$JAVA_HOME/bin/java'
       options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
       options.env['CLASSPATH'] ?= '$CLASSPATH:/usr/share/zookeeper/*'
       options.env['ZOO_LOG4J_PROP'] ?= 'INFO,ROLLINGFILE' #was 'INFO,CONSOLE, ROLLINGFILE'
-      if options.env['SERVER_JVMFLAGS'].indexOf('-Dzookeeper.security.auth_to_local') is -1
-        options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dzookeeper.security.auth_to_local=$ZOO_AUTH_TO_LOCAL"
-      if options.env['JMXPORT']? and options.env['SERVER_JVMFLAGS'].indexOf('-Dcom.sun.management.jmxremote.rmi.port') is -1
-        options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dcom.sun.management.jmxremote.rmi.port=$JMXPORT"
+      options.opts.java_properties['zookeeper.security.auth_to_local'] ?= '$ZOO_AUTH_TO_LOCAL'
+      # if options.env['SERVER_JVMFLAGS'].indexOf('-Dzookeeper.security.auth_to_local') is -1
+      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dzookeeper.security.auth_to_local=$ZOO_AUTH_TO_LOCAL"
+      # if options.env['JMXPORT']? and options.env['SERVER_JVMFLAGS'].indexOf('-D') is -1
+      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dcom.sun.management.jmxremote.rmi.port=#JMXPORT"
       # Internal
       options.id ?= service.use.zookeeper_server.map( (srv) -> srv.node.fqdn ).indexOf(service.node.fqdn)+1
       options.fqdn ?= service.node.fqdn

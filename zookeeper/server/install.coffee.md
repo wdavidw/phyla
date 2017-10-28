@@ -166,15 +166,21 @@ Run "zkCli.sh" and enter `addauth digest super:EjV93vqJeB3wHqrx`
 Note, environment is enriched at runtime if a super user is generated
 (see above).
 
-      @file
+      @call
         header: 'Environment'
-        target: "#{options.conf_dir}/zookeeper-env.sh"
-        content: ("export #{k}=\"#{v}\"" for k, v of options.env).join '\n'
-        backup: true
-        eof: true
-        mode: 0o750
-        uid: options.user.name
-        gid: options.group.name
+      , ->
+        options.env['JAVA_OPTS'] = ''
+        options.env['JAVA_OPTS'] += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        options.env['JAVA_OPTS'] += " #{k}#{v}" for k, v of options.opts.jvm
+        @file
+          header: 'Environment'
+          target: "#{options.conf_dir}/zookeeper-env.sh"
+          content: ("export #{k}=\"#{v}\"" for k, v of options.env).join '\n'
+          backup: true
+          eof: true
+          mode: 0o750
+          uid: options.user.name
+          gid: options.group.name
 
 ## Configure
 
