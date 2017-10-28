@@ -53,6 +53,9 @@ Example:
       options.user.system ?= true
       options.user.comment ?= 'Kafka User'
       options.user.home = "/var/lib/#{options.user.name}"
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 64000
+      options.user.limits.nproc ?= 32000
       # Admin
       options.admin ?= {}
       options.admin.principal ?= "#{options.user.name}@#{options.krb5.realm}"
