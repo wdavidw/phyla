@@ -66,7 +66,7 @@
 
 ## DB
 
-      @call header: 'Metastore DB', ->
+      @call header: 'Grafana DB', ->
         @db.user options.db, database: null,
           header: 'User'
           if: options.db.engine in ['mariadb', 'postgresql', 'mysql']
