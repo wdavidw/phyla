@@ -8,6 +8,7 @@ to create dashboard and organize collected metrics.
       use:
         ssl: module: 'masson/core/ssl', local: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
+        grafana_repo: module: 'ryba/grafana/repo'
         grafana_webui: module: 'ryba/grafana/webui'
       configure:
         'ryba/grafana/webui/configure'
