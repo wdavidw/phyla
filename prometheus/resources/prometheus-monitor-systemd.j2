@@ -6,7 +6,7 @@ Description=Prometheus Monitor
 User={{user.name}}
 Group={{group.name}}
 PIDFile=/var/run/prometheus/prometheus-monitor.pid
-ExecStart={{latest_dir}}/prometheus --config.file={{conf_dir}}/prometheus.yaml --web.listen-address'0.0.0.0:{{port}}' --storage.tsdb.path={{storage.path}}
+ExecStart={{latest_dir}}/prometheus --config.file={{conf_dir}}/prometheus.yaml --web.listen-address=0.0.0.0:{{port}} --storage.tsdb.path={{storage.path}}
 LimitNOFILE={{user.limits.nofile}}
 
 [Install]
