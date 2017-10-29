@@ -11,7 +11,7 @@ docker stop hue_server
 ```
 
       @service.stop
-        name: hue_docker.service
+        name: options.service
 
 ## Clean Logs dir
 
