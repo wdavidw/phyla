@@ -53,11 +53,14 @@ nikita
       options.backup ?= true
       options.merge ?= false
       @tools.iptables
-        header: "JMX Exporter #{options.title}"
+        header: "IPtables JMX #{options.title}"
         if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "JMX Exporter #{options.title}" }
         ]
+      @file.download
+        source: options.agent_source
+        target: options.agent_target
       @file.yaml
         target: options.target
         content: options.config
