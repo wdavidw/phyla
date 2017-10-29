@@ -30,6 +30,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "Solr Server #{protocol}" }
         ]
 
+## Identities
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
+
 ## Layout
 
       @system.mkdir
@@ -40,11 +45,6 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         directory: options.conf_dir
         uid: options.user.name
         gid: options.group.name
-
-## Identities
-
-      @system.group header: 'Group', options.group
-      @system.user header: 'User', options.user
 
 ## Packages
 Ryba support installing solr from apache official release or HDP Search repos.
