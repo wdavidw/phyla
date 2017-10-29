@@ -3,13 +3,13 @@
 
 *   `hdp.hue_docker.ini.desktop.database.admin_username` (string)
     Database admin username used to create the Hue database user.
-*   `hdp.hue_docker.ini.desktop.database.admin_password` (string)
+*   `options.ini.desktop.database.admin_password` (string)
     Database admin password used to create the Hue database user.
-*   `hue_docker.ini`
+*   `options.ini`
     Configuration merged with default values and written to "/etc/hue/conf/hue_docker.ini" file.
-*   `hue_docker.user` (object|string)
+*   `options.user` (object|string)
     The Unix Hue login name or a user object (see Nikita User documentation).
-*   `hue_docker.group` (object|string)
+*   `options.group` (object|string)
     The Unix Hue group name or a group object (see Nikita Group documentation).
 
 Example:
@@ -40,73 +40,110 @@ Example:
 
 [hbase-configuration]:(http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/)
 
-    module.exports = ->
-      {ssl, hadoop_conf_dir, db_admin} = @config.ryba
-      nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
-      [pg_ctx] = @contexts 'masson/commons/postgres/server'
-      [my_ctx] = @contexts 'masson/commons/mysql/server'
-      [sls_ctx] = @contexts 'ryba/spark/livy_server'
-      [sts_ctx] = @contexts 'ryba/spark/thrift_server'
-      [shs_ctx] = @contexts 'ryba/spark/history_server'
-      hue_docker = @config.ryba.hue_docker ?= {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/huedocker', ['ryba', 'hue_docker'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        krb5_client: key: ['krb5_client']
+        ssl: key: ['ssl']
+        db_admin: key: ['ryba', 'db_admin']
+        test_user: key: ['ryba', 'test_user']
+        docker: key: ['docker']
+        zookeeper_server: key: ['ryba', 'zookeeper', 'server']
+        hdfs_client: key: ['ryba', 'hdfs_client']
+        yarn_client: key: ['ryba', 'yarn_client']
+        oozie_client: key: ['ryba', 'oozie', 'client']
+        hbase_client: key: ['ryba', 'hbase', 'client']
+        hbase_thrift: key: ['ryba', 'hbase', 'thrift']
+        hive_client: key: ['ryba', 'hive', 'client']
+        hive_beeline: key: ['ryba', 'hive', 'beeline']
+        hadoop_core: key: ['ryba']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        yarn_rm: key: ['ryba', 'yarn', 'rm']
+        yarn_nm: key: ['ryba', 'yarn', 'nm']
+        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
+        httpfs: key: ['ryba', 'httpfs']
+        oozie_server: key: ['ryba', 'oozie', 'server']
+        hive_server2: key: ['ryba', 'hive', 'server2']
+        hive_webhcat: key: ['ryba', 'webhcat']
+        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        sqoop: key: ['ryba', 'sqoop']
+        huedocker: key: ['ryba', 'hue_docker']
+      @config.ryba ?= {}
+      options = @config.ryba.hue_docker = service.options
+
 
 ## Environment
 
       # Layout
-      hue_docker.conf_dir ?= '/etc/hue_docker/conf'
-      hue_docker.log_dir ?= '/var/log/hue_docker'
-      hue_docker.pid_file ?= '/var/run/hue_docker'
+      options.conf_dir ?= '/etc/hue-docker/conf'
+      options.log_dir ?= '/var/log/hue-docker'
+      options.pid_file ?= '/var/run/hue-docker'
       # Production container image name
-      hue_docker.version ?= '3.'
-      hue_docker.image ?= 'ryba/hue'
-      hue_docker.container ?= 'hue_server'
+      options.version ?= '4.1.0'
+      options.image ?= 'ryba/hue'
+      options.container ?= 'hue_server'
       # Huedocker service name has to match nagios hue_docker_check_status.sh file in ryba/nagios/resources/plugins
-      hue_docker.service ?= 'hue-server-docker'
-      hue_docker.build ?= {}
-      hue_docker.build.source ?= 'https://github.com/cloudera/hue.git'
-      hue_docker.build.name ?= 'ryba/hue-build'
-      hue_docker.build.version ?= 'latest'
-      hue_docker.build.dockerfile ?= "#{__dirname}/resources/build/Dockerfile"
-      hue_docker.build.directory ?= "#{@options.cache_dir}/huedocker/cache/build" # was '/tmp/ryba/hue-build'
-      hue_docker.prod ?= {}
-      hue_docker.prod.directory ?= "#{@options.cache_dir}/huedocker/cache/prod"
-      hue_docker.prod.dockerfile ?= "#{__dirname}/resources/prod/Dockerfile"
-      hue_docker.prod.tar ?= 'hue_docker.tar'
-      hue_docker.port ?= '8888'
-      hue_docker.image_dir ?= '/tmp'
-      hue_docker.clean_tmp ?= true
+      options.service ?= 'hue-server-docker'
+      options.build ?= {}
+      options.build.source ?= 'https://github.com/cloudera/hue.git'
+      options.build.name ?= 'ryba/hue-build'
+      options.build.version ?= 'latest'
+      options.build.dockerfile ?= "#{__dirname}/resources/build/Dockerfile_#{options.version}"
+      options.build.directory ?= "#{@options.cache_dir}/huedocker/cache/build" # was '/tmp/ryba/hue-build'
+      options.prod ?= {}
+      options.prod.directory ?= "#{@options.cache_dir}/huedocker/cache/prod"
+      options.prod.dockerfile ?= "#{__dirname}/resources/prod/Dockerfile"
+      options.prod.tar ?= 'hue_docker.tar'
+      options.port ?= '8888'
+      options.image_dir ?= '/tmp'
+      options.clean_tmp ?= true
       blacklisted_app = []
 
 ## Identities
 
       # Group
-      hue_docker.group = name: hue_docker.group if typeof hue_docker.group is 'string'
-      hue_docker.group ?= {}
-      hue_docker.group.name ?= 'hue'
-      hue_docker.group.system ?= true
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'hue'
+      options.group.system ?= true
       # User
-      hue_docker.user ?= {}
-      hue_docker.user = name: hue_docker.user if typeof hue_docker.user is 'string'
-      hue_docker.user.name ?= 'hue'
-      hue_docker.user.gid ?= hue_docker.group.name
-      hue_docker.user.system ?= true
-      hue_docker.user.comment ?= 'Hue User'
-      hue_docker.user.home = '/var/lib/hue_docker' # TODO: shall be "/var/lib/hue" to not conflict with hue service
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= 'hue'
+      options.user.gid ?= options.group.name
+      options.user.system ?= true
+      options.user.comment ?= 'Hue User'
+      options.user.home = '/var/lib/hue_docker' # TODO: shall be "/var/lib/hue" to not conflict with hue service
+
+
+      options.fqdn = service.node.fqdn
+      options.hostname = service.node.hostname
+      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.clean_logs ?= false
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
-      hue_docker.ini ?= {}
+      options.ini ?= {}
       # Webhdfs should be active on the NameNode, Secondary NameNode, and all the DataNodes
       # throw new Error 'WebHDFS not active' if ryba.hdfs.site['dfs.webhdfs.enabled'] isnt 'true'
-      hue_docker.ca_bundle ?= "#{hue_docker.conf_dir}/trust.pem"
+      options.ca_bundle ?= "#{options.conf_dir}/cacert.pem"
 
 ## Hue Webui TLS
 
-      # hue_docker = ssl if hue_docker is true
-      hue_docker.ssl ?= ssl
-      throw Error "Required Option: ssl.cacert" if hue_docker.ssl and not hue_docker.ssl.cacert
-      throw Error "Required Option: ssl.cert" if hue_docker.ssl and not hue_docker.ssl.cert
-      throw Error "Required Option: ssl.key" if hue_docker.ssl and not hue_docker.ssl.key
+      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.use.ssl
+      if options.ssl.enabled
+        throw Error "Required Option: ssl.cacert" if options.ssl and not options.ssl.cacert
+        throw Error "Required Option: ssl.cert" if options.ssl and not options.ssl.cert
+        throw Error "Required Option: ssl.key" if options.ssl and not options.ssl.key
       # HDFS & YARN url
       # NOTE: default to unencrypted HTTP
       # error is "SSL routines:SSL3_GET_SERVER_CERTIFICATE:certificate verify failed"
@@ -114,170 +151,157 @@ Example:
       # another solution could be to set REQUESTS_CA_BUNDLE but this isnt tested
       # see http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cm_sg_ssl_hue.html
 
-      hue_docker.ini['hadoop'] ?= {}
+      options.ini['hadoop'] ?= {}
       # For HDFS HA deployments,  HttpFS is preferred over webhdfs.It should be installed
 
-      [httpfs_ctx] = @contexts 'ryba/hadoop/httpfs'
-      if httpfs_ctx
-        httpfs_protocol = if httpfs_ctx.config.ryba.httpfs.env.HTTPFS_SSL_ENABLED then 'https' else 'http'
-        httpfs_port = httpfs_ctx.config.ryba.httpfs.http_port
-        webhdfs_url = "#{httpfs_protocol}://#{httpfs_ctx.config.host}:#{httpfs_port}/webhdfs/v1"
+      if service.use.httpfs
+        httpfs_protocol = if service.use.httpfs[0].options.env.HTTPFS_SSL_ENABLED then 'https' else 'http'
+        httpfs_port = service.use.httpfs[0].options.http_port
+        webhdfs_url = "#{httpfs_protocol}://#{service.use.httpfs[0].node.fqdn}:#{httpfs_port}/webhdfs/v1"
       else
         # Hue Install defines a dependency on HDFS client
-        nn_protocol = if nn_ctxs[0].config.ryba.hdfs.nn.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-        nn_protocol = 'http' if nn_ctxs[0].config.ryba.hdfs.nn.hdfs_site['dfs.http.policy'] is 'HTTP' # _AND_HTTPS and not hue.ssl?.cacert
-        if nn_ctxs[0].config.ryba.hdfs.nn.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
-          nn_host = nn_ctxs[0].config.ryba.active_nn_host
-          shortname = @contexts(hosts: nn_host)[0].config.shortname
-          nn_http_port = nn_ctxs[0].config.ryba.hdfs.nn.hdfs_site["dfs.namenode.#{nn_protocol}-address.#{nn_ctxs[0].config.ryba.nameservice}.#{shortname}"].split(':')[1]
+        nn_protocol = if service.use.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        nn_protocol = 'http' if service.use.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP' # _AND_HTTPS and not hue.ssl?.cacert
+        if service.use.hdfs_nn[0].options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
+          nn_host = service.use.hdfs_nn[0].options.active_nn_host
+          shortname = service.use.hdfs_nn[0].node.hostname
+          nn_http_port = service.use.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address.#{service.use.hdfs_nn[0].options.nameservice}.#{shortname}"].split(':')[1]
           webhdfs_url = "#{nn_protocol}://#{nn_host}:#{nn_http_port}/webhdfs/v1"
         else
-          nn_host = nn_ctxs[0].config.host
-          nn_http_port = nn_ctxs[0].config.ryba.hdfs.nn.hdfs_site["dfs.namenode.#{nn_protocol}-address"].split(':')[1]
+          nn_host = service.use.hdfs_nn[0].node.fqdn
+          nn_http_port = service.use.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address"].split(':')[1]
           webhdfs_url = "#{nn_protocol}://#{nn_host}:#{nn_http_port}/webhdfs/v1"
 
       # YARN ResourceManager (MR2 Cluster)
-      hue_docker.ini['hadoop']['yarn_clusters'] = {}
-      hue_docker.ini['hadoop']['yarn_clusters']['default'] ?= {}
-      rm_ctxs = @contexts 'ryba/hadoop/yarn_rm'
-      rm_hosts = rm_ctxs.map( (ctx) -> ctx.config.host)
-      rm_host = if rm_hosts.length > 1 then @config.ryba.yarn.active_rm_host else  rm_hosts[0]
-      throw Error "No YARN ResourceManager configured" unless rm_ctxs.length
+      options.ini['hadoop']['yarn_clusters'] = {}
+      options.ini['hadoop']['yarn_clusters']['default'] ?= {}
+      rm_hosts = service.use.yarn_rm.map( (srv) -> srv.node.fqdn)
+      rm_host = if rm_hosts.length > 1 then service.use.yarn_rm[0].options.active_rm_host else rm_hosts[0]
+      throw Error "No YARN ResourceManager configured" unless service.use.yarn_rm.length
       yarn_api_url = []
       # Support for RM HA was added in Hue 3.7
       if rm_hosts.length > 1
         # Active RM
-        rm_ctx = rm_ctxs[0]
-        rm_port = rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.address.#{rm_ctx.config.shortname}"].split(':')[1]
-        yarn_api_url[0] = if rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.http.address.#{rm_ctx.config.shortname}"]}"
-        else "https://#{rm_ctx.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.https.address.#{rm_ctx.config.shortname}"]}"
+        rm_port = service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.address.#{service.use.yarn_rm[0].node.hostname}"].split(':')[1]
+        yarn_api_url[0] = if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.use.yarn_rm[0].node.hostname}"]}"
+        else "https://#{service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.use.yarn_rm[0].node.hostname}"]}"
 
         # Standby RM
-        rm_ctx_ha = rm_ctxs[1]
-        rm_port_ha = rm_ctx_ha.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.address.#{rm_ctx_ha.config.shortname}"].split(':')[1]
-        yarn_api_url[1] = if rm_ctx_ha.config.ryba.yarn.rm.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{rm_ctx_ha.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.http.address.#{rm_ctx_ha.config.shortname}"]}"
-        else "https://#{rm_ctx_ha.config.ryba.yarn.rm.yarn_site["yarn.resourcemanager.webapp.https.address.#{rm_ctx_ha.config.shortname}"]}"
+        rm_port_ha = service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.address.#{service.use.yarn_rm[0].node.hostname}"].split(':')[1]
+        yarn_api_url[1] = if service.use.yarn_rm[1].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.use.yarn_rm[0].node.hostname}"]}"
+        else "https://#{service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.use.yarn_rm[0].node.hostname}"]}"
 
-        # hue_docker.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
-        hue_docker.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{rm_ctx.config.shortname}"
+        # options.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
+        options.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{service.use.yarn_rm[0].node.hostname}"
 
         # The [[ha]] section contains the 2nd YARN_RM information when HA is enabled
-        hue_docker.ini['hadoop']['yarn_clusters']['ha'] ?= {}
-        hue_docker.ini['hadoop']['yarn_clusters']['ha']['submit_to'] ?= "true"
-        hue_docker.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_api_url'] ?= "#{yarn_api_url[1]}"
-        # hue_docker.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_port'] ?= "#{rm_port_ha}"
-        hue_docker.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{rm_ctx_ha.config.shortname}"
-        # hue_docker.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
+        options.ini['hadoop']['yarn_clusters']['ha'] ?= {}
+        options.ini['hadoop']['yarn_clusters']['ha']['submit_to'] ?= "true"
+        options.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_api_url'] ?= "#{yarn_api_url[1]}"
+        # options.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_port'] ?= "#{rm_port_ha}"
+        options.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{service.use.yarn_rm[1].node.hostname}"
+        # options.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
       else
-        rm_ctx = rm_ctxs[0]
-        rm_port = rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.address'].split(':')[1]
-        yarn_api_url[0] = if rm_ctx.config.ryba.yarn.site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.webapp.http.address']}"
-        else "https://#{rm_ctx.config.ryba.yarn.rm.yarn_site['yarn.resourcemanager.webapp.https.address']}"
+        rm_port = service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.address'].split(':')[1]
+        yarn_api_url[0] = if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.http.address']}"
+        else "https://#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.https.address']}"
 
-      hue_docker.ini['hadoop']['yarn_clusters']['default']['submit_to'] ?= "true"
-      # hue_docker.ini['hadoop']['yarn_clusters']['default']['resourcemanager_host'] ?= "#{rm_host}"
-      # hue_docker.ini['hadoop']['yarn_clusters']['default']['resourcemanager_port'] ?= "#{rm_port}"
-      hue_docker.ini['hadoop']['yarn_clusters']['default']['resourcemanager_api_url'] ?= "#{yarn_api_url[0]}"
-      hue_docker.ini['hadoop']['yarn_clusters']['default']['hadoop_mapred_home'] ?= '/usr/hdp/current/hadoop-mapreduce-client'
+      options.ini['hadoop']['yarn_clusters']['default']['submit_to'] ?= "true"
+      # options.ini['hadoop']['yarn_clusters']['default']['resourcemanager_host'] ?= "#{rm_host}"
+      # options.ini['hadoop']['yarn_clusters']['default']['resourcemanager_port'] ?= "#{rm_port}"
+      options.ini['hadoop']['yarn_clusters']['default']['resourcemanager_api_url'] ?= "#{yarn_api_url[0]}"
+      options.ini['hadoop']['yarn_clusters']['default']['hadoop_mapred_home'] ?= '/usr/hdp/current/hadoop-mapreduce-client'
 
       # Configure HDFS Cluster
-      hue_docker.ini['hadoop']['hdfs_clusters'] ?= {}
-      hue_docker.ini['hadoop']['hdfs_clusters']['default'] ?= {}
+      options.ini['hadoop']['hdfs_clusters'] ?= {}
+      options.ini['hadoop']['hdfs_clusters']['default'] ?= {}
       # HA require webhdfs_url
-      hue_docker.ini['hadoop']['hdfs_clusters']['default']['fs_defaultfs'] ?= nn_ctxs[0].config.ryba.core_site['fs.defaultFS']
-      hue_docker.ini['hadoop']['hdfs_clusters']['default']['webhdfs_url'] ?= webhdfs_url
-      hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_hdfs_home'] ?= '/usr/lib/hadoop'
-      hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_bin'] ?= '/usr/bin/hadoop'
-      hue_docker.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir'] ?= hadoop_conf_dir
+      options.ini['hadoop']['hdfs_clusters']['default']['fs_defaultfs'] ?= service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
+      options.ini['hadoop']['hdfs_clusters']['default']['webhdfs_url'] ?= webhdfs_url
+      options.ini['hadoop']['hdfs_clusters']['default']['hadoop_hdfs_home'] ?= '/usr/lib/hadoop'
+      options.ini['hadoop']['hdfs_clusters']['default']['hadoop_bin'] ?= '/usr/bin/hadoop'
+      options.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir'] ?= service.use.hadoop_core.options.conf_dir
       # JobHistoryServer
-      jhs_ctx = @contexts('ryba/hadoop/mapred_jhs')[0]
-      jhs_protocol = if jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
+      jhs_protocol = if service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
       jhs_port = if jhs_protocol is 'http'
-      then jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
-      else jhs_ctx.config.ryba.mapred.jhs.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
-      hue_docker.ini['hadoop']['yarn_clusters']['default']['history_server_api_url'] ?= "#{jhs_protocol}://#{jhs_ctx.config.host}:#{jhs_port}"
+      then service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
+      else service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
+      options.ini['hadoop']['yarn_clusters']['default']['history_server_api_url'] ?= "#{jhs_protocol}://#{service.use.mapred_jhs[0].node.fqdn}:#{jhs_port}"
 
       # Oozie
-      [oozie_ctx] = @contexts 'ryba/oozie/server'
-      if oozie_ctx
-        hue_docker.ini['liboozie'] ?= {}
-        hue_docker.ini['liboozie']['security_enabled'] ?= 'true'
-        hue_docker.ini['liboozie']['oozie_url'] ?= oozie_ctx.config.ryba.oozie.server.oozie_site['oozie.base.url']
+      if service.use.oozie_server
+        options.ini['liboozie'] ?= {}
+        options.ini['liboozie']['security_enabled'] ?= 'true'
+        options.ini['liboozie']['oozie_url'] ?= service.use.oozie_server[0].options.oozie_site['oozie.base.url']
       else
         blacklisted_app.push 'oozie'
       # WebHcat
-      [webhcat_ctx] = @contexts 'ryba/hive/webhcat'
-      if webhcat_ctx
-        webhcat_port = webhcat_ctx.config.ryba.webhcat.webhcat_site['templeton.port']
-        templeton_url = "http://#{webhcat_ctx.config.host}:#{webhcat_port}/templeton/v1/"
-        hue_docker.ini['hcatalog'] ?= {}
-        hue_docker.ini['hcatalog']['templeton_url'] ?= templeton_url
-        hue_docker.ini['beeswax'] ?= {}
-      webhcat_ctxs = @contexts 'ryba/hive/webhcat'
-      if webhcat_ctxs.length
-        for webhcat_ctx in webhcat_ctxs
-          webhcat_ctx.config.ryba.webhcat.webhcat_site["webhcat.proxyuser.#{hue_docker.user.name}.users"] ?= '*'
-          webhcat_ctx.config.ryba.webhcat.webhcat_site["webhcat.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+      if service.use.hive_webhcat
+        webhcat_port = service.use.hive_webhcat[0].options.webhcat_site['templeton.port']
+        templeton_url = "http://#{service.use.hive_webhcat[0].node.fqdn}:#{webhcat_port}/templeton/v1/"
+        options.ini['hcatalog'] ?= {}
+        options.ini['hcatalog']['templeton_url'] ?= templeton_url
+        options.ini['beeswax'] ?= {}
+      if service.use.hive_webhcat.length
+        for srv in service.use.hive_webhcat
+          srv.options.webhcat_site["webhcat.proxyuser.#{options.user.name}.users"] ?= '*'
+          srv.options.webhcat_site["webhcat.proxyuser.#{options.user.name}.groups"] ?= '*'
       else
         blacklisted_app.push 'webhcat'
 
       # HiveServer2
-      hs2_ctxs = @contexts 'ryba/hive/server2'
-      [hs2_ctx] = hs2_ctxs
-      throw Error "No Hive HCatalog Server configured" unless hs2_ctx
-      hue_docker.ini['beeswax'] ?= {}
-      hue_docker.ini['beeswax']['hive_server_host'] ?= "#{hs2_ctx.config.host}"
-      hue_docker.ini['beeswax']['hive_server_port'] ?= if hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.transport.mode'] is 'binary'
-      then hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.thrift.port']
-      else hs2_ctx.config.ryba.hive.server2.hive_site['hive.server2.thrift.http.port']
-      hue_docker.ini['beeswax']['hive_conf_dir'] ?= '/etc/hive/conf' # Hive client is a dependency of Hue
-      hue_docker.ini['beeswax']['server_conn_timeout'] ?= "240"
+      throw Error "No Hive HCatalog Server configured" unless service.use.hive_server2
+      options.ini['beeswax'] ?= {}
+      options.ini['beeswax']['hive_server_host'] ?= "#{service.use.hive_server2[0].node.fqdn}"
+      options.ini['beeswax']['hive_server_port'] ?= if service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode'] is 'binary'
+      then service.use.hive_server2[0].options.hive_site['hive.server2.thrift.port']
+      else service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.port']
+      options.ini['beeswax']['hive_conf_dir'] ?= '/etc/hive/conf' # Hive client is a dependency of Hue
+      options.ini['beeswax']['server_conn_timeout'] ?= "240"
       # Desktop
-      hue_docker.ini['desktop'] ?= {}
-      hue_docker.ini['desktop']['django_debug_mode'] ?= '0' # Disable debug by default
-      hue_docker.ini['desktop']['http_500_debug_mode'] ?= '0' # Disable debug by default
-      hue_docker.ini['desktop']['http'] ?= {}
-      hue_docker.ini['desktop']['http_host'] ?= '0.0.0.0'
-      hue_docker.ini['desktop']['http_port'] ?= hue_docker.port
-      hue_docker.ini['desktop']['secret_key'] ?= 'jFE93j;2[290-eiwMYSECRTEKEYy#e=+Iei*@Mn<qW5o'
-      hue_docker.ini['desktop']['ssl_certificate'] ?= if hue_docker.ssl then "#{hue_docker.conf_dir}/cert.pem"else null
-      hue_docker.ini['desktop']['ssl_private_key'] ?= if hue_docker.ssl then "#{hue_docker.conf_dir}/key.pem" else null
-      hue_docker.ini['desktop']['smtp'] ?= {}
+      options.ini['desktop'] ?= {}
+      options.ini['desktop']['django_debug_mode'] ?= '0' # Disable debug by default
+      options.ini['desktop']['http_500_debug_mode'] ?= '0' # Disable debug by default
+      options.ini['desktop']['http'] ?= {}
+      options.ini['desktop']['http_host'] ?= '0.0.0.0'
+      options.ini['desktop']['http_port'] ?= options.port
+      options.ini['desktop']['secret_key'] ?= 'jFE93j;2[290-eiwMYSECRTEKEYy#e=+Iei*@Mn<qW5o'
+      options.ini['desktop']['ssl_certificate'] ?= if options.ssl.enabled then "#{options.conf_dir}/cert.pem"else null
+      options.ini['desktop']['ssl_private_key'] ?= if options.ssl.enabled then "#{options.conf_dir}/key.pem" else null
+      options.ini['desktop']['smtp'] ?= {}
       # From Hue 3.7 ETC has become Etc
-      hue_docker.ini['desktop']['time_zone'] ?= 'Etc/UCT'
-      hue_docker.ini.desktop.database ?= {}
-      hue_docker.ini.desktop.database.user ?= 'hue'
-      throw Error "Required Property: hue_docker.ini.desktop.database.password" unless hue_docker.ini.desktop.database.password
-      hue_docker.ini.desktop.database.name ?= 'hue3'
+      options.ini['desktop']['time_zone'] ?= 'Etc/UCT'
 
 ## Desktop database
 
-      hue_docker.db ?= {}
-      hue_docker.db.engine ?= db_admin.engine
-      hue_docker.db = merge {}, db_admin[hue_docker.db.engine], hue_docker.db
-      hue_docker.ini['desktop']['database'] ?= {}
-      hue_docker.ini['desktop']['database']['engine'] = hue_docker.db.engine
-      hue_docker.ini['desktop']['database']['engine'] = 'postgresql' if hue_docker.db.engine is 'postgresql'
-      hue_docker.ini['desktop']['database']['engine'] ?= 'derby'
-      engine = hue_docker.ini['desktop']['database']['engine']
-      hue_docker.ini['desktop']['database']['host'] ?= db_admin[engine]['host']
-      hue_docker.ini['desktop']['database']['port'] ?= db_admin[engine]['port']
-      hue_docker.ini['desktop']['database']['user'] ?= hue_docker.ini.desktop.database.user
-      hue_docker.ini['desktop']['database']['password'] ?= hue_docker.ini.desktop.database.password
-      hue_docker.ini['desktop']['database']['name'] ?= hue_docker.ini.desktop.database.name
+      options.db ?= {}
+      options.db.engine ?= service.use.db_admin.options.engine
+      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.database ?= 'hue3'
+      options.db.username ?= 'hue'
+      throw Error "Required Option: db.password" unless options.db.password
+      options.ini['desktop']['database'] ?= {}
+      options.ini['desktop']['database']['engine'] = 'mysql' if options.db.engine in ['mariadb', 'mysql']
+      options.ini['desktop']['database']['engine'] = 'postgresql' if options.db.engine is 'postgresql'
+      options.ini['desktop']['database']['engine'] ?= 'derby'
+      options.ini['desktop']['database']['host'] ?= options.db.host
+      options.ini['desktop']['database']['port'] ?= options.db.port
+      options.ini['desktop']['database']['user'] ?= options.db.username
+      options.ini['desktop']['database']['password'] ?= options.db.password
+      options.ini['desktop']['database']['name'] ?= options.db.database
       # Kerberos
-      hue_docker.ini.desktop.kerberos ?= {}
-      hue_docker.ini.desktop.kerberos.hue_keytab ?= "#{hue_docker.conf_dir}/hue.service.keytab" # was /etc/hue/conf/hue.server.keytab
-      hue_docker.ini.desktop.kerberos.hue_principal ?= "#{hue_docker.user.name}/#{@config.host}@#{@config.ryba.realm}" # was hue_docker/#{ctx.config.host}@#{ryba.realm}
+      options.ini.desktop.kerberos ?= {}
+      options.ini.desktop.kerberos.hue_keytab ?= "#{options.conf_dir}/hue.service.keytab" # was /etc/hue/conf/hue.server.keytab
+      options.ini.desktop.kerberos.hue_principal ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}" # was hue_docker/#{ctx.config.host}@#{ryba.realm}
       # Path to kinit
       # For RHEL/CentOS 5.x, kinit_path is /usr/kerberos/bin/kinit
       # For RHEL/CentOS 6.x, kinit_path is /usr/bin/kinit
-      hue_docker.ini['desktop']['kerberos']['kinit_path'] ?= '/usr/bin/kinit'
+      options.ini['desktop']['kerberos']['kinit_path'] ?= '/usr/bin/kinit'
       # setting cache_name
-      hue_docker.ini['desktop']['kerberos']['ccache_path'] ?= "/tmp/krb5cc_#{hue_docker.user.uid}"
+      options.ini['desktop']['kerberos']['ccache_path'] ?= "/tmp/krb5cc_#{options.user.uid}"
       # Remove unused module
       blacklisted_app.push 'rdbms'
       blacklisted_app.push 'impala'
@@ -286,33 +310,28 @@ Example:
       blacklisted_app.push 'search'
       blacklisted_app.push 'solr'
       # Sqoop
-      sqoop_hosts = @contexts('ryba/sqoop').map( (ctx) -> ctx.config.host)
+      sqoop_hosts = service.use.sqoop.map( (srv) -> srv.node.fqdn)
 
       # HBase
       # Configuration for Hue version > 3.8.1 (July 2015)
       # Hue communicates with hbase throught the thrift server from Hue 3.7 version
       # Hbase has to be configured to offer impersonation
       # http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/
-      [hbase_cli_ctx] = @contexts 'ryba/hbase/client'
-      hbase_thrift_ctxs = @contexts 'ryba/hbase/thrift'
-      if hbase_thrift_ctxs.length
+      if service.use.hbase_thrift.length
         hbase_thrift_cluster = ''
-        for key, hbase_ctx of hbase_thrift_ctxs
+        for key, srv of service.use.hbase_thrift
           host_adress = ''
-          hbase_ctx.config.ryba.core_site ?= {}
-          hbase_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-          hbase_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
           # from source code the hostname should be prefixed with https to warn hue that SSL is enabled
           # activating ssl make hue mismatch fully qualified hostname
           # for now not prefixing anything
           # host_adress += 'https' if hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http']
-          host_adress += '' if hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.ssl.enabled'] and hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http']
-          host_adress += "#{hbase_ctx.config.host}:#{hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.thrift.port']}"
+          host_adress += '' if srv.options.hbase_site['hbase.thrift.ssl.enabled'] and srv.options.hbase_site['hbase.regionserver.thrift.http']
+          host_adress += "#{srv.node.fqdn}:#{srv.options.hbase_site['hbase.thrift.port']}"
           hbase_thrift_cluster +=  if key == '0' then "(Cluster|#{host_adress})" else ",(Cluster|https://#{host_adress})"
-        hue_docker.ini['hbase'] ?= {}
-        hue_docker.ini['hbase']['hbase_conf_dir'] ?= hbase_cli_ctx.config.ryba.hbase.conf_dir
-        # migration: wdavidw: properties were exported to "onfig.ryba.hbase.site",
-        # which seems to enrich the client hbase-site file with thrift related informations
+        options.ini['hbase'] ?= {}
+        options.ini['hbase']['hbase_conf_dir'] ?= service.use.hbase_client.options.conf_dir
+        # Enrich hbase client site with thrift related properties. needed for hbase to
+        #communicate with hbase correctly
         for prop in [
           'hbase.thrift.port'
           'hbase.thrift.info.port'
@@ -322,16 +341,16 @@ Example:
           'hbase.thrift.kerberos.principal'
           'hbase.thrift.ssl.enabled'
           ]
-        then @config.ryba.hbase.client.hbase_site[prop] ?= hbase_thrift_ctxs[0].config.ryba.hbase.thrift.hbase_site[prop]
-        hue_docker.ini['hbase']['hbase_clusters'] ?= hbase_thrift_cluster
+        then service.use.hbase_client.options.hbase_site[prop] ?= service.use.hbase_thrift[0].options.hbase_site[prop]
+        options.ini['hbase']['hbase_clusters'] ?= hbase_thrift_cluster
         # Hard limit of rows or columns per row fetched before truncating.
-        hue_docker.ini['hbase']['truncate_limit'] ?= '500'
+        options.ini['hbase']['truncate_limit'] ?= '500'
         # use_doas says that HBASE THRIFT uses http in order to enable impersonation
         # set to false if you want to unable
         # not stable
         # force the use of impersonation in hue.ini, it can be read by hue if set inside hbase-site.xml file
-        hue_docker.ini['hbase']['use_doas'] = if hbase_thrift_ctxs[0].config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.http'] then 'true' else 'false'
-        hue_docker.ini['hbase']['thrift_transport'] =  hbase_ctx.config.ryba.hbase.thrift.hbase_site['hbase.regionserver.thrift.framed']
+        options.ini['hbase']['use_doas'] = if service.use.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.http'] then 'true' else 'false'
+        options.ini['hbase']['thrift_transport'] =  service.use.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.framed']
       else
         blacklisted_app.push 'hbase'
 
@@ -344,14 +363,14 @@ Example:
       #   then hive_site['hive.server2.thrift.http.port']
       #   else hive_site['hive.server2.thrift.port']
       #   # 
-      #   hue_docker.ini['spark'] ?= {}
-      #   hue_docker.ini['spark']['livy_server_host'] ?= sls_ctx.config.host
-      #   hue_docker.ini['spark']['livy_server_port'] ?= sls_ctx.config.ryba.spark.livy.conf['livy.server.port']
-      #   hue_docker.ini['spark']['livy_server_session_kind'] ?= 'yarn'
-      #   hue_docker.ini['spark']['sql_server_host'] ?= sts_ctx.config.host
-      #   hue_docker.ini['spark']['sql_server_port'] ?= port
+      #   options.ini['spark'] ?= {}
+      #   options.ini['spark']['livy_server_host'] ?= sls_ctx.config.host
+      #   options.ini['spark']['livy_server_port'] ?= sls_ctx.config.ryba.spark.livy.conf['livy.server.port']
+      #   options.ini['spark']['livy_server_session_kind'] ?= 'yarn'
+      #   options.ini['spark']['sql_server_host'] ?= sts_ctx.config.host
+      #   options.ini['spark']['sql_server_port'] ?= port
       #   if shs_ctx?
-      #     hue_docker.ini['hadoop']['yarn_clusters']['default']['spark_history_server_url'] ?= "http://#{shs_ctx.config.host}:#{shs_ctx.config.ryba.spark.history.conf['spark.history.ui.port']}"
+      #     options.ini['hadoop']['yarn_clusters']['default']['spark_history_server_url'] ?= "http://#{shs_ctx.config.host}:#{shs_ctx.config.ryba.spark.history.conf['spark.history.ui.port']}"
       # else 
       #   blacklisted_app.push 'spark'
 
@@ -361,90 +380,97 @@ Example:
       # if zookeeper_ctxs.length
       #   zookeeper_hosts = ''
       #   zookeeper_hosts += ( if key == 0 then "#{zk_ctx.config.host}:#{zk_ctx.config.r}" else ",#{zk_ctx.config.host}:#{zk_ctx.port}") for zk_ctx, key  in zookeeper_ctxs
-      # hue_docker.ini['clusters']['default']['host_ports'] ?= zookeeper_hosts
-      # hue_docker.ini['clusters']['default']['rest_url'] ?= 'http://example:port'
+      # options.ini['clusters']['default']['host_ports'] ?= zookeeper_hosts
+      # options.ini['clusters']['default']['rest_url'] ?= 'http://example:port'
       # else
       #   blacklisted_app.push 'zookeeper'
       blacklisted_app.push 'zookeeper'
       # Uncomment all security_enabled settings and set them to true
-      hue_docker.ini.hadoop ?= {}
-      hue_docker.ini.hadoop.hdfs_clusters ?= {}
-      hue_docker.ini.hadoop.hdfs_clusters.default ?= {}
-      hue_docker.ini.hadoop.hdfs_clusters.default.security_enabled = 'true'
+      options.ini.hadoop ?= {}
+      options.ini.hadoop.hdfs_clusters ?= {}
+      options.ini.hadoop.hdfs_clusters.default ?= {}
+      options.ini.hadoop.hdfs_clusters.default.security_enabled = 'true'
       # Disabled for yarn cluster , mapreduce job are submitted to yarn
-      # hue_docker.ini.hadoop.mapred_clusters ?= {}
-      # hue_docker.ini.hadoop.mapred_clusters.default ?= {}
-      # hue_docker.ini.hadoop.mapred_clusters.default.security_enabled = 'true'
-      # hue_docker.ini.hadoop.mapred_clusters.default.jobtracker_host = "#{rm_host}"
-      # hue_docker.ini.hadoop.mapred_clusters.default.jobtracker_port = "#{rm_port}"
-      hue_docker.ini.hadoop.yarn_clusters ?= {}
-      hue_docker.ini.hadoop.yarn_clusters.default ?= {}
-      hue_docker.ini.hadoop.yarn_clusters.default.security_enabled = 'true'
-      hue_docker.ini.hcatalog ?= {}
-      hue_docker.ini.hcatalog.security_enabled = 'true'
-      hue_docker.ini['desktop']['app_blacklist'] ?= blacklisted_app.join()
+      # options.ini.hadoop.mapred_clusters ?= {}
+      # options.ini.hadoop.mapred_clusters.default ?= {}
+      # options.ini.hadoop.mapred_clusters.default.security_enabled = 'true'
+      # options.ini.hadoop.mapred_clusters.default.jobtracker_host = "#{rm_host}"
+      # options.ini.hadoop.mapred_clusters.default.jobtracker_port = "#{rm_port}"
+      options.ini.hadoop.yarn_clusters ?= {}
+      options.ini.hadoop.yarn_clusters.default ?= {}
+      options.ini.hadoop.yarn_clusters.default.security_enabled = 'true'
+      options.ini.hcatalog ?= {}
+      options.ini.hcatalog.security_enabled = 'true'
+      options.ini['desktop']['app_blacklist'] ?= blacklisted_app.join()
 
 ## Configure notebooks
 
-      hue_docker.ini['notebook'] ?= {}
-      hue_docker.ini['notebook']['show_notebooks'] ?= true
+      options.ini['notebook'] ?= {}
+      options.ini['notebook']['show_notebooks'] ?= true
       # Set up some interpreters settings
-      hue_docker.ini['notebook']['interpreters'] ?= {}
-      hue_docker.ini['notebook']['interpreters']['hive'] ?= {}
-      hue_docker.ini['notebook']['interpreters']['hive']['name'] ?= 'Hive'
-      hue_docker.ini['notebook']['interpreters']['hive']['interface'] ?= 'hiveserver2'
+      options.ini['notebook']['interpreters'] ?= {}
+      options.ini['notebook']['interpreters']['hive'] ?= {}
+      options.ini['notebook']['interpreters']['hive']['name'] ?= 'Hive'
+      options.ini['notebook']['interpreters']['hive']['interface'] ?= 'hiveserver2'
       if  blacklisted_app.indexOf 'spark' is -1
-        hue_docker.ini['notebook']['interpreters']['sparksql'] ?= {}
-        hue_docker.ini['notebook']['interpreters']['sparksql']['name'] ?= 'SparkSql'
-        hue_docker.ini['notebook']['interpreters']['sparksql']['interface'] ?= 'hiveserver2'
-        hue_docker.ini['notebook']['interpreters']['spark'] ?= {}
-        hue_docker.ini['notebook']['interpreters']['spark']['name'] ?= 'Scala'
-        hue_docker.ini['notebook']['interpreters']['spark']['interface'] ?= 'livy'
-        hue_docker.ini['notebook']['interpreters']['pyspark'] ?= {}
-        hue_docker.ini['notebook']['interpreters']['pyspark']['name'] ?= 'PySpark'
-        hue_docker.ini['notebook']['interpreters']['pyspark']['interface'] ?= 'livy'
-        hue_docker.ini['notebook']['interpreters']['r'] ?= {}
-        hue_docker.ini['notebook']['interpreters']['r']['name'] ?= 'r'
-        hue_docker.ini['notebook']['interpreters']['r']['interface'] ?= 'livy-batch'
+        options.ini['notebook']['interpreters']['sparksql'] ?= {}
+        options.ini['notebook']['interpreters']['sparksql']['name'] ?= 'SparkSql'
+        options.ini['notebook']['interpreters']['sparksql']['interface'] ?= 'hiveserver2'
+        options.ini['notebook']['interpreters']['spark'] ?= {}
+        options.ini['notebook']['interpreters']['spark']['name'] ?= 'Scala'
+        options.ini['notebook']['interpreters']['spark']['interface'] ?= 'livy'
+        options.ini['notebook']['interpreters']['pyspark'] ?= {}
+        options.ini['notebook']['interpreters']['pyspark']['name'] ?= 'PySpark'
+        options.ini['notebook']['interpreters']['pyspark']['interface'] ?= 'livy'
+        options.ini['notebook']['interpreters']['r'] ?= {}
+        options.ini['notebook']['interpreters']['r']['name'] ?= 'r'
+        options.ini['notebook']['interpreters']['r']['interface'] ?= 'livy-batch'
 
 ## Configuration for Proxy Users
 
-      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
-      for hadoop_ctx in hadoop_ctxs
-        hadoop_ctx.config.ryba ?= {}
-        hadoop_ctx.config.ryba.core_site ?= {}
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
-      for yarn_ctx in @contexts ['ryba/hadoop/yarn_rm']
-        yarn_ctx.config.ryba ?= {}
-        yarn_ctx.config.ryba.yarn ?= {}
-        yarn_ctx.config.ryba.yarn.rm ?= {}
-        yarn_ctx.config.ryba.yarn.rm.core_site ?= {}
-        yarn_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        yarn_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
-      httpfs_ctxs = @contexts 'ryba/hadoop/httpfs'
-      for httpfs_ctx in httpfs_ctxs
-        httpfs_ctx.config.ryba ?= {}
-        httpfs_ctx.config.ryba.httpfs ?= {}
-        httpfs_ctx.config.ryba.httpfs.site ?= {}
-        httpfs_ctx.config.ryba.httpfs.site["httpfs.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        httpfs_ctx.config.ryba.httpfs.site["httpfs.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
-      oozie_ctxs = @contexts 'ryba/oozie/server'
-      for oozie_ctx in oozie_ctxs
-        oozie_ctx.config.ryba ?= {}
-        oozie_ctx.config.ryba.oozie ?= {}
-        oozie_ctx.config.ryba.oozie.server.oozie_site ?= {}
-        oozie_ctx.config.ryba.oozie.server.oozie_site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        oozie_ctx.config.ryba.oozie.server.oozie_site["oozie.service.ProxyUserService.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
-      for hive_ctx in hs2_ctxs
-        hive_ctx.config.ryba ?= {}
-        hive_ctx.config.ryba.core_site ?= {}
-        hive_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
-        hive_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+      for srv in service.use.httpfs
+        srv.options.site ?= {}
+        srv.options.site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= '*'
+        srv.options.site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
+      for srv in service.use.oozie_server
+        srv.options.oozie_site ?= {}
+        srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= '*'
+        srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
+
+## Proxy Users
+
+Hive Hcatalog, Hive Server2 and HBase retrieve their proxy users from the 
+hdfs_client configuration directory.
+
+      enrich_proxy_user = (srv) ->
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+        hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or ''
+        hosts = hosts.split ','
+        for node in service.nodes
+          hosts.push node.fqdn unless node.fqdn in hosts
+        hosts = hosts.join ','
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
+      enrich_proxy_user srv for srv in service.use.hdfs_nn
+      enrich_proxy_user srv for srv in service.use.hdfs_dn
+      enrich_proxy_user srv for srv in service.use.yarn_rm
+      enrich_proxy_user srv for srv in service.use.yarn_nm
+      enrich_proxy_user srv for srv in service.use.hdfs_client
+      # enrich_proxy_user srv for srv in service.use.hive_server2
+      # enrich_proxy_user srv for srv in service.use.hive_webhcat
+
+## Wait
+
+      options.wait_db_admin = service.use.db_admin.options.wait
+      options.wait ?= {}
+      options.wait.http ?= for srv in service.use.huedocker
+        host: srv.node.fqdn
+        port: srv.options.port or options.port or '8888'
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
+    db = require 'nikita/lib/misc/db'
+    migration = require 'masson/lib/migration'
 
 [home]: http://gethue.com
 [hdp-2.3.2.0-hue]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_installing_manually_book/content/prerequisites_hue.html)

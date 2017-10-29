@@ -21,8 +21,7 @@ eval "$(docker-machine env dev)" && docker build -t "ryba/hue-build" .
 Builds Hue from source
 
 
-    module.exports = header: 'Hue Docker Prepare', handler: ->
-      {hue_docker} = @config.ryba
+    module.exports = header: 'Hue Docker Prepare', handler: (options) ->
 
 # Hue compiling build from Dockerfile
 
@@ -38,40 +37,40 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
 
       @call header: 'Build Prepare', ->
         @system.mkdir
-          target: "#{@config.nikita.cache_dir}/huedocker"
+          target: "#{options.cache_dir}/huedocker"
         @system.mkdir
-          target: "#{hue_docker.build.directory}/"
+          target: "#{options.build.directory}/"
         @system.copy
-          unless: hue_docker.build.source.indexOf('.git') > 0
-          source: hue_docker.build.source
-          target: "#{hue_docker.build.directory}/hue"
+          unless: options.build.source.indexOf('.git') > 0
+          source: options.build.source
+          target: "#{options.build.directory}/hue"
         @tools.git
-          if: hue_docker.build.source.indexOf('.git') > 0
-          source: hue_docker.build.source
-          target: "#{hue_docker.build.directory}/hue"
-          revision: hue_docker.build.revision
+          if: options.build.source.indexOf('.git') > 0
+          source: options.build.source
+          target: "#{options.build.directory}/hue"
+          revision: options.build.revision
         @file.render
-          source: hue_docker.build.dockerfile
-          target: "#{hue_docker.build.directory}/Dockerfile"
+          source: options.build.dockerfile
+          target: "#{options.build.directory}/Dockerfile"
           context:
             source: 'hue'
-            user: hue_docker.user.name
-            uid: hue_docker.user.uid
-            gid: hue_docker.user.uid
-        @docker_build
-          image: "#{hue_docker.build.name}:#{hue_docker.build.version}"
-          file: "#{hue_docker.build.directory}/Dockerfile"
-        @docker_service
-          image: "#{hue_docker.build.name}:#{hue_docker.build.version}"
+            user: options.user.name
+            uid: options.user.uid
+            gid: options.user.uid
+        @docker.build
+          image: "#{options.build.name}:#{options.build.version}"
+          file: "#{options.build.directory}/Dockerfile"
+        @docker.service
+          image: "#{options.build.name}:#{options.build.version}"
           name: 'ryba_hue_extractor'
           entrypoint: '/bin/bash'
         @system.mkdir
-          target: "#{hue_docker.prod.directory}"
-        @docker_cp
+          target: "#{options.prod.directory}"
+        @docker.cp
           container: 'ryba_hue_extractor'
           source: 'ryba_hue_extractor:/hue-build.tar.gz'
-          target: hue_docker.prod.directory
-        @docker_rm
+          target: options.prod.directory
+        @docker.rm
           container: 'ryba_hue_extractor'
           force: true
 
@@ -81,30 +80,30 @@ This production container running as hue service
 
       @call header: 'Production Container', ->
         @file.render
-          source: hue_docker.prod.dockerfile
-          target: "#{hue_docker.prod.directory}/Dockerfile"
+          source: options.prod.dockerfile
+          target: "#{options.prod.directory}/Dockerfile"
           context:
-            user: hue_docker.user.name
-            uid: hue_docker.user.uid
-            gid: hue_docker.group.gid
+            user: options.user.name
+            uid: options.user.uid
+            gid: options.group.gid
         @file.render
           source: "#{__dirname}/resources/hue_init.sh"
-          target: "#{hue_docker.prod.directory}/hue_init.sh"
+          target: "#{options.prod.directory}/hue_init.sh"
           context:
-            pid_file: hue_docker.pid_file
-            user: hue_docker.user.name
+            pid_file: options.pid_file
+            user: options.user.name
         # docker build -t "ryba/hue-build:3.9" .
-        @docker_build
-          image: "#{hue_docker.image}:#{hue_docker.version}"
-          file: "#{hue_docker.prod.directory}/Dockerfile"
+        @docker.build
+          image: "#{options.image}:#{options.version}"
+          file: "#{options.prod.directory}/Dockerfile"
         , (err, _, checksum) ->
           throw err if err
           @file
             content: "#{checksum}"
-            target: "#{hue_docker.prod.directory}/checksum"
-        @docker_save
-          image: "#{hue_docker.image}:#{hue_docker.version}"
-          output: "#{hue_docker.prod.directory}/#{hue_docker.prod.tar}"
+            target: "#{options.prod.directory}/checksum"
+        @docker.save
+          image: "#{options.image}:#{options.version}"
+          output: "#{options.prod.directory}/#{options.prod.tar}"
 
 ## Instructions
 

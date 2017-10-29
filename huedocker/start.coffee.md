@@ -1,17 +1,11 @@
 
 # Hue Start
 
-    module.exports = header: 'Hue Docker Start', handler: ->
-      {hue_docker} = @config.ryba
+    module.exports = header: 'Hue Docker Start', handler: (options) ->
 
 ## Wait
 
-      @call once: true, 'ryba/hadoop/yarn_rm/wait'
-      @call once: true, 'ryba/hadoop/hdfs_nn/wait'
-      @call once: true, 'ryba/hbase/thrift/wait'
-      @call once: true, 'ryba/oozie/server/wait'
-      @call once: true, 'ryba/hive/server2/wait'
-      @call once: true, 'ryba/hive/hcatalog/wait'
+      @call 'ryba/commons/db_admin/wait', once: true, options.wait_db_admin
 
 ## Start
 
@@ -24,4 +18,4 @@ service hue-server-docker start
 ```
 
       @service.start
-        name: hue_docker.service
+        name: options.service
