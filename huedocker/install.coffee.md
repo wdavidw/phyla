@@ -252,18 +252,28 @@ ryba/hue:3.9
 Write startup script to /etc/init.d/service-hue-docker
 
       @service.init
-        header: 'Startup Script'
+        if_os: name: ['redhat','centos'], version: '6'
         source: "#{__dirname}/resources/hue-server-docker.j2"
         local: true
         target: "/etc/init.d/#{options.service}"
         context: options
         mode: 0o755
-      @system.tmpfs
+      @call
         if_os: name: ['redhat','centos'], version: '7'
-        mount: options.pid_file
-        uid: options.user.name
-        gid: options.group.name
-        perm: '0750'
+      , ->
+        @service.init
+          header: 'Systemd Script'
+          target: "/usr/lib/systemd/system/#{options.service}.service"
+          source: "#{__dirname}/resources/hue-server-docker-systemd.j2"
+          local: true
+          context: options
+          mode: 0o0640
+        @system.tmpfs
+          header: 'Run dir'
+          mount: options.pid_file
+          uid: options.user.name
+          gid: options.group.name
+          perm: '0750'
 
 ## Dependencies
 
