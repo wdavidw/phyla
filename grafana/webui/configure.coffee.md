@@ -6,6 +6,7 @@
         ssl: key: ['ssl']
         db_admin: key: ['ryba', 'db_admin']
         grafana_webui: key: ['ryba', 'grafana', 'webui']
+        grafana_repo: key: ['ryba', 'grafana', 'repo']
       @config.ryba.grafana ?= {}
       options = @config.ryba.grafana.webui = service.options
 
