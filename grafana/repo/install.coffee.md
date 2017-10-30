@@ -1,5 +1,5 @@
 
-# HDP Repository Install
+# Grafana Repository Install
 
     module.exports = header: 'Grafana repo Install', handler: (options) ->
 

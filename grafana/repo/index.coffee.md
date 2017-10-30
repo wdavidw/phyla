@@ -1,5 +1,5 @@
 
-# HDP Repository
+# Grafana Repository
 
     module.exports =
       use: {}
