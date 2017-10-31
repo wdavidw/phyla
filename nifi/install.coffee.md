@@ -84,9 +84,7 @@
         header: 'Env'
         target: '/usr/hdf/current/nifi/bin/nifi-env.sh'
         source: "#{__dirname}/resources/nifi-env.sh.j2"
-        context:
-          java_home: java_home
-          nifi: nifi
+        context: options
         local: true
         backup: true
 
@@ -277,19 +275,19 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
           keystore: options.properties['nifi.security.truststore']
           storepass: options.properties['nifi.security.truststorePasswd']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          local: true
+          cacert: "#{options.ssl.cacert.source}"
+          local: options.ssl.cacert.local
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
           keystore: options.properties['nifi.security.keystore']
           storepass: options.properties['nifi.security.keystorePasswd']
           caname: "hadoop_root_ca"
-          cacert: "#{ssl.cacert}"
-          key: "#{ssl.key}"
-          cert: "#{ssl.cert}"
+          cacert: "#{options.ssl.cacert.source}"
+          key: "#{options.ssl.key.source}"
+          cert: "#{options.ssl.cert.source}"
           keypass: options.properties['nifi.security.keyPasswd']
           name: options.shortname
-          local: true
+          local: options.ssl.key.local
         # CA is commented as it is already handled in previous action above
         # @java.keystore_add
         #   keystore: options.properties['nifi.security.keystore']
@@ -312,7 +310,7 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
         target: "#{options.conf_dir}/logback.xml"
         source: "#{__dirname}/resources/logback.xml.j2"
         local: true
-        context: nifi
+        context: options
 
 ## Additional Libs
 
