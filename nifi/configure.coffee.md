@@ -226,20 +226,35 @@
       options.properties['nifi.sensitive.props.provider'] ?= 'BC'
       # Kerberos
       options.properties['nifi.kerberos.krb5.file'] ?= '/etc/krb5.conf' if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
-      # SSL
+
+## SSL
+
+        options.ssl = merge {}, service.use.ssl?.options, options.ssl
+        options.ssl.enabled ?= !!service.use.ssl
+        options.truststore ?= {}
+        options.keystore ?= {}
+        if options.ssl.enabled
+          throw Error "Required Option: ssl.cert" if  not options.ssl.cert
+          throw Error "Required Option: ssl.key" if not options.ssl.key
+          throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
+          options.truststore.target ?= "#{options.conf_dir}/truststore"
+          throw Error "Required Property: truststore.password" if not options.truststore.password
+          options.keystore.target ?= "#{options.conf_dir}/keystore"
+          throw Error "Required Property: keystore.password" if not options.keystore.password
+          options.truststore.caname ?= 'hadoop_root_ca'
       options.properties['nifi.cluster.protocol.is.secure'] ?= 'true'
       if options.properties['nifi.cluster.protocol.is.secure'] is 'true'
         options.properties['nifi.web.http.host'] = ''
         options.properties['nifi.web.http.port'] = ''
         options.properties['nifi.web.https.host'] ?= service.node.fqdn
         options.properties['nifi.web.https.port'] ?= '9760'
-        options.properties['nifi.security.keystore'] ?= "#{options.conf_dir}/keystore"
+        options.properties['nifi.security.keystore'] ?= options.keystore.target
         options.properties['nifi.security.keystoreType'] ?= 'JKS'
-        options.properties['nifi.security.keystorePasswd'] ?= 'nifi123'
+        options.properties['nifi.security.keystorePasswd'] ?= options.keystore.password
         options.properties['nifi.security.keyPasswd'] ?= 'nifi123'
-        options.properties['nifi.security.truststore'] ?= "#{options.conf_dir}/truststore"
+        options.properties['nifi.security.truststore'] ?= options.truststore.target
         options.properties['nifi.security.truststoreType'] ?= 'JKS'
-        options.properties['nifi.security.truststorePasswd'] ?= 'nifi123'
+        options.properties['nifi.security.truststorePasswd'] ?= options.truststore.password
         options.properties['nifi.security.needClientAuth'] ?= 'true'
         # Valid Authorities include: ROLE_MONITOR,ROLE_DFM,ROLE_ADMIN,ROLE_PROVENANCE,ROLE_NIFI
         # role given to anonymous users

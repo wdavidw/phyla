@@ -13,6 +13,7 @@ and objectives of NiFi includes:
       module.exports =
         use:
           krb5_client: implicit: true, module: 'masson/core/krb5_client', local: true
+          iptables: module: 'masson/core/iptables', local: true
           ssl: module: 'masson/core/ssl', local: true
           java: module: 'masson/commons/java', local: true
           hadoop_core: 'ryba/hadoop/core'
