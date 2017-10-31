@@ -2,30 +2,26 @@
 # NiFi Install
 
     module.exports = header: 'NiFi Install', handler: (options) ->
-      {nifi} = @config.ryba
-      {ssl, ssl_server, ssl_client, hadoop_conf_dir, realm} = @config.ryba
-      {java_home} = @config.java
-      krb5 = @config.krb5_client.admin[realm]
-      protocol = if nifi.config.properties['nifi.cluster.protocol.is.secure'] is 'true' then 'https' else 'http'
+      protocol = if options.properties['nifi.cluster.protocol.is.secure'] is 'true' then 'https' else 'http'
 
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 
 ## Identities
 
-      @system.group header: 'Group', nifi.group
-      @system.user header: 'User', nifi.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Layout
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: nifi.log_dir
-          uid: nifi.user.name
-          gid: nifi.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
           target: '/var/run/nifi'
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
 
 ## IPTables
 
@@ -38,19 +34,19 @@
 
 
       rules = [
-        { chain: 'INPUT', jump: 'ACCEPT', dport: nifi.config.properties["nifi.web.#{protocol}.port"], protocol: 'tcp', state: 'NEW', comment: "NiFi WebUI port" }
+        { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties["nifi.web.#{protocol}.port"], protocol: 'tcp', state: 'NEW', comment: "NiFi WebUI port" }
       ]
-      if nifi.config.properties['nifi.cluster.is.node'] is 'true'
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nifi.config.properties['nifi.cluster.node.protocol.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Node port" }
-      if nifi.config.properties['nifi.cluster.is.manager'] is 'true'
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nifi.config.properties['nifi.cluster.manager.protocol.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Manager port" }
-      if nifi.config.properties['nifi.cluster.protocol.use.multicast'] is 'true'
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nifi.config.properties['nifi.cluster.protocol.multicast.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Multicast port" }
-      if nifi.config.properties['nifi.remote.input.socket.port'] and nifi.config.properties['nifi.remote.input.socket.port'] isnt ''
-        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: nifi.config.properties['nifi.remote.input.socket.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi S2S RAW socket port" }
+      if options.properties['nifi.cluster.is.node'] is 'true'
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties['nifi.cluster.node.protocol.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Node port" }
+      if options.properties['nifi.cluster.is.manager'] is 'true'
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties['nifi.cluster.manager.protocol.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Manager port" }
+      if options.properties['nifi.cluster.protocol.use.multicast'] is 'true'
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties['nifi.cluster.protocol.multicast.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi Multicast port" }
+      if options.properties['nifi.remote.input.socket.port'] and options.properties['nifi.remote.input.socket.port'] isnt ''
+        rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties['nifi.remote.input.socket.port'], protocol: 'tcp', state: 'NEW', comment: "NiFi S2S RAW socket port" }
       @tools.iptables
         header: 'IPTables'
-        if: @config.iptables.action is 'start'
+        if: options.iptables
         rules: rules
 
 ## Service
@@ -61,25 +57,25 @@
         @system.execute
           header: 'fix permissions'
           cmd: """
-          chown -R #{nifi.user.name}:#{nifi.group.name} /usr/hdf/current/nifi/lib
+          chown -R #{options.user.name}:#{options.group.name} /usr/hdf/current/nifi/lib
           """
           if: -> @status -1
         @system.chown
           target: '/var/run/nifi'
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
         @service.init
           header: 'rc.d'
           target: '/etc/init.d/nifi'
           source: "#{__dirname}/resources/nifi.j2"
-          context: @config
+          context: options
           local: true
           mode: 0o0755
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
           mount: '/var/run/nifi'
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 ## Env
@@ -119,7 +115,7 @@ Describe where to get the user authentication information from.
 
       @call header: 'Login identity provider', ->
         providers = builder.create('loginIdentityProviders').dec '1.0', 'UTF-8', true
-        {ldap_provider, krb5_provider} = nifi.config.login_providers
+        {ldap_provider, krb5_provider} = options.login_providers
         if ldap_provider?
           ldap_node = providers.ele 'provider'
           ldap_node.ele 'identifier', 'ldap-provider'
@@ -147,31 +143,31 @@ Describe where to get the user authentication information from.
           krb_node = providers.ele 'provider'
           krb_node.ele 'identifier', 'kerberos-provider'
           krb_node.ele 'class', 'org.apache.nifi.kerberos.KerberosProvider'
-          krb_node.ele 'property', name: 'Default Realm', nifi.config.login_providers.krb5_provider.realm
-          krb_node.ele 'property', name: 'Kerberos Config File', nifi.config.properties['nifi.kerberos.krb5.file']
+          krb_node.ele 'property', name: 'Default Realm', options.login_providers.krb5_provider.realm
+          krb_node.ele 'property', name: 'Kerberos Config File', options.properties['nifi.kerberos.krb5.file']
           krb_node.ele 'property', name: 'Authentication Expiration', '10 hours'
-          @krb5.addprinc krb5,
+          @krb5.addprinc options.krb5.admin,
             header: 'Kerberos SPNEGO'
-            principal: nifi.config.properties['nifi.kerberos.service.principal']
-            keytab: nifi.config.properties['nifi.kerberos.keytab.location']
+            principal: options.properties['nifi.kerberos.service.principal']
+            keytab: options.properties['nifi.kerberos.keytab.location']
             randkey: true
-          @krb5.addprinc krb5,
+          @krb5.addprinc options.krb5.admin,
             header: 'Kerberos Admin'
-            principal: nifi.admin.krb5_principal
-            password: nifi.admin.krb5_password
+            principal: options.admin.krb5_principal
+            password: options.admin.krb5_password
         content = providers.end pretty: true
         @file
-          target: nifi.config.properties['nifi.login.identity.provider.configuration.file']
+          target: options.properties['nifi.login.identity.provider.configuration.file']
           content: content
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
           backup: true
 
 ## Authorization
 
       @call header: 'Authorizers', ->
         providers = builder.create('authorizers').dec '1.0', 'UTF-8', true
-        {file_provider} = nifi.config.authorizers
+        {file_provider} = options.authorizers
         if file_provider?
           file_node = providers.ele 'authorizer'
           file_node.ele 'identifier', 'file-provider'
@@ -183,8 +179,8 @@ Describe where to get the user authentication information from.
             file_node.ele 'property', name: "Node Identity #{i+1}", node
           @file.touch
             target: file_provider['authorizations_file']
-            uid: nifi.user.name
-            gid: nifi.group.name
+            uid: options.user.name
+            gid: options.group.name
           @file
             header: 'initial authorizations file'
             if: -> @status -1
@@ -193,8 +189,8 @@ Describe where to get the user authentication information from.
             eof: true
           @file.touch
             target: file_provider['users_file']
-            uid: nifi.user.name
-            gid: nifi.group.name
+            uid: options.user.name
+            gid: options.group.name
           @file
             header: 'initial users file'
             if: -> @status -1
@@ -202,10 +198,10 @@ Describe where to get the user authentication information from.
             content: builder.create('tenants').dec('1.0', 'UTF-8', true).end pretty: true
             eof: true
         @file
-          target: nifi.config.properties['nifi.authorizer.configuration.file']
+          target: options.properties['nifi.authorizer.configuration.file']
           content: providers.end pretty: true
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
           backup: true
 
 ## Cluster State Provider
@@ -218,27 +214,27 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
         local_node = providers.ele 'local-provider'
         local_node.ele 'id', 'local-provider'
         local_node.ele 'class', 'org.apache.nifi.controller.state.providers.local.WriteAheadLocalStateProvider'
-        local_node.ele 'property', name: 'Directory', "#{nifi.user.home}/state/local"
+        local_node.ele 'property', name: 'Directory', "#{options.user.home}/state/local"
         cluster_node = providers.ele 'cluster-provider'
         cluster_node.ele 'id', 'zk-provider'
         cluster_node.ele 'class', 'org.apache.nifi.controller.state.providers.zookeeper.ZooKeeperStateProvider'
-        cluster_node.ele 'property', name: 'Connect String', nifi.config.properties['nifi.zookeeper.connect.string']
-        cluster_node.ele 'property', name: 'Root Node', nifi.config.properties['nifi.zookeeper.root.node']
+        cluster_node.ele 'property', name: 'Connect String', options.properties['nifi.zookeeper.connect.string']
+        cluster_node.ele 'property', name: 'Root Node', options.properties['nifi.zookeeper.root.node']
         cluster_node.ele 'property', name: 'Session Timeout', '30 seconds'
         cluster_node.ele 'property', name: 'Access Control', 'CreatorOnly'
         content = providers.end pretty: true
         @file
-          target: nifi.config.properties['nifi.state.management.configuration.file']
+          target: options.properties['nifi.state.management.configuration.file']
           content: content
-          uid: nifi.user.name
-          gid: nifi.group.name
+          uid: options.user.name
+          gid: options.group.name
           backup: true
 
 ## Environment
 
       @file.render
         header: 'Bootstrap Conf'
-        target: "#{nifi.conf_dir}/bootstrap.conf"
+        target: "#{options.conf_dir}/bootstrap.conf"
         source: "#{__dirname}/resources/bootstrap.conf.j2"
         context: nifi
         local: true
@@ -247,57 +243,57 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
 
 ## JAAS
 
-      @krb5.addprinc krb5,
+      @krb5.addprinc options.krb5.admin,
         header: 'Zookeeper Kerberos'
-        principal: nifi.krb5_principal
+        principal: options.krb5_principal
         randkey: true
-        keytab: nifi.krb5_keytab
-        uid: nifi.user.name
-        gid: nifi.group.name
+        keytab: options.krb5_keytab
+        uid: options.user.name
+        gid: options.group.name
       @file.jaas
         header: 'Zookeeper JAAS'
-        target: "#{nifi.conf_dir}/nifi-zookeeper.jaas"
+        target: "#{options.conf_dir}/nifi-zookeeper.jaas"
         content: Client:
-          principal: nifi.krb5_principal
-          keyTab: nifi.krb5_keytab
-        uid: nifi.user.name
-        gid: nifi.group.name
+          principal: options.krb5_principal
+          keyTab: options.krb5_keytab
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o600
 
 ## Configuration
 
       @file.properties
         header: 'NiFi properties'
-        target: "#{nifi.conf_dir}/nifi.properties"
-        content: nifi.config.properties
+        target: "#{options.conf_dir}/nifi.properties"
+        content: options.properties
         backup: true
         eof: true
 
 ## SSL
 
-      @call header: 'SSL', retry: 0, if: (-> nifi.config.properties['nifi.cluster.protocol.is.secure'] is 'true'), ->
+      @call header: 'SSL', retry: 0, if: (-> options.properties['nifi.cluster.protocol.is.secure'] is 'true'), ->
         # Client: import certificate to all hosts
         @java.keystore_add
-          keystore: nifi.config.properties['nifi.security.truststore']
-          storepass: nifi.config.properties['nifi.security.truststorePasswd']
+          keystore: options.properties['nifi.security.truststore']
+          storepass: options.properties['nifi.security.truststorePasswd']
           caname: "hadoop_root_ca"
           cacert: "#{ssl.cacert}"
           local: true
         # Server: import certificates, private and public keys to hosts with a server
         @java.keystore_add
-          keystore: nifi.config.properties['nifi.security.keystore']
-          storepass: nifi.config.properties['nifi.security.keystorePasswd']
+          keystore: options.properties['nifi.security.keystore']
+          storepass: options.properties['nifi.security.keystorePasswd']
           caname: "hadoop_root_ca"
           cacert: "#{ssl.cacert}"
           key: "#{ssl.key}"
           cert: "#{ssl.cert}"
-          keypass: nifi.config.properties['nifi.security.keyPasswd']
-          name: @config.shortname
+          keypass: options.properties['nifi.security.keyPasswd']
+          name: options.shortname
           local: true
         # CA is commented as it is already handled in previous action above
         # @java.keystore_add
-        #   keystore: nifi.config.properties['nifi.security.keystore']
-        #   storepass: nifi.config.properties['nifi.security.keystorePasswd']
+        #   keystore: options.properties['nifi.security.keystore']
+        #   storepass: options.properties['nifi.security.keystorePasswd']
         #   caname: "hadoop_root_ca"
         #   cacert: "#{ssl.cacert}"
         #   local: true
@@ -306,42 +302,42 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
 
       @file.download
         header: 'Services Notifications'
-        target: "#{nifi.conf_dir}/bootstrap-notification-services.xml"
+        target: "#{options.conf_dir}/bootstrap-notification-services.xml"
         source: "#{__dirname}/resources/bootstrap-notification-services.xml"
 
 # Logs
 
       @file.render
         header: 'Log Configuration'
-        target: "#{nifi.conf_dir}/logback.xml"
+        target: "#{options.conf_dir}/logback.xml"
         source: "#{__dirname}/resources/logback.xml.j2"
         local: true
         context: nifi
 
 ## Additional Libs
 
-      @call header: 'Additional Libs', if: nifi.custom_libs_dir.length, ->
-        fs.readdir nifi.custom_libs_dir, (err, files) =>
+      @call header: 'Additional Libs', if: options.custom_libs_dir.length, ->
+        fs.readdir options.custom_libs_dir, (err, files) =>
           for lib in files
             @file.download
               target: "/usr/hdf/current/nifi/lib/#{lib}"
-              source: "#{nifi.custom_libs_dir}/#{lib}"
+              source: "#{options.custom_libs_dir}/#{lib}"
               local: true
 
 # User limits
 
       @system.limits
         header: 'Ulimit'
-        user: nifi.user.name
-      , nifi.user.limits
-
+        user: options.user.name
+      , options.user.limits
+s
 # Data Directories
 
       @system.mkdir
         header: 'Data directories layout'
-        target: nifi.config.data_dirs
-        uid: nifi.user.name
-        gid: nifi.group.name
+        target: options.data_dirs
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o751
 
 ## Dependencies

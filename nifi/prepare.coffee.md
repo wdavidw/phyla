@@ -9,17 +9,17 @@ Download the additional jars
       handler: ->
         @file.cache
           ssh: null
-          source: "#{@config.ryba.nifi.logback.core.source}"
+          source: "#{options.logback.core.source}"
           location: true
         @file.cache
           ssh: null
-          source: "#{@config.ryba.nifi.logback.classic.source}"
+          source: "#{options.logback.classic.source}"
           location: true
         @file.cache
           ssh: null
-          source: "#{@config.ryba.nifi.logback.access.source}"
+          source: "#{options.logback.access.source}"
           location: true
         @file.cache
           ssh: null
-          source: "#{@config.ryba.nifi.logback.socketappender.source}"
+          source: "#{options.logback.socketappender.source}"
           location: true
