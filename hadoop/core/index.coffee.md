@@ -26,6 +26,7 @@ Managers, Web HDFS interactions, and others.
         zookeeper_server: module: 'ryba/zookeeper/server'
         ganglia: module: 'ryba/retired/ganglia/collector', single: true
         graphite: module: 'ryba/graphite', single: true
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/core/configure'
       commands:

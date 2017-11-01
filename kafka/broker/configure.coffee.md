@@ -28,6 +28,7 @@ Example:
         hadoop_core: key: ['ryba']
         kafka_broker: key: ['ryba', 'kafka', 'broker']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba.kafka ?= {}
       options = @config.ryba.kafka.broker = service.options
       
@@ -93,12 +94,7 @@ Example:
 ## Configuration
 
       options.config ?= {}
-      if @config.metric_sinks?.graphite?
-        options.config['kafka.metrics.reporters'] ?= 'com.criteo.kafka.KafkaGraphiteMetricsReporter'
-        options.config['kafka.graphite.metrics.reporter.enabled'] ?= 'true'
-        options.config['kafka.graphite.metrics.host'] ?= @config.metric_sinks.graphite.server_host
-        options.config['kafka.graphite.metrics.port'] ?= @config.metric_sinks.graphite.server_port
-        options.config['kafka.graphite.metrics.group'] ?= "#{@config.metric_sinks.graphite.metrics_prefix}.#{service.node.fqdn}"
+
       options.config['log.dirs'] ?= '/var/kafka'  # Comma-separated, default is "/tmp/kafka-logs"
       options.config['log.dirs'] = options.config['log.dirs'].join ',' if Array.isArray options.config['log.dirs']
       options.config['zookeeper.connect'] ?= options.zookeeper_quorum
@@ -109,6 +105,25 @@ Example:
       options.config['num.partitions'] ?= service.nodes.length # Default number of log partitions per topic, default is "2"
       for node, i in service.nodes
         options.config['broker.id'] ?= "#{i}" if node.fqdn is service.node.fqdn
+
+## Metrics
+
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+
+      options.metrics.config ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.kafka.broker.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.kafka.broker.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.config['kafka.metrics.reporters'] ?= 'com.criteo.kafka.KafkaGraphiteMetricsReporter'
+        options.config['kafka.graphite.metrics.reporter.enabled'] ?= 'true'
+        options.config['kafka.graphite.metrics.host'] ?= options.metrics.sinks.graphite.config.server_host
+        options.config['kafka.graphite.metrics.port'] ?= options.metrics.sinks.graphite.config.server_port
+        options.config['kafka.graphite.metrics.group'] ?= "#{options.metrics.sinks.graphite.config.metrics_prefix}.#{service.node.fqdn}"
 
 # Log4J
 

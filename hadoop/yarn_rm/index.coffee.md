@@ -17,6 +17,7 @@
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         ranger_admin: module: 'ryba/ranger/admin'
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/yarn_rm/configure'
         # 'ryba/ranger/plugins/yarn/configure'

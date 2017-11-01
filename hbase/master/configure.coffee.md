@@ -16,6 +16,7 @@
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         hbase_master: key: ['ryba', 'hbase', 'master']
         ganglia_collector: key: ['ryba', 'ganglia']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.hbase ?= {}
       options = @config.ryba.hbase.master = service.options
@@ -317,43 +318,38 @@ additionnal informations.
 According to the default "hadoop-metrics-hbase.properties", the list of
 supported contexts are "hbase", "jvm" and "rpc".
 
-      options.metrics ?= {}
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
       options.metrics.sinks ?= {}
-      options.metrics.sinks.file ?= true
-      options.metrics.sinks.ganglia ?= !!service.use.ganglia_collector
-      options.metrics.sinks.graphite ?= false
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enbaled ?= !!service.use.ganglia_collector
+      options.metrics.sinks.graphite_enabled ?= false
       options.metrics.config ?= {}
       options.metrics.config['*.period'] ?= '60'
       options.metrics.config['*.source.filter.class'] ?= 'org.apache.hadoop.metrics2.filter.GlobFilter'
       options.metrics.config['hbase.*.source.filter.exclude'] ?= '*Regions*|*Namespace*|*User*'
       options.metrics.config['hbase.extendedperiod'] ?= '3600'
-      sinks = @config.metrics_sinks ?= {}
-      sinks.ganglia ?= {}
-      sinks.ganglia.class ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
-      sinks.ganglia.period ?= '10'
-      sinks.graphite ?= {}
-      sinks.graphite.class ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-      sinks.graphite.period ?= '10'
       # File sink
-      if options.metrics.sinks.file
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of sinks.file
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
         options.metrics.config['hbase.sink.file.filename'] ?= 'hbase-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
-      if options.metrics.sinks.ganglia
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of sinks.ganglia
-        options.metrics.config['hbase.sink.ganglia.class'] ?= sinks.ganglia.class
-        options.metrics.config['jvm.sink.ganglia.class'] ?= sinks.ganglia.class
-        options.metrics.config['rpm.sink.ganglia.class'] ?= sinks.ganglia.class
+      if options.metrics.sinks.ganglia_enbaled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.metrics.sinks.ganglia.config
+        options.metrics.config['hbase.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config['jvm.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config['rpm.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
         options.metrics.config['hbase.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
         options.metrics.config['jvm.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
         options.metrics.config['rpc.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
       # Graphite sink
-      if options.metrics.sinks.graphite
-        options.metrics.config['*.sink.graphite.metrics_prefix'] ?= if sinks.graphite.metrics_prefix? then "#{sinks.graphite.metrics_prefix}.hbase" else "hbase"
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of sinks.graphite
-        options.metrics.config['hbase.sink.graphite.class'] ?= sinks.graphite.class
-        options.metrics.config['jvm.sink.graphite.class'] ?= sinks.graphite.class
-        options.metrics.config['rpc.sink.graphite.class'] ?= sinks.graphite.class
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.hbase.master.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.hbase.master.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config['*.sink.graphite.metrics_prefix'] ?= if options.metrics.sinks.graphite.config.metrics_prefix? then "#{options.metrics.sinks.graphite.config.metrics_prefix}.hbase" else "hbase"
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of options.metrics.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config['hbase.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config['jvm.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config['rpc.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
 
 ## Wait
 

@@ -117,7 +117,7 @@
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.hadoop_core.options.metrics, options.metrics
 
 ## Export to Yarn NodeManager
 

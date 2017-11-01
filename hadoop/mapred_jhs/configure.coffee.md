@@ -10,6 +10,7 @@
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
         hdfs_client: key: ['ryba', 'hdfs_client']
         mapred_jhs: key: ['ryba', 'mapred', 'jhs']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.mapred ?= {}
       @config.ryba.mapred.jhs ?= {}
@@ -121,7 +122,44 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.hadoop_core.options.metrics, options.metrics
+      options.metrics.config ?= {}
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Unvalid metrics sink, please provide ryba.metrics.sinks.graphite.config.server_host and server_port' unless options.metrics.sinks.graphite.config.server_host? and options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of options.metrics.sinks.graphite.config
+        options.metrics.config["historyserver.sink.graphite.class"] ?= options.metrics.sinks.graphite.class
+        options.metrics.config["mrappmaster.sink.graphite.class"] ?= options.metrics.sinks.graphite.class
+
+## Metrics
+
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+
+      options.metrics.config ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # File sink
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config['mrappmaster.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['jobhistoryserver.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['mrappmaster.sink.file.filename'] ?= 'mrappmaster-metrics.out'
+        options.metrics.config['jobhistoryserver.sink.file.filename'] ?= 'jobhistoryserver-metrics.out'
+      # Ganglia sink, accepted properties are "servers" and "supportsparse"
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config["mrappmaster.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config["jobhistoryserver.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.mapred_jhs.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.mapred_jhs.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["mrappmaster.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["jobhistoryserver.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## Wait
 

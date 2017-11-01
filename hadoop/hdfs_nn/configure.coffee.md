@@ -36,6 +36,7 @@ Example:
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.nn ?= {}

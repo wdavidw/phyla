@@ -20,6 +20,7 @@ watching them for changes to the edit log.
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_jn: module: 'ryba/hadoop/hdfs_jn'
         zookeeper_server: module: 'ryba/zookeeper/server'
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/hdfs_jn/configure'
       commands:

@@ -227,7 +227,7 @@ Enable stats collection in Ganglia and Graphite
       @file.properties
         header: 'Metrics Properties'
         target: "#{options.conf_dir}/hadoop-metrics2-hbase.properties"
-        content: options.metrics.config
+        content: options.metrics.properties
         backup: true
         mode: 0o640
         uid: options.user.name
