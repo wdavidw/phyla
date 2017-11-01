@@ -67,6 +67,7 @@ The default configuration is located inside the source code in the location
 
       # Hadoop core "core-site.xml"
       options.core_site = merge {}, service.use.hdfs_client.options.core_site, options.core_site or {}
+      options.java_home ?= service.use.java.options.java_home or '/usr/java/default'
       # Env
       options.env ?= {}
       options.env.HTTPFS_SSL_ENABLED ?= 'true' # Default is "false"
@@ -106,7 +107,7 @@ Export the proxy user to all DataNodes and NameNodes
 
       for srv in [service.use.hdfs_dn..., service.use.hdfs_nn...]
         srv.options.core_site ?= {}
-        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= @contexts('ryba/hadoop/httpfs').map((ctx) -> ctx.config.host).join ','
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= service.use.httpfs.map((srv) -> srv.node.fqdn).join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
 
 ## Wait

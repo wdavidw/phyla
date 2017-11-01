@@ -118,7 +118,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             target: "#{options.conf_dir}/httpfs-env.sh"
             source: "#{__dirname}/../resources/httpfs-env.sh.j2"
             local: true
-            context: @config
+            context: options
             uid: options.user.name
             gid: options.group.name
             backup: true
