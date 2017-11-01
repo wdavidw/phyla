@@ -43,54 +43,57 @@
 
 ## Source Code
 
-    module.exports = ->
-      elasticsearch = @config.ryba.elasticsearch ?= {}
-      es_docker = @config.ryba.es_docker ?= {}
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/esdocker', ['ryba','esdocker'], require('nikita/lib/misc').merge require('.').use,
+        iptables: key: ['iptables']
+        ssl: key: ['ssl']
+        esdocker: key: ['ryba', 'esdocker']
+      options = @config.ryba.esdocker = service.options
 
-## User and Groups
+## Identities
 
       # User
-      elasticsearch.user = name: elasticsearch.user if typeof elasticsearch.user is 'string'
-      elasticsearch.user ?= {}
-      elasticsearch.user.name ?= 'elasticsearch'
-      elasticsearch.user.system ?= true
-      elasticsearch.user.comment ?= 'elasticsearch User'
-      elasticsearch.user.home ?= '/var/lib/elasticsearch'
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user ?= {}
+      options.user.name ?= 'elasticsearch'
+      options.user.system ?= true
+      options.user.comment ?= 'elasticsearch User'
+      options.user.home ?= '/var/lib/elasticsearch'
       # Group
-      elasticsearch.group = name: elasticsearch.group if typeof elasticsearch.group is 'string'
-      elasticsearch.group ?= {}
-      elasticsearch.group.name ?= 'elasticsearch'
-      elasticsearch.group.system ?= true
-      elasticsearch.user.limits ?= {}
-      elasticsearch.user.limits.nofile ?= 65536
-      elasticsearch.user.limits.nproc ?= 10000
-      elasticsearch.user.gid = elasticsearch.group.name
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group ?= {}
+      options.group.name ?= 'elasticsearch'
+      options.group.system ?= true
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 65536
+      options.user.limits.nproc ?= 10000
+      options.user.gid = options.group.name
 
 ## Elastic config
 
-      es_docker.clusters ?= {}
-      es_docker.ssl ?= {}
-      throw Error 'Required property "ryba.ssl.cacert" or "ryba.es_docker.ssl.cacert"' unless @config.ryba.ssl?.cacert? or es_docker.ssl.cacert?
-      throw Error 'Required property "ryba.ssl.cert"' unless @config.ryba.ssl?.cert? or es_docker.ssl.cert?
-      throw Error 'Required property "ryba.ssl.key"' unless @config.ryba.ssl?.key? or es_docker.ssl.key?
-      es_docker.ssl.cacert ?= @config.ryba.ssl.cacert
-      es_docker.ssl.cert ?= @config.ryba.ssl.cert
-      es_docker.ssl.key ?= @config.ryba.ssl.key
-      es_docker.ssl.dest_dir ?= "/etc/docker/certs.d"
-      es_docker.ssl.dest_cacert = "#{es_docker.ssl.dest_dir}/ca.pem"
-      es_docker.ssl.dest_cert = "#{es_docker.ssl.dest_dir}/cert.pem"
-      es_docker.ssl.dest_key = "#{es_docker.ssl.dest_dir}/key.pem"
-      es_docker.graphite ?= @config.metrics_sinks.graphite = {}
+      options.clusters ?= {}
+      options.ssl = merge {}, service.use.ssl, options.ssl
+      throw Error 'Required property "ryba.ssl.cacert" or "ryba.options.ssl.cacert"' unless options.ssl.cacert?
+      throw Error 'Required property "ryba.ssl.cert"' unless options.ssl.cert?
+      throw Error 'Required property "ryba.ssl.key"' unless options.ssl.key?
+      options.ssl.dest_dir ?= "/etc/docker/certs.d"
+      options.ssl.dest_cacert = "#{options.ssl.dest_dir}/ca.pem"
+      options.ssl.dest_cert = "#{options.ssl.dest_dir}/cert.pem"
+      options.ssl.dest_key = "#{options.ssl.dest_dir}/key.pem"
+      options.fqdn ?= servide.node.fqdn
+      options.hosts ?= service.use.esdocker.map (srv) -> srv.node.fqdn
 
-      es_docker.sysctl ?= {}
-      es_docker.sysctl["vm.max_map_count"] = 262144
+## Kernerl
+
+      options.sysctl ?= {}
+      options.sysctl["vm.max_map_count"] = 262144
       es_masters = []
 
-      for es_name,es of es_docker.clusters
-        delete es_docker.clusters[es_name] unless es.only
+      for es_name,es of options.clusters
+        delete options.clusters[es_name] unless es.only
 
-      for es_name,es of es_docker.clusters
-        es.normalized_name="#{es_name.replace(/_/g,"")}"
+      for es_name,es of options.clusters
+        es.normalized_name = "#{es_name.replace(/_/g,"")}"
         #Docker:
         es.es_version ?= "5.3.1"
         es.docker_es_image = "dc-registry-bigdata.noe.edf.fr/elasticsearch:#{es.es_version}"
