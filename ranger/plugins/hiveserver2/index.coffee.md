@@ -9,7 +9,7 @@
         hive_hcatalog: module: 'ryba/hive/hcatalog', required: true
         hive_server2: module: 'ryba/hive/server2', local: true, required: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
-        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', local: true, required: true
+        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs'
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
       configure:
         'ryba/ranger/plugins/hiveserver2/configure'
