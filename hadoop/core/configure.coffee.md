@@ -91,7 +91,7 @@ with the log message:
 java.lang.IllegalArgumentException: Does not contain a valid host:port authority: master_01.ambari.ryba:8020
 ```
 
-      throw Error "Invalid Hostname: #{@config.host} should not contain \"_\"" if /_/.test @config.host
+      throw Error "Invalid Hostname: #{service.node.fqdn} should not contain \"_\"" if /_/.test service.node.fqdn
 
 ## Environnment
 
