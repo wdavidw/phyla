@@ -110,16 +110,14 @@ Example:
 ## Metrics
 
       options.metrics = merge {}, service.use.metrics?.options, options.metrics
-
-      options.metrics.config ?= {}
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
       options.metrics.sinks.ganglia_enabled ?= false
       options.metrics.sinks.graphite_enabled ?= false
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
-        throw Error 'Missing remote_host ryba.kafka.broker.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
-        throw Error 'Missing remote_port ryba.kafka.broker.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        throw Error 'Missing remote_host ryba.kafka.broker.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config?.server_host?
+        throw Error 'Missing remote_port ryba.kafka.broker.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config?.server_port?
         options.config['kafka.metrics.reporters'] ?= 'com.criteo.kafka.KafkaGraphiteMetricsReporter'
         options.config['kafka.graphite.metrics.reporter.enabled'] ?= 'true'
         options.config['kafka.graphite.metrics.host'] ?= options.metrics.sinks.graphite.config.server_host
