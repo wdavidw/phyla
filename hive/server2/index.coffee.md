@@ -25,6 +25,7 @@ open API clients like JDBC and ODBC.
         hbase_client: module: 'ryba/hbase/client', local: true
         phoenix_client: module: 'ryba/phoenix/client'
         ranger_admin: module: 'ryba/ranger/admin', single: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hive/server2/configure'
       commands:

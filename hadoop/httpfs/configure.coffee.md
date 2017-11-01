@@ -15,6 +15,7 @@ The default configuration is located inside the source code in the location
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
         hdfs_client: key: ['ryba', 'hdfs_client']
         httpfs: key: ['ryba', 'httpfs']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       options = @config.ryba.httpfs = service.options
 
@@ -91,11 +92,13 @@ The default configuration is located inside the source code in the location
 
 ## Log4J
 
-      if @config.log4j?.remote_host? && @config.log4j?.remote_port?
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
+      if options.log4j.remote_host? && options.log4j.remote_port?
         options.catalina.opts['httpfs.log.server.logger'] = 'INFO,httpfs,socket'
         options.catalina.opts['httpfs.log.audit.logger'] = 'INFO,httpfsaudit,socket'
-        options.catalina.opts['httpfs.log.remote_host'] = @config.log4j.remote_host
-        options.catalina.opts['httpfs.log.remote_port'] = @config.log4j.remote_port
+        options.catalina.opts['httpfs.log.remote_host'] = options.log4j.remote_host
+        options.catalina.opts['httpfs.log.remote_port'] = options.log4j.remote_port
 
 ## Export
 

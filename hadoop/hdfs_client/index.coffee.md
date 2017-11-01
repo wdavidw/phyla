@@ -12,6 +12,7 @@ and perform actual file I/O directly with the DataNodes.
         # hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        log4j: module: 'ryba/log4j'
       configure:
         'ryba/hadoop/hdfs_client/configure'
       commands:

@@ -431,9 +431,10 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 
 ## Log4j
 
-      options.hadoop_root_logger ?= 'INFO,RFA'
-      options.hadoop_security_logger ?= 'INFO,RFAS'
-      options.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.hadoop_root_logger ?= 'INFO,RFA'
+      options.log4j.hadoop_security_logger ?= 'INFO,RFAS'
+      options.log4j.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
 
 ## Dependencies
 

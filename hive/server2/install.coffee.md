@@ -110,11 +110,11 @@ isnt yet started.
         source: "#{__dirname}/../resources/hive-exec-log4j.properties"
         local: true
         target: "#{options.conf_dir}/hive-exec-log4j.properties"
-        context: @config
+        context: options
       @file.properties
         header: 'Hive server Log4j properties'
         target: "#{options.conf_dir}/hive-log4j.properties"
-        content: options.log4j.config
+        content: options.log4j.properties
         backup: true
 
 ## Env

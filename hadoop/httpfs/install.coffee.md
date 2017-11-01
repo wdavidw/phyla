@@ -127,7 +127,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           target: "#{options.conf_dir}/httpfs-log4j.properties"
           source: "#{__dirname}/../resources/httpfs-log4j.properties"
           local: true
-          context: @config
+          context: options
           backup: true
         @system.link
           source: '/usr/hdp/current/hadoop-httpfs/webapps'

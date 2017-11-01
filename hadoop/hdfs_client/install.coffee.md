@@ -21,9 +21,9 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
         source: "#{__dirname}/../resources/hadoop-env.sh.j2"
         local: true
         context:
-          HADOOP_ROOT_LOGGER: @config.ryba.hadoop_root_logger
-          HADOOP_SECURITY_LOGGER: @config.ryba.hadoop_security_logger
-          HDFS_AUDIT_LOGGER: @config.ryba.hadoop_audit_logger
+          HADOOP_ROOT_LOGGER: options.log4j.hadoop_root_logger
+          HADOOP_SECURITY_LOGGER: options.log4j.hadoop_security_logger
+          HDFS_AUDIT_LOGGER: options.log4j.hadoop_audit_logger
           HADOOP_HEAPSIZE: options.hadoop_heap
           HADOOP_LOG_DIR: ''
           HADOOP_PID_DIR: ''

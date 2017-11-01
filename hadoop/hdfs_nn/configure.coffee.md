@@ -37,6 +37,7 @@ Example:
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         metrics: key: ['ryba', 'metrics']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.nn ?= {}
@@ -199,41 +200,64 @@ for distcp purpose.
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
 
-## Configuration for Log4J
+      options.metrics.config ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # File sink
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["namenode.sink.file.class"] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config['namenode.sink.file.filename'] ?= 'namenode-metrics.out'
+      # Ganglia sink, accepted properties are "servers" and "supportsparse"
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config["namenode.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.hdfs.nn.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.hdfs.nn.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["namenode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
-      options.log4j ?= {}
-      options.root_logger ?= 'INFO,RFA'
-      options.security_logger ?= 'INFO,DRFAS'
-      options.audit_logger ?= 'INFO,RFAAUDIT'
+## Log4J
+Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the variable
+`options.log4j.properties`
+
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
+      options.log4j.root_logger ?= 'INFO,RFA'
+      options.log4j.security_logger ?= 'INFO,DRFAS'
+      options.log4j.audit_logger ?= 'INFO,RFAAUDIT'
       # adding SOCKET appender
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hadoop/hdfs_nn' in @config.log4j?.services)
-          options.socket_client ?= "SOCKET"
-          # Root logger
-          if options.root_logger.indexOf(options.socket_client) is -1
-          then options.root_logger += ",#{options.socket_client}"
-          # Security Logger
-          if options.security_logger.indexOf(options.socket_client) is -1
-          then options.security_logger += ",#{options.socket_client}"
-          # Audit Logger
-          if options.audit_logger.indexOf(options.socket_client) is -1
-          then options.audit_logger += ",#{options.socket_client}"
-          # Adding Application name, remote host and port values in namenode's opts
-          options.opts['hadoop.log.application'] ?= 'namenode'
-          options.opts['hadoop.log.remote_host'] ?= @config.log4j.remote_host
-          options.opts['hadoop.log.remote_port'] ?= @config.log4j.remote_port
-          options.socket_opts ?=
-            Application: '${hadoop.log.application}'
-            RemoteHost: '${hadoop.log.remote_host}'
-            Port: '${hadoop.log.remote_port}'
-            ReconnectionDelay: '10000'
-          options.log4j = merge options.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
+      if options.log4j.remote_host? andoptions.log4j.remote_port?
+        options.log4j.socket_client ?= "SOCKET"
+        # Root logger
+        if options.log4j.root_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.root_logger += ",#{options.log4j.socket_client}"
+        # Security Logger
+        if options.log4j.security_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.security_logger += ",#{options.log4j.socket_client}"
+        # Audit Logger
+        if options.log4j.audit_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.audit_logger += ",#{options.log4j.socket_client}"
+        # Adding Application name, remote host and port values in namenode's opts
+        options.opts['hadoop.log.application'] ?= 'namenode'
+        options.opts['hadoop.log.remote_host'] ?= options.log4j.remote_host
+        options.opts['hadoop.log.remote_port'] ?= options.log4j.remote_port
+        options.log4j.socket_opts ?=
+          Application: '${hadoop.log.application}'
+          RemoteHost: '${hadoop.log.remote_host}'
+          Port: '${hadoop.log.remote_port}'
+          ReconnectionDelay: '10000'
+        options.log4j.properties = merge options.log4j.properties, appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Export configuration
 

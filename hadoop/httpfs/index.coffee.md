@@ -16,6 +16,7 @@ HTTP API.
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true # local: true, 
         httpfs: module: 'ryba/hadoop/httpfs'
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/httpfs/configure'
       commands:

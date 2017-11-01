@@ -11,6 +11,7 @@
         openldap_server: key: ['openldap_server']
         zookeeper_server: key: ['ryba', 'zookeeper']
         hdf: key: ['ryba', 'hdf']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       options = @config.ryba.nifi = service.options
 
@@ -352,8 +353,8 @@
 
 ## Log4J
 
-      options.log4j ?= {}
-      options.log4j[k] ?= v for k, v of @config.log4j
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
 
       options.logback ?= {}
       options.logback.version ?= "1.1.7"

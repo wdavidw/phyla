@@ -14,6 +14,7 @@
         hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
         hive_webhcat: key: ['ryba', 'webhcat']
         sqoop: key: ['ryba', 'sqoop']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       options = @config.ryba.webhcat = service.options
 
@@ -72,34 +73,33 @@
 
 ## Logj4 Properties
 
-      options.log4j ?= {}
-      options.log4j[k] ?= v for k, v of @config.log4j
-      if @config.log4j?.services?
-        options.opts['webhcat.root.logger'] ?= 'INFO,RFA'
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hive/webhcat' in @config.log4j?.services)
-          # adding SOCKET appender
-          options.socket_client ?= "SOCKET"
-          # Root logger
-          if options.opts['webhcat.root.logger'].indexOf(options.socket_client) is -1
-          then options.opts['webhcat.root.logger'] += ",#{options.socket_client}"
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
 
-          options.opts['webhcat.log.application'] ?= 'hive-webhcat'
-          options.opts['webhcat.log.remote_host'] ?= @config.log4j.remote_host
-          options.opts['webhcat.log.remote_port'] ?= @config.log4j.remote_port
 
-          options.socket_opts ?=
-            Application: '${options.log.application}'
-            RemoteHost: '${options.log.remote_host}'
-            Port: '${options.log.remote_port}'
-            ReconnectionDelay: '10000'
+      options.log4j.properties ?= {}
+      options.opts['webhcat.root.logger'] ?= 'INFO,RFA'
+      if options.log4j.remote_host and options.log4j.remote_port
+        # adding SOCKET appender
+        options.log4j.socket_client ?= "SOCKET"
+        # Root logger
+        if options.opts['webhcat.root.logger'].indexOf(options.log4j.socket_client) is -1
+        then options.opts['webhcat.root.logger'] += ",#{options.log4j.socket_client}"
 
-          appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
-      else
-        options.opts['webhcat.root.logger'] ?= 'INFO,RFA'
+        options.opts['webhcat.log.application'] ?= 'hive-webhcat'
+        options.opts['webhcat.log.remote_host'] ?= options.log4j.remote_host
+        options.opts['webhcat.log.remote_port'] ?= options.log4j.remote_port
+
+        options.log4j.socket_opts ?=
+          Application: '${options.log.application}'
+          RemoteHost: '${options.log.remote_host}'
+          Port: '${options.log.remote_port}'
+          ReconnectionDelay: '10000'
+
+        appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Wait
 

@@ -15,6 +15,7 @@ differences.
         java: module: 'masson/commons/java', local: true
         hdp: module: 'ryba/hdp', local: true
         zookeeper_server: module: 'ryba/zookeeper/server'
+        log4j: module: 'ryba/log4j', local: true
         # zoo_client: implicit: true, module: 'ryba/zookeeper/client'
       configure:
         'ryba/zookeeper/server/configure'

@@ -26,6 +26,7 @@ Please check Oozie page
         hive_webhcat: module: 'ryba/hive/webhcat'
         spark_client: module: 'ryba/spark/client', local: true, auto: true, implicit: true
         oozie_server: module: 'ryba/oozie/server'
+        log4j: module: 'ryba/log4j', local: true
       configure: 'ryba/oozie/server/configure'
       commands:
         backup: ->

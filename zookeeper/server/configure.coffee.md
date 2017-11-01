@@ -28,6 +28,7 @@ Example :
         hdp: key: ['hdp']
         krb5_client: key: ['krb5_client']
         zookeeper_server: key: ['ryba', 'zookeeper']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       options = @config.ryba.zookeeper = service.options
 
@@ -149,41 +150,41 @@ Example :
 
 ## Log4J
 
-      options.log4j ?= {}
-      options.log4j[k] ?= v for k, v of @config.log4j
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+
       if options.log4j.remote_host? and options.log4j.remote_port? and options.env['ZOO_LOG4J_PROP'].indexOf('SOCKET') is -1
         options.env['ZOO_LOG4J_PROP'] = "#{options.env['ZOO_LOG4J_PROP']},SOCKET"
       if options.log4j.server_port? and options.env['ZOO_LOG4J_PROP'].indexOf('SOCKETHUB') is -1
         options.env['ZOO_LOG4J_PROP'] = "#{options.env['ZOO_LOG4J_PROP']},SOCKETHUB"
-      options.log4j.config ?= {}
-      options.log4j.config['log4j.rootLogger'] ?= options.env['ZOO_LOG4J_PROP']
-      options.log4j.config['log4j.appender.CONSOLE'] ?= 'org.apache.log4j.ConsoleAppender'
-      options.log4j.config['log4j.appender.CONSOLE.Threshold'] ?= 'INFO'
-      options.log4j.config['log4j.appender.CONSOLE.layout'] ?= 'org.apache.log4j.PatternLayout'
-      options.log4j.config['log4j.appender.CONSOLE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n'
-      options.log4j.config['log4j.appender.ROLLINGFILE'] ?= 'org.apache.log4j.RollingFileAppender'
-      options.log4j.config['log4j.appender.ROLLINGFILE.Threshold'] ?= 'DEBUG'
-      options.log4j.config['log4j.appender.ROLLINGFILE.File'] ?= "#{options.log_dir}/zookeeper.log"
-      options.log4j.config['log4j.appender.ROLLINGFILE.MaxFileSize'] ?= '10MB'
-      options.log4j.config['log4j.appender.ROLLINGFILE.MaxBackupIndex'] ?= '10'
-      options.log4j.config['log4j.appender.ROLLINGFILE.layout'] ?= 'org.apache.log4j.PatternLayout'
-      options.log4j.config['log4j.appender.ROLLINGFILE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n'
-      options.log4j.config['log4j.appender.TRACEFILE'] ?= 'org.apache.log4j.FileAppender'
-      options.log4j.config['log4j.appender.TRACEFILE.Threshold'] ?= 'TRACE'
-      options.log4j.config['log4j.appender.TRACEFILE.File'] ?= "#{options.log_dir}/zookeeper_trace.log"
-      options.log4j.config['log4j.appender.TRACEFILE.layout'] = 'org.apache.log4j.PatternLayout'
-      options.log4j.config['log4j.appender.TRACEFILE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n'
+      options.log4j.properties ?= {}
+      options.log4j.properties['log4j.rootLogger'] ?= options.env['ZOO_LOG4J_PROP']
+      options.log4j.properties['log4j.appender.CONSOLE'] ?= 'org.apache.log4j.ConsoleAppender'
+      options.log4j.properties['log4j.appender.CONSOLE.Threshold'] ?= 'INFO'
+      options.log4j.properties['log4j.appender.CONSOLE.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.CONSOLE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n'
+      options.log4j.properties['log4j.appender.ROLLINGFILE'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.ROLLINGFILE.Threshold'] ?= 'DEBUG'
+      options.log4j.properties['log4j.appender.ROLLINGFILE.File'] ?= "#{options.log_dir}/zookeeper.log"
+      options.log4j.properties['log4j.appender.ROLLINGFILE.MaxFileSize'] ?= '10MB'
+      options.log4j.properties['log4j.appender.ROLLINGFILE.MaxBackupIndex'] ?= '10'
+      options.log4j.properties['log4j.appender.ROLLINGFILE.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.ROLLINGFILE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n'
+      options.log4j.properties['log4j.appender.TRACEFILE'] ?= 'org.apache.log4j.FileAppender'
+      options.log4j.properties['log4j.appender.TRACEFILE.Threshold'] ?= 'TRACE'
+      options.log4j.properties['log4j.appender.TRACEFILE.File'] ?= "#{options.log_dir}/zookeeper_trace.log"
+      options.log4j.properties['log4j.appender.TRACEFILE.layout'] = 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.TRACEFILE.layout.ConversionPattern'] ?= '%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n'
       if options.log4j.server_port
-        options.log4j.config['log4j.appender.SOCKETHUB'] ?= 'org.apache.log4j.net.SocketHubAppender'
-        options.log4j.config['log4j.appender.SOCKETHUB.Application'] ?= 'zookeeper'
-        options.log4j.config['log4j.appender.SOCKETHUB.Port'] ?= options.log4j.server_port
-        options.log4j.config['log4j.appender.SOCKETHUB.BufferSize'] ?= '100'
+        options.log4j.properties['log4j.appender.SOCKETHUB'] ?= 'org.apache.log4j.net.SocketHubAppender'
+        options.log4j.properties['log4j.appender.SOCKETHUB.Application'] ?= 'zookeeper'
+        options.log4j.properties['log4j.appender.SOCKETHUB.Port'] ?= options.log4j.server_port
+        options.log4j.properties['log4j.appender.SOCKETHUB.BufferSize'] ?= '100'
       if options.log4j.remote_host and options.log4j.remote_port
-        options.log4j.config['log4j.appender.SOCKET'] ?= 'org.apache.log4j.net.SocketAppender'
-        options.log4j.config['log4j.appender.SOCKET.Application'] ?= 'zookeeper'
-        options.log4j.config['log4j.appender.SOCKET.RemoteHost'] ?= options.log4j.remote_host
-        options.log4j.config['log4j.appender.SOCKET.Port'] ?= options.log4j.remote_port
-        options.log4j.config['log4j.appender.SOCKET.ReconnectionDelay'] ?= '10000'
+        options.log4j.properties['log4j.appender.SOCKET'] ?= 'org.apache.log4j.net.SocketAppender'
+        options.log4j.properties['log4j.appender.SOCKET.Application'] ?= 'zookeeper'
+        options.log4j.properties['log4j.appender.SOCKET.RemoteHost'] ?= options.log4j.remote_host
+        options.log4j.properties['log4j.appender.SOCKET.Port'] ?= options.log4j.remote_port
+        options.log4j.properties['log4j.appender.SOCKET.ReconnectionDelay'] ?= '10000'
 
 ## Test
 
@@ -205,3 +206,4 @@ Example :
 ## Dependencies
 
     migration = require 'masson/lib/migration'
+    {merge} = require 'nikita/lib/misc'

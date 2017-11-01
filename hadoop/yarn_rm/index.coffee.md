@@ -18,6 +18,7 @@
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         ranger_admin: module: 'ryba/ranger/admin'
         metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/yarn_rm/configure'
         # 'ryba/ranger/plugins/yarn/configure'

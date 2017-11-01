@@ -36,6 +36,7 @@ Example:
         zookeeper_server: key: ['ryba', 'zookeeper']
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
         metrics: key: ['ryba', 'metrics']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.dn ?= {}
@@ -189,40 +190,42 @@ memory that you can lock than what you have configured.
         options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## Configuration for Log4J
+Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the variable
+`options.log4j.properties`
 
-      options.log4j ?= {}
-      options.root_logger ?= 'INFO,RFA'
-      options.security_logger ?= 'INFO,RFAS'
-      options.audit_logger ?= 'INFO,RFAAUDIT'
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? && @config.log4j?.remote_port? && ('ryba/hadoop/hdfs_dn' in @config.log4j.services)
-          # Root logger
-          if options.root_logger.indexOf(options.socket_client) is -1
-          then options.root_logger += ",#{options.socket_client}"
-          # Security Logger
-          if options.security_logger.indexOf(options.socket_client) is -1
-          then options.security_logger += ",#{options.socket_client}"
-          # Audit Logger
-          if options.audit_logger.indexOf(options.socket_client) is -1
-          then options.audit_logger += ",#{options.socket_client}"
-          # adding SOCKET appender
-          options.socket_client ?= "SOCKET"
-          # Adding Application name, remote host and port values in namenode's opts
-          options.opts['hadoop.log.application'] ?= 'namenode'
-          options.opts['hadoop.log.remote_host'] ?= @config.log4j.remote_host
-          options.opts['hadoop.log.remote_port'] ?= @config.log4j.remote_port
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
+      options.log4j.root_logger ?= 'INFO,RFA'
+      options.log4j.security_logger ?= 'INFO,RFAS'
+      options.log4j.audit_logger ?= 'INFO,RFAAUDIT'
+      if options.log4j.remote_host? and options.log4j.remote_port?
+        # Root logger
+        if options.log4j.root_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.root_logger += ",#{options.log4j.socket_client}"
+        # Security Logger
+        if options.log4j.security_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.security_logger += ",#{options.log4j.socket_client}"
+        # Audit Logger
+        if options.log4j.audit_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.audit_logger += ",#{options.log4j.socket_client}"
+        # adding SOCKET appender
+        options.log4j.socket_client ?= "SOCKET"
+        # Adding Application name, remote host and port values in namenode's opts
+        options.opts['hadoop.log.application'] ?= 'datanode'
+        options.opts['hadoop.log.remote_host'] ?= options.log4j.remote_host
+        options.opts['hadoop.log.remote_port'] ?= options.log4j.remote_port
 
-          options.socket_opts ?=
-            Application: '${hadoop.log.application}'
-            RemoteHost: '${hadoop.log.remote_host}'
-            Port: '${hadoop.log.remote_port}'
-            ReconnectionDelay: '10000'
+        options.log4j.socket_opts ?=
+          Application: '${hadoop.log.application}'
+          RemoteHost: '${hadoop.log.remote_host}'
+          Port: '${hadoop.log.remote_port}'
+          ReconnectionDelay: '10000'
 
-          options.log4j = merge options.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
+        options.log4j.properties = merge options.log4j.properties, appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Wait
 
@@ -257,3 +260,4 @@ memory that you can lock than what you have configured.
 
     {merge} = require 'nikita/lib/misc'
     migration = require 'masson/lib/migration'
+    appender = require '../../lib/appender'

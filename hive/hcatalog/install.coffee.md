@@ -102,7 +102,7 @@ isnt yet started.
       @file.properties
         header: 'Hive server Log4j properties'
         target: "#{options.conf_dir}/hive-log4j.properties"
-        content: options.log4j.config
+        content: options.log4j.properties
         backup: true
       @file.render
         header: 'Exec Log4j'
