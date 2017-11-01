@@ -10,13 +10,17 @@ Ryba can deploy Elasticsearch in the  secured Hadoop cluster.
 Elastic search configuration for hadoop can be found at [Hortonworks Section](hortonworks.com/blog/configure-elastic-search-hadoop-hdp-2-0)
 
     module.exports =
+      use: {}
+        iptables: module: 'masson/core/iptables', local: true
+        ssl: module: 'masson/core/ssl', local: true
+        esdocker: module: 'ryba/esdocker'
       configure:
         'ryba/esdocker/configure'
       commands:
-        'install':[
-          'ryba/esdocker/prepare'
-          'ryba/esdocker/install'
-        ]
-        'prepare':[
-          'ryba/esdocker/prepare'
-        ]
+        'install': ->
+          options = @config.ryba.esdocker
+          @call 'ryba/esdocker/prepare', options
+          @call 'ryba/esdocker/install', options
+        'prepare': ->
+          options = @config.ryba.esdocker
+          @call 'ryba/esdocker/prepare', options

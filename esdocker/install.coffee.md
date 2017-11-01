@@ -1,20 +1,24 @@
 # Elasticsearch (Docker) Install
 
-    module.exports =  header: 'Docker ES Install', handler: ->
-      {swarm_manager,clusters,ssl,sysctl} = @config.ryba.es_docker
-      elasticsearch = @config.ryba.elasticsearch
+    module.exports =  header: 'Docker ES Install', handler: (options) ->
 
-      @system.group elasticsearch.group
-      @system.user elasticsearch.user
+## Identities
+
+      @system.group options.group
+      @system.user options.user
+
+## Limits
 
       @system.limits
         header: 'Ulimit'
-        user: elasticsearch.user.name
-      , elasticsearch.user.limits
+        user: options.user.name
+      , options.user.limits
+
+## Kernel
 
       @call header: 'Kernel', (_, next) ->
         @system.execute
-          if: Object.keys(sysctl).length
+          if: Object.keys(options.sysctl).length
           cmd: 'sysctl -a'
           stdout: null
           shy: true
@@ -22,7 +26,7 @@
           throw err if err
           content = misc.ini.parse content
           properties = {}
-          for k, v of sysctl
+          for k, v of options.sysctl
             v = "#{v}"
             properties[k] = v if content[k] isnt v
           return next null, false unless Object.keys(properties).length
@@ -30,7 +34,7 @@
             current = misc.ini.parse config
             #merge properties from current config
             for k, v of current
-              properties[k] = v if sysctl[k] isnt v
+              properties[k] = v if options.sysctl[k] isnt v
             @file
               header: 'Write Kernel Parameters'
               target: '/etc/sysctl.conf'
@@ -48,23 +52,24 @@
 ## SSL Certificate
 
       @file.download
-        source: ssl.cacert
-        target: ssl.dest_cacert
+        source: options.ssl.cacert
+        target: options.ssl.dest_cacert
         mode: 0o0640
         shy: true
       @file.download
-        source: ssl.cert
-        target: ssl.dest_cert
+        source: options.ssl.cert
+        target: options.ssl.dest_cert
         mode: 0o0640
         shy: true
       @file.download
-        source: ssl.key
-        target: ssl.dest_key
+        source: options.ssl.key
+        target: options.ssl.dest_key
         mode: 0o0640
         shy: true
 
-      es_servers =  @contexts('ryba/esdocker').map((ctx) -> ctx.config.host)
-      for es_name,es of clusters then do (es_name,es) =>
+## Write YAML Files
+
+      for es_name,es of options.clusters then do (es_name,es) =>
         docker_services = {}
         docker_networks = {}
 
@@ -90,13 +95,13 @@
           local: true
           backup: true
 
-        @system.mkdir directory:"#{path}/#{es_name}" ,uid:elasticsearch.user.name, gid: elasticsearch.user.name for path in es.data_path
-        @system.mkdir directory:"#{es.plugins_path}",uid:elasticsearch.user.name, gid: elasticsearch.user.name
-        @system.mkdir directory:"#{es.plugins_path}/#{es.es_version}",uid:elasticsearch.user.name, gid: elasticsearch.user.name
-        @system.mkdir directory:"#{es.logs_path}/#{es_name}", uid:elasticsearch.user.name, gid: elasticsearch.user.name
-        @system.mkdir directory:"#{es.logs_path}/#{es_name}/logstash",uid:elasticsearch.user.name, gid: elasticsearch.user.name
-        @system.mkdir directory:"/etc/elasticsearch/#{es_name}/scripts",uid:elasticsearch.user.name, gid: elasticsearch.user.name
-        @system.mkdir directory:"/etc/elasticsearch/keytabs",uid:elasticsearch.user.name, gid: elasticsearch.user.name
+        @system.mkdir directory:"#{path}/#{es_name}" ,uid: options.user.name, gid: options.user.name for path in es.data_path
+        @system.mkdir directory:"#{es.plugins_path}",uid: options.user.name, gid: options.user.name
+        @system.mkdir directory:"#{es.plugins_path}/#{es.es_version}",uid: options.user.name, gid: options.user.name
+        @system.mkdir directory:"#{es.logs_path}/#{es_name}", uid: options.user.name, gid: options.user.name
+        @system.mkdir directory:"#{es.logs_path}/#{es_name}/logstash",uid: options.user.name, gid: options.user.name
+        @system.mkdir directory:"/etc/elasticsearch/#{es_name}/scripts",uid: options.user.name, gid: options.user.name
+        @system.mkdir directory:"/etc/elasticsearch/keytabs",uid: options.user.name, gid: options.user.name
 
         @each es.downloaded_urls,(options,callback) ->
           extract_target  = if options.value.indexOf("github") != -1  then "#{es.plugins_path}/#{es.es_version}/" else "#{es.plugins_path}/#{es.es_version}/#{options.key}"
@@ -105,8 +110,8 @@
               cache_file: "./#{options.key}.zip"
               source: options.value
               target: "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip"
-              uid: elasticsearch.user.name
-              gid: elasticsearch.user.name
+              uid: options.user.name
+              gid: options.user.name
               shy: true
             @tools.extract
               format: "zip"
@@ -120,7 +125,7 @@
 
 ## Generate compose file
 
-        if @config.host is es_servers[es_servers.length-1]
+        if options.fqdn is options.hosts[options.hosts.length-1]
           #TODO create overlay network if the network does not exist
           docker_networks["#{es.network.name}"] = external: es.network.external
           master_node = if es.master_nodes > 0
@@ -179,8 +184,8 @@
 ## Run docker compose file
 
           [docker_args,export_vars] = [
-            {host:swarm_manager,tlsverify:" ",tlscacert:ssl.dest_cacert,tlscert:ssl.dest_cert,tlskey:ssl.dest_key},
-            "export DOCKER_HOST=#{swarm_manager};export DOCKER_CERT_PATH=#{ssl.dest_dir};export DOCKER_TLS_VERIFY=1"
+            {host:options.swarm_manager,tlsverify:" ",tlscacert:options.ssl.dest_cacert,tlscert:options.ssl.dest_cert,tlskey:options.ssl.dest_key},
+            "export DOCKER_HOST=#{options.swarm_manager};export DOCKER_CERT_PATH=#{options.ssl.dest_dir};export DOCKER_TLS_VERIFY=1"
             ]
 
           for service,node of es.nodes then do (service,node) =>
