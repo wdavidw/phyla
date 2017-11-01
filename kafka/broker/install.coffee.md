@@ -159,12 +159,12 @@ Set Log4j properties
       @file.properties
         header: 'Broker Log4j'
         target: "#{options.conf_dir}/log4j.properties"
-        content: options.log4j.config
+        content: options.log4j.properties
         backup: true
       @file.properties
         header: 'Common Log4j'
         target: "/etc/kafka/conf/log4j.properties"
-        content: options.log4j.config
+        content: options.log4j.properties
         backup: true
 
 Modify bin scripts to set $KAFKA_HOME variable to match /etc/kafka-broker/conf.

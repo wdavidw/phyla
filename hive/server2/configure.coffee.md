@@ -43,6 +43,7 @@ Example:
         hbase_client: key: ['ryba', 'hbase', 'client']
         phoenix_client: key: ['ryba', 'phoenix'] # actuall, phoenix expose no configuration
         ranger_admin: key: ['ryba', 'ranger', 'admin']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.hive ?= {}
       options = @config.ryba.hive.server2 = service.options
@@ -217,80 +218,79 @@ and its value is the server "host:port".
 
 # Configure Log4J
 
-      options.log4j ?= {}
-      options.log4j[k] ?= v for k, v of @config.log4j
-      config = options.log4j.config ?= {}
-      config['hive.log.file'] ?= 'hiveserver2.log'
-      config['hive.log.dir'] ?= "#{options.log_dir}"
-      config['log4j.appender.EventCounter'] ?= 'org.apache.hadoop.hive.shims.HiveEventCounter'
-      config['log4j.appender.console'] ?= 'org.apache.log4j.ConsoleAppender'
-      config['log4j.appender.console.target'] ?= 'System.err'
-      config['log4j.appender.console.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.console.layout.ConversionPattern'] ?= '%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n'
-      config['log4j.appender.console.encoding'] ?= 'UTF-8'
-      config['log4j.appender.RFAS'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.RFAS.File'] ?= '${hive.log.dir}/${hive.log.file}'
-      config['log4j.appender.RFAS.MaxFileSize'] ?= '20MB'
-      config['log4j.appender.RFAS.MaxBackupIndex'] ?= '10'
-      config['log4j.appender.RFAS.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.RFAS.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} - %m%n'
-      config['log4j.appender.DRFA'] ?= 'org.apache.log4j.DailyRollingFileAppender'
-      config['log4j.appender.DRFA.File'] ?= '${hive.log.dir}/${hive.log.file}'
-      config['log4j.appender.DRFA.DatePattern'] ?= '.yyyy-MM-dd'
-      config['log4j.appender.DRFA.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.DRFA.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n'
-      config['log4j.appender.DAILY'] ?= 'org.apache.log4j.rolling.RollingFileAppender'
-      config['log4j.appender.DAILY.rollingPolicy'] ?= 'org.apache.log4j.rolling.TimeBasedRollingPolicy'
-      config['log4j.appender.DAILY.rollingPolicy.ActiveFileName'] ?= '${hive.log.dir}/${hive.log.file}'
-      config['log4j.appender.DAILY.rollingPolicy.FileNamePattern'] ?= '${hive.log.dir}/${hive.log.file}.%d{yyyy-MM-dd}'
-      config['log4j.appender.DAILY.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.DAILY.layout.ConversionPattern'] ?= '%d{dd MMM yyyy HH:mm:ss,SSS} %-5p [%t] (%C.%M:%L) %x - %m%n'
-      config['log4j.appender.AUDIT'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.AUDIT.File'] ?= '${hive.log.dir}/hiveserver2_audit.log'
-      config['log4j.appender.AUDIT.MaxFileSize'] ?= '20MB'
-      config['log4j.appender.AUDIT.MaxBackupIndex'] ?= '10'
-      config['log4j.appender.AUDIT.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.AUDIT.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n'
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
+      options.log4j.properties['hive.log.file'] ?= 'hiveserver2.log'
+      options.log4j.properties['hive.log.dir'] ?= "#{options.log_dir}"
+      options.log4j.properties['log4j.appender.EventCounter'] ?= 'org.apache.hadoop.hive.shims.HiveEventCounter'
+      options.log4j.properties['log4j.appender.console'] ?= 'org.apache.log4j.ConsoleAppender'
+      options.log4j.properties['log4j.appender.console.target'] ?= 'System.err'
+      options.log4j.properties['log4j.appender.console.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.console.layout.ConversionPattern'] ?= '%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n'
+      options.log4j.properties['log4j.appender.console.encoding'] ?= 'UTF-8'
+      options.log4j.properties['log4j.appender.RFAS'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.RFAS.File'] ?= '${hive.log.dir}/${hive.log.file}'
+      options.log4j.properties['log4j.appender.RFAS.MaxFileSize'] ?= '20MB'
+      options.log4j.properties['log4j.appender.RFAS.MaxBackupIndex'] ?= '10'
+      options.log4j.properties['log4j.appender.RFAS.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.RFAS.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} - %m%n'
+      options.log4j.properties['log4j.appender.DRFA'] ?= 'org.apache.log4j.DailyRollingFileAppender'
+      options.log4j.properties['log4j.appender.DRFA.File'] ?= '${hive.log.dir}/${hive.log.file}'
+      options.log4j.properties['log4j.appender.DRFA.DatePattern'] ?= '.yyyy-MM-dd'
+      options.log4j.properties['log4j.appender.DRFA.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.DRFA.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n'
+      options.log4j.properties['log4j.appender.DAILY'] ?= 'org.apache.log4j.rolling.RollingFileAppender'
+      options.log4j.properties['log4j.appender.DAILY.rollingPolicy'] ?= 'org.apache.log4j.rolling.TimeBasedRollingPolicy'
+      options.log4j.properties['log4j.appender.DAILY.rollingPolicy.ActiveFileName'] ?= '${hive.log.dir}/${hive.log.file}'
+      options.log4j.properties['log4j.appender.DAILY.rollingPolicy.FileNamePattern'] ?= '${hive.log.dir}/${hive.log.file}.%d{yyyy-MM-dd}'
+      options.log4j.properties['log4j.appender.DAILY.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.DAILY.layout.ConversionPattern'] ?= '%d{dd MMM yyyy HH:mm:ss,SSS} %-5p [%t] (%C.%M:%L) %x - %m%n'
+      options.log4j.properties['log4j.appender.AUDIT'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.AUDIT.File'] ?= '${hive.log.dir}/hiveserver2_audit.log'
+      options.log4j.properties['log4j.appender.AUDIT.MaxFileSize'] ?= '20MB'
+      options.log4j.properties['log4j.appender.AUDIT.MaxBackupIndex'] ?= '10'
+      options.log4j.properties['log4j.appender.AUDIT.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.AUDIT.layout.ConversionPattern'] ?= '%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n'
 
       options.log4j.appenders = ',RFAS'
       options.log4j.audit_appenders = ',AUDIT'
       if options.log4j.remote_host and options.log4j.remote_port
         options.log4j.appenders = options.log4j.appenders + ',SOCKET'
         options.log4j.audit_appenders = options.log4j.audit_appenders + ',SOCKET'
-        config['log4j.appender.SOCKET'] ?= 'org.apache.log4j.net.SocketAppender'
-        config['log4j.appender.SOCKET.Application'] ?= 'hiveserver2'
-        config['log4j.appender.SOCKET.RemoteHost'] ?= options.log4j.remote_host
-        config['log4j.appender.SOCKET.Port'] ?= options.log4j.remote_port
+        options.log4j.properties['log4j.appender.SOCKET'] ?= 'org.apache.log4j.net.SocketAppender'
+        options.log4j.properties['log4j.appender.SOCKET.Application'] ?= 'hiveserver2'
+        options.log4j.properties['log4j.appender.SOCKET.RemoteHost'] ?= options.log4j.remote_host
+        options.log4j.properties['log4j.appender.SOCKET.Port'] ?= options.log4j.remote_port
 
-      config['log4j.category.DataNucleus'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.Datastore'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.Datastore.Schema'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.Datastore'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.Plugin'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.MetaData'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.Query'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.General'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.category.JPOX.Enhancer'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.conf.Configuration'] ?= 'ERROR' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper.server.ServerCnxn'] ?= 'WARN' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper.server.NIOServerCnxn'] ?= 'WARN' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper.ClientCnxn'] ?= 'WARN' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper.ClientCnxnSocket'] ?= 'WARN' + options.log4j.appenders
-      config['log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO'] ?= 'WARN' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.ql.log.PerfLogger'] ?= '${hive.ql.log.PerfLogger.level}'
-      config['log4j.logger.org.apache.hadoop.hive.ql.exec.Operator'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.serde2.lazy'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.metastore.ObjectStore'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.metastore.MetaStore'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.metastore.HiveMetaStore'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.logger.org.apache.hadoop.hive.metastore.HiveMetaStore.audit'] ?= 'INFO' + options.log4j.audit_appenders
-      config['log4j.additivity.org.apache.hadoop.hive.metastore.HiveMetaStore.audit'] ?= false
-      config['log4j.logger.server.AsyncHttpConnection'] ?= 'OFF'
-      config['hive.log.threshold'] ?= 'ALL'
-      config['hive.root.logger'] ?= 'INFO' + options.log4j.appenders
-      config['log4j.rootLogger'] ?= '${hive.root.logger}, EventCounter'
-      config['log4j.threshold'] ?= '${hive.log.threshold}'
+      options.log4j.properties['log4j.category.DataNucleus'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.Datastore'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.Datastore.Schema'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.Datastore'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.Plugin'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.MetaData'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.Query'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.General'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.category.JPOX.Enhancer'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.conf.Configuration'] ?= 'ERROR' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper.server.ServerCnxn'] ?= 'WARN' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper.server.NIOServerCnxn'] ?= 'WARN' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper.ClientCnxn'] ?= 'WARN' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper.ClientCnxnSocket'] ?= 'WARN' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO'] ?= 'WARN' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.ql.log.PerfLogger'] ?= '${hive.ql.log.PerfLogger.level}'
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.ql.exec.Operator'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.serde2.lazy'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.metastore.ObjectStore'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.metastore.MetaStore'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.metastore.HiveMetaStore'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.logger.org.apache.hadoop.hive.metastore.HiveMetaStore.audit'] ?= 'INFO' + options.log4j.audit_appenders
+      options.log4j.properties['log4j.additivity.org.apache.hadoop.hive.metastore.HiveMetaStore.audit'] ?= false
+      options.log4j.properties['log4j.logger.server.AsyncHttpConnection'] ?= 'OFF'
+      options.log4j.properties['hive.log.threshold'] ?= 'ALL'
+      options.log4j.properties['hive.root.logger'] ?= 'INFO' + options.log4j.appenders
+      options.log4j.properties['log4j.rootLogger'] ?= '${hive.root.logger}, EventCounter'
+      options.log4j.properties['log4j.threshold'] ?= '${hive.log.threshold}'
 
 # Hive On HBase
 

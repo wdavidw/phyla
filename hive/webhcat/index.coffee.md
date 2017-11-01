@@ -16,6 +16,7 @@
         hive_client: module: 'ryba/hive/client', local: true, auto: true, implicit: true
         hive_webhcat: module: 'ryba/hive/webhcat'
         sqoop: module: 'ryba/sqoop'
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hive/webhcat/configure'
       commands:

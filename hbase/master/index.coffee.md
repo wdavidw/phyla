@@ -22,6 +22,7 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         hbase_master: module: 'ryba/hbase/master'
         ganglia_collector: module: 'ryba/retired/ganglia/collector', single: true
         metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hbase/master/configure'
         # 'ryba/ranger/plugins/hbase/configure'

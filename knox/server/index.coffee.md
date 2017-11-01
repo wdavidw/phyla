@@ -26,6 +26,7 @@ with Hadoop clusters.
         hbase_rest: module: 'ryba/hbase/rest'
         knox_server: module: 'ryba/knox/server'
         ranger_admin: module: 'ryba/ranger/admin', single: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/knox/server/configure'
       commands:

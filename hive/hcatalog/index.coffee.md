@@ -27,6 +27,7 @@ format their data is stored — RCFile format, text files, SequenceFiles, or ORC
         hive_metastore: module: 'ryba/hive/metastore', local: true, auto: true, implicit: true
         hive_hcatalog: module: 'ryba/hive/hcatalog'
         hbase_client: module: 'ryba/hbase/client', local: true, recommanded: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hive/hcatalog/configure'
       commands:

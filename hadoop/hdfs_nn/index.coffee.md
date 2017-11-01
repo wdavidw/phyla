@@ -20,6 +20,7 @@ does not store the data of these files itself. It’s important that this metada
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
         ranger_admin: module: 'ryba/ranger/admin', single: true
         metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/hdfs_nn/configure'
         # 'ryba/ranger/plugins/hdfs/configure'

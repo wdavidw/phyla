@@ -201,7 +201,7 @@ Write the ZooKeeper logging configuration file.
       @file.properties
         header: 'Log4J'
         target: "#{options.conf_dir}/log4j.properties"
-        content: options.log4j.config
+        content: options.log4j.properties
         backup: true
 
 ## Schedule Purge Transaction Logs

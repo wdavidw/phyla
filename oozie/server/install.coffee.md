@@ -511,7 +511,7 @@ the ShareLib contents without having to go into HDFS.
         source: "#{__dirname}/../resources/oozie-log4j.properties"
         local: true
         backup: true
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "^#{quote k}=.*$", 'mg'
           replace: "#{k}=#{v}"
           append: true

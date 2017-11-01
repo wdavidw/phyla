@@ -18,6 +18,7 @@ log. It is fast, scalable, durable and distributed by design.
         kafka_broker: module: 'ryba/kafka/broker'
         ranger_admin: module: 'ryba/ranger/admin'
         metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/kafka/broker/configure'
       commands:

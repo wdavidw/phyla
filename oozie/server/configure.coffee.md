@@ -43,6 +43,7 @@ Example
         hive_webhcat: key: ['ryba', 'webhcat']
         spark_client: key: ['ryba', 'hive', 'client']
         oozie_server: key: ['ryba', 'oozie', 'server']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.oozie ?= {}
       options = @config.ryba.oozie.server = service.options
@@ -253,13 +254,15 @@ hdfs_client configuration directory.
 
 ## Configuration for Log4J
 
-      options.log4j ?= {}
-      options.log4j.opts ?= {}
-      options.log4j.opts[k] ?= v for k, v of @config.log4j
-      if options.log4j.opts.server_port?
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.opts ?= {}# used to set variable in oozie-env.sh
+      if options.log4j.server_port?
         options.log4j.opts['extra_appender'] = ",socket_server"
-      if options.log4j.opts.remote_host? && options.log4j.opts.remote_port?
+        options.log4j.opts['server_port'] = options.log4j.server_port
+      if options.log4j.remote_host? && options.log4j.remote_port?
         options.log4j.opts['extra_appender'] = ",socket_client"
+        options.log4j.opts.remote_host ?= options.log4j.remote_host
+        options.log4j.opts.remote_port ?= options.log4j.remote_port
       options.log4j_opts = ""
       options.log4j_opts += " -Doozie.log4j.#{k}=#{v}" for k, v of options.log4j.opts
 

@@ -164,7 +164,7 @@ inside "/etc/init.d" and activate it on startup.
         target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true
@@ -184,7 +184,7 @@ inside "/etc/init.d" and activate it on startup.
             YARN_RESOURCEMANAGER_HEAPSIZE: options.heapsize
             YARN_RESOURCEMANAGER_OPTS: options.java_opts
             # YARN_OPTS: options.client_opts # should be yarn_client.opts, not sure if needed
-            YARN_ROOT_LOGGER: options.root_logger
+            YARN_ROOT_LOGGER: options.log4j.root_logger
           uid: options.user.name
           gid: options.hadoop_group.name
           mode: 0o0755

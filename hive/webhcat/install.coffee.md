@@ -173,7 +173,7 @@ Copy the spnego keytab with restricitive permissions
         target: "#{options.conf_dir}/webhcat-log4j.properties"
         source: "#{__dirname}/../resources/webhcat-log4j.properties"
         local: true
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

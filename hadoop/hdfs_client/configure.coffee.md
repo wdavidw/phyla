@@ -8,6 +8,7 @@
         hadoop_core: key: ['ryba']
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
+        log4j: key: ['ryba', 'log4j']
       options = @config.ryba.hdfs_client = service.options
 
 ## Identities
@@ -90,6 +91,13 @@ is already handled by kerberos
         'dfs.client.read.shortcircuit'
         'dfs.domain.socket.path'
       ] then options.hdfs_site[property] ?= service.use.hdfs_dn[0].options.hdfs_site[property]
+
+## Log4j
+
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.hadoop_root_logger ?= 'INFO,RFA'
+      options.log4j.hadoop_security_logger ?= 'INFO,RFAS'
+      options.log4j.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
 
 ## Test
 

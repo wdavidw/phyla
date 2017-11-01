@@ -14,6 +14,7 @@
         hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         ganglia_collector: key: ['ryba', 'ganglia']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.hbase ?= {}
       options = @config.ryba.hbase.regionserver = service.options
@@ -146,37 +147,37 @@ Metrics information are entirely derived from the Master.
 
 ## Configuration for Log4J
 
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+
       options.opts['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
-      options.log4j ?= {}
       #HBase bin script use directly environment bariables
       options.env['HBASE_ROOT_LOGGER'] ?= 'INFO,RFA'
       options.env['HBASE_SECURITY_LOGGER'] ?= 'INFO,RFAS'
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hbase/regionserver' in @config.log4j?.services)
-          # adding SOCKET appender
-          options.socket_client ?= "SOCKET"
-          # Root logger
-          if options.env['HBASE_ROOT_LOGGER'].indexOf(options.socket_client) is -1
-          then options.env['HBASE_ROOT_LOGGER'] += ",#{options.socket_client}"
-          # Security Logger
-          if options.env['HBASE_SECURITY_LOGGER'].indexOf(options.socket_client) is -1
-          then options.env['HBASE_SECURITY_LOGGER']+= ",#{options.socket_client}"
+      if options.log4j.remote_host? and options.log4j.remote_port?
+        # adding SOCKET appender
+        options.log4j.socket_client ?= "SOCKET"
+        # Root logger
+        if options.env['HBASE_ROOT_LOGGER'].indexOf(options.log4j.socket_client) is -1
+        then options.env['HBASE_ROOT_LOGGER'] += ",#{options.log4j.socket_client}"
+        # Security Logger
+        if options.env['HBASE_SECURITY_LOGGER'].indexOf(options.log4j.socket_client) is -1
+        then options.env['HBASE_SECURITY_LOGGER']+= ",#{options.log4j.socket_client}"
 
-          options.opts['hbase.log.application'] = 'hbase-regionserver'
-          options.opts['hbase.log.remote_host'] = @config.log4j.remote_host
-          options.opts['hbase.log.remote_port'] = @config.log4j.remote_port
+        options.opts['hbase.log.application'] = 'hbase-regionserver'
+        options.opts['hbase.log.remote_host'] = options.log4j.remote_host
+        options.opts['hbase.log.remote_port'] = options.log4j.remote_port
 
-          options.socket_opts ?=
-            Application: '${hbase.log.application}'
-            RemoteHost: '${hbase.log.remote_host}'
-            Port: '${hbase.log.remote_port}'
-            ReconnectionDelay: '10000'
+        options.log4j.socket_opts ?=
+          Application: '${hbase.log.application}'
+          RemoteHost: '${hbase.log.remote_host}'
+          Port: '${hbase.log.remote_port}'
+          ReconnectionDelay: '10000'
 
-          options.log4j = merge options.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
+        options.log4j.properties = merge options.log4j.properties, appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Wait
 

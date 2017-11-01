@@ -31,6 +31,7 @@ loop on topologies to provide missing values
         hbase_rest: key: ['ryba', 'hbase', 'rest']
         knox_server: key: ['ryba', 'knox']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
+        log4j: key: ['ryba', 'log4j']
         # ranger_knox: key: ['ryba', 'ranger', 'knox']
       @config.ryba ?= {}
       options = @config.ryba.knox = service.options
@@ -411,30 +412,30 @@ This mechanism can be used to configure a specific gateway without having to dec
 
 ## Configuration for Log4J
 
-      options.log4j ?= {}
-      options.log4jopts ?= {}
-      options.log4jopts['app.log.dir'] ?= "#{options.log_dir}"
-      options.log4jopts['log4j.rootLogger'] ?= 'ERROR,rfa'
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/knox' in @config.log4j?.services)
-          options.socket_client ?= 'SOCKET'
-          # Root logger
-          if options.log4jopts['log4j.rootLogger'].indexOf(options.socket_client) is -1
-          then options.log4jopts['log4j.rootLogger'] += ",#{options.socket_client}"
-          # Set java opts
-          options.log4jopts['app.log.application'] ?= 'knox'
-          options.log4jopts['app.log.remote_host'] ?= @config.log4j.remote_host
-          options.log4jopts['app.log.remote_port'] ?= @config.log4j.remote_port
-          options.socket_opts ?=
-            Application: '${app.log.application}'
-            RemoteHost: '${app.log.remote_host}'
-            Port: '${app.log.remote_port}'
-            ReconnectionDelay: '10000'
-          options.log4j = merge options.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
+      options.log4j ?= merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.properties ?= {}
+      options.log4j.properties ?= {}
+      options.log4j.properties['app.log.dir'] ?= "#{options.log_dir}"
+      options.log4j.properties['log4j.rootLogger'] ?= 'ERROR,rfa'
+      if options.remote_host? and options.remote_port?
+        options.log4j.socket_client ?= 'SOCKET'
+        # Root logger
+        if options.log4j.properties['log4j.rootLogger'].indexOf(options.log4j.socket_client) is -1
+        then options.log4j.properties['log4j.rootLogger'] += ",#{options.log4j.socket_client}"
+        # Set java opts
+        options.log4j.properties['app.log.application'] ?= 'knox'
+        options.log4j.properties['app.log.remote_host'] ?= options.log4j.remote_host
+        options.log4j.properties['app.log.remote_port'] ?= options.log4j.remote_port
+        options.log4j.socket_opts ?=
+          Application: '${app.log.application}'
+          RemoteHost: '${app.log.remote_host}'
+          Port: '${app.log.remote_port}'
+          ReconnectionDelay: '10000'
+        appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Wait
 

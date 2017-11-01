@@ -23,6 +23,8 @@ information and heartbeats to both.
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
+        metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/hdfs_dn/configure'
       commands:

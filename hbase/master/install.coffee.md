@@ -215,7 +215,7 @@ https://hbase.apache.org/book/security.html
         target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

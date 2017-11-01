@@ -150,9 +150,9 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
           context:
-            HADOOP_ROOT_LOGGER: options.root_logger
-            HADOOP_SECURITY_LOGGER: options.security_logger
-            HDFS_AUDIT_LOGGER: options.audit_logger
+            HADOOP_ROOT_LOGGER: options.log4j.root_logger
+            HADOOP_SECURITY_LOGGER: options.log4j.security_logger
+            HDFS_AUDIT_LOGGER: options.log4j.audit_logger
             HADOOP_HEAPSIZE: options.hadoop_heap
             HADOOP_NAMENODE_OPTS: options.java_opts
             HADOOP_NAMENODE_INIT_HEAPSIZE: options.hadoop_namenode_init_heap
@@ -175,7 +175,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
         header: 'Log4j'
         target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

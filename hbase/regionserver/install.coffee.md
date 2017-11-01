@@ -221,7 +221,7 @@ Enable stats collection in Ganglia and Graphite
         target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-        write: for k, v of options.log4j
+        write: for k, v of options.log4j.properties
           match: RegExp "#{k}=.*", 'm'
           replace: "#{k}=#{v}"
           append: true

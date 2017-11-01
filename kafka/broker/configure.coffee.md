@@ -29,6 +29,7 @@ Example:
         kafka_broker: key: ['ryba', 'kafka', 'broker']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         metrics: key: ['ryba', 'metrics']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba.kafka ?= {}
       options = @config.ryba.kafka.broker = service.options
       
@@ -127,79 +128,79 @@ Example:
 
 # Log4J
 
-      options.log4j ?= {}
-      options.log4j[k] ?= v for k, v of @config.log4j
-      config = options.log4j.config ?= {}
-      config['log4j.appender.stdout'] ?= 'org.apache.log4j.ConsoleAppender'
-      config['log4j.appender.stdout.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.stdout.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.kafkaAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.kafkaAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.kafkaAppender.MaxBackupIndex'] ?= '10'
-      config['log4j.appender.kafkaAppender.File'] ?= '${kafka.logs.dir}/server.log'
-      config['log4j.appender.kafkaAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.kafkaAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.stateChangeAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.stateChangeAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.stateChangeAppender.MaxBackupIndex'] ?= '1'
-      config['log4j.appender.stateChangeAppender.File'] ?= '${kafka.logs.dir}/state-change.log'
-      config['log4j.appender.stateChangeAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.stateChangeAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.requestAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.requestAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.requestAppender.MaxBackupIndex'] ?= '1'
-      config['log4j.appender.requestAppender.File'] ?= '${kafka.logs.dir}/kafka-request.log'
-      config['log4j.appender.requestAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.requestAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.cleanerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.cleanerAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.cleanerAppender.MaxBackupIndex'] ?= '1'
-      config['log4j.appender.cleanerAppender.File'] ?= '${kafka.logs.dir}/log-cleaner.log'
-      config['log4j.appender.cleanerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.cleanerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.controllerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.controllerAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.controllerAppender.MaxBackupIndex'] ?= '1'
-      config['log4j.appender.controllerAppender.File'] ?= '${kafka.logs.dir}/controller.log'
-      config['log4j.appender.controllerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.controllerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
-      config['log4j.appender.authorizerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
-      config['log4j.appender.authorizerAppender.MaxFileSize'] ?= '100MB'
-      config['log4j.appender.authorizerAppender.MaxBackupIndex'] ?= '1'
-      config['log4j.appender.authorizerAppender.File'] ?= '${kafka.logs.dir}/kafka-authorizer.log'
-      config['log4j.appender.authorizerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
-      config['log4j.appender.authorizerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+
+      options.log4j.properties ?= {}
+      options.log4j.properties['log4j.appender.stdout'] ?= 'org.apache.log4j.ConsoleAppender'
+      options.log4j.properties['log4j.appender.stdout.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.stdout.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.kafkaAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.kafkaAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.kafkaAppender.MaxBackupIndex'] ?= '10'
+      options.log4j.properties['log4j.appender.kafkaAppender.File'] ?= '${kafka.logs.dir}/server.log'
+      options.log4j.properties['log4j.appender.kafkaAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.kafkaAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.stateChangeAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.stateChangeAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.stateChangeAppender.MaxBackupIndex'] ?= '1'
+      options.log4j.properties['log4j.appender.stateChangeAppender.File'] ?= '${kafka.logs.dir}/state-change.log'
+      options.log4j.properties['log4j.appender.stateChangeAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.stateChangeAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.requestAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.requestAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.requestAppender.MaxBackupIndex'] ?= '1'
+      options.log4j.properties['log4j.appender.requestAppender.File'] ?= '${kafka.logs.dir}/kafka-request.log'
+      options.log4j.properties['log4j.appender.requestAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.requestAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.cleanerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.cleanerAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.cleanerAppender.MaxBackupIndex'] ?= '1'
+      options.log4j.properties['log4j.appender.cleanerAppender.File'] ?= '${kafka.logs.dir}/log-cleaner.log'
+      options.log4j.properties['log4j.appender.cleanerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.cleanerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.controllerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.controllerAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.controllerAppender.MaxBackupIndex'] ?= '1'
+      options.log4j.properties['log4j.appender.controllerAppender.File'] ?= '${kafka.logs.dir}/controller.log'
+      options.log4j.properties['log4j.appender.controllerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.controllerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
+      options.log4j.properties['log4j.appender.authorizerAppender'] ?= 'org.apache.log4j.RollingFileAppender'
+      options.log4j.properties['log4j.appender.authorizerAppender.MaxFileSize'] ?= '100MB'
+      options.log4j.properties['log4j.appender.authorizerAppender.MaxBackupIndex'] ?= '1'
+      options.log4j.properties['log4j.appender.authorizerAppender.File'] ?= '${kafka.logs.dir}/kafka-authorizer.log'
+      options.log4j.properties['log4j.appender.authorizerAppender.layout'] ?= 'org.apache.log4j.PatternLayout'
+      options.log4j.properties['log4j.appender.authorizerAppender.layout.ConversionPattern'] ?= '[%d] %p %m (%c)%n'
       options.log4j.extra_appender = ''
       if options.log4j.remote_host and options.log4j.remote_port
         options.log4j.extra_appender = ',socketAppender'
-        config['log4j.appender.socketAppender'] ?= 'org.apache.log4j.net.SocketAppender'
-        config['log4j.appender.socketAppender.Application'] ?= 'kafka'
-        config['log4j.appender.socketAppender.RemoteHost'] ?= options.log4j.remote_host
-        config['log4j.appender.socketAppender.Port'] ?= options.log4j.remote_port
-        config['log4j.appender.socketAppender.ReconnectionDelay'] ?= '10000'
-      #config['log4j.logger.kafka.producer.async.DefaultEventHandler'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
-      #config['log4j.logger.kafka.client.ClientUtils'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
-      #config['log4j.logger.kafka.perf'] ?= 'DEBUG, kafkaAppender' + ' socketAppender' + options.log4j.extra_appender
-      #config['log4j.logger.kafka.perf.ProducerPerformance$ProducerThread'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
-      #config['log4j.logger.org.I0Itec.zkclient.ZkClient'] ?= 'DEBUG'
-      #config['log4j.logger.kafka.network.Processor'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
-      #config['log4j.logger.kafka.server.KafkaApis'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
-      #config['log4j.additivity.kafka.server.KafkaApis'] ?= 'false'
-      config['log4j.rootLogger'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
-      config['log4j.logger.kafka'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka'] ?= 'false'
-      config['log4j.logger.kafka.network.RequestChannel$'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka.network.RequestChannel$'] ?= 'false'
-      config['log4j.logger.kafka.request.logger'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka.request.logger'] ?= 'false'
-      config['log4j.logger.kafka.controller'] ?= 'TRACE, controllerAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka.controller'] ?= 'false'
-      config['log4j.logger.kafka.log.LogCleaner'] ?= 'INFO, cleanerAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka.log.LogCleaner'] ?= 'false'
-      config['log4j.logger.state.change.logger'] ?= 'TRACE, stateChangeAppender' + options.log4j.extra_appender
-      config['log4j.additivity.state.change.logger'] ?= 'false'
-      config['log4j.logger.kafka.authorizer.logger'] ?= 'WARN, authorizerAppender' + options.log4j.extra_appender
-      config['log4j.additivity.kafka.authorizer.logger'] ?= 'false'
+        options.log4j.properties['log4j.appender.socketAppender'] ?= 'org.apache.log4j.net.SocketAppender'
+        options.log4j.properties['log4j.appender.socketAppender.Application'] ?= 'kafka'
+        options.log4j.properties['log4j.appender.socketAppender.RemoteHost'] ?= options.log4j.remote_host
+        options.log4j.properties['log4j.appender.socketAppender.Port'] ?= options.log4j.remote_port
+        options.log4j.properties['log4j.appender.socketAppender.ReconnectionDelay'] ?= '10000'
+      #options.log4j.properties['log4j.logger.kafka.producer.async.DefaultEventHandler'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.logger.kafka.client.ClientUtils'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.logger.kafka.perf'] ?= 'DEBUG, kafkaAppender' + ' socketAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.logger.kafka.perf.ProducerPerformance$ProducerThread'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.logger.org.I0Itec.zkclient.ZkClient'] ?= 'DEBUG'
+      #options.log4j.properties['log4j.logger.kafka.network.Processor'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.logger.kafka.server.KafkaApis'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
+      #options.log4j.properties['log4j.additivity.kafka.server.KafkaApis'] ?= 'false'
+      options.log4j.properties['log4j.rootLogger'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.logger.kafka'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka'] ?= 'false'
+      options.log4j.properties['log4j.logger.kafka.network.RequestChannel$'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka.network.RequestChannel$'] ?= 'false'
+      options.log4j.properties['log4j.logger.kafka.request.logger'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka.request.logger'] ?= 'false'
+      options.log4j.properties['log4j.logger.kafka.controller'] ?= 'TRACE, controllerAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka.controller'] ?= 'false'
+      options.log4j.properties['log4j.logger.kafka.log.LogCleaner'] ?= 'INFO, cleanerAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka.log.LogCleaner'] ?= 'false'
+      options.log4j.properties['log4j.logger.state.change.logger'] ?= 'TRACE, stateChangeAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.state.change.logger'] ?= 'false'
+      options.log4j.properties['log4j.logger.kafka.authorizer.logger'] ?= 'WARN, authorizerAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.additivity.kafka.authorizer.logger'] ?= 'false'
       # Push user and group configuration to consumer and producer
       # for csm_ctx in ctx.contexts ['ryba/kafka/consumer', 'ryba/kafka/producer']
       #   csm_ctx.config.ryba ?= {}
@@ -258,10 +259,10 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
 
       options.ssl = merge {}, service.use.ssl?.options, options.ssl
       options.config['ssl.keystore.location'] ?= "#{options.conf_dir}/keystore"
-      throw Error "Required Option: config['ssl.keystore.password']" unless options.config['ssl.keystore.password']
+      throw Error "Required Option: options.config['ssl.keystore.password']" unless options.config['ssl.keystore.password']
       options.config['ssl.key.password'] ?= options.config['ssl.keystore.password']
       options.config['ssl.truststore.location'] ?= "#{options.conf_dir}/truststore"
-      throw Error "Required Option: config['ssl.truststore.passwor']" unless options.config['ssl.truststore.password']
+      throw Error "Required Option: options.config['ssl.truststore.passwor']" unless options.config['ssl.truststore.password']
 
 ## Security Kerberos & ACL
 

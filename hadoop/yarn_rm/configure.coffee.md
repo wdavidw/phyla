@@ -23,6 +23,7 @@
         yarn_rm: key: ['ryba', 'yarn', 'rm']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         metrics: key: ['ryba', 'metrics']
+        log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
       @config.ryba.yarn ?= {}
       @config.ryba.yarn.rm ?= {}
@@ -323,39 +324,38 @@ rmr /rmstore/ZKRMStateRoot
 
 ## Configuration for Log4J
 
-      options.log4j ?= {}
-      options.root_logger ?= 'INFO,EWMA,RFA'
+      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j.root_logger ?= 'INFO,EWMA,RFA'
       options.opts['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
       options.opts['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
       # adding SOCKET appender
-      if @config.log4j?.services?
-        if @config.log4j?.remote_host? and @config.log4j?.remote_port? and ('ryba/hadoop/yarn_rm' in @config.log4j?.services)
-          options.socket_client ?= "SOCKET"
-          # Root logger
-          if options.root_logger.indexOf(options.socket_client) is -1
-          then options.root_logger += ",#{options.socket_client}"
-          # Security Logger
-          if options.opts['yarn.server.resourcemanager.appsummary.logger'].indexOf(options.socket_client) is -1
-          then options.opts['yarn.server.resourcemanager.appsummary.logger'] += ",#{options.socket_client}"
-          # Audit Logger
-          if options.opts['yarn.server.resourcemanager.audit.logger'].indexOf(options.socket_client) is -1
-          then options.opts['yarn.server.resourcemanager.audit.logger'] += ",#{options.socket_client}"
+      if options.log4j.remote_host? and options.log4j.remote_port?
+        options.log4j.socket_client ?= "SOCKET"
+        # Root logger
+        if options.log4j.root_logger.indexOf(options.log4j.socket_client) is -1
+        then options.log4j.root_logger += ",#{options.log4j.socket_client}"
+        # Security Logger
+        if options.opts['yarn.server.resourcemanager.appsummary.logger'].indexOf(options.log4j.socket_client) is -1
+        then options.opts['yarn.server.resourcemanager.appsummary.logger'] += ",#{options.log4j.socket_client}"
+        # Audit Logger
+        if options.opts['yarn.server.resourcemanager.audit.logger'].indexOf(options.log4j.socket_client) is -1
+        then options.opts['yarn.server.resourcemanager.audit.logger'] += ",#{options.log4j.socket_client}"
 
-          options.opts['hadoop.log.application'] = 'resourcemanager'
-          options.opts['hadoop.log.remote_host'] = @config.log4j.remote_host
-          options.opts['hadoop.log.remote_port'] = @config.log4j.remote_port
+        options.opts['hadoop.log.application'] = 'resourcemanager'
+        options.opts['hadoop.log.remote_host'] = options.log4j.remote_host
+        options.opts['hadoop.log.remote_port'] = options.log4j.remote_port
 
-          options.socket_opts ?=
-            Application: '${hadoop.log.application}'
-            RemoteHost: '${hadoop.log.remote_host}'
-            Port: '${hadoop.log.remote_port}'
-            ReconnectionDelay: '10000'
+        options.log4j.socket_opts ?=
+          Application: '${hadoop.log.application}'
+          RemoteHost: '${hadoop.log.remote_host}'
+          Port: '${hadoop.log.remote_port}'
+          ReconnectionDelay: '10000'
 
-          options.log4j = merge options.log4j, appender
-            type: 'org.apache.log4j.net.SocketAppender'
-            name: options.socket_client
-            logj4: options.log4j
-            properties: options.socket_opts
+        options.log4j.properties = merge options.log4j.properties, appender
+          type: 'org.apache.log4j.net.SocketAppender'
+          name: options.log4j.socket_client
+          logj4: options.log4j.properties
+          properties: options.log4j.socket_opts
 
 ## Import/Export to Yarn Timeline Server
 

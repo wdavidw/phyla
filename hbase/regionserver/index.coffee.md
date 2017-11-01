@@ -15,11 +15,12 @@ In a distributed cluster, a RegionServer runs on a DataNode.
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
-        hdfs_dn: module: 'ryba/hadoop/hdfs_dn', local: true, required: true
+        hdfs_dn: module: 'ryba/hadoop/hdfs_dn', local: true
         hbase_master: module: 'ryba/hbase/master', required: true
         hbase_regionserver: module: 'ryba/hbase/regionserver'
         ranger_admin: module: 'ryba/ranger/admin'
         ganglia_collector: module: 'ryba/retired/ganglia/collector'
+        log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hbase/regionserver/configure'
         # 'ryba/ranger/plugins/hbase/configure'
