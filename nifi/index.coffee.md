@@ -19,6 +19,7 @@ and objectives of NiFi includes:
           hadoop_core: 'ryba/hadoop/core'
           openldap_server:  module: 'masson/core/openldap_server'
           zookeeper_server: module: 'ryba/zookeeper/server'
+          nifi: module: 'ryba/nifi'
           hdf: 'ryba/hdf'
           log4j: module: 'ryba/log4j', local: true
         configure:

@@ -10,6 +10,7 @@
         hadoop_core: key: ['ryba']
         openldap_server: key: ['openldap_server']
         zookeeper_server: key: ['ryba', 'zookeeper']
+        nifi: key: ['ryba', 'nifi']
         hdf: key: ['ryba', 'hdf']
         log4j: key: ['ryba', 'log4j']
       @config.ryba ?= {}
@@ -48,7 +49,7 @@
 
       #Misc
       options.fqdn ?= service.node.fqdn
-      options.shortname ?= servide.node.hostname
+      options.shortname ?= service.node.hostname
       options.iptables ?= !!service.use.iptables and service.use.iptables.action is 'start'
       options.properties ?= {}
       options.properties['nifi.version'] ?= '1.2.0.3.0.0.0-453'
@@ -226,7 +227,8 @@
       options.properties['nifi.sensitive.props.algorithm'] ?= 'PBEWITHMD5AND256BITAES-CBC-OPENSSL'
       options.properties['nifi.sensitive.props.provider'] ?= 'BC'
       # Kerberos
-      options.properties['nifi.kerberos.krb5.file'] ?= '/etc/krb5.conf' if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+      if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+        options.properties['nifi.kerberos.krb5.file'] ?= '/etc/krb5.conf'
 
 ## SSL
 
@@ -376,7 +378,7 @@ Set local path of additional libs (for custom processors) in this array.
 
 ## Data Directories Layout
 
-      props = Object.keys(properties).filter (prop) ->
+      props = Object.keys(options.properties).filter (prop) ->
        prop.indexOf('nifi.content.repository.directory') > -1 or prop.indexOf('nifi.provenance.repository.directory') > -1
       options.data_dirs ?= []
       options.data_dirs.push options.properties[prop] for prop in props
