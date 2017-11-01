@@ -36,7 +36,7 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
 ## Access
 
       options.ranger_admin ?= service.use.ranger_admin.options.admin
-      options.hdfs_install ?= service.use.ranger_hdfs.options.install
+      options.hdfs_install ?= service.use.ranger_hdfs[0].options.install if service.use.ranger_hdfs
 
 ## Plugin User
 
