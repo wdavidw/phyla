@@ -16,6 +16,7 @@ Now the jobHistory Server tends to be replace by the Yarn timeline server.
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         mapred_jhs: module: 'ryba/hadoop/mapred_jhs'
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/mapred_jhs/configure'
       commands:

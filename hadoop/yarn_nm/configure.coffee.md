@@ -22,6 +22,7 @@
         hdfs_nn: key: ['ryba', 'hdfs', 'nn']
         ranger_admin: key: ['ryba', 'ranger', 'admin']
         yarn_nm: key: ['ryba', 'yarn', 'nm']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.yarn ?= {}
       options = @config.ryba.yarn.nm = service.options
@@ -173,7 +174,39 @@ Resources:
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+
+      options.metrics.config ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # File sink
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config['maptask.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['maptask.sink.file.filename'] ?= 'maptask-metrics.out'
+        options.metrics.config['nodemanager.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['nodemanager.sink.file.filename'] ?= 'nodemanager-metrics.out'
+        options.metrics.config['reducetask.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['reducetask.sink.file.filename'] ?= 'reducetask-metrics.out'
+      # Ganglia sink, accepted properties are "servers" and "supportsparse"
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config['nodemanager.sink.ganglia.class'] ?= options.metrics.ganglia.class
+        options.metrics.config['nodemanager.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
+        options.metrics.config['maptask.sink.ganglia.class'] ?= options.metrics.ganglia.class
+        options.metrics.config['maptask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
+        options.metrics.config['reducetask.sink.ganglia.class'] ?= options.metrics.ganglia.class
+        options.metrics.config['reducetask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.yarn.nm.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.yarn.nm.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["nodemanager.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["maptask.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["reducetask.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## List of Services
 

@@ -35,6 +35,7 @@ Example:
         hadoop_core: key: ['ryba']
         zookeeper_server: key: ['ryba', 'zookeeper']
         hdfs_dn: key: ['ryba', 'hdfs', 'dn']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.dn ?= {}
@@ -165,7 +166,27 @@ memory that you can lock than what you have configured.
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics.config ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # File sink
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["datanode.sink.file.class"] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config['datanode.sink.file.filename'] ?= 'datanode-metrics.out'
+      # Ganglia sink, accepted properties are "servers" and "supportsparse"
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config["datanode.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.hdfs.dn.metrics.graphite.server_host' unless options.metrics.sinks.graphite.server_host?
+        throw Error 'Missing remote_port ryba.hdfs.dn.metrics.graphite.server_port' unless options.metrics.sinks.graphite.server_port?
+        options.metrics.config["datanode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## Configuration for Log4J
 

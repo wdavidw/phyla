@@ -76,6 +76,7 @@ Default configuration:
         zookeeper_server: key: ['ryba', 'zookeeper']
         ganglia: key: ['ryba', 'ganglia']
         graphite: key: ['ryba', 'graphite']
+        metrics: key: ['ryba', 'metrics']
       options = @config.ryba = service.options
       options.yarn ?= {}
       options.mapred ?= {}
@@ -388,11 +389,12 @@ Metric prefix can be defined globally with the usage of glob expression or per
 context. Here's an exemple:
 
 ```json
-{ "hadoop_metrics": 
-  "*.sink.*.metrics_prefix": "default",
-  "*.sink.file.metrics_prefix": "file_prefix", 
-  "namenode.sink.ganglia.metrics_prefix": "master_prefix",
-  "resourcemanager.sink.ganglia.metrics_prefix": "master_prefix"
+{ "metrics":
+    config:
+      "*.sink.*.metrics_prefix": "default",
+      "*.sink.file.metrics_prefix": "file_prefix", 
+      "namenode.sink.ganglia.metrics_prefix": "master_prefix",
+      "resourcemanager.sink.ganglia.metrics_prefix": "master_prefix"
 }
 ```
 
@@ -401,82 +403,31 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 "datanode", "nodemanager", "maptask", "reducetask", "journalnode",
 "historyserver", "nimbus", "supervisor".
 
-      options.metrics_sinks ?= {}
-      # File sink
-      options.metrics_sinks.file ?= {}
-      options.metrics_sinks.file.class ?= 'org.apache.hadoop.metrics2.sink.FileSink'
-      options.metrics_sinks.file.filename ?= 'metrics.out'
-      # Ganglia Sink
-      options.metrics_sinks.ganglia ?= {}
-      options.metrics_sinks.ganglia.class ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
-      options.metrics_sinks.ganglia.period ?= '10'
-      options.metrics_sinks.ganglia.supportparse ?= 'true' # Setting to "true" helps in reducing bandwith (see "Practical Hadoop Security")
-      options.metrics_sinks.ganglia.slope ?= 'jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both'
-      options.metrics_sinks.ganglia.dmax ?= 'jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40' # How long a particular value will be retained
-      # Graphite Sink
-      options.metrics_sinks.graphite ?= {}
-      options.metrics_sinks.graphite.class ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-      options.metrics_sinks.graphite.period ?= '10'
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+
       # Hadoop metrics
-      options.hadoop_metrics ?= {}
-      options.hadoop_metrics.sinks ?= {}
-      options.hadoop_metrics.sinks.file ?= true
-      options.hadoop_metrics.sinks.ganglia ?= false
-      options.hadoop_metrics.sinks.graphite ?= false
-      options.hadoop_metrics.config ?= {}
+      options.metrics ?= {}
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
       # default sampling period, in seconds
-      options.hadoop_metrics.config['*.period'] ?= '60'
+      options.metrics.config ?= {}
+      options.metrics.config ?= {}
+      options.metrics.config['*.period'] ?= '60'
       # File sink
-      if options.hadoop_metrics.sinks.file
-        options.hadoop_metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics_sinks.file
-        options.hadoop_metrics.config['namenode.sink.file.filename'] ?= 'namenode-metrics.out'
-        options.hadoop_metrics.config['datanode.sink.file.filename'] ?= 'datanode-metrics.out'
-        options.hadoop_metrics.config['resourcemanager.sink.file.filename'] ?= 'resourcemanager-metrics.out'
-        options.hadoop_metrics.config['nodemanager.sink.file.filename'] ?= 'nodemanager-metrics.out'
-        options.hadoop_metrics.config['mrappmaster.sink.file.filename'] ?= 'mrappmaster-metrics.out'
-        options.hadoop_metrics.config['jobhistoryserver.sink.file.filename'] ?= 'jobhistoryserver-metrics.out'
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config['nodemanager.sink.file.filename'] ?= 'nodemanager-metrics.out'
+        options.metrics.config['mrappmaster.sink.file.filename'] ?= 'mrappmaster-metrics.out'
+        options.metrics.config['jobhistoryserver.sink.file.filename'] ?= 'jobhistoryserver-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
-      if options.hadoop_metrics.sinks.ganglia
-        options.hadoop_metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.metrics_sinks.ganglia
-        if @has_service 'ryba/hadoop/hdfs_nn'
-          options.hadoop_metrics.config['namenode.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['namenode.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-        if @has_service 'ryba/hadoop/yarn_rm'
-          options.hadoop_metrics.config['resourcemanager.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['resourcemanager.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.rm_port}"
-        if @has_service 'ryba/hadoop/hdfs_dn'
-          options.hadoop_metrics.config['datanode.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['datanode.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-        if @has_service 'ryba/hadoop/yarn_nm'
-          options.hadoop_metrics.config['nodemanager.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['nodemanager.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-          options.hadoop_metrics.config['maptask.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['maptask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-          options.hadoop_metrics.config['reducetask.sink.ganglia.class'] ?= options.metrics_sinks.ganglia.class
-          options.hadoop_metrics.config['reducetask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-        # if @has_service 'ryba/hadoop/hdfs_jn'
-        #   options.hadoop_metrics['journalnode.sink.ganglia.servers']
-        # if @has_service 'ryba/hadoop/mapred_jhs'
-        #   options.hadoop_metrics['historyserver.sink.ganglia.servers']
-        # if @has_service 'ryba/storm/nimbus'
-        #   options.hadoop_metrics['nimbus.sink.ganglia.servers']
-        # if @has_service 'ryba/storm/supervisor'
-        #   options.hadoop_metrics['supervisor.sink.ganglia.servers']
-      # Graphite sink, accepted properties are "server_host", "server_port" and "metrics_prefix"
-      if options.hadoop_metrics.sinks.graphite
-        throw Error 'Unvalid metrics sink, please provide @config.metrics_sinks.graphite.server_host and server_port' unless options.metrics_sinks.graphite.server_host? and options.metrics_sinks.graphite.server_port?
-        options.hadoop_metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of options.metrics_sinks.graphite
-        for mod, modlist of {
-          'ryba/hadoop/hdfs_nn': ['namenode']
-          'ryba/hadoop/yarn_rm': ['resourcemanager']
-          'ryba/hadoop/hdfs_dn': ['datanode']
-          'ryba/hadoop/yarn_nm': ['nodemanager', 'maptask', 'reducetask']
-          'ryba/hadoop/hdfs_jn': ['journalnode']
-          'ryba/hadoop/mapred_jhs': ['historyserver']
-        }
-        then if @has_service mod
-        then for k in modlist
-          options.hadoop_metrics.config["#{k}.sink.graphite.class"] ?= options.metrics_sinks.graphite.class
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Unvalid metrics sink, please provide ryba.metrics.sinks.graphite.config.server_host and server_port' unless options.metrics.sinks.graphite.config.server_host? and options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## Log4j
 

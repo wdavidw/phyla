@@ -169,7 +169,7 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
       @file.properties
         header: 'Metrics'
         target: "#{options.conf_dir}/hadoop-metrics2.properties"
-        content: options.hadoop_metrics.config
+        content: options.metrics.config
         backup: true
 
 ## SSL

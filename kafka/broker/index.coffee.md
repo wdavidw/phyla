@@ -17,6 +17,7 @@ log. It is fast, scalable, durable and distributed by design.
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         kafka_broker: module: 'ryba/kafka/broker'
         ranger_admin: module: 'ryba/ranger/admin'
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/kafka/broker/configure'
       commands:

@@ -26,6 +26,7 @@ Example:
         hadoop_core: key: ['ryba']
         hdfs_jn: key: ['ryba', 'hdfs', 'jn']
         zookeeper_server: key: ['ryba', 'zookeeper']
+        metrics: key: ['ryba', 'metrics']
       @config.ryba ?= {}
       @config.ryba.hdfs ?= {}
       @config.ryba.hdfs.jn ?= {}
@@ -84,7 +85,29 @@ Example:
 
 ## Metrics
 
-      options.hadoop_metrics ?= service.use.hadoop_core.options.hadoop_metrics
+      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+
+      options.metrics.config ?= {}
+      options.metrics.config["*.period"] ?= '60'
+      options.metrics.sinks ?= {}
+      options.metrics.sinks.file_enabled ?= true
+      options.metrics.sinks.ganglia_enabled ?= false
+      options.metrics.sinks.graphite_enabled ?= false
+      # File sink
+      if options.metrics.sinks.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["journalnode.sink.file.class"] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
+        options.metrics.config['journalnode.sink.file.filename'] ?= 'journalnode-metrics.out'
+      # Ganglia sink, accepted properties are "servers" and "supportsparse"
+      if options.metrics.sinks.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config["journalnode.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
+      # Graphite Sink
+      if options.metrics.sinks.graphite_enabled
+        throw Error 'Missing remote_host ryba.hdfs.jn.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.hdfs.jn.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
+        options.metrics.config["journalnode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
 ## Wait
 

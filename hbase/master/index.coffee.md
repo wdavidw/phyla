@@ -21,6 +21,7 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         ranger_admin: module: 'ryba/ranger/admin', single: true
         hbase_master: module: 'ryba/hbase/master'
         ganglia_collector: module: 'ryba/retired/ganglia/collector', single: true
+        metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hbase/master/configure'
         # 'ryba/ranger/plugins/hbase/configure'
