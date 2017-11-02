@@ -1,16 +1,17 @@
 
 # Ranger Usersync Process
 
-    module.exports = header: 'Ranger UserSync Install', handler: ->
-      {ranger,ssl} = @config.ryba
+    module.exports = header: 'Ranger UserSync Install', handler: (options) ->
+
+## Registry
 
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
 
 ## Identities
 
-      @system.group header: 'Group', ranger.group
-      @system.user header: 'User', ranger.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Package
 
@@ -35,17 +36,17 @@ directories.
 
       @call header: 'Layout', (options)->
         @system.mkdir
-          target: ranger.usersync.conf_dir
+          target: options.conf_dir
         @system.mkdir
-          target: ranger.usersync.log_dir
+          target: options.log_dir
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: ranger.usersync.pid_dir
-          uid: ranger.user.name
-          gid: ranger.user.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.user.name
           perm: '0750'
         @system.mkdir
-          target: ranger.usersync.pid_dir
+          target: options.pid_dir
 
 
 # ## IPTables
@@ -81,14 +82,14 @@ directories.
 ## Setup Scripts
 
 Update the file "install.properties" with the properties defined by the
-"ryba.ranger.usersync.install" configuration.
+"ryba.options.install" configuration.
 
       @file.render
         header: 'Configure Install Scripts'
         target: "/usr/hdp/current/ranger-usersync/install.properties"
         source: "#{__dirname}/../resources/usersync-install.properties.js2"
         local: true
-        write: for k, v of ranger.usersync.install
+        write: for k, v of options.install
           match: RegExp "^#{quote k}=.*$", 'mg'
           replace: "#{k}=#{v}"
           append: true
@@ -98,7 +99,7 @@ Update the file "install.properties" with the properties defined by the
       @file
         header: 'Configure Setup Scripts'
         target: '/usr/hdp/current/ranger-usersync/setup.py'
-        write : for k, v of ranger.usersync.setup
+        write : for k, v of options.setup
           match: RegExp "^#{quote k} =.*$", 'mg'
           replace: "#{k} = '#{v}'"
           append: true
@@ -124,10 +125,10 @@ Update the file "install.properties" with the properties defined by the
 
       writes = [
         match: RegExp "JAVA_OPTS=.*", 'm'
-        replace: "JAVA_OPTS=\"${JAVA_OPTS} -Xmx#{ranger.usersync.heap_size} -Xms#{ranger.usersync.heap_size} \""
+        replace: "JAVA_OPTS=\"${JAVA_OPTS} -Xmx#{options.heap_size} -Xms#{options.heap_size} \""
         append: true
       ]
-      for k,v of ranger.usersync.opts
+      for k,v of options.opts
         writes.push
           match: RegExp "^JAVA_OPTS=.*#{k}", 'm'
           replace: "JAVA_OPTS=\"${JAVA_OPTS} -D#{k}=#{v}\" # RYBA, DONT OVERWRITE 'ryba/ranger/usersync'"
@@ -140,12 +141,12 @@ Update the file "install.properties" with the properties defined by the
       @hconfigure
         header: 'Usersync site'
         target: "/etc/ranger/usersync/conf/ranger-ugsync-site.xml"
-        properties: ranger.usersync.site
+        properties: options.site
         merge: true
         backup: true
       # 
       # @java.keystore_add
-      #   keystore: ranger.usersync.site['ranger.usersync.truststore.file']
+      #   keystore: options.site['options.truststore.file']
       #   storepass: 'ryba123'
       #   caname: "hadoop_root_ca"
       #   cacert: "#{ssl.cacert}"
