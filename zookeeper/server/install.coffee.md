@@ -82,7 +82,7 @@ which has no dependency.
           @service.init
             source: "#{__dirname}/resources/zookeeper-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options
             target: '/usr/lib/systemd/system/zookeeper-server.service'
             mode: 0o0644
           @system.tmpfs
