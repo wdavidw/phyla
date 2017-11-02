@@ -57,7 +57,7 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
       # options.ranger_solr_install = service.use.ranger_solr[0].options.install if service.use.ranger_solr
       options.ranger_admin = service.use.ranger_admin
       options.hbase_conf_dir = service.use.hbase_client.options.conf_dir
-      options.solr_cloud = service.use.solr_cloud[0]
+      options.solr_cloud = service.use.solr_cloud[0] if service.use.solr_cloud
 
 ## Kerberos
 
@@ -454,6 +454,15 @@ in or out of docker.
         options.solr ?= {}
         options.solr_type ?= 'cloud'
         switch options.solr_type
+          when 'external'
+            options.solr.cluster_config ?= {}
+            options.solr.cluster_config.atlas_collection_dir ?= '/tmp/atlas-infra'
+            throw Error "Missing Solr options.solr.cluster_config.user property example: solr" unless options.solr.cluster_config.user?
+            throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
+            throw Error "Missing Solr options.solr.cluster_config.zk_urls: master01.metal.ryba:2181" unless options.solr.cluster_config.zk_urls?
+            throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
+            throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
+            throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
           when 'cloud'
             throw Error 'No Solr Cloud Server configured' unless service.use.solr_cloud.length > 0
               # options.solr_admin_user ?= 'solr'
