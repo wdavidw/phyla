@@ -444,8 +444,8 @@ hdfs_client configuration directory.
 
       enrich_proxy_user = (srv) ->
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
-        hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or ''
-        hosts = hosts.split ','
+        hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or []
+        hosts = hosts.split ',' unless Array.isArray hosts
         for node in service.nodes
           hosts.push node.fqdn unless node.fqdn in hosts
         hosts = hosts.join ','
