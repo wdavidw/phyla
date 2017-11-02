@@ -328,8 +328,8 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
 
         enrich_proxy_user (srv) ->
           srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
-          hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or ''
-          hosts = hosts.split ','
+          hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or []
+          hosts = hosts.split ',' unless Array.isArray hosts
           for fqdn in service.nodes.fqdn
             hosts.push fqdn unless fqdn in hosts
           hosts = hosts.join ' '
