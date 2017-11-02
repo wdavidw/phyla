@@ -96,7 +96,7 @@ Create the database hosting the Ambari data with restrictive user permissions.
 
         @db.user options.db, database: null,
           header: 'User'
-          if: options.db.engine in ['mysql', 'postgresql']
+          if: options.db.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db,
           header: 'Database'
           user: options.db.username
@@ -127,7 +127,7 @@ Load the database with initial data
       @call header: 'Hive DB', if: !!options.db_hive, ->
         @db.user options.db_hive, database: null,
           header: 'User'
-          if: options.db_hive.engine in ['mysql', 'postgresql']
+          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_hive,
           header: 'Database'
           user: options.db_hive.username
@@ -144,7 +144,7 @@ Load the database with initial data
       @call header: 'Oozie DB', if: !!options.db_oozie, ->
         @db.user options.db_oozie, database: null,
           header: 'User'
-          if: options.db_oozie.engine in ['mysql', 'postgresql']
+          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_oozie,
           header: 'Database'
           user: options.db_oozie.username
@@ -161,7 +161,7 @@ Load the database with initial data
       @call header: 'Ranger DB', if: !!options.db_ranger, ->
         @db.user options.db_ranger, database: null,
           header: 'User'
-          if: options.db_ranger.engine in ['mysql', 'postgresql']
+          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_ranger,
           header: 'Database'
           user: options.db_ranger.username
@@ -178,7 +178,7 @@ Load the database with initial data
       @call header: 'Hive DB', if: !!options.db_hive, ->
         @db.user options.db_hive, database: null,
           header: 'User'
-          if: options.db_hive.engine in ['mysql', 'postgresql']
+          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_hive,
           header: 'Database'
           user: options.db_hive.username
@@ -195,7 +195,7 @@ Load the database with initial data
       @call header: 'Oozie DB', if: !!options.db_oozie, ->
         @db.user options.db_oozie, database: null,
           header: 'User'
-          if: options.db_oozie.engine in ['mysql', 'postgresql']
+          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_oozie,
           header: 'Database'
           user: options.db_oozie.username
@@ -212,7 +212,7 @@ Load the database with initial data
       @call header: 'Ranger DB', if: !!options.db_ranger, ->
         @db.user options.db_ranger, database: null,
           header: 'User'
-          if: options.db_ranger.engine in ['mysql', 'postgresql']
+          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_ranger,
           header: 'Database'
           user: options.db_ranger.username
@@ -340,7 +340,7 @@ Be carefull, notes from Ambari 2.4.2:
           ambari-server setup \
             -s \
             -j #{options.java_home} \
-            --database=#{options.db.engine} \
+            --database=#{if options.db.engine in ['mysql','mariadb'] then 'mysql' else options.db.engine  } \
             --databasehost=#{options.db.host} \
             --databaseport=#{options.db.port} \
             --databasename=#{options.db.database} \
