@@ -176,7 +176,6 @@ memory that you can lock than what you have configured.
       # File sink
       if options.metrics.sinks.file_enabled
         options.metrics.config["datanode.sink.file.class"] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
         options.metrics.config['datanode.sink.file.filename'] ?= 'datanode-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
@@ -184,8 +183,8 @@ memory that you can lock than what you have configured.
         options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
-        throw Error 'Missing remote_host ryba.hdfs.dn.metrics.graphite.server_host' unless options.metrics.sinks.graphite.server_host?
-        throw Error 'Missing remote_port ryba.hdfs.dn.metrics.graphite.server_port' unless options.metrics.sinks.graphite.server_port?
+        throw Error 'Missing remote_host ryba.hdfs.dn.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
+        throw Error 'Missing remote_port ryba.hdfs.dn.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config["datanode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
 
