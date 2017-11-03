@@ -442,6 +442,7 @@ in or out of docker.
             options.solr.cluster_config ?= {}
             options.solr.cluster_config.atlas_collection_dir ?= '/tmp/atlas-infra'
             throw Error "Missing Solr options.solr.cluster_config.user property example: solr" unless options.solr.cluster_config.user?
+            throw Error "Missing Solr options.solr.cluster_config.ssl_enabled property example: true" unless options.solr.cluster_config.ssl_enabled?
             throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
             throw Error "Missing Solr options.solr.cluster_config.zk_urls: master01.metal.ryba:2181" unless options.solr.cluster_config.zk_urls?
             throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
@@ -461,6 +462,7 @@ in or out of docker.
               master: service.deps.solr_cloud[0].node.fqdn
               port: options.solr_cloud.options.port
               authentication: service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
+              ssl_enabled: options.solr_cloud.options.ssl.enabled
             if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
               options.solr.cluster_config.admin_principal = options.solr_cloud.options.admin_principal
               options.solr.cluster_config.admin_password  = options.solr_cloud.options.admin_password
