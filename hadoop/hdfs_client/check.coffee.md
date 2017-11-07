@@ -28,6 +28,8 @@ Run an HDFS command requiring a DataNode.
 
       @system.execute
         header: 'DataNode'
+        retry: 20
+        sleep: 5000
         cmd: mkcmd.test @, """
         if hdfs dfs -test -f /user/#{options.test.user.name}/#{options.hostname}-hdfs; then exit 2; fi
         hdfs dfs -touchz /user/#{options.test.user.name}/#{options.hostname}-hdfs

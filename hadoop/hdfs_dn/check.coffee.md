@@ -31,8 +31,8 @@ Hadoop and Nutch.
       @connection.assert
         header: 'IPC'
         servers: options.wait.ipc
-        retry: 3
-        sleep: 3000
+        retry: 10
+        sleep: 5000
 
 ## Wait for all datanode HTTP Ports
 
