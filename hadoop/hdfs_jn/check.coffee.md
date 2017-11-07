@@ -28,6 +28,8 @@ Test the HTTP server with a JMX request.
       protocol = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
       port = options.hdfs_site["dfs.journalnode.#{protocol}-address"].split(':')[1]
       @system.execute
+        retry: 3
+        sleep: 3000
         header: 'SPNEGO'
         cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=JournalNode,name=JournalNodeInfo"
       , (err, executed, stdout) ->

@@ -10,13 +10,13 @@ Ensure for the server is listening for remote connections.
       @connection.assert
         header: 'RPC'
         servers: options.wait.rpc.filter (srv) -> srv.host is options.fqdn
-        retry: 3
+        retry: 10
         sleep: 3000
 
       @connection.assert
         header: 'Info'
         servers: options.wait.info.filter (srv) -> srv.host is options.fqdn
-        retry: 3
+        retry: 10
         sleep: 3000
 
 ## Check SPNEGO
