@@ -9,8 +9,8 @@
         header: 'TCP'
         # quorum: 1
         servers: options.wait.tcp
-        retry: 3
-        slepp: 3000
+        retry: 10
+        sleep: 3000
 
 ## TCP Localizer Address
 
@@ -19,7 +19,7 @@
         # quorum: 1
         servers: options.wait.tcp_localiser
         retry: 3
-        slepp: 3000
+        sleep: 3000
 
 ## Webapp HTTP Adress
 
@@ -28,7 +28,7 @@
         # quorum: 1
         servers: options.wait.webapp
         retry: 3
-        slepp: 3000
+        sleep: 3000
 
       @call header: 'FS Permissions', ->
         log_dirs = options.yarn_site['yarn.nodemanager.log-dirs'].split ','
