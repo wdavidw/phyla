@@ -95,7 +95,7 @@ hbase:x:492:
             mount: options.pid_dir
             uid: options.user.name
             gid: options.group.name
-            perm: 0o0755
+            perm: '0755'
 
 ## Configure
 
