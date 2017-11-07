@@ -188,8 +188,8 @@ Metrics information are entirely derived from the Master.
       options.wait = {}
       for srv in service.use.hbase_regionserver
         srv.options.hbase_site ?= {}
-        srv.options.hbase_site['hbase.regionserver.port'] ?= '60000'
-        srv.options.hbase_site['hbase.regionserver.info.port'] ?= '60010'
+        srv.options.hbase_site['hbase.regionserver.port'] ?= '60020'
+        srv.options.hbase_site['hbase.regionserver.info.port'] ?= '60030'
       options.wait.rpc = for srv in service.use.hbase_regionserver
         host: srv.node.fqdn
         port: srv.options.hbase_site['hbase.regionserver.port']
