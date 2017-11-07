@@ -101,7 +101,7 @@ inside "/etc/init.d" and activate it on startup.
             mount: options.pid_dir
             uid: options.user.name
             gid: options.group.name
-            perm: 0o0755
+            perm: '0755'
 
 ## Zookeeper JAAS
 
