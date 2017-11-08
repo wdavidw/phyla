@@ -1,8 +1,11 @@
 
 # Phoenix QueryServer Check
 
-    module.exports = header: 'Phoenix QueryServer Check', handler: ->
+    module.exports = header: 'Phoenix QueryServer Check', handler: (options) ->
+      http =
+        host: options.host
+        port: options.queryserver.site['phoenix.queryserver.http.port']
 
-## Wait
+## Check TCP
 
-      @call once: true, 'ryba/phoenix/queryserver/wait'
+      @connection.wait servers: http

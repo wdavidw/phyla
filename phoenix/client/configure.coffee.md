@@ -1,48 +1,46 @@
 
 # Phoenix Configuration
 
-    module.exports = ->
-      {hbase} = @config.ryba
-      hc_ctxs = @contexts 'ryba/hbase/client'
-      hm_ctxs = @contexts 'ryba/hbase/master'
-      rs_ctxs = @contexts 'ryba/hbase/regionserver'
-      # Avoid message "Class org.apache.hadoop.hbase.regionserver.LocalIndexSplitter
-      # cannot be loaded Set hbase.table.sanity.checks to false at conf or table
-      # descriptor if you want to bypass sanity checks"
-      for hc_ctx in hc_ctxs
-        hc_ctx.config.ryba.hbase.client.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
-        hc_ctx.config.ryba.hbase.client.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
-      for hm_ctx in hm_ctxs
-        hm_ctx.config.ryba.hbase.master.hbase_site['hbase.defaults.for.version.skip'] = 'true'
-        hm_ctx.config.ryba.hbase.master.hbase_site['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec'
-        hm_ctx.config.ryba.hbase.master.hbase_site['hbase.table.sanity.checks'] = 'true'
-        hm_ctx.config.ryba.hbase.master.hbase_site['hbase.region.server.rpc.scheduler.factory.class'] = 'org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory'
-        hm_ctx.config.ryba.hbase.master.hbase_site['hbase.rpc.controllerfactory.class'] = 'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory'
-        hm_ctx.config.ryba.hbase.master.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
-        hm_ctx.config.ryba.hbase.master.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
-        hm_ctx.after
-          type: 'service'
-          name: 'hbase-master'
-        , ->
-          @service
-            header: 'Install Phoenix'
-            name: 'phoenix'
-      for rs_ctx in rs_ctxs
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['hbase.defaults.for.version.skip'] = 'true'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['hbase.table.sanity.checks'] = 'true'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['hbase.region.server.rpc.scheduler.factory.class'] = 'org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['hbase.rpc.controllerfactory.class'] = 'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
-        rs_ctx.config.ryba.hbase.regionserver.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
-        rs_ctx.after
-          type: 'service'
-          name: 'hbase-regionserver'
-        , ->
-          @service
-            header: 'Install Phoenix'
-            name: 'phoenix'
+    module.exports = (service) ->
+      service = migration.call @, service, 'ryba/phoenix/client', ['ryba', 'phoenix', 'client'], require('nikita/lib/misc').merge require('.').use,
+        java: key: ['java']
+        test_user: key: ['ryba', 'test_user']
+        hbase_master: key: ['ryba', 'hbase', 'master']
+        hbase_regionserver: key: ['ryba', 'hbase', 'regionserver']
+        hbase_client: key: ['ryba', 'hbase', 'client']
+      @config.ryba ?= {}
+      options = @config.ryba.phoenix_client = service.options
+      options.site = merge service.use.hbase_master[0].options.hbase_site, options.site
+      options.admin = merge service.use.hbase_master[0].options.admin, options.admin
+      for srv in service.use.hbase_client
+        srv.options.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
+        srv.options.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
+      for srv in service.use.hbase_master
+        srv.options.hbase_site['hbase.defaults.for.version.skip'] = 'true'
+        srv.options.hbase_site['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec'
+        srv.options.hbase_site['hbase.table.sanity.checks'] = 'true'
+        srv.options.hbase_site['hbase.region.server.rpc.scheduler.factory.class'] = 'org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory'
+        srv.options.hbase_site['hbase.rpc.controllerfactory.class'] = 'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory'
+        srv.options.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
+        srv.options.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
+      for srv in service.use.hbase_regionserver
+        srv.options.hbase_site['hbase.defaults.for.version.skip'] = 'true'
+        srv.options.hbase_site['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec'
+        srv.options.hbase_site['hbase.table.sanity.checks'] = 'true'
+        srv.options.hbase_site['hbase.region.server.rpc.scheduler.factory.class'] = 'org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory'
+        srv.options.hbase_site['hbase.rpc.controllerfactory.class'] = 'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory'
+        srv.options.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
+        srv.options.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
+        
+## Test
 
-## Optimisation
+      options.test = merge {}, service.use.test_user.options, options.test
+      options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
+      options.test.table ?= 'a_table'
 
-Set "hbase.bucketcache.ioengine" to "offheap".
+## Dependencies
+
+    string = require 'nikita/lib/misc/string'
+    {merge} = require 'nikita/lib/misc'
+    appender = require '../../lib/appender'
+    migration = require 'masson/lib/migration'

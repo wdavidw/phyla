@@ -8,24 +8,28 @@ running of those scans to produce regular JDBC result sets.
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        krb5_client: module: 'masson/core/krb5_client'
-        hadoop: implicit: true, module: 'ryba/hadoop/core'
-        hbase_client: implicit: true, module: 'ryba/hbase/client'
-        phoenix_client: implicit: true, module: 'ryba/phoenix/client'
+        java: module: 'masson/commons/java', local:true, implicit: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+        hbase_client: module: 'ryba/hbase/client'
+        phoenix_client: module: 'ryba/phoenix/client'
       configure:
         'ryba/phoenix/queryserver/configure'
       commands:
-        'install': [
-          'ryba/phoenix/queryserver/install'
-          'ryba/phoenix/queryserver/start'
-          'ryba/phoenix/queryserver/check'
-        ]
-        'check':
-          'ryba/phoenix/queryserver/check'
-        'status':
-          'ryba/phoenix/queryserver/status'
-        'start':
-          'ryba/phoenix/queryserver/start'
-        'stop':
-          'ryba/phoenix/queryserver/stop'
+        install: ->
+          options = @config.ryba.phoenix_queryserver
+          @call 'ryba/phoenix/queryserver/install', options
+          @call 'ryba/phoenix/queryserver/start', options
+          @call 'ryba/phoenix/queryserver/check', options
+        check: ->
+          options = @config.ryba.phoenix_queryserver
+          @call 'ryba/phoenix/queryserver/check', options
+        status: ->
+          options = @config.ryba.phoenix_queryserver
+          @call 'ryba/phoenix/queryserver/status', options
+        start: ->
+          options = @config.ryba.phoenix_queryserver
+          @call 'ryba/phoenix/queryserver/start', options
+        stop: ->
+          options = @config.ryba.phoenix_queryserver
+          @call 'ryba/phoenix/queryserver/stop', options

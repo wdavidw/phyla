@@ -15,11 +15,11 @@ Phoenix table are automatically converted to uppercase.
 Refer to the [sqlline] documentation for a complete list of supported command
 instructions.
 
-    module.exports = header: 'Phoenix Client Check', handler: ->
-      {force_check, user, hbase} = @config.ryba
-      zk_path = "#{hbase.site['hbase.zookeeper.quorum']}"
-      zk_path += ":#{hbase.site['hbase.zookeeper.property.clientPort']}"
-      zk_path += "#{hbase.site['zookeeper.znode.parent']}"
+    module.exports = header: 'Phoenix Client Check', handler: (options) ->
+      # {force_check, user, hbase} = @config.ryba
+      zk_path = "#{options.site['hbase.zookeeper.quorum']}"
+      zk_path += ":#{options.site['hbase.zookeeper.property.clientPort']}"
+      zk_path += "#{options.site['zookeeper.znode.parent']}"
 
 ## Wait
 
@@ -30,7 +30,7 @@ instructions.
 
       table = "ryba_check_phoenix_#{@config.shortname}".toUpperCase()
       @system.execute
-        cmd: mkcmd.hbase @, """
+        cmd: mkcmd.hbase options.admin, """
         hdfs dfs -rm -skipTrash check-#{@config.host}-phoenix
         # Drop table if it exists
         # if hbase shell 2>/dev/null <<< "list" | grep '#{table}'; then echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null; fi
@@ -38,11 +38,11 @@ instructions.
         # Create table with dummy column family and grant access to ryba
         echo "create '#{table}', 'cf1'; grant 'ryba', 'RWXCA', '#{table}'" | hbase shell 2>/dev/null;
         """
-        unless_exec: unless force_check then mkcmd.test @, "hdfs dfs -test -f check-#{@config.host}-phoenix"
+        unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{@config.host}-phoenix"
       @file
-        target: "#{user.home}/check_phoenix/create.sql"
-        uid: user.name
-        gid: user.group
+        target: "#{options.test.user.home}/check_phoenix/create.sql"
+        uid: options.test.user.name
+        gid: options.test.user.gid
         content: """
         CREATE TABLE IF NOT EXISTS #{table} (
           HOST CHAR(2) NOT NULL,
@@ -56,9 +56,9 @@ instructions.
         );
         """
       @file
-        target: "#{user.home}/check_phoenix/select.sql"
-        uid: user.name
-        gid: user.group
+        target: "#{options.test.user.home}/check_phoenix/select.sql"
+        uid: options.test.user.name
+        gid: options.test.user.group
         content: """
         SELECT DOMAIN, AVG(CORE) Average_CPU_Usage, AVG(DB) Average_DB_Usage 
         FROM #{table} 
@@ -69,21 +69,21 @@ instructions.
         cmd: mkcmd.test @, """
         cd /usr/hdp/current/phoenix-client/bin
         ./psql.py -t #{table} #{zk_path} \
-          #{user.home}/check_phoenix/create.sql \
+          #{options.test.user.home}/check_phoenix/create.sql \
           ../doc/examples/WEB_STAT.csv \
         >/dev/null 2>&1
         """
         retry: 5
         interval: 10000
       @wait.execute
-        cmd: mkcmd.hbase @, """
+        cmd: mkcmd.hbase options.admin, """
         hbase shell 2>/dev/null <<< "list" | grep '#{table}'
         """
       @system.execute
         cmd: mkcmd.test @, """
         cd /usr/hdp/current/phoenix-client/bin
         ./sqlline.py #{zk_path} \
-          #{user.home}/check_phoenix/select.sql
+          #{options.test.user.home}/check_phoenix/select.sql
         hdfs dfs -touchz check-#{@config.host}-phoenix
         """
         retry: 5
