@@ -20,11 +20,11 @@ PHOENIX_HOME=/usr/hdp/current/phoenix-server
 
 BIN_DIR=${PHOENIX_HOME}/bin
 
-PQS_EXEC="HBASE_CONF_DIR={{ryba.phoenix.conf_dir}} ${BIN_DIR}/queryserver.py"
+PQS_EXEC="HBASE_CONF_DIR={{conf_dir}} ${BIN_DIR}/queryserver.py"
 
 PARAM="$@"
 
-PID_FILE={{ryba.phoenix.pid_dir}}/phoenix-phoenix-server.pid
+PID_FILE={{pid_dir}}/phoenix-phoenix-server.pid
 
 if [ "${PARAM}" = "status" ]; then
   if [ -f "${PID_FILE}" ]; then
@@ -40,8 +40,8 @@ if [ "${PARAM}" = "status" ]; then
     exit 3
   fi
 elif [ "${PARAM}" = "restart" ]; then
-  su {{ryba.phoenix.user.name}} -c "${PQS_EXEC} stop"
-  su {{ryba.phoenix.user.name}} -c "${PQS_EXEC} start"
+  su {{user.name}} -c "${PQS_EXEC} stop"
+  su {{user.name}} -c "${PQS_EXEC} start"
 else
-  su {{ryba.phoenix.user.name}} -c "${PQS_EXEC} $@"
+  su {{user.name}} -c "${PQS_EXEC} $@"
 fi

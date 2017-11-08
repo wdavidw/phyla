@@ -8,17 +8,28 @@ running of those scans to produce regular JDBC result sets.
 
     module.exports =
       use:
-        java: implicit: true, module: 'masson/commons/java'
-        hbase_master: 'ryba/hbase/master'
-        hbase_rs: 'ryba/hbase/regionserver'
-        hbase_client: implicit: true, module: 'ryba/hbase/client'
+        java: module: 'masson/commons/java', local:true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        hbase_master: module: 'ryba/hbase/master'
+        hbase_regionserver: module: 'ryba/hbase/regionserver'
+        hbase_client: module: 'ryba/hbase/client', implicit: true
       configure:
         'ryba/phoenix/client/configure'
+      plugin: ->
+        options = @config.ryba.hbase
+        @after
+          type: ['service', 'install']
+          name: 'hbase-master'
+        , ->
+          @call 'ryba/phoenix/client/install', options
+        @after
+          type: ['service', 'install']
+          name: 'hbase-regionserver'
+        , ->
+          @call 'ryba/phoenix/client/install', options
       commands:
-        'install': [
-          'ryba/phoenix/client/install'
-          'ryba/phoenix/client/init'
-          'ryba/phoenix/client/check'
-        ]
-        'check':
-          'ryba/phoenix/client/check'
+        'install': ->
+          options = @config.ryba.phoenix_client
+          @call 'ryba/phoenix/client/install', options
+          @call 'ryba/phoenix/client/init', options
+          @call 'ryba/phoenix/client/check', options

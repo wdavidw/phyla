@@ -3,9 +3,7 @@
 
 Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
-    module.exports =  header: 'Phoenix QueryServer Install', handler: ->
-      {phoenix, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports =  header: 'Phoenix QueryServer Install', handler: (options) ->
 
 ## Register
 
@@ -14,8 +12,8 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
 ## Identities
 
-      @system.group header: 'Group', phoenix.group
-      @system.user header: 'User', phoenix.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -27,7 +25,7 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
         header: 'IPTables'
         if: @config.iptables.action is 'start'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: phoenix.queryserver.site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.queryserver.site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
         ]
 
 ## Packages
@@ -52,43 +50,43 @@ We use the SPNEGO keytab, so we let hadoop/core handle principal & keytab
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: phoenix.pid_dir
-          uid: phoenix.user.name
-          gid: phoenix.user.name
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.user.name
         @system.mkdir
-          target: phoenix.conf_dir
-          uid: phoenix.user.name
-          gid: phoenix.group.name
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.group.name
         @system.mkdir
-          target: phoenix.log_dir
-          uid: phoenix.user.name
-          gid: phoenix.group.name
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.group.name
 
 ## Service
 
-      @call header: 'Service', (options) ->
+      @call header: 'Service', ->
         @service.init
           header: 'Init Script'
           target: '/etc/init.d/phoenix-queryserver'
           source: "#{__dirname}/../resources/phoenix-queryserver.j2"
           local: true
-          context: @config
+          context: options
           mode: 0o0755
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
-          mount: phoenix.pid_dir
-          uid: phoenix.user.name
-          gid: phoenix.group.name
+          mount: options.pid_dir
+          uid: options.user.name
+          gid: options.group.name
           perm: '0750'
 
 ## HBase Site
 
       @hconfigure
         header: 'HBase Site'
-        target: "#{phoenix.conf_dir}/hbase-site.xml"
+        target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../../hbase/resources/hbase-site.xml"
         local: true
-        properties: phoenix.queryserver.site
+        properties: options.queryserver.site
         backup: true
         oef: true
 
@@ -96,10 +94,10 @@ We use the SPNEGO keytab, so we let hadoop/core handle principal & keytab
 
       @file.render
         header: 'Env'
-        target: "#{phoenix.conf_dir}/hbase-env.sh"
+        target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
-        context: @config
+        context: options
         eof: true
 
 [phoenix-doc]: https://phoenix.apache.org/server

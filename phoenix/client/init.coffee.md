@@ -5,8 +5,7 @@ There is 4 phoenix 'SYSTEM.*' tables. If they don't exist in HBase, we launch
 phoenix with hbase admin user.
 Independently, if 'ryba' hasn't CREATE right on these 4 tables, it will be granted
 
-    module.exports = header: 'Phoenix Client Init', handler: ->
-      {hbase} = @config.ryba
+    module.exports = header: 'Phoenix Client Init', handler: (options) ->
 
 Wait for HBase to be started.
 
@@ -15,12 +14,12 @@ Wait for HBase to be started.
 
 Trigger Phoenix tables creation.
 
-      zk_path = "#{hbase.site['hbase.zookeeper.quorum']}"
-      zk_path += ":#{hbase.site['hbase.zookeeper.property.clientPort']}"
-      zk_path += "#{hbase.site['zookeeper.znode.parent']}"
+      zk_path = "#{options.site['hbase.zookeeper.quorum']}"
+      zk_path += ":#{options.site['hbase.zookeeper.property.clientPort']}"
+      zk_path += "#{options.site['zookeeper.znode.parent']}"
       @system.execute
         header: 'Namespace'
-        cmd: mkcmd.hbase @, """
+        cmd: mkcmd.hbase options.admin, """
         code=3
         if ! hbase shell 2>/dev/null <<< "list_namespace_tables 'SYSTEM'" | egrep '^CATALOG$'; then
           /usr/hdp/current/phoenix-client/bin/sqlline.py #{zk_path} <<< '!q' # 2>/dev/null
