@@ -25,7 +25,7 @@ managed cluster, ACL must be set on HDFS an not on hive.
         header: 'HDFS Policy'
         if: !!options.ranger_admin
       , ->
-        name = "Ranger-Ryba-HDFS-Policy-#{options.hostname}-client"
+        name = "Ranger-Ryba-HDFS-Policy-#{options.fqdn}-client"
         dbs = []
         directories = []
         for hive_hcatalog in options.hive_hcatalog
