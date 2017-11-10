@@ -401,12 +401,19 @@ Example:
 
 ## Configuration for Proxy Users
 
-      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_rm', 'ryba/hadoop/yarn_nm']
+      hadoop_ctxs = @contexts ['ryba/hadoop/hdfs_nn', 'ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
       for hadoop_ctx in hadoop_ctxs
         hadoop_ctx.config.ryba ?= {}
         hadoop_ctx.config.ryba.core_site ?= {}
         hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
         hadoop_ctx.config.ryba.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
+      for yarn_ctx in @contexts ['ryba/hadoop/yarn_rm']
+        yarn_ctx.config.ryba ?= {}
+        yarn_ctx.config.ryba.yarn ?= {}
+        yarn_ctx.config.ryba.yarn.rm ?= {}
+        yarn_ctx.config.ryba.yarn.rm.core_site ?= {}
+        yarn_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{hue_docker.user.name}.hosts"] ?= '*'
+        yarn_ctx.config.ryba.yarn.rm.core_site["hadoop.proxyuser.#{hue_docker.user.name}.groups"] ?= '*'
       httpfs_ctxs = @contexts 'ryba/hadoop/httpfs'
       for httpfs_ctx in httpfs_ctxs
         httpfs_ctx.config.ryba ?= {}
