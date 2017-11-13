@@ -202,7 +202,11 @@ This Fixs are needed to be able to isolate confs betwwen broker and client
             replace: "KAFKA_ENV=#{kafka.broker.conf_dir}/kafka-env.sh # RYBA DON'T OVERWRITE"
           ,
             match: RegExp "KAFKA_GC_LOG_OPTS=\"[^\"]+\"", 'mg'
-            replace: "KAFKA_GC_LOG_OPTS=\"-Xloggc:$LOG_DIR/$GC_LOG_FILE_NAME -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps #{kafka.broker.env['KAFKA_GC_LOG_OPTS']} \" # RYBA DON'T OVERWRITE"
+            replace: """
+            if [ -z "$KAFKA_GC_LOG_OPTS" ]; then
+                KAFKA_GC_LOG_OPTS="-Xloggc:$LOG_DIR/$GC_LOG_FILE_NAME -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps "
+              fi
+            """
           ]
           backup: true
           eof: true

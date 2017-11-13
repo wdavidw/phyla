@@ -86,7 +86,7 @@ Example:
       # Avoid console verbose ouput in a non-rotated kafka.out file
       # kafka.broker.env['KAFKA_LOG4J_OPTS'] ?= "-Dlog4j.configuration=file:$base_dir/../config/log4j.properties -Dkafka.root.logger=INFO, kafkaAppender"
       kafka.broker.env['KAFKA_LOG4J_OPTS'] ?= "-Dlog4j.configuration=file:#{kafka.broker.conf_dir}/log4j.properties"
-      kafka.broker.env['KAFKA_GC_LOG_OPTS'] ?= ""
+      kafka.broker.env['KAFKA_GC_LOG_OPTS'] ?= "XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=2M "
       kafka.broker.log4j ?= {}
       kafka.broker.log4j[k] ?= v for k, v of @config.log4j
       config = kafka.broker.log4j.config ?= {}
