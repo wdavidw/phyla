@@ -25,7 +25,7 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
         header: 'IPTables'
         if: @config.iptables.action is 'start'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: options.queryserver.site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.phoneix_site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
         ]
 
 ## Packages
@@ -86,7 +86,7 @@ We use the SPNEGO keytab, so we let hadoop/core handle principal & keytab
         target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../../hbase/resources/hbase-site.xml"
         local: true
-        properties: options.queryserver.site
+        properties: options.phoenix_site
         backup: true
         oef: true
 
