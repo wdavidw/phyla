@@ -5,7 +5,7 @@
 Once installed you can type hive in a prompt and the hive client shell wil launch directly.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
@@ -15,15 +15,15 @@ Once installed you can type hive in a prompt and the hive client shell wil launc
         mapred_client: 'ryba/hadoop/mapred_client'
         tez: module: 'ryba/tez', local: true, auto: true, implicit: true
         hive_hcatalog: module: 'ryba/hive/hcatalog'
+        phoenix_client: module: 'ryba/phoenix/client', local: true
         ranger_admin: module: 'ryba/ranger/admin', single: true
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs'
       configure:
         'ryba/hive/client/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hive.client
-          @call 'ryba/hive/client/install', options
-          @call 'ryba/hive/client/check', options
-        'check': ->
-          options = @config.ryba.hive.client
-          @call 'ryba/hive/client/check', options
+        'install': [
+          'ryba/hive/client/install'
+          'ryba/hive/client/check'
+        ]
+        'check':
+          'ryba/hive/client/check'

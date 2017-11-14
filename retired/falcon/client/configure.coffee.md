@@ -6,17 +6,24 @@ for data motion, coordination of data pipelines, lifecycle management, and data
 discovery. Falcon enables end consumers to quickly onboard their data and its
 associated processing and management tasks on Hadoop clusters.
 
-    module.exports = ->
-      [f_context] = @contexts 'ryba/falcon/server', require('../server/configure').handler
-      {realm} = @config.ryba
-      falcon = @config.ryba.falcon ?= {}
-      falcon.client ?= {}
-      # Layout
-      falcon.client.conf_dir ?= '/etc/falcon/conf'
+    module.exports = (service) ->
+      {options, deps} = service
 
 ## Identities
 
       # User
-      falcon.client.user ?= f_context.config.ryba.falcon.user
+      options.user ?= deps.falcon_server.options[0].user
       # Group
-      falcon.client.group ?= f_context.config.ryba.falcon.group
+      options.group ?= deps.falcon_server.options[0].group
+
+## Kerberos
+
+      # Kerberos Test Principal
+      options.test_krb5_user ?= deps.test_user.options.krb5.user
+
+## Environment
+
+      # Layout
+      options.conf_dir ?= '/etc/falcon/conf'
+      # Misc
+      options.hostname = service.node.hosname

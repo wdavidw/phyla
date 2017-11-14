@@ -293,7 +293,7 @@ with Zookeeper.
         mode: 0o700
         user: options.user.name
         group: options.group.name
-        unless_exec: mkcmd.hdfs @, "hdfs --config #{options.conf_dir} dfs -test -d #{options.yarn_site['yarn.node-labels.fs-store.root-dir']}"
+        unless_exec: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config #{options.conf_dir} dfs -test -d #{options.yarn_site['yarn.node-labels.fs-store.root-dir']}"
 
 ## Dependencies
 

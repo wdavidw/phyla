@@ -5,7 +5,7 @@
 data store.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         zookeeper_server: module: 'ryba/zookeeper/server'
@@ -22,18 +22,15 @@ data store.
       configure:
         'ryba/druid/historical/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.historical
-          @call 'ryba/druid/prepare', options
-        'install': ->
-          options = @config.ryba.druid.historical
-          @call 'ryba/druid/historical/install', options
-          @call 'ryba/druid/historical/start', options
-        'start': ->
-          options = @config.ryba.druid.historical
-          @call 'ryba/druid/historical/start', options
+        'prepare':
+          'ryba/druid/prepare'
+        'install': [
+          'ryba/druid/historical/install'
+          'ryba/druid/historical/start'
+        ]
+        'start':
+          'ryba/druid/historical/start'
         'status':
           'ryba/druid/historical/status'
-        'stop': ->
-          options = @config.ryba.druid.historical
-          @call 'ryba/druid/historical/stop', options
+        'stop':
+          'ryba/druid/historical/stop'

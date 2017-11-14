@@ -2,7 +2,7 @@
 # Spark History Server
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -14,17 +14,14 @@
       configure:
         'ryba/spark/history_server/configure'
       commands:
-        'install': ->
-          options = @config.ryba.spark.history_server
-          @call 'ryba/spark/history_server/install', options
-          @call 'ryba/spark/history_server/start', options
-          @call 'ryba/spark/history_server/check', options
-        'start': ->
-          options = @config.ryba.spark.history_server
-          @call 'ryba/spark/history_server/start', options
-        'stop': ->
-          options = @config.ryba.spark.history_server
-          @call 'ryba/spark/history_server/stop', options
-        'check': ->
-          options = @config.ryba.spark.history_server
-          @call 'ryba/spark/history_server/check', options
+        'install': [
+          'ryba/spark/history_server/install'
+          'ryba/spark/history_server/start'
+          'ryba/spark/history_server/check'
+        ]
+        'start':
+          'ryba/spark/history_server/start'
+        'stop':
+          'ryba/spark/history_server/stop'
+        'check':
+          'ryba/spark/history_server/check'

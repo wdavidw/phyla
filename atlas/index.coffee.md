@@ -13,14 +13,15 @@ Atlas enables Hadoop users to manage more efficiently their data:
 - Scurity & Policy Engine
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         ssl: module: 'masson/core/ssl', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hbase_master: module: 'ryba/hbase/master'
-        hbase_client: module: 'ryba/hbase/client', local: true, recommanded: true # Required if hbase_master
+        # hbase_client: module: 'ryba/hbase/client', local: true, recommanded: true # Required if hbase_master
+        hbase_client: module: 'ryba/hbase/client', local: true, auto: true # Required if hbase_master
         kafka_broker: module: 'ryba/kafka/broker'
         kafka_client: module: 'ryba/kafka/client', local: true, implicit: true, auto: true
         ranger_admin: module: 'ryba/ranger/admin', single: true
@@ -34,23 +35,19 @@ Atlas enables Hadoop users to manage more efficiently their data:
       configure:
         'ryba/atlas/configure'
       commands:
-        'install': ->
-          options = @config.ryba.atlas
-          @call 'ryba/atlas/install', options
-          @call 'ryba/atlas/solr_bootstrap', options
-          @call 'ryba/atlas/start', options
-          @call 'ryba/atlas/check', options
-        'start': ->
-          options = @config.ryba.atlas
-          @call 'ryba/atlas/start', options
-        'status': ->
-          options = @config.ryba.atlas
-          @call 'ryba/atlas/status', options
-        'check': ->
-          options = @config.ryba.atlas
-          @call 'ryba/atlas/check', options
-        'stop': ->
-          options = @config.ryba.atlas
-          @call 'ryba/atlas/stop', options
+        'install': [
+          'ryba/atlas/install'
+          'ryba/atlas/solr_bootstrap'
+          'ryba/atlas/start'
+          'ryba/atlas/check'
+        ]
+        'start':
+          'ryba/atlas/start'
+        'status':
+          'ryba/atlas/status'
+        'check':
+          'ryba/atlas/check'
+        'stop':
+          'ryba/atlas/stop'
 
 [atlas-apache]: http://atlas.incubator.apache.org

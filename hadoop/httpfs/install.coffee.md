@@ -37,7 +37,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         header: 'IPTables'
-        if: @config.iptables.action is 'start'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.http_port, protocol: 'tcp', state: 'NEW', comment: "HDFS HttpFS" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.http_admin_port, protocol: 'tcp', state: 'NEW', comment: "HDFS HttpFS" }

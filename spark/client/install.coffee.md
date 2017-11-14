@@ -8,7 +8,7 @@ Resources:
 
 [Tips and Tricks from Altic Scale][https://www.altiscale.com/blog/tips-and-tricks-for-running-spark-on-hadoop-part-2-2/)   
 
-    module.exports = header: 'Spark Install', handler: (options) ->
+    module.exports = header: 'Spark Client Install', handler: (options) ->
 
 ## Register
 
@@ -45,7 +45,7 @@ Install the spark and python packages.
       spark_yarn_jar = options.conf['spark.yarn.jar']
       @system.execute
         header: 'HDFS Layout'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         hdfs dfs -mkdir -p /apps/#{options.user.name}
         hdfs dfs -chmod 755 /apps/#{options.user.name}
         hdfs dfs -put -f /usr/hdp/current/spark-client/lib/spark-assembly-*.jar #{spark_yarn_jar}
@@ -137,7 +137,7 @@ has finished (logs are only available in yarn-cluster mode).
             target: "#{options.conf_dir}/spark-env.sh"
             source: "#{__dirname}/../resources/spark-env.sh.j2"
             local: true
-            context: @config
+            context: options: options
             backup: true
           @file.properties
             target: "#{options.conf_dir}/spark-defaults.conf"

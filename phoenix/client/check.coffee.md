@@ -16,7 +16,6 @@ Refer to the [sqlline] documentation for a complete list of supported command
 instructions.
 
     module.exports = header: 'Phoenix Client Check', handler: (options) ->
-      # {force_check, user, hbase} = @config.ryba
       zk_path = "#{options.site['hbase.zookeeper.quorum']}"
       zk_path += ":#{options.site['hbase.zookeeper.property.clientPort']}"
       zk_path += "#{options.site['zookeeper.znode.parent']}"
@@ -28,17 +27,17 @@ instructions.
 
 ## Check SQL Query
 
-      table = "ryba_check_phoenix_#{@config.shortname}".toUpperCase()
+      table = "ryba_check_phoenix_#{options.hostname}".toUpperCase()
       @system.execute
         cmd: mkcmd.hbase options.admin, """
-        hdfs dfs -rm -skipTrash check-#{@config.host}-phoenix
+        hdfs dfs -rm -skipTrash check-#{options.hostname}-phoenix
         # Drop table if it exists
         # if hbase shell 2>/dev/null <<< "list" | grep '#{table}'; then echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null; fi
         echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null
         # Create table with dummy column family and grant access to ryba
         echo "create '#{table}', 'cf1'; grant 'ryba', 'RWXCA', '#{table}'" | hbase shell 2>/dev/null;
         """
-        unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{@config.host}-phoenix"
+        unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-phoenix"
       @file
         target: "#{options.test.user.home}/check_phoenix/create.sql"
         uid: options.test.user.name
@@ -66,12 +65,13 @@ instructions.
         ORDER BY DOMAIN DESC;
         """
       @system.execute
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
         cd /usr/hdp/current/phoenix-client/bin
         ./psql.py -t #{table} #{zk_path} \
           #{options.test.user.home}/check_phoenix/create.sql \
           ../doc/examples/WEB_STAT.csv \
-        >/dev/null 2>&1
+        >/dev/null # 2>&1
         """
         retry: 5
         interval: 10000
@@ -80,11 +80,11 @@ instructions.
         hbase shell 2>/dev/null <<< "list" | grep '#{table}'
         """
       @system.execute
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         cd /usr/hdp/current/phoenix-client/bin
         ./sqlline.py #{zk_path} \
           #{options.test.user.home}/check_phoenix/select.sql
-        hdfs dfs -touchz check-#{@config.host}-phoenix
+        hdfs dfs -touchz check-#{options.hostname}-phoenix
         """
         retry: 5
         interval: 10000

@@ -2,11 +2,7 @@
 # DB Admin Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/commons/db_admin', ['ryba', 'db_admin'], require('nikita/lib/misc').merge require('.').use,
-        mariadb: key: ['mariadb', 'server']
-        postres: key: ['postgresql', 'server']
-        mysql: key: ['mysql', 'server']
-      options = @config.ryba.db_admin = service.options
+      options = service.options
 
 ## Engine
 
@@ -18,11 +14,11 @@ For exemple, an "engine" options set to "mariadb" reflect the discovery of an
 instance of MariaDB and the existance of a usable db object available as the
 "mariadb" option.
 
-      if service.use.mariadb
+      if service.deps.mariadb
         options.engine ?= 'mariadb'
-      else if service.use.postgresql
+      else if service.deps.postgresql
         options.engine ?= 'postgresql'
-      else if service.use.mysql
+      else if service.deps.mysql
         options.engine ?= 'mysql'
       else
         options.engine ?= null
@@ -55,15 +51,15 @@ properties. Commons properties are:
 ### MariaDB
 
       # Auto discovered configuration
-      if service.use.mariadb
+      if service.deps.mariadb
         options.mariadb ?= {}
         options.mariadb.discovered = true
         options.mariadb.engine = 'mariadb'
         options.mariadb.admin_username ?= 'root'
-        options.mariadb.admin_password ?= service.use.mariadb[0].options.admin_password
-        options.mariadb.fqdns ?= service.use.mariadb.map (srv) -> srv.node.fqdn
+        options.mariadb.admin_password ?= service.deps.mariadb[0].options.admin_password
+        options.mariadb.fqdns ?= service.deps.mariadb.map (srv) -> srv.node.fqdn
         options.mariadb.host ?= options.mariadb.fqdns[0]
-        options.mariadb.port ?= service.use.mariadb[0].options.my_cnf['mysqld']['port']
+        options.mariadb.port ?= service.deps.mariadb[0].options.my_cnf['mysqld']['port']
       # Manual configurattion
       else if options.mariadb
         throw Error "Required Options: fqdns" unless options.mariadb.fqdns
@@ -82,15 +78,15 @@ properties. Commons properties are:
 ### PostgreSQL
 
       # Auto discovered configuration
-      if service.use.postgresql
+      if service.deps.postgresql
         options.postgresql ?= {}
         options.postgresql.discovered = true
         options.postgresql.engine = 'postgresql'
         options.postgresql.admin_username ?= 'root'
-        options.postgresql.admin_password ?= service.use.postgresql[0].options.password
-        options.postgresql.fqdns ?= service.use.postgresql.map (srv) -> srv.node.fqdn
+        options.postgresql.admin_password ?= service.deps.postgresql[0].options.password
+        options.postgresql.fqdns ?= service.deps.postgresql.map (srv) -> srv.node.fqdn
         options.postgresql.host ?= options.postgresql.fqdns[0]
-        options.postgresql.port ?= service.use.postgresql[0].options.port
+        options.postgresql.port ?= service.deps.postgresql[0].options.port
         url = options.postgresql.fqdns.map((fqdn)-> "#{fqdn}:#{options.postgresql.port}").join(',')
         options.postgresql.jdbc ?= "jdbc:postgresql://#{url}"
       # Manual configurattion
@@ -111,15 +107,15 @@ properties. Commons properties are:
 ### Mysql
 
       # Auto discovered configuration
-      if service.use.mysql
+      if service.deps.mysql
         options.mysql ?= {}
         options.mysql.discovered = true
         options.mysql.engine = 'mysql'
         options.mysql.admin_username ?= 'root'
-        options.mysql.admin_password ?= service.use.mysql[0].options.admin_password
-        options.mysql.fqdns ?= service.use.mysql.map (srv) -> srv.node.fqdn
+        options.mysql.admin_password ?= service.deps.mysql[0].options.admin_password
+        options.mysql.fqdns ?= service.deps.mysql.map (srv) -> srv.node.fqdn
         options.mysql.host ?= options.mysql.fqdns[0]
-        options.mysql.port ?= service.use.mysql[0].options.my_cnf['mysqld']['port']
+        options.mysql.port ?= service.deps.mysql[0].options.my_cnf['mysqld']['port']
       # Manual configurattion
       else if options.postgresql
         throw Error "Required Options: fqdns" unless options.postgresql.fqdns
@@ -137,9 +133,9 @@ properties. Commons properties are:
 
 ## Wait
 
-      options.wait_mariadb = service.use.mariadb[0].options.wait if service.use.mariadb
-      options.wait_postgresql = service.use.postgresql[0].options.wait if service.use.postgresql
-      options.wait_mysql = service.use.mysql[0].options.wait if service.use.mysql
+      options.wait_mariadb = service.deps.mariadb[0].options.wait if service.deps.mariadb
+      options.wait_postgresql = service.deps.postgresql[0].options.wait if service.deps.postgresql
+      options.wait_mysql = service.deps.mysql[0].options.wait if service.deps.mysql
       options.wait = {}
       options.wait.tcp = []
       if options.mariadb then for fqdn in options.mariadb.fqdns
@@ -148,7 +144,3 @@ properties. Commons properties are:
         options.wait.tcp.push host: fqdn, port: options.postgresql.port
       if options.mysql then for fqdn in options.mysql.fqdns
         options.wait.tcp.push host: fqdn, port: options.mysql.port
-
-## Dependencies
-
-    migration = require 'masson/lib/migration'

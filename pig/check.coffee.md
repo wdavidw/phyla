@@ -22,7 +22,7 @@ unless the "force_check" option is set to "true".
           """
           target: '/tmp/ryba-test.pig'
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -r -skipTrash #{options.hostname}-pig_tmp || true
           hdfs dfs -rm -r -skipTrash #{options.hostname}-pig || true
           hdfs dfs -mkdir -p #{options.hostname}-pig_tmp
@@ -30,7 +30,7 @@ unless the "force_check" option is set to "true".
           pig /tmp/ryba-test.pig
           hdfs dfs -test -d /user/#{options.test.user.name}/#{options.hostname}-pig
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d #{options.hostname}-pig"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d #{options.hostname}-pig"
           trap: true
 
 ## HCat
@@ -48,7 +48,7 @@ unless the "force_check" option is set to "true".
           target: "/tmp/ryba-pig_hcat.pig"
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -r #{options.hostname}-pig_hcat_tmp || true
           hdfs dfs -rm -r #{options.hostname}-pig_hcat || true
           hdfs dfs -mkdir -p #{options.hostname}-pig_hcat_tmp/db/check_tb
@@ -61,7 +61,7 @@ unless the "force_check" option is set to "true".
           hdfs dfs -rm -r #{options.hostname}-pig_hcat_tmp
           hdfs dfs -test -d #{options.hostname}-pig_hcat
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d #{options.hostname}-pig_hcat"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d #{options.hostname}-pig_hcat"
           trap: true
 
 ## Dependencies

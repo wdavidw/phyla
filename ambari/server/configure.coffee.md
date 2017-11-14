@@ -36,27 +36,16 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/ambari/server', ['ryba', 'ambari', 'server'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        ssl: key: ['ssl']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        db_admin: key: ['ryba', 'db_admin']
-        hadoop_core: key: ['ryba']
-        ambari_repo: key: ['ryba', 'ambari', 'repo']
-        ambari_server: key: ['ryba', 'ambari', 'server']
-      @config.ryba ?= {}
-      @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.server = service.options
+      options = service.options
 
-## Environnment
+## Environment
 
       options.fqdn = service.node.fqdn
       # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
       options.sudo ?= false
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
-      options.java_home ?= service.use.java.options.java_home
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.java_home ?= service.deps.java.options.java_home
       options.master_key ?= null
       options.admin ?= {}
       options.current_admin_password ?= 'admin'
@@ -71,7 +60,7 @@ The non-root user you choose to run the Ambari Server should be part of the
 Hadoop group. The default group name is "hadoop".
 
       # Hadoop Group
-      options.hadoop_group ?= service.use.hadoop_core.options.hadoop_group if service.use.hadoop_core
+      options.hadoop_group ?= service.deps.hadoop_core.options.hadoop_group if service.deps.hadoop_core
       options.hadoop_group = name: options.group if typeof options.group is 'string'
       options.hadoop_group ?= {}
       options.hadoop_group.name ?= 'hadoop'
@@ -94,8 +83,8 @@ Hadoop group. The default group name is "hadoop".
 
 ## Ambari TLS and Truststore
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -115,9 +104,9 @@ Multiple ambari instance on a same server involve a different principal or the p
 
       # Krb5 Import
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # Krb5 Validation
       throw Error "Require Property: krb5.admin.kadmin_principal" unless options.krb5.admin.kadmin_principal
       throw Error "Require Property: krb5.admin.kadmin_password" unless options.krb5.admin.kadmin_password
@@ -162,9 +151,9 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
       options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
+      options.db.engine ?= service.deps.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -176,7 +165,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_hive = password: options.db_hive if typeof options.db_hive is 'string'
       if options.db_hive
         options.db_hive.engine ?= options.db.engine
-        options.db_hive = merge {}, service.use.db_admin.options[options.db_hive.engine], options.db_hive
+        options.db_hive = merge {}, service.deps.db_admin.options[options.db_hive.engine], options.db_hive
         options.db_hive.database ?= 'hive'
         options.db_hive.username ?= 'hive'
         throw Error "Required Option: db_hive.password" unless options.db_hive.password
@@ -187,7 +176,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_oozie = password: options.db_oozie if typeof options.db_oozie is 'string'
       if options.db_oozie
         options.db_oozie.engine ?= options.db.engine
-        options.db_oozie = merge {}, service.use.db_admin.options[options.db_oozie.engine], options.db_oozie
+        options.db_oozie = merge {}, service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
         options.db_oozie.database ?= 'oozie'
         options.db_oozie.username ?= 'oozie'
         throw Error "Required Option: db_oozie.password" unless options.db_oozie.password
@@ -198,16 +187,16 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
       if options.db_ranger
         options.db_ranger.engine ?= options.db.engine
-        options.db_ranger = merge {}, service.use.db_admin.options[options.db_ranger.engine], options.db_ranger
+        options.db_ranger = merge {}, service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
 
 ## Wait
 
-      options.wait_db_admin = service.use.db_admin.options.wait
+      options.wait_db_admin = service.deps.db_admin.options.wait
       options.wait = {}
-      options.wait.rest = for srv in service.use.ambari_server
+      options.wait.rest = for srv in service.deps.ambari_server
         clusters_url: url.format
           protocol: unless srv.options.config['api.ssl'] is 'true'
           then 'http'
@@ -224,4 +213,3 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
     url = require 'url'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

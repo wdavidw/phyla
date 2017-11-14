@@ -19,9 +19,9 @@ This commands checks if falcons works as required.
 Follow the [Hortonworks Data Pipelines example][dpe].
 
       @call header: 'Check Data Pipelines', skip: true, ->
-        cluster_path = "#{user.home}/check_falcon_#{@config.shortname}/cluster.xml"
-        feed_path = "#{user.home}/check_falcon_#{@config.shortname}/feed.xml"
-        process_path = "#{user.home}/check_falcon_#{@config.shortname}/process.xml"
+        cluster_path = "#{user.home}/check_falcon_#{options.hostname}/cluster.xml"
+        feed_path = "#{user.home}/check_falcon_#{options.hostname}/feed.xml"
+        process_path = "#{user.home}/check_falcon_#{options.hostname}/process.xml"
         # TODO: RM HA latest
         nn_contexts = @contexts 'ryba/hadoop/hdfs_nn'#, require('../hadoop/hdfs_nn').configure
         nn_rcp = nn_contexts[0].config.ryba.core_site['fs.defaultFS']
@@ -52,18 +52,18 @@ Follow the [Hortonworks Data Pipelines example][dpe].
           group: "#{falcon.client.group.name}"
           krb5_user: @config.ryba.hdfs.krb5_user
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           if hdfs dfs -test -f /tmp/falcon/clean.pig; then exit 3; fi
           hdfs dfs -mkdir /tmp/falcon
           hdfs dfs -touchz /tmp/falcon/clean.pig
           """
           code_skipped: 3
         # @hdfs_mkdir
-        #   target: "/user/ryba/check_falcon_#{@config.shortname}/prod-cluster/staging"
+        #   target: "/user/ryba/check_falcon_#{options.hostname}/prod-cluster/staging"
         #   user: "#{ryba.user.name}"
         #   krb5_user: @config.ryba.hdfs.krb5_user
         # @hdfs_mkdir
-        #   target: "/user/ryba/check_falcon_#{@config.shortname}/prod-cluster/working"
+        #   target: "/user/ryba/check_falcon_#{options.hostname}/prod-cluster/working"
         #   user: "#{ryba.user.name}"
         #   krb5_user: @config.ryba.hdfs.krb5_user
         @file
@@ -144,7 +144,7 @@ Follow the [Hortonworks Data Pipelines example][dpe].
               <outputs>
                 <output instance="now(0,2)" feed="feed-clicks-clean" name="output" />
               </outputs>
-              <!--workflow engine="pig" path="/user/ryba/check_falcon_#{@config.shortname}/clean.pig" /-->
+              <!--workflow engine="pig" path="/user/ryba/check_falcon_#{options.hostname}/clean.pig" /-->
               <workflow engine="pig" path="/tmp/falcon/clean.pig" />
               <retry policy="periodic" delay="minutes(10)" attempts="3"/>
               <late-process policy="exp-backoff" delay="hours(1)">
@@ -156,16 +156,16 @@ Follow the [Hortonworks Data Pipelines example][dpe].
           uid: user.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, "falcon entity -type cluster -submit -file #{cluster_path}"
+          cmd: mkcmd.test options.test_krb5_user, "falcon entity -type cluster -submit -file #{cluster_path}"
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           if falcon entity -type feed -list | grep testFeed; then exit 3; fi
           falcon entity -type feed -submit -file #{feed_path}
           """
           code_skipped: 3
         # Error for now: "Start instance  today(0,0) of feed testFeed is before the start of feed"
         # @system.execute
-        #   cmd: mkcmd.test @, "falcon entity -type process -submit -file #{process_path}"
+        #   cmd: mkcmd.test options.test_krb5_user, "falcon entity -type process -submit -file #{process_path}"
 
 ## Dependencies
 

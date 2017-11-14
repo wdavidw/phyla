@@ -4,11 +4,6 @@
     module.exports = header: 'Ranger HBase Plugin', handler: (options) ->
       version = null
 
-## Register
-
-      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
-      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
-
 ## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
@@ -17,6 +12,8 @@
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
       @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
 
 ## Packages
@@ -78,7 +75,7 @@ we execute this task using the rest api.
               uid: options.hbase_user.name
               gid: options.hadoop_group.name
               krb5_user: options.hdfs_krb5_user
-              # unless_exec: mkcmd.hdfs @, "hdfs dfs -test -d #{target}"
+              # unless_exec: mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -test -d #{target}"
       @system.mkdir
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'

@@ -2,25 +2,15 @@
 ## Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/mongodb/router', ['ryba', 'mongodb', 'router'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        locale: key: ['locale']
-        ssl: key: ['ssl']
-        repo: key: ['ryba','mongodb','repo']
-        config_servers: key: ['ryba', 'mongodb', 'configsrv']
-        shard_servers: key: ['ryba', 'mongodb', 'shard']
-        router_servers: key: ['ryba', 'mongodb', 'router']
-      @config.ryba ?= {}
-      @config.ryba.mongodb ?= {}
-      options = @config.ryba.mongodb.router = service.options
+      options = service.options
       options.version ?= '3.4'
 
 ## Identities
 
 By default, merge group and user from the MongoDb config server.
 
-      options.group = merge service.use.config_servers[0].options.group, options.group
-      options.user = merge service.use.config_servers[0].options.user, options.user
+      options.group = merge service.deps.config_servers[0].options.group, options.group
+      options.user = merge service.deps.config_servers[0].options.user, options.user
 
 ## Configuration
 
@@ -30,7 +20,7 @@ By default, merge group and user from the MongoDb config server.
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.config ?= {}
 
@@ -67,7 +57,7 @@ Each query router (mongos instance) is attributed to a config, and shard server 
       throw Error 'missing Config Server Replica set mongodb.router.config_replicaset' unless options.config_replicaset?
       options.my_shards_repl_sets ?= {}
       #computing shard  replica sets
-      for srv in service.use.shard_servers
+      for srv in service.deps.shard_servers
         #shard server is attribute to config server
         if srv.options.config_replicaset is options.config_replicaset
           options.my_shards_repl_sets[srv.options.replicaset] ?= {}
@@ -87,7 +77,7 @@ Each query router (mongos instance) is attributed to a config, and shard server 
         options.config.sharding.autoSplit ?= true
       else
         throw Error 'option not supported' if options.config.sharding.autoSplit? or options.config.sharding.chunkSize?
-      cfsrv_connect = service.use.config_servers.filter( (srv) ->
+      cfsrv_connect = service.deps.config_servers.filter( (srv) ->
         srv.options.config.replication.replSetName is options.config_replicaset
       ).map( (srv) ->   "#{srv.node.fqdn}:#{srv.options.config.net.port}" ).join(',')
       options.config.sharding.configDB ?= "#{options.config_replicaset}/#{cfsrv_connect}"
@@ -127,8 +117,8 @@ By changing the default port, we can allow different mongo service to run on the
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled = !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
@@ -154,9 +144,9 @@ By changing the default port, we can allow different mongo service to run on the
 # Wait
 
       options.wait = {}
-      options.wait_configsrv ?= service.use.config_servers[0].options.wait
-      options.wait_shardsrv ?= service.use.shard_servers[0].options.wait
-      options.wait.tcp = for srv in service.use.router_servers
+      options.wait_configsrv ?= service.deps.config_servers[0].options.wait
+      options.wait_shardsrv ?= service.deps.shard_servers[0].options.wait
+      options.wait.tcp = for srv in service.deps.router_servers
         host: srv.node.fqdn
         port: options.config.net.port or 27018
       options.wait.local =
@@ -165,5 +155,4 @@ By changing the default port, we can allow different mongo service to run on the
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'

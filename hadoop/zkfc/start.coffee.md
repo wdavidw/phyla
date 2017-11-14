@@ -23,7 +23,7 @@ Wait for Kerberos, ZooKeeper and HDFS to be started.
       @wait.execute
         header: 'Wait Active NN'
         if: options.active_nn_host isnt options.fqdn
-        cmd: mkcmd.hdfs @, "hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname}"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname}"
         code_skipped: 255
 
 ## Start
@@ -52,7 +52,7 @@ be executed on the same server as ZKFC.
       # before attempting to activate it.
       @system.execute
         header: 'Failover'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         if hdfs --config #{options.nn_conf_dir} haadmin -getServiceState #{options.active_shortname} | grep standby;
         then hdfs --config #{options.nn_conf_dir} haadmin -ns #{options.dfs_nameservices} -failover #{options.standby_shortname} #{options.active_shortname};
         else exit 2; fi

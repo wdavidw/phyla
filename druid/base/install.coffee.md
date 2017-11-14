@@ -8,22 +8,6 @@
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
 
-## IPTables
-
-| Service   | Port       | Proto     | Parameter                   |
-|-----------|------------|-----------|-----------------------------|
-| Druid Standalone Realtime    | 8084      | tcp/http  |  |
-| Druid Router    | 8088      | tcp/http  |  |
-
-Note, this hasnt been verified.
-
-      # @tools.iptables
-      #   header: 'IPTables'
-      #   rules: [
-      #     { chain: 'INPUT', jump: 'ACCEPT', dport: port, protocol: 'tcp', state: 'NEW', comment: "Falcon Prism Local EndPoint" }
-      #   ]
-      #   if: @config.iptables.action is 'start'
-
 ## Identities
 
 By default, the "druid" package create the following entries:
@@ -118,7 +102,7 @@ Log files are stored inside "/var/log/druid" by default.
 ## Kerberos
 
 Create a service principal for this NameNode. The principal is named after
-"nn/#{@config.host}@#{realm}".
+"nn/{fqdn}@{realm}".
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos Admin Principal'

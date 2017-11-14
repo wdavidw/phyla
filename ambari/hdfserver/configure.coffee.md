@@ -49,7 +49,7 @@
       @config.ryba.ambari ?= {}
       options = @config.ryba.ambari.hdfserver = service.options
 
-## Environnment
+## Environment
 
       options.fqdn = service.node.fqdn
       # options.http ?= '/var/www/html'

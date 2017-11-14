@@ -11,7 +11,7 @@ It can also be used with any other hue installation, or even any other applicati
 You should start with /bin/ryba prepare -m 'ryba/spark/livy_server' command first.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client'
         'java': implicit: true, module: 'masson/commons/java'
         'hadoop': 'ryba/hadoop/core'

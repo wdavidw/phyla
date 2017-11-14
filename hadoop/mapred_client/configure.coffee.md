@@ -2,36 +2,31 @@
 # MapReduce Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/mapred_client', ['ryba', 'mapred'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_client: key: ['ryba', 'yarn']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_ts: key: ['ryba', 'yarn', 'ats']
-        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
-      @config.ryba ?= {}
-      options = @config.ryba.mapred = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.mapred.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.mapred.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.mapred.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.mapred.user, options.user
+
+## Kerberos
+
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Environment
 
       # Layout
       options.log_dir ?= '/var/log/hadoop-mapreduce' # Default to "/var/log/hadoop-mapreduce/$USER"
       options.pid_dir ?= '/var/run/hadoop-mapreduce'  # /etc/hadoop/conf/hadoop-env.sh#94
-      options.conf_dir ?= service.use.hadoop_core.options.conf_dir
+      options.conf_dir ?= service.deps.hadoop_core.options.conf_dir
       # Misc
       options.force_check ?= false
       options.hostname ?= service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Configuration
 
@@ -59,7 +54,7 @@
         'mapreduce.jobhistory.intermediate-done-dir'
         'mapreduce.jobhistory.principal'
       ]
-        options.mapred_site[property] ?= if service.use.mapred_jhs then service.use.mapred_jhs.options.mapred_site[property] else null
+        options.mapred_site[property] ?= if service.deps.mapred_jhs then service.deps.mapred_jhs.options.mapred_site[property] else null
       # The value is set by the client app and the iptables are enforced on the worker nodes
       options.mapred_site['yarn.app.mapreduce.am.job.client.port-range'] ?= '59100-59200'
       options.mapred_site['mapreduce.framework.name'] ?= 'yarn' # Execution framework set to Hadoop YARN.
@@ -68,7 +63,7 @@
       options.mapred_site['mapreduce.jobtracker.system.dir'] = null # JobTracker no longer used
       # The replication level for submitted job files should be around the square root of the number of nodes.
       # see https://issues.apache.org/jira/browse/MAPREDUCE-2845
-      options.mapred_site['mapreduce.client.submit.file.replication'] ?= Math.min (Math.round Math.sqrt service.use.yarn_nm.length), 10
+      options.mapred_site['mapreduce.client.submit.file.replication'] ?= Math.min (Math.round Math.sqrt service.deps.yarn_nm.length), 10
 
 # Configuration for Resource Allocation
 
@@ -93,10 +88,10 @@ Resources:
 *   [Understanding YARN MapReduce Memory Allocation](http://beadooper.com/?p=165)
 
       memory_per_container = 512
-      rm_memory_min_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
-      rm_memory_max_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
-      rm_cpu_min = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-vcores']
-      rm_cpu_max = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_memory_min_mb = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
+      rm_memory_max_mb = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_cpu_min = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-vcores']
+      rm_cpu_max = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
       yarn_mapred_am_memory_mb = options.mapred_site['yarn.app.mapreduce.am.resource.mb'] or if memory_per_container > 1024 then 2 * memory_per_container else memory_per_container
       yarn_mapred_am_memory_mb = Math.min rm_memory_max_mb, yarn_mapred_am_memory_mb
       options.mapred_site['yarn.app.mapreduce.am.resource.mb'] = "#{yarn_mapred_am_memory_mb}"
@@ -137,12 +132,11 @@ Resources:
 
 ## Wait
 
-      options.wait_mapred_jhs = service.use.mapred_jhs.options.wait
-      options.wait_yarn_ts = service.use.yarn_ts.options.wait
-      options.wait_yarn_nm = service.use.yarn_nm[0].options.wait
-      options.wait_yarn_rm = service.use.yarn_rm[0].options.wait
+      options.wait_mapred_jhs = service.deps.mapred_jhs.options.wait
+      options.wait_yarn_ts = service.deps.yarn_ts.options.wait
+      options.wait_yarn_nm = service.deps.yarn_nm[0].options.wait
+      options.wait_yarn_rm = service.deps.yarn_rm[0].options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

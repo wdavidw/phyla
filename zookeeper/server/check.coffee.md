@@ -5,7 +5,7 @@
 
 ## Wait
 
-      @call once: true, 'ryba/zookeeper/server/wait', options.wait
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait
 
 ## Check state
 

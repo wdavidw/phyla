@@ -2,24 +2,14 @@
 # Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/ranger/admin', ['ryba', 'ranger', 'admin'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        ssl: key: ['ssl']
-        db_admin: key: ['ryba', 'db_admin']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        openldap_server: key: ['openldap_server']
-      @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.usersync ?= {}
+      options = service.options
 
 ## Identities
 
 By default, merge group and user from the Ranger admin configuration.
 
-      options.group = merge {}, service.use.ranger_admin[0].options.group, options.group
-      options.user = merge {}, service.use.ranger_admin[0].options.user, options.user
+      options.group = merge {}, service.deps.ranger_admin[0].options.group, options.group
+      options.user = merge {}, service.deps.ranger_admin[0].options.user, options.user
 
 ## Environment
 
@@ -39,7 +29,7 @@ Setup process creates files in `/etc/ranger/usersync/conf` dir and outputs final
 
 ## Policy Admin Tool
 
-      options.install['POLICY_MGR_URL'] ?= service.use.ranger_admin[0].options.install['policymgr_external_url']
+      options.install['POLICY_MGR_URL'] ?= service.deps.ranger_admin[0].options.install['policymgr_external_url']
 
 
 ## User Group Source Information
@@ -59,13 +49,13 @@ database:
           options.install['MIN_UNIX_USER_ID_TO_SYNC'] ?= '300'
         when 'ldap'
           if  !options.install['SYNC_LDAP_URL']?
-            throw Error 'No openldap server configured' unless service.use.openldap_server?
-            options.install['SYNC_LDAP_URL'] ?= "#{service.use.openldap_server.optionsuri}"
-            options.install['SYNC_LDAP_BIND_DN'] ?= "#{service.use.openldap_server.optionsroot_dn}"
-            options.install['SYNC_LDAP_BIND_PASSWORD'] ?= "#{service.use.openldap_server.optionsroot_password}"
+            throw Error 'No openldap server configured' unless service.deps.openldap_server?
+            options.install['SYNC_LDAP_URL'] ?= "#{service.deps.openldap_server.optionsuri}"
+            options.install['SYNC_LDAP_BIND_DN'] ?= "#{service.deps.openldap_server.optionsroot_dn}"
+            options.install['SYNC_LDAP_BIND_PASSWORD'] ?= "#{service.deps.openldap_server.optionsroot_password}"
             options.install['CRED_KEYSTORE_FILENAME'] ?= "#{options.conf_dir}/rangerusersync.jceks"
-            options.install['SYNC_LDAP_USER_SEARCH_BASE'] ?= "ou=users,#{service.use.openldap_server.optionssuffix}"
-            options.install['SYNC_LDAP_USER_SEARCH_SCOPE'] ?= "ou=groups,#{service.use.openldap_server.optionssuffix}"
+            options.install['SYNC_LDAP_USER_SEARCH_BASE'] ?= "ou=users,#{service.deps.openldap_server.optionssuffix}"
+            options.install['SYNC_LDAP_USER_SEARCH_SCOPE'] ?= "ou=groups,#{service.deps.openldap_server.optionssuffix}"
             options.install['SYNC_LDAP_USER_OBJECT_CLASS'] ?= 'posixAccount'
             options.install['SYNC_LDAP_USER_SEARCH_FILTER'] ?= 'cn={0}'
             options.install['SYNC_LDAP_USER_NAME_ATTRIBUTE'] ?= 'cn'
@@ -74,7 +64,7 @@ database:
             options.install['SYNC_LDAP_USERNAME_CASE_CONVERSION'] ?= 'none'
             options.install['SYNC_LDAP_GROUPNAME_CASE_CONVERSION'] ?= 'none'
             options.install['SYNC_GROUP_SEARCH_ENABLED'] ?= 'false'
-            options.site['options.ldap.searchBase'] ?= "#{service.use.openldap_server.optionssuffix}"
+            options.site['options.ldap.searchBase'] ?= "#{service.deps.openldap_server.optionssuffix}"
           options.install['MIN_UNIX_USER_ID_TO_SYNC'] ?= '500'
         else return throw new Error 'sync source is not legal'
 
@@ -116,7 +106,6 @@ SSl properties are not documented, they are extracted from setup.py scripts.
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
     path = require 'path'
     {merge} = require 'nikita/lib/misc'
 

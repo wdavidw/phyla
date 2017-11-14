@@ -60,7 +60,7 @@ Properties accepted by the template are: `ryba.yarn.rm_opts`
         target: "#{options.conf_dir}/yarn-env.sh"
         source: "#{__dirname}/../resources/yarn-env.sh.j2"
         local: true
-        context: #@config
+        context:
           JAVA_HOME: options.java_home
           HADOOP_YARN_HOME: options.home
           YARN_HEAPSIZE: options.heapsize

@@ -16,49 +16,44 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/zkfc', ['ryba', 'zkfc'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-      options = @config.ryba.zkfc = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
       # Layout
-      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
-      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.pid_dir ?= service.deps.hadoop_core.options.hdfs.pid_dir
+      options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-zkfc/conf'
-      options.nn_conf_dir ?= service.use.hdfs_nn.options.conf_dir
+      options.nn_conf_dir ?= service.deps.hdfs_nn.options.conf_dir
       # Java
-      options.java_home ?= service.use.java.options.java_home
-      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
-      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
+      options.java_home ?= service.deps.java.options.java_home
+      options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
+      options.hadoop_opts ?= service.deps.hadoop_core.options.hadoop_opts
       options.opts ?= ''
       # Misc
       options.fqdn = service.node.fqdn
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+      options.clean_logs ?= false
 
 ## Configuration
 
-      options.core_site ?= merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
-      options.core_site['ha.zookeeper.quorum'] ?= service.use.zookeeper_server
+      options.core_site ?= merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site['ha.zookeeper.quorum'] ?= service.deps.zookeeper_server
       .filter (srv) -> srv.options.config['peerType'] is 'participant'
       .map (srv)-> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       .join(',')
       # Validation
-      options.principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
-      options.nn_principal ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
-      options.keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
-      options.nn_keytab ?= service.use.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
+      options.principal ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.nn_principal ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.keytab ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
+      options.nn_keytab ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
       options.jaas_file ?= "#{options.conf_dir}/zkfc.jaas"
       options.digest ?= {}
       options.digest.name ?= 'zkfc'
@@ -83,8 +78,8 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
         'dfs.nameservices'
         'dfs.internal.nameservices'
         'fs.permissions.umask-mode'
-      ] then options.hdfs_site[property] ?= service.use.hdfs_nn.options.hdfs_site[property]
-      for property, value of service.use.hdfs_nn.options.hdfs_site
+      ] then options.hdfs_site[property] ?= service.deps.hdfs_nn.options.hdfs_site[property]
+      for property, value of service.deps.hdfs_nn.options.hdfs_site
         ok = false
         ok = true if /^dfs\.namenode\.\w+-address/.test property
         # ok = true if property.indexOf('dfs.client.failover.proxy.provider.') is 0
@@ -95,20 +90,20 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## HA
 
-      options.dfs_nameservices ?= service.use.hdfs_nn.options.hdfs_site['dfs.nameservices']
-      options.automatic_failover ?= service.use.hdfs_nn.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
-      options.active_nn_host ?= service.use.hdfs_nn.options.active_nn_host
-      options.standby_nn_host ?= service.use.hdfs_nn.options.standby_nn_host
+      options.dfs_nameservices ?= service.deps.hdfs_nn.options.hdfs_site['dfs.nameservices']
+      options.automatic_failover ?= service.deps.hdfs_nn.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
+      options.active_nn_host ?= service.deps.hdfs_nn.options.active_nn_host
+      options.standby_nn_host ?= service.deps.hdfs_nn.options.standby_nn_host
       options.active_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.active_nn_host )[0].hostname
       options.standby_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.standby_nn_host )[0].hostname
-      # options.active_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
-      # options.standby_shortname = service.use.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
+      # options.active_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
+      # options.standby_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
 
 ### Fencing
 
@@ -125,15 +120,15 @@ fencing method should be configured to not block failover.
       """
       options.hdfs_site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
       options.hdfs_site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
+      # TODO: keys must be local or remote, only local supported for the moment
       throw Error "Required Option: ssh_fencing.private_key" unless options.ssh_fencing.private_key
       throw Error "Required Option: ssh_fencing.public_key" unless options.ssh_fencing.public_key
 
 ## Wait
 
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn.options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

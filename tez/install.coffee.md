@@ -25,6 +25,7 @@ HDFS directory. Note, the parent directories are created by the
         source: '/usr/hdp/current/tez-client/lib/tez.tar.gz'
         target: '/hdp/apps/$version/tez/tez.tar.gz'
         lock: '/tmp/ryba-tez.lock'
+        krb5_user: options.hdfs_krb5_user
 
 ## Configuration
 

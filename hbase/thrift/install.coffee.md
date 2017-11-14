@@ -102,7 +102,7 @@ Environment passed to the HBase Rest Server before it starts.
         target: "#{options.conf_dir}/hbase-env.sh"
         source: "#{__dirname}/../resources/hbase-env.sh.j2"
         local: true
-        context: @config
+        context: options: options
         mode: 0o0755
         unlink: true
         write: for k, v of options.env

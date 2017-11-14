@@ -7,13 +7,15 @@ TODO: Cloudera provides some interesting [tests](http://www.cloudera.com/content
 
 ## Wait
 
-      @call once: true, 'ryba/zookeeper/server/wait', options.wait_zookeeper_server
+      @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
 
 ## Telnet
   
       @system.execute
-        retry: 3
         header: 'Shell'
         cmd: """
-          zookeeper-client -server #{options.zookeeper_quorum} <<< 'ls /' | egrep '\\[.*zookeeper.*\\]'
+        zookeeper-client \
+          -server #{options.zookeeper_quorum} <<< 'ls /' \
+        | egrep '\\[.*zookeeper.*\\]'
         """
+        retry: 3

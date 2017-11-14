@@ -5,7 +5,7 @@ Grafan is a great WEB Ui to visualize metrics, and cluster operations data. it a
 to create dashboard and organize collected metrics.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         grafana_repo: module: 'ryba/grafana/repo'
@@ -13,11 +13,10 @@ to create dashboard and organize collected metrics.
       configure:
         'ryba/grafana/webui/configure'
       commands:
-        install: ->
-          options = @config.ryba.grafana.webui
-          @call 'ryba/grafana/webui/install', options
-          @call 'ryba/grafana/webui/start', options
-          @call 'ryba/grafana/webui/check', options
-        prepare: ->
-          options = @config.ryba.grafana.webui
-          @call 'ryba/grafana/webui/prepare', options
+        install: [
+          'ryba/grafana/webui/install'
+          'ryba/grafana/webui/start'
+          'ryba/grafana/webui/check'
+        ]
+        prepare:
+          'ryba/grafana/webui/prepare'

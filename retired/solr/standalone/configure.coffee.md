@@ -23,39 +23,40 @@ ryba:
     source: 'http://mirrors.ircam.fr/pub/apache/lucene/solr/6.0.0/solr-6.0.0.tgz'
 ```
 
-    module.exports = ->
-      {java, ryba} = @config
-      {solr, realm} = ryba ?= {}
+    module.exports = (options) ->
+      options = service.options
 
 ## Identities
 
       # Group
-      solr.group ?= {}
-      solr.group = name: solr.group if typeof solr.group is 'string'
-      solr.group.name ?= 'solr'
-      solr.group.system ?= true
+      options.group ?= {}
+      options.group = name: options.group if typeof options.group is 'string'
+      options.group.name ?= 'solr'
+      options.group.system ?= true
       # User
-      solr.user ?= {}
-      solr.user = name: solr.user if typeof solr.user is 'string'
-      solr.user.name ?= 'solr'
-      solr.user.home ?= "/var/lib/#{solr.user.name}"
-      solr.user.system ?= true
-      solr.user.comment ?= 'Solr User'
-      solr.user.groups ?= 'hadoop'
-      solr.user.gid ?= solr.group.name
+      options.user ?= {}
+      options.user = name: options.user if typeof options.user is 'string'
+      options.user.name ?= 'solr'
+      options.user.home ?= "/var/lib/#{options.user.name}"
+      options.user.system ?= true
+      options.user.comment ?= 'Solr User'
+      options.user.groups ?= 'hadoop'
+      options.user.gid ?= options.group.name
 
 ## Environment
 
-      solr.single ?= {}
-      solr.single.version ?= '6.3.0'
-      solr.single.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{solr.single.version}/solr-#{solr.single.version}.tgz"
-      solr.single.root_dir ?= '/usr'
-      solr.single.install_dir ?= "#{solr.single.root_dir}/solr/#{solr.single.version}"
-      solr.single.latest_dir ?= "#{solr.single.root_dir}/solr/current"
-      solr.single.latest_dir = '/opt/lucidworks-hdpsearch/solr' if solr.single.source is 'HDP'
-      solr.single.pid_dir ?= '/var/run/solr'
-      solr.single.log_dir ?= '/var/log/solr'
-      solr.single.conf_dir ?= '/etc/solr/conf'
+      options.single ?= {}
+      options.single.version ?= '6.3.0'
+      options.single.source ?= "http://apache.mirrors.ovh.net/ftp.apache.org/dist/lucene/solr/#{options.single.version}/solr-#{options.single.version}.tgz"
+      options.single.root_dir ?= '/usr'
+      options.single.install_dir ?= "#{options.single.root_dir}/solr/#{options.single.version}"
+      options.single.latest_dir ?= "#{options.single.root_dir}/solr/current"
+      options.single.latest_dir = '/opt/lucidworks-hdpsearch/solr' if options.single.source is 'HDP'
+      options.single.pid_dir ?= '/var/run/solr'
+      options.single.log_dir ?= '/var/log/solr'
+      options.single.conf_dir ?= '/etc/solr/conf'
+      # Misc
+      options.hostname = service.node.hostname
 
 ## Core Conf
 Ryba installs solrcloud with a single instance (one core).
@@ -63,84 +64,82 @@ However, once installed, the user can start easily several instances for
 differents cores ( and so with different ports).
 
       # Layout
-      solr.single.env ?= {}
-      solr.single.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
-      solr.single.lock_type = 'native'
+      options.single.env ?= {}
+      options.single.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
+      options.single.lock_type = 'native'
 
 ## Fix Conf
+
 Before 6.0 version, solr.xml'<solrCloud> section has a mistake:
 The property `zkCredentialsProvider` is named `zkCredientialsProvider`
 
-      solr.single.conf_source = if (solr.single.version.split('.')[0] < 6) or (solr.single.source is 'HDP')
+      options.single.conf_source = if (options.single.version.split('.')[0] < 6) or (options.single.source is 'HDP')
       then "#{__dirname}/../resources/standalone/solr_5.xml.j2"
       else "#{__dirname}/../resources/standalone/solr_6.xml.j2"
 
 ## Security
 
       if  @config.ryba.security is 'kerberos'
-        solr.single.principal ?= "#{solr.user.name}/#{@config.host}@#{realm}"
-        solr.single.keytab ?= '/etc/security/keytabs/solr.single.service.keytab'
+        options.single.principal ?= "#{options.user.name}/#{@config.host}@#{realm}"
+        options.single.keytab ?= '/etc/security/keytabs/solr.single.service.keytab'
 
 
 ## SSL
 
-      solr.single.ssl ?= {}
-      solr.single.ssl.enabled ?= true
-      solr.single.port ?= if solr.single.ssl.enabled then 9983 else 8983
-      solr.single.ssl_truststore_path ?= "#{solr.single.conf_dir}/truststore"
-      solr.single.ssl_truststore_pwd ?= 'solr123'
-      solr.single.ssl_keystore_path ?= "#{solr.single.conf_dir}/keystore"
-      solr.single.ssl_keystore_pwd ?= 'solr123'
+      options.single.ssl ?= {}
+      options.single.ssl.enabled ?= true
+      options.single.port ?= if options.single.ssl.enabled then 9983 else 8983
+      options.single.ssl_truststore_path ?= "#{options.single.conf_dir}/truststore"
+      options.single.ssl_truststore_pwd ?= 'solr123'
+      options.single.ssl_keystore_path ?= "#{options.single.conf_dir}/keystore"
+      options.single.ssl_keystore_pwd ?= 'solr123'
 
 ### Environment
 
-      solr.single.env['SOLR_JAVA_HOME'] ?= java.java_home
-      solr.single.env['SOLR_HOST'] ?= @config.host
-      solr.single.env['SOLR_HEAP'] ?= "512m"
-      solr.single.env['SOLR_PORT'] ?= "#{solr.single.port}"
-      solr.single.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
-      if solr.single.ssl.enabled
-        solr.single.env['SOLR_SSL_KEY_STORE'] ?= solr.single.ssl_keystore_path
-        solr.single.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= solr.single.ssl_keystore_pwd
-        solr.single.env['SOLR_SSL_TRUST_STORE'] ?= solr.single.ssl_truststore_path
-        solr.single.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= solr.single.ssl_truststore_pwd
-        solr.single.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
+      options.single.env['SOLR_JAVA_HOME'] ?= java.java_home
+      options.single.env['SOLR_HOST'] ?= @config.host
+      options.single.env['SOLR_HEAP'] ?= "512m"
+      options.single.env['SOLR_PORT'] ?= "#{options.single.port}"
+      options.single.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
+      if options.single.ssl.enabled
+        options.single.env['SOLR_SSL_KEY_STORE'] ?= options.single.ssl_keystore_path
+        options.single.env['SOLR_SSL_KEY_STORE_PASSWORD'] ?= options.single.ssl_keystore_pwd
+        options.single.env['SOLR_SSL_TRUST_STORE'] ?= options.single.ssl_truststore_path
+        options.single.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.single.ssl_truststore_pwd
+        options.single.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
       # if ryba.security is 'kerberos'
-      #   solr.single.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer'
+      #   options.single.env['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.options.client.solrj.impl.Krb5HttpClientConfigurer'
 
 ### Java version
 Solr 6.0 is compiled with java 1.8.
 So it must be run with jdk 1.8.
-The `solr.single.jre_home` configuration allow a specific java version to be used by 
+The `single.jre_home` configuration allow a specific java version to be used by 
 solr zkCli script
 
-      solr.single.jre_home ?= java.jre_home
+      options.single.jre_home ?= java.jre_home
 
 ### Configure HDFS
 [Configure][solr-hdfs] Solr to index document using hdfs, and document stored in HDFS.
 
       nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn' , require('../../hadoop/hdfs_nn/configure').handler
       if nn_ctxs.length > 0
-        solr.single.hdfs ?= {}
-        solr.single.hdfs.home ?=  "hdfs://#{nn_ctxs[0].config.ryba.core_site['fs.defaultFS']}/user/#{solr.user.name}"
-        solr.single.hdfs.blockcache_enabled ?= 'true'
-        solr.single.hdfs.blockcache_slab_count ?= '1'
-        solr.single.hdfs.blockcache_direct_memory_allocation ?= 'false'
-        solr.single.hdfs.blockcache_blocksperbank ?= 16384
-        solr.single.hdfs.blockcache_read_enabled ?= 'true'
-        solr.single.hdfs.blockcache_write_enabled ?= false
-        solr.single.hdfs.nrtcachingdirectory_enable ?= true
-        solr.single.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
-        solr.single.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'
-        solr.single.hdfs.security_kerberos_enabled ?= if @config.ryba.security is 'kerberos' then true else fase
-        solr.single.hdfs.security_kerberos_keytabfile ?= solr.single.keytab
-        solr.single.hdfs.security_kerberos_principal ?= solr.single.principal
+        options.single.hdfs ?= {}
+        options.single.hdfs.home ?=  "hdfs://#{nn_ctxs[0].config.ryba.core_site['fs.defaultFS']}/user/#{options.user.name}"
+        options.single.hdfs.blockcache_enabled ?= 'true'
+        options.single.hdfs.blockcache_slab_count ?= '1'
+        options.single.hdfs.blockcache_direct_memory_allocation ?= 'false'
+        options.single.hdfs.blockcache_blocksperbank ?= 16384
+        options.single.hdfs.blockcache_read_enabled ?= 'true'
+        options.single.hdfs.blockcache_write_enabled ?= false
+        options.single.hdfs.nrtcachingdirectory_enable ?= true
+        options.single.hdfs.nrtcachingdirectory_maxmergesizemb ?= '16'
+        options.single.hdfs.nrtcachingdirectory_maxcachedmb ?= '192'
+        options.single.hdfs.security_kerberos_enabled ?= if @config.ryba.security is 'kerberos' then true else fase
+        options.single.hdfs.security_kerberos_keytabfile ?= options.single.keytab
+        options.single.hdfs.security_kerberos_principal ?= options.single.principal
         # instruct solr to use hdfs as home dir
-        solr.single.dir_factory = 'solr.HdfsDirectoryFactory'
-        solr.single.lock_type = 'hdfs'
-
-
-
+        options.single.dir_factory = 'solr.HdfsDirectoryFactory'
+        options.single.lock_type = 'hdfs'
 
 ## Dependencies
 

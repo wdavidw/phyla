@@ -25,28 +25,8 @@ Example:
 } }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/hive/server2', ['ryba', 'hive', 'server2'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        tez: key: ['ryba', 'tez']
-        hive_metastore: key: ['ryba', 'hive', 'metastore']
-        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
-        hive_server2: key: ['ryba', 'hive', 'server2']
-        hive_client: key: ['ryba', 'hive']
-        hbase_thrift: key: ['ryba', 'hbase', 'thrift']
-        hbase_client: key: ['ryba', 'hbase', 'client']
-        phoenix_client: key: ['ryba', 'phoenix'] # actuall, phoenix expose no configuration
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      @config.ryba.hive ?= {}
-      options = @config.ryba.hive.server2 = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -55,7 +35,7 @@ Example:
       options.log_dir ?= '/var/log/hive-server2'
       options.pid_dir ?= '/var/run/hive-server2'
       # Opts and Java
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.opts ?= ''
       options.mode ?= 'local'
       throw Error 'Invalid Options mode: accepted value are "local" or "remote"' unless options.mode in ['local', 'remote']
@@ -63,20 +43,20 @@ Example:
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Identities
 
-      options.group = merge {}, service.use.hive_hcatalog[0].options.group, options.group
-      options.user = merge {}, service.use.hive_hcatalog[0].options.user, options.user
+      options.group = merge {}, service.deps.hive_hcatalog[0].options.group, options.group
+      options.user = merge {}, service.deps.hive_hcatalog[0].options.user, options.user
 
 ## Configuration
 
@@ -113,7 +93,7 @@ Example:
       else
         properties.push 'hive.metastore.uris'
       for property in properties
-        options.hive_site[property] ?= service.use.hive_hcatalog[0].options.hive_site[property]
+        options.hive_site[property] ?= service.deps.hive_hcatalog[0].options.hive_site[property]
       # Server2 specific properties
       options.hive_site['hive.server2.thrift.sasl.qop'] ?= 'auth'
       options.hive_site['hive.server2.enable.doAs'] ?= 'true'
@@ -128,7 +108,7 @@ Example:
       options.hive_site['hive.server2.logging.operation.log.location'] ?= "/tmp/#{options.user.name}/operation_logs"
       # Tez
       # https://streever.atlassian.net/wiki/pages/viewpage.action?pageId=4390918
-      options.hive_site['hive.execution.engine'] ?= if service.use.tez then 'tez' else 'mr'
+      options.hive_site['hive.execution.engine'] ?= if service.deps.tez then 'tez' else 'mr'
       options.hive_site['hive.server2.tez.default.queues'] ?= 'default'
       options.hive_site['hive.server2.tez.sessions.per.default.queue'] ?= '1'
       options.hive_site['hive.server2.tez.initialize.default.sessions'] ?= 'false'
@@ -136,13 +116,13 @@ Example:
       # Permission inheritance
       # https://cwiki.apache.org/confluence/display/Hive/Permission+Inheritance+in+Hive
       # true unless ranger is the authorizer
-      options.hive_site['hive.warehouse.subdir.inherit.perms'] ?= unless service.use.ranger_admin then 'true' else 'false'
+      options.hive_site['hive.warehouse.subdir.inherit.perms'] ?= unless service.deps.ranger_admin then 'true' else 'false'
 
 ## Database
 
 Import database information from the Hive Metastore
 
-      merge options.hive_site, service.use.hive_metastore.options.hive_site
+      merge options.hive_site, service.deps.hive_metastore.options.hive_site
 
 ## Hive Server2 Environment
 
@@ -159,15 +139,15 @@ Import database information from the Hive Metastore
         -Dcom.sun.management.jmxremote.port=#{options.env["JMXPORT"]} \
         -Dcom.sun.management.jmxremote.rmi.port=#{options.env["JMXPORT"]} \
         """
-      aux_jars = service.use.hive_hcatalog[0].options.aux_jars
+      aux_jars = service.deps.hive_hcatalog[0].options.aux_jars
       # fix bug where phoenix-server and phoenix-client do not contain same
       # version of class used.
       paths = []
-      if service.use.hbase_client
+      if service.deps.hbase_client
         paths.push '/usr/hdp/current/hbase-client/lib/hbase-server.jar'
         paths.push '/usr/hdp/current/hbase-client/lib/hbase-client.jar'
         paths.push '/usr/hdp/current/hbase-client/lib/hbase-common.jar'
-      if service.use.phoenix_client
+      if service.deps.phoenix_client
         paths.push '/usr/hdp/current/phoenix-client/phoenix-hive.jar'
       options.aux_jars_paths ?= []
       options.aux_jars_paths.push p if options.aux_jars_paths.indexOf(p) is -1 for p in paths
@@ -186,15 +166,19 @@ Import database information from the Hive Metastore
       # with the actual hostname of the running instance.
       options.hive_site['hive.server2.authentication.kerberos.principal'] ?= "hive/_HOST@#{options.krb5.realm}"
       # SPNEGO
-      options.hive_site['hive.server2.authentication.spnego.principal'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.principal']
-      options.hive_site['hive.server2.authentication.spnego.keytab'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
+      options.hive_site['hive.server2.authentication.spnego.principal'] ?= service.deps.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.principal']
+      options.hive_site['hive.server2.authentication.spnego.keytab'] ?= service.deps.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
+      # Ensure we dont create the same principal as with the Hive HCatalog or the kvno will be incremented
+      hive_hcatalog_local_srv = service.deps.hive_hcatalog.filter((srv) -> srv.node.id is service.node.id)[0]
+      options.principal_identical_to_hcatalog = hive_hcatalog_local_srv and hive_hcatalog_local_srv.options.hive_site['hive.metastore.kerberos.principal'] is options.hive_site['hive.server2.authentication.kerberos.principal']
+
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
       options.hive_site['hive.server2.use.SSL'] ?= 'true'
       options.hive_site['hive.server2.keystore.path'] ?= "#{options.conf_dir}/keystore"
-      options.hive_site['hive.server2.keystore.password'] ?= service.use.hadoop_core.options.ssl.keystore.password
+      options.hive_site['hive.server2.keystore.password'] ?= service.deps.hadoop_core.options.ssl.keystore.password
 
 ## HS2 High Availability & Rolling Upgrade
 
@@ -202,23 +186,23 @@ HS2 use Zookeepper to track registered servers. The znode address is
 "/<hs2_namespace>/serverUri=<host:port>;version=<versionInfo>; sequence=<sequence_number>"
 and its value is the server "host:port".
 
-      zookeeper_quorum = for srv in service.use.zookeeper_server
+      zookeeper_quorum = for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.hive_site['hive.zookeeper.quorum'] ?= zookeeper_quorum.join ','
-      options.hive_site['hive.server2.support.dynamic.service.discovery'] ?= if service.use.hive_server2.length > 1 then 'true' else 'false'
+      options.hive_site['hive.server2.support.dynamic.service.discovery'] ?= if service.deps.hive_server2.length > 1 then 'true' else 'false'
       options.hive_site['hive.zookeeper.session.timeout'] ?= '600000' # Default is "600000"
       options.hive_site['hive.server2.zookeeper.namespace'] ?= 'hiveserver2' # Default is "hiveserver2"
 
 ## Configuration for Proxy users
 
-      for srv in service.use.hdfs_client
+      for srv in service.deps.hdfs_client
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
 
 # Configure Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.properties['hive.log.file'] ?= 'hiveserver2.log'
       options.log4j.properties['hive.log.dir'] ?= "#{options.log_dir}"
@@ -296,21 +280,21 @@ and its value is the server "host:port".
 
 Add Hive user as proxyuser
 
-      for srv in service.use.hbase_thrift
+      for srv in service.deps.hbase_thrift
         # migration: wdavidw 170906, in a future version, we could give access 
         # to parent sevices, eg: srv.use.hadoop_core.options.core_site
-        hsrv = service.use.hdfs_client.filter((hsrv) -> hsrv.node.fqdn is srv.node.fqdn)[0]
+        hsrv = service.deps.hdfs_client.filter((hsrv) -> hsrv.node.fqdn is srv.node.fqdn)[0]
         hsrv.options.core_site ?= {}
         hsrv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
         hsrv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
 
 ## Wait
 
-      options.wait_krb5_client ?= service.use.krb5_client.options.wait
-      options.wait_zookeeper_server ?= service.use.zookeeper_server[0].options.wait
-      options.wait_hive_hcatalog ?= service.use.hive_hcatalog[0].options.wait
+      options.wait_krb5_client ?= service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server ?= service.deps.zookeeper_server[0].options.wait
+      options.wait_hive_hcatalog ?= service.deps.hive_hcatalog[0].options.wait
       options.wait = {}
-      options.wait.thrift = for srv in service.use.hive_server2
+      options.wait.thrift = for srv in service.deps.hive_server2
         srv.options.hive_site ?= {}
         srv.options.hive_site['hive.server2.transport.mode'] ?= 'http'
         srv.options.hive_site['hive.server2.thrift.http.port'] ?= '10001'
@@ -323,4 +307,3 @@ Add Hive user as proxyuser
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

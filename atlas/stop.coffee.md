@@ -4,13 +4,12 @@
     module.exports = header: 'Atlas Stop', handler: ->
 
 You can stop the service with the following commands.
-* Centos/REHL 6
+
 ```
-  service atlas-metadata-server stop
-```
-* Centos/REHL 6
-```
-  systemctl stop atlas-metadata-server
+# Centos/REHL 6
+service atlas-metadata-server stop
+# Centos/REHL 7
+systemctl stop atlas-metadata-server
 ```
 
       @service.stop
@@ -18,10 +17,11 @@ You can stop the service with the following commands.
 
 ## Stop Clean Logs
 
-      @call
+Remove all the log files if the property "clean_logs" is
+activated.
+
+      @system.execute
         header: 'Stop Clean Logs'
-        if: -> @config.ryba.clean_logs
-      , ->
-        @system.execute
-          cmd: "rm -f #{@config.ryba.atlas.log_dir}/*"
-          code_skipped: 1
+        if: options.clean_logs
+        cmd: "rm -f #{options.log_dir}/*"
+        code_skipped: 1

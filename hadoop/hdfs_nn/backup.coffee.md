@@ -30,24 +30,23 @@ dfsadmin -fetchImage
 ### Local Backup
 
     module.exports = header: 'HDFS NN Backup', handler: ->
-      {hdfs} = @config.ryba
 
       @tools.backup
         header: 'HDFS LS output'
         name: 'ls'
         cmd: 'hdfs dfs -ls -R / '
-        target: "/var/backups/nn_#{@config.host}/"
+        target: "/var/backups/nn_#{options.fqdn}/"
         interval: month: 1
         retention: count: 2
 
-      any_dfs_name_dir = hdfs.nn.site['dfs.namenode.name.dir'].split(',')[0]
+      any_dfs_name_dir = options.hdfs_site['dfs.namenode.name.dir'].split(',')[0]
       any_dfs_name_dir = any_dfs_name_dir.substr(7) if any_dfs_name_dir.indexOf('file://') is 0
       @tools.backup
         header: 'FSimages & edits'
         name: 'fs'
         source: path.join any_dfs_name_dir, 'current'
         filter: ['fsimage_*','edits_0*']
-        target: "/var/backups/nn_#{@config.host}/"
+        target: "/var/backups/nn_#{options.fqdn}/"
         interval: month: 1
         retention: count: 2
 

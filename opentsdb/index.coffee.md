@@ -9,12 +9,18 @@ and graphable.
 OpenTSDB does not seem to work without the hbase rights
 
     module.exports =
-      use:
-        iptables: implicit: true, module: 'masson/core/iptables'
-        krb5_client: module: 'masson/core/krb5_client'
-        java: implicit: true, module: 'masson/commons/java'
-        hbase_client: implicit: true, module: 'ryba/hbase/client'
-        ranger_admin: 'ryba/ranger/admin'
+      deps:
+        iptables: module: 'masson/core/iptables', local: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+        java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
+        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        hbase_client: module: 'ryba/hbase/client', local: true, auto: true
+        hbase_master: module: 'ryba/hbase/master', required: true
+        hbase_regionserver: module: 'ryba/hbase/regionserver', required: true
+        ranger_admin: module: 'ryba/ranger/admin', single: true
+        ranger_plugin_hbase: module: 'ryba/ranger/plugin/hbase'
       configure:
         'ryba/opentsdb/configure'
       commands:

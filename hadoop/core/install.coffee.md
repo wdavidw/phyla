@@ -57,13 +57,6 @@ made available in the same directory after any modification.
 Configure the topology script to enable rack awareness to Hadoop.
 
       @call header: 'Topology', ->
-        h_ctxs = @contexts ['ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
-        topology = []
-        for h_ctx in h_ctxs
-          rack = if h_ctx.config.ryba?.rack? then h_ctx.config.ryba.rack else ''
-          # topology.push "#{host}  #{rack}"
-          topology.push "#{h_ctx.config.ip}  #{rack}"
-        topology = topology.join("\n")
         @file
           target: "#{options.conf_dir}/rack_topology.sh"
           source: "#{__dirname}/../resources/rack_topology.sh"
@@ -74,7 +67,10 @@ Configure the topology script to enable rack awareness to Hadoop.
           backup: true
         @file
           target: "#{options.conf_dir}/rack_topology.data"
-          content: topology
+          content: options.topology
+            .map (node) ->
+              "#{node.ip}  #{node.rack or ''}"
+            .join '\n'
           uid: options.hdfs.user.name
           gid: options.hadoop_group.name
           mode: 0o755

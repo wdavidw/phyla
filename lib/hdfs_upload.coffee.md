@@ -1,27 +1,33 @@
 
-# `hdfs_upload`
+# HDFS Upload Action
+
+Signature is `hdfs_upload(options)`.
 
 ## Options
 
--   `cwd` (string)
-    Current working directory relative to source file.
--   `lock` (string)
-    Temporary lock file.
--   `mode` (string).
-    Permission of the file
--   `owner` (string)
-    Username owning the file.
--   `source` (string)
-    Local file to upload, can be a globing expression referencing a single file.
--   `target` (string)
-    HDFS file of the target.
--   `clean` [string | boolean]
-    Removing files before uploading. Expect a lobbing expression or boolean true
-    corresponding to the "source" option.
+* `cwd` (string)string | boolean
+  Current working directory relative to source file.
+* `krb5_user.password` (string)   
+  Kerberos princpal password.
+* `krb5_user.principal` (string)   
+  Kerberos Principal
+* `lock` (string)string | boolean
+  Temporary lock file.
+* `mode` (string)   
+  Permission of the file
+* `owner` (string)   
+  Username owning the file.
+* `source` (string)   
+  Local file to upload, can be a globing expression referencing a single file.
+* `target` (string)   
+  HDFS file of the target.
+* `clean` (string|boolean)   
+  Removing files before uploading. Expect a lobbing expression or boolean true
+  corresponding to the "source" option.
 
 ## Exemple
 
-```
+```coffee
 @registry.register 'hdfs_upload', 'ryba/lib/hdfs_upload'
 @hdfs_upload
   source: "/usr/hdp/current/hive-metastore/lib/hive-exec-#{version}.jar"
@@ -43,7 +49,7 @@
       options.owner ?= ''
       options.parent_owner ?= options.owner
       @system.execute
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.krb5_user, """
         source=#{options.source}
         if [ ! -f "$source" ] ; then exit 1; fi
         mode=#{options.mode}
@@ -134,7 +140,7 @@
         trap: true
         bash: true
         code_skipped: 3
-        unless_exec: mkcmd.hdfs @, """
+        unless_exec: mkcmd.hdfs options.krb5_user, """
         source=#{options.source}
         link=`echo $source | sed  's|\\(.*/hdp/current/[^/]*\\)/.*|\\1|'`
         version=`readlink $link | sed  's|.*/hdp/\\([^/]*\\)/.*|\\1|'`

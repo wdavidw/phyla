@@ -8,7 +8,7 @@ The Oozie server installation includes the Oozie client. The Oozie client should
 be installed in remote machines only.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
@@ -24,10 +24,9 @@ be installed in remote machines only.
         oozie_server: module: 'ryba/oozie/server'
       configure: 'ryba/oozie/client/configure'
       commands:
-        'install': ->
-          options = @config.ryba.oozie.client
-          @call 'ryba/oozie/client/install', options
-          @call 'ryba/oozie/client/check', options
-        'check': ->
-          options = @config.ryba.oozie.client
-          @call 'ryba/oozie/client/check', options
+        'install': [
+          'ryba/oozie/client/install'
+          'ryba/oozie/client/check'
+        ]
+        'check':
+          'ryba/oozie/client/check'

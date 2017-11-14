@@ -43,11 +43,11 @@ the computing power of your laptop, client mode able to leverage the full power
 of your cluster.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
-        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         ranger_admin: module: 'ryba/ranger/admin', single: true
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
@@ -56,17 +56,17 @@ of your cluster.
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         hive_hcatalog: module: 'ryba/hive/hcatalog'
         hive_server2: module: 'ryba/hive/server2'
+        tez: module: 'ryba/tez', local: true
         ganglia_collector: module: 'ryba/retired/ganglia/collector'
         graphite: module: 'ryba/graphite/carbon'
       configure:
         'ryba/spark/client/configure'
       commands:
-        'install': ->
-          options = @config.ryba.spark.client
-          @call 'ryba/spark/client/install', options
-          @call 'ryba/spark/client/check', options
-        'check': ->
-          options = @config.ryba.spark.client
-          @call 'ryba/spark/client/check', options
+        'install': [
+          'ryba/spark/client/install'
+          'ryba/spark/client/check'
+        ]
+        'check':
+          'ryba/spark/client/check'
 
 [tips]: https://www.altiscale.com/hadoop-blog/spark-on-hadoop/

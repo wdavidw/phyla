@@ -2,34 +2,24 @@
 # MapReduce JobHistoryServer (JHS) Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/mapred_jhs', ['ryba', 'mapred', 'jhs'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
-        metrics: key: ['ryba', 'metrics']
-      @config.ryba ?= {}
-      @config.ryba.mapred ?= {}
-      @config.ryba.mapred.jhs ?= {}
-      options = @config.ryba.mapred.jhs = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.mapred.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.mapred.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.mapred.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.mapred.user, options.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
-## Environnment
+## Environment
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-nodemanager'
@@ -37,20 +27,21 @@
       options.pid_dir ?= '/var/run/hadoop-mapreduce'
       options.conf_dir ?= '/etc/hadoop-mapreduce-historyserver/conf'
       # Java
-      options.java_home ?= service.use.java.options.java_home
-      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
-      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
-      options.hadoop_client_opts ?= service.use.hadoop_core.options.hadoop_client_opts
+      options.java_home ?= service.deps.java.options.java_home
+      options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
+      options.hadoop_opts ?= service.deps.hadoop_core.options.hadoop_opts
+      options.hadoop_client_opts ?= service.deps.hadoop_core.options.hadoop_client_opts
       options.heapsize ?= '900'
       # Misc
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.use.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.use.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # YARN client "yarn-site.xml"
       # Options will be exported by the YARN RM
       options.yarn_site ?= {}
@@ -69,7 +60,7 @@ Note: As of version "2.4.0", the property "mapreduce.jobhistory.http.policy"
 isn't honored. Instead, the property "yarn.http.policy" is used. It is exported 
 from the yarn_rm.
 
-      # options.yarn_site['yarn.http.policy'] ?= service.use.yarn_rm.options.yarn_site['yarn.http.policy']
+      # options.yarn_site['yarn.http.policy'] ?= service.deps.yarn_rm.options.yarn_site['yarn.http.policy']
       options.mapred_site['mapreduce.jobhistory.http.policy'] ?= 'HTTPS_ONLY'
       # See './hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-common/src/main/java/org/apache/hadoop/mapreduce/v2/jobhistory/JHAdminConfig.java#158'
       # yarn.site['mapreduce.jobhistory.webapp.spnego-principal']
@@ -113,16 +104,16 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.hadoop_core.options.metrics, options.metrics
+      options.metrics = merge {}, service.deps.hadoop_core.options.metrics, options.metrics
       options.metrics.config ?= {}
       if options.metrics.sinks.file_enabled
         options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file
@@ -134,7 +125,7 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -143,7 +134,7 @@ They are referenced by [the druid hadoop configuration][druid] and
       options.metrics.sinks.graphite_enabled ?= false
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config['mrappmaster.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
         options.metrics.config['jobhistoryserver.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
         options.metrics.config['mrappmaster.sink.file.filename'] ?= 'mrappmaster-metrics.out'
@@ -152,25 +143,25 @@ They are referenced by [the druid hadoop configuration][druid] and
       if options.metrics.sinks.ganglia_enabled
         options.metrics.config["mrappmaster.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
         options.metrics.config["jobhistoryserver.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.mapred_jhs.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
         throw Error 'Missing remote_port ryba.mapred_jhs.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config["mrappmaster.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config["jobhistoryserver.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## Wait
 
-      options.wait_hdfs_nn ?= service.use.hdfs_nn[0].options.wait
+      options.wait_hdfs_nn ?= service.deps.hdfs_nn[0].options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.mapred_jhs
+      options.wait.tcp = for srv in service.deps.mapred_jhs
         srv.options.mapred_site ?= {}
         srv.options.mapred_site['mapreduce.jobhistory.address'] ?= "#{srv.node.fqdn}:10020"
         [fqdn, port] = srv.options.mapred_site['mapreduce.jobhistory.address'].split ':'
         host: fqdn, port: port
-      options.wait.webapp = for srv in service.use.mapred_jhs
+      options.wait.webapp = for srv in service.deps.mapred_jhs
         protocol = if options.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
         srv.options.mapred_site ?= {}
         srv.options.mapred_site['mapreduce.jobhistory.webapp.address'] ?= "#{srv.node.fqdn}:19888"
@@ -181,4 +172,3 @@ They are referenced by [the druid hadoop configuration][druid] and
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

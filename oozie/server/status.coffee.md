@@ -10,10 +10,9 @@ By default, the pid of the running server is stored in
 Discover the server status.
 
     module.exports = header: 'Oozie Server Status', handler: (options) ->
-      {oozie} = @config.ryba
       @system.execute
         cmd: """
-        if [ ! -f #{oozie.pid_dir}/oozie.pid ]; then exit 3; fi
-        if ! kill -0 >/dev/null 2>&1 `cat #{oozie.pid_dir}/oozie.pid`; then exit 3; fi
+        if [ ! -f #{options.pid_dir}/oozie.pid ]; then exit 3; fi
+        if ! kill -0 >/dev/null 2>&1 `cat #{options.pid_dir}/oozie.pid`; then exit 3; fi
         """
         code_skipped: 3

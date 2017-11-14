@@ -11,7 +11,6 @@
 ## Wait
 
       @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
-      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
 ## IPTables
 
@@ -382,24 +381,18 @@ drwxrwxrwt   - yarn   hadoop            0 2014-05-26 11:01 /app-logs
 
 Layout is inspired by [Hadoop recommandation](http://hadoop.apache.org/docs/r2.1.0-beta/hadoop-project-dist/hadoop-common/ClusterSetup.html)
 
+      # Note, YARN NM must have deployed HDFS Client conf files in order to wait for HDFS NN
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
       remote_app_log_dir = options.yarn_site['yarn.nodemanager.remote-app-log-dir']
       @system.execute
         header: 'HDFS layout'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         hdfs --config #{options.conf_dir} dfs -mkdir -p #{remote_app_log_dir}
         hdfs --config #{options.conf_dir} dfs -chown #{options.user.name}:#{options.hadoop_group.name} #{remote_app_log_dir}
         hdfs --config #{options.conf_dir} dfs -chmod 1777 #{remote_app_log_dir}
         """
         unless_exec: "[[ hdfs dfs -d #{remote_app_log_dir} ]]"
         code_skipped: 2
-
-## Ranger YARN Plugin Install
-
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length > 0
-      # , ->
-      #   @call -> @config.ryba.yarn_plugin_is_master = false
-      #   @call 'ryba/ranger/plugins/yarn/install'
 
 ## Dependencies
 

@@ -15,7 +15,7 @@
 
       @system.execute
         header: 'Check Client'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         oozie admin -oozie #{options.oozie_site['oozie.base.url']} -status
         """
       , (err, executed, stdout) ->
@@ -26,7 +26,7 @@
 
       @system.execute
         header: 'Check REST'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         curl -s -k --negotiate -u : #{options.oozie_site['oozie.base.url']}/v1/admin/status
         """
       , (err, executed, stdout) ->
@@ -70,7 +70,7 @@
           gid: options.test.group.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-fs 2>/dev/null
           hdfs dfs -mkdir -p check-#{options.hostname}-oozie-fs
           hdfs dfs -touchz check-#{options.hostname}-oozie-fs/source
@@ -85,7 +85,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           code_skipped: 2
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{options.hostname}-oozie-fs/target"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-fs/target"
 
 ## Check MapReduce Workflow
 
@@ -153,7 +153,7 @@
           gid: options.test.group.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           # Prepare HDFS
           hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-mr 2>/dev/null
           hdfs dfs -mkdir -p check-#{options.hostname}-oozie-mr/input
@@ -177,7 +177,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{options.hostname}-oozie-mr/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-mr/output/_SUCCESS"
 
 ## Check Pig Workflow
 
@@ -244,7 +244,7 @@
           gid: options.test.group.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-pig 2>/dev/null
           hdfs dfs -mkdir -p check-#{options.hostname}-oozie-pig/input
           echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-pig/input/data
@@ -260,13 +260,15 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{options.hostname}-oozie-pig/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-pig/output/_SUCCESS"
 
 ## Check HCat Workflow
 
-      @call header: 'Check HCat Workflow', ->
+      @call
+        header: 'Check HCat Workflow'
+      , ->
         # Hive
-        hcat_ctxs = @contexts 'ryba/hive/hcatalog'#, require('../../hive/hcatalog').configure
+        # hcat_ctxs = @contexts 'ryba/hive/hcatalog'#, require('../../hive/hcatalog').configure
         @file
           content: """
           nameNode=#{options.hdfs_defaultfs}
@@ -341,7 +343,7 @@
           gid: options.test.group.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-pig 2>/dev/null
           hdfs dfs -mkdir -p check-#{options.hostname}-oozie-pig/input
           echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-pig/input/data
@@ -357,7 +359,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d check-#{options.hostname}-oozie-pig/output"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d check-#{options.hostname}-oozie-pig/output"
 
 ## Check Hive2 Workflow
 From HDP 2.5 Hive action becomes deprecated against hive2 actions. As hive2 action use jdbc connection to communicate
@@ -514,7 +516,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
             gid: options.test.group.name
             eof: true
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -skipTrash #{workflow_dir} 2>/dev/null
             hdfs dfs -mkdir -p #{workflow_dir}/first_table
             echo -e '1\\n2\\n3' | hdfs dfs -put - #{db}/first_table/data
@@ -535,7 +537,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
             """
             retry: 3
             trap: false # or while loop will exit on first run
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d /user/#{options.test.user.name}/#{db}/first_table"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d /user/#{options.test.user.name}/#{db}/first_table"
 
 ## Check Spark Workflow
 
@@ -589,7 +591,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           gid: options.test.group.name
           eof: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           # Prepare HDFS
           hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-spark 2>/dev/null
           hdfs dfs -mkdir -p check-#{options.hostname}-oozie-spark/input
@@ -613,7 +615,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{options.hostname}-oozie-spark/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-spark/output/_SUCCESS"
 
 # Module Dependencies
 

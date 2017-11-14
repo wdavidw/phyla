@@ -191,9 +191,9 @@ Note, this is not documented anywhere and might not be considered as a best prac
         return unless options.yarn_site['yarn.timeline-service.generic-application-history.store-class'] is "org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore"
         dir = options.yarn_site['yarn.timeline-service.fs-history-store.uri']
         @wait.execute
-          cmd: mkcmd.hdfs @, "hdfs --config #{options.conf_dir} dfs -test -d #{path.dirname dir}"
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config #{options.conf_dir} dfs -test -d #{path.dirname dir}"
         @system.execute
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           hdfs --config #{options.conf_dir} dfs -mkdir -p #{dir}
           hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} #{dir}
           hdfs --config #{options.conf_dir} dfs -chmod 1777 #{dir}

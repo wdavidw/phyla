@@ -233,42 +233,6 @@ Enable stats collection in Ganglia and Graphite
         uid: options.user.name
         gid: options.group.name
 
-      # @call header: 'SSL', retry: 0, ->
-      #   {ssl, ssl_server, ssl_client, hdfs} = @config.ryba
-      #   ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
-      #   ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
-      #   ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
-      #   @hconfigure
-      #     target: "#{options.conf_dir}/ssl-server.xml"
-      #     properties: ssl_server
-      #   @hconfigure
-      #     target: "#{options.conf_dir}/ssl-client.xml"
-      #     properties: ssl_client
-      #   # Client: import certificate to all hosts
-      #   @java.keystore_add
-      #     keystore: ssl_client['ssl.client.truststore.location']
-      #     storepass: ssl_client['ssl.client.truststore.password']
-      #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
-      #     local: true
-      #   # Server: import certificates, private and public keys to hosts with a server
-      #   @java.keystore_add
-      #     keystore: ssl_server['ssl.server.keystore.location']
-      #     storepass: ssl_server['ssl.server.keystore.password']
-      #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
-      #     key: "#{ssl.key}"
-      #     cert: "#{ssl.cert}"
-      #     keypass: ssl_server['ssl.server.keystore.keypassword']
-      #     name: @config.shortname
-      #     local: true
-      #   @java.keystore_add
-      #     keystore: ssl_server['ssl.server.keystore.location']
-      #     storepass: ssl_server['ssl.server.keystore.password']
-      #     caname: "hadoop_root_ca"
-      #     cacert: "#{ssl.cacert}"
-      #     local: true
-
 ## SPNEGO
 
 Ensure we have read access to the spnego keytab soring the server HTTP
@@ -285,15 +249,6 @@ principal.
         header: 'Ulimit'
         user: options.user.name
       , options.user.limits
-
-## Ranger HBase Plugin Install
-
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length > 0
-      # , ->
-      #   @call -> @config.ryba.hbase_plugin_is_master = true
-      #   @call 'ryba/ranger/plugins/hbase/install'
-      #   @call -> @config.ryba.hbase_plugin_is_master = false
 
 # Dependencies
 

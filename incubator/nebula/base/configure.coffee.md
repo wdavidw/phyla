@@ -2,9 +2,7 @@
 # OpenNebula Front Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/incubator/nebula/base', ['nebula', 'base'], require('nikita/lib/misc').merge require('.').use, {}
-      @config.ryba ?= {}
-      options = @config.nebula.base = service.options
+      options = service.options
 
 ## Identties
 
@@ -55,4 +53,3 @@ and "public\_key" options. They are required and accept the following options:
 ## Dependencies
 
     path = require 'path'
-    migration = require 'masson/lib/migration'

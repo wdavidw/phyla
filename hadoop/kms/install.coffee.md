@@ -2,8 +2,6 @@
 # Hadoop KMS Install
 
     module.exports = header: 'Hadoop KMS Install', handler: (options) ->
-      {kms, hadoop_group} = @config.ryba
-      {ssl} = @config.ryba
 
 ## Register
 
@@ -59,17 +57,17 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           target: "/etc/init.d/hadoop-kms"
           source: "#{__dirname}/../resources/hadoop-kms.j2"
           local: true
-          context: @config
+          context: options: options
           mode: 0o0755
         @call
           if_os: name: ['redhat','centos'], version: '7'
         , ->
           @service.init
             header: 'Systemd Script'
-            target: '/usr/lib/systemd/system/hadoop-httpfs.service'
-            source: "#{__dirname}/../resources/hadoop-httpfs-systemd.j2"
+            target: '/usr/lib/systemd/system/hadoop-kms.service'
+            source: "#{__dirname}/../resources/hadoop-kms-systemd.j2"
             local: true
-            context: @config.ryba
+            context: options: options
             mode: 0o0644
           @system.tmpfs
             mount: "#{options.pid_dir}"
@@ -101,9 +99,9 @@ Maintain the "kms-env.sh" file.
         target: "#{options.conf_dir}/kms-env.sh"
         source: "#{__dirname}/../resources/kms-env.sh.j2"
         local: true
-        context: @config
+        context: options: options
         uid: options.user.name
-        gid: hadoop_group.name
+        gid: options.hadoop_group.name
         mode: 0o755
         backup: true
         eof: true

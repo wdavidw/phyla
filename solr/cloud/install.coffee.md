@@ -252,20 +252,20 @@ HDP has version 5.2.1 of solr, and security plugins are included from 5.3.0
 ## SSL
 
       @java.keystore_add
-        keystore: options.keystore.target
-        storepass: options.keystore.password
-        key: "#{options.ssl.key.source}"
-        cert: "#{options.ssl.cert.source}"
-        keypass: options.keystore.password
+        keystore: options.ssl.keystore.target
+        storepass: options.ssl.keystore.password
+        key: options.ssl.key.source
+        cert: options.ssl.cert.source
+        keypass: options.ssl.keystore.password
         caname: "hadoop_root_ca"
-        cacert: "#{options.ssl.cacert.source}"
+        cacert: options.ssl.cacert.source
         name: options.fqdn
         local: options.ssl.key.local
       @java.keystore_add
-        keystore: options.truststore.target
-        storepass: options.truststore.password
+        keystore: options.ssl.truststore.target
+        storepass: options.ssl.truststore.password
         caname: "hadoop_root_ca"
-        cacert: "#{options.ssl.cacert.source}"
+        cacert: options.ssl.cacert.source
         local: options.ssl.cacert.local
       # not documented but needed when SSL
       @system.execute

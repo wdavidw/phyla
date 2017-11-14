@@ -2,24 +2,11 @@
 # NiFi Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/nifi', ['ryba', 'nifi'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        java: key: ['java']
-        krb5_client: key: ['krb5_client']
-        ssl: key: ['ssl']
-        hadoop_core: key: ['ryba']
-        openldap_server: key: ['openldap_server']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        nifi: key: ['ryba', 'nifi']
-        hdf: key: ['ryba', 'hdf']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      options = @config.ryba.nifi = service.options
-
+      options = service.options
 
       # Set it to true if both hdf and hdp are installed on the cluster
       options.hdf_hdp ?= false
-      zk_hosts = service.use.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
+      zk_hosts = service.deps.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
 
 ## Environment
 
@@ -50,7 +37,7 @@
       #Misc
       options.fqdn ?= service.node.fqdn
       options.shortname ?= service.node.hostname
-      options.iptables ?= !!service.use.iptables and service.use.iptables.action is 'start'
+      options.iptables ?= !!service.deps.iptables and service.deps.iptables.action is 'start'
       options.properties ?= {}
       options.properties['nifi.version'] ?= '1.2.0.3.0.0.0-453'
       options.properties['nifi.flow.configuration.file'] ?= "#{options.user.home}/flow.xml.gz"
@@ -214,26 +201,26 @@
         options.properties['nifi.cluster.manager.protocol.threads'] ?= '10'
         options.properties['nifi.cluster.manager.safemode.duration'] ?= '0 sec'
       options.properties['nifi.cluster.flow.election.max.wait.time'] ?= '5 mins'
-      options.properties['nifi.cluster.flow.election.max.candidates'] ?= "#{service.use.nifi.length}"
+      options.properties['nifi.cluster.flow.election.max.candidates'] ?= "#{service.deps.nifi.length}"
 
 ## Security
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       #Sensitive value encryption
       options.properties['nifi.sensitive.props.key'] ?= '' #'nifi_master_secret_123'
       options.properties['nifi.sensitive.props.algorithm'] ?= 'PBEWITHMD5AND256BITAES-CBC-OPENSSL'
       options.properties['nifi.sensitive.props.provider'] ?= 'BC'
       # Kerberos
-      if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+      if service.deps.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
         options.properties['nifi.kerberos.krb5.file'] ?= '/etc/krb5.conf'
 
 ## SSL
 
-        options.ssl = merge {}, service.use.ssl?.options, options.ssl
-        options.ssl.enabled ?= !!service.use.ssl
+        options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+        options.ssl.enabled ?= !!service.deps.ssl
         options.truststore ?= {}
         options.keystore ?= {}
         if options.ssl.enabled
@@ -290,11 +277,11 @@
           ldap_provider['tls_client_auth'] ?= 'NONE'
           ldap_provider['ref_strategy'] ?= 'FOLLOW'
           unless ldap_provider['manager_dn']?
-            throw Error 'no openldap server configured' unless service.use.openldap_server.length?
-            ldap_provider['manager_dn'] ?= "#{service.use.openldap_server[0].options.root_dn}"
-            ldap_provider['manager_pwd'] ?= "#{service.use.openldap_server[0].options.root_password}"
-            ldap_provider['url'] ?= "#{service.use.openldap_server[0].options.uri}:636"
-            ldap_provider['usr_search_base'] ?= service.use.openldap_server[0].options.users_dn
+            throw Error 'no openldap server configured' unless service.deps.openldap_server.length?
+            ldap_provider['manager_dn'] ?= "#{service.deps.openldap_server[0].options.root_dn}"
+            ldap_provider['manager_pwd'] ?= "#{service.deps.openldap_server[0].options.root_password}"
+            ldap_provider['url'] ?= "#{service.deps.openldap_server[0].options.uri}:636"
+            ldap_provider['usr_search_base'] ?= service.deps.openldap_server[0].options.users_dn
             ldap_provider['usr_search_filter'] ?= 'uid={0}'#'ou=groups,dc=ryba'
         when 'kerberos-provider'
           krb5_provider = options.login_providers.krb5_provider ?= {}
@@ -322,7 +309,7 @@
           file_provider['authorizations_file'] ?= "#{options.conf_dir}/authorizations.xml"
           file_provider['users_file'] ?= "#{options.conf_dir}/users.xml"
           file_provider['initial_admin_identity'] ?= options.user.name
-          file_provider['nodes_identities'] ?= service.use.nifi.map( (srv) -> srv.node.fqdn)
+          file_provider['nodes_identities'] ?= service.deps.nifi.map( (srv) -> srv.node.fqdn)
         else
           throw Error 'Authorizer is not supported'
 
@@ -332,7 +319,7 @@
         when 'zk-provider'
           throw Error 'No zookeeper quorum configured' unless zk_hosts.length
           # used for nifi to authenticate to kerberos sucurized zookeeper ensemble
-          if service.use.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
+          if service.deps.hadoop_core[0].options.core_site['hadoop.security.authentication'] is 'kerberos'
             options.krb5_principal ?=  "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
             options.krb5_keytab ?=  '/etc/security/keytabs/nifi.service.keytab'
         else
@@ -340,7 +327,7 @@
 
 ## Java Opts
       
-      options.java_home ?= service.use.java.options.java_home if service.use.java?
+      options.java_home ?= service.deps.java.options.java_home if service.deps.java?
       options.java_opts ?= [
         '-Dorg.apache.jasper.compiler.disablejsr199=true'
         '-Xms512m'
@@ -355,7 +342,7 @@
 
 ## Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
 
       options.logback ?= {}
@@ -387,13 +374,12 @@ Set local path of additional libs (for custom processors) in this array.
 
       protocol = if options.properties['nifi.cluster.protocol.is.secure'] is 'true' then 'https' else 'http'
       options.wait ?= {}
-      options.wait.webui = for srv in service.use.nifi
+      options.wait.webui = for srv in service.deps.nifi
         host: srv.node.fqdn
         port: srv.options.properties["nifi.web.#{protocol}.port"] or options.properties["nifi.web.#{protocol}.port"] or '9760'
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [nifi-properties]:https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster-node-properties

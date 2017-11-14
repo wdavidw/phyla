@@ -94,7 +94,7 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
           target: "#{spark.thrift.conf_dir}/spark-env.sh"
           source: "#{__dirname}/../resources/spark-env.sh.j2"
           local: true
-          context: @config
+          context: options: options
           backup: true
           uid: spark.user.name
           gid: @config.ryba.hadoop_group.gid

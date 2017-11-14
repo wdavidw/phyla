@@ -10,7 +10,7 @@ su -l spark -c '/usr/hdp/current/spark-historyserver/sbin/start-history-server.s
 
     module.exports = header: 'Spark History Server Start', handler: (options) ->
       @wait.execute
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         hdfs dfs -stat \"%u:%g\" #{options.conf['spark.eventLog.dir']} | grep #{options.user.name}
         """
       @service.start

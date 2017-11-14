@@ -194,7 +194,7 @@ Create HDFS solr user and its home directory
         key: "#{ssl.key}"
         cert: "#{ssl.cert}"
         keypass: solr.single.ssl_keystore_pwd
-        name: @config.shortname
+        name: options.hostname
         local: true
       @java.keystore_add
         keystore: solr.single.ssl_truststore_path

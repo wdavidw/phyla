@@ -30,7 +30,7 @@ Additionnal information may be found on the [CentOS HowTos site][corblk].
 
       @system.execute
         header: 'FSCK'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         hdfs fsck #{options.hbase_site['hbase.rootdir']}/WALs \
         | grep 'Status: HEALTHY'
         """
@@ -57,7 +57,7 @@ is added membership to the group hadoop to gain read access.
       url = "#{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=HBase,name=Master,sub=Server"
       @system.execute
         header: 'HTTP JMX'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         host=`curl -s -k --negotiate -u : #{url} | grep tag.Hostname | sed 's/^.*:.*"\\(.*\\)".*$/\\1/g'`
         [ "$host" == '#{options.fqdn}' ] || [ "$host" == '#{options.hostname}' ]
         """

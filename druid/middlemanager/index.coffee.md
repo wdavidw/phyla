@@ -9,7 +9,7 @@ The [middle manager] node is a worker node that executes submitted tasks. Middle
 [peons]: http://druid.io/docs/latest/design/peons.html
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         zookeeper_server: module: 'ryba/zookeeper/server'
@@ -22,18 +22,15 @@ The [middle manager] node is a worker node that executes submitted tasks. Middle
       configure:
         'ryba/druid/middlemanager/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.middlemanager
-          @call 'ryba/druid/prepare', options
-        'install': ->
-          options = @config.ryba.druid.middlemanager
-          @call 'ryba/druid/middlemanager/install', options
-          @call 'ryba/druid/middlemanager/start', options
-        'start': ->
-          options = @config.ryba.druid.middlemanager
-          @call 'ryba/druid/middlemanager/start', options
-        'status': ->
+        'prepare':
+          'ryba/druid/prepare'
+        'install': [
+          'ryba/druid/middlemanager/install'
+          'ryba/druid/middlemanager/start'
+        ]
+        'start':
+          'ryba/druid/middlemanager/start'
+        'status':
           'ryba/druid/middlemanager/status'
-        'stop': ->
-          options = @config.ryba.druid.middlemanager
-          @call 'ryba/druid/middlemanager/stop', options
+        'stop':
+          'ryba/druid/middlemanager/stop'

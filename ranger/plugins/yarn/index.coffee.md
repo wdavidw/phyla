@@ -1,7 +1,7 @@
 # Ranger HDFS Plugin
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
@@ -9,14 +9,16 @@
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
       configure:
         'ryba/ranger/plugins/yarn/configure'
-      plugin: ->
-        options = @config.ryba.ranger.yarn
+      plugin: (options) ->
         @before
           type: ['service', 'start']
           name: 'hadoop-yarn-resourcemanager'
         , ->
-          @call 'ryba/ranger/plugins/yarn/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/yarn/install', options.original
       commands:
-        'install': ->
-          options = @config.ryba.ranger.yarn
-          @call 'ryba/ranger/plugins/yarn/install', options
+        'install':
+          'ryba/ranger/plugins/yarn/install'

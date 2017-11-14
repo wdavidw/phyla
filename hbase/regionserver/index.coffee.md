@@ -7,11 +7,12 @@ It is responsible for serving and managing regions.
 In a distributed cluster, a RegionServer runs on a DataNode.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         zookeeper_server: module: 'ryba/zookeeper/server'
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
@@ -23,21 +24,17 @@ In a distributed cluster, a RegionServer runs on a DataNode.
         log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hbase/regionserver/configure'
-        # 'ryba/ranger/plugins/hbase/configure'
       commands:
-        'check': ->
-          options = @config.ryba.hbase.regionserver
-          @call 'ryba/hbase/regionserver/check', options
-        'install': ->
-          options = @config.ryba.hbase.regionserver
-          @call 'ryba/hbase/regionserver/install', options
-          @call 'ryba/hbase/regionserver/start', options
-          @call 'ryba/hbase/regionserver/check', options
-        'start': ->
-          options = @config.ryba.hbase.regionserver
-          @call 'ryba/hbase/regionserver/start', options
+        'check':
+          'ryba/hbase/regionserver/check'
+        'install': [
+          'ryba/hbase/regionserver/install'
+          'ryba/hbase/regionserver/start'
+          'ryba/hbase/regionserver/check'
+        ]
+        'start':
+          'ryba/hbase/regionserver/start'
         'status':
           'ryba/hbase/regionserver/status'
-        'stop': ->
-          options = @config.ryba.hbase.regionserver
-          @call 'ryba/hbase/regionserver/stop', options
+        'stop':
+          'ryba/hbase/regionserver/stop'

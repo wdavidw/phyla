@@ -14,7 +14,7 @@ Wait for all YARN services to be started.
 
       @system.execute
         header: 'CLI'
-        cmd: mkcmd.test @, 'yarn application -list'
+        cmd: mkcmd.test options.test_krb5_user, 'yarn application -list'
 
 ## Dependencies
 

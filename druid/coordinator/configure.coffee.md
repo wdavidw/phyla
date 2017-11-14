@@ -12,32 +12,24 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/druid/coordinator', ['ryba', 'druid', 'coordinator'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        # hdfs_client: key: ['ryba', 'hdfs_client']
-        druid: key: ['ryba', 'druid', 'base']
-        druid_coordinator: key: ['ryba', 'druid', 'coordinator']
-      @config.ryba.druid ?= {}
-      options = @config.ryba.druid.coordinator = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identities
 
-      options.group = merge {}, service.use.druid.options.group, options.group
-      options.user = merge {}, service.use.druid.options.user, options.user
+      options.group = merge {}, service.deps.druid.options.group, options.group
+      options.user = merge {}, service.deps.druid.options.user, options.user
 
-## Environnment
+## Environment
 
       # Layout
-      options.dir = service.use.druid.options.dir
-      options.log_dir = service.use.druid.options.log_dir
-      options.pid_dir = service.use.druid.options.pid_dir
+      options.dir = service.deps.druid.options.dir
+      options.log_dir = service.deps.druid.options.log_dir
+      options.pid_dir = service.deps.druid.options.pid_dir
       # Misc
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
-      options.version ?= service.use.druid.options.version
-      options.timezone = service.use.druid.options.timezone
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.version ?= service.deps.druid.options.version
+      options.timezone = service.deps.druid.options.timezone
       options.clean_logs ?= false
 
 ## Java
@@ -56,17 +48,16 @@ Example:
 
 ## Kerberos
 
-      options.krb5_service = merge {}, service.use.druid.options.krb5_service, options.krb5_service
+      options.krb5_service = merge {}, service.deps.druid.options.krb5_service, options.krb5_service
 
 ## Wait
 
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.druid_coordinator
+      options.wait.tcp = for srv in service.deps.druid_coordinator
         host: srv.node.fqdn
         port: srv.options.runtime?['druid.port'] or '8081'
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

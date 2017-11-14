@@ -29,11 +29,11 @@ Check the configuration file (current.properties).
           #{janusgraph.install_dir}/current/bin/gremlin.sh 2>/dev/null <<< \"g = JanusGraphFactory.open('janusgraph-hbase-#{janusgraph.config['index.search.backend']}-test.properties')\" | grep '==>janusgraph'
           hbase shell 2>/dev/null <<< "grant 'ryba', 'RWC', 'janusgraph-test'"
           """
-          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists 'janusgraph-test'\""
+          unless_exec: unless force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"exists 'janusgraph-test'\""
         , (err, status) ->
           check = true if status
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           cd #{janusgraph.home}
           cmd="TitanFactory.open('janusgraph-#{janusgraph.config['storage.backend']}-#{janusgraph.config['index.search.backend']}-test.properties')"
           #{janusgraph.install_dir}/current/bin/gremlin.sh <<< "$cmd" | grep '==>janusgraph'

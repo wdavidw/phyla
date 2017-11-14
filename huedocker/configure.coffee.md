@@ -41,37 +41,7 @@ Example:
 [hbase-configuration]:(http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/)
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/huedocker', ['ryba', 'hue_docker'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        ssl: key: ['ssl']
-        db_admin: key: ['ryba', 'db_admin']
-        test_user: key: ['ryba', 'test_user']
-        docker: key: ['docker']
-        zookeeper_server: key: ['ryba', 'zookeeper', 'server']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_client: key: ['ryba', 'yarn_client']
-        oozie_client: key: ['ryba', 'oozie', 'client']
-        hbase_client: key: ['ryba', 'hbase', 'client']
-        hbase_thrift: key: ['ryba', 'hbase', 'thrift']
-        hive_client: key: ['ryba', 'hive', 'client']
-        hive_beeline: key: ['ryba', 'hive', 'beeline']
-        hadoop_core: key: ['ryba']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
-        httpfs: key: ['ryba', 'httpfs']
-        oozie_server: key: ['ryba', 'oozie', 'server']
-        hive_server2: key: ['ryba', 'hive', 'server2']
-        hive_webhcat: key: ['ryba', 'webhcat']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        sqoop: key: ['ryba', 'sqoop']
-        huedocker: key: ['ryba', 'hue_docker']
-      @config.ryba ?= {}
-      options = @config.ryba.hue_docker = service.options
-
+      options = service.options
 
 ## Environment
 
@@ -90,9 +60,9 @@ Example:
       options.build.name ?= 'ryba/hue-build'
       options.build.version ?= 'latest'
       options.build.dockerfile ?= "#{__dirname}/resources/build/Dockerfile_#{options.version}"
-      options.build.directory ?= "#{@options.cache_dir}/huedocker/cache/build" # was '/tmp/ryba/hue-build'
+      options.build.directory ?= "./huedocker/build" # was '/tmp/ryba/hue-build'
       options.prod ?= {}
-      options.prod.directory ?= "#{@options.cache_dir}/huedocker/cache/prod"
+      options.prod.directory ?= "#./huedocker/prod"
       options.prod.dockerfile ?= "#{__dirname}/resources/prod/Dockerfile"
       options.prod.tar ?= 'hue_docker.tar'
       options.port ?= '8888'
@@ -119,15 +89,15 @@ Example:
 
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
@@ -138,8 +108,8 @@ Example:
 
 ## Hue Webui TLS
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cacert" if options.ssl and not options.ssl.cacert
         throw Error "Required Option: ssl.cert" if options.ssl and not options.ssl.cert
@@ -154,60 +124,60 @@ Example:
       options.ini['hadoop'] ?= {}
       # For HDFS HA deployments,  HttpFS is preferred over webhdfs.It should be installed
 
-      if service.use.httpfs
-        httpfs_protocol = if service.use.httpfs[0].options.env.HTTPFS_SSL_ENABLED then 'https' else 'http'
-        httpfs_port = service.use.httpfs[0].options.http_port
-        webhdfs_url = "#{httpfs_protocol}://#{service.use.httpfs[0].node.fqdn}:#{httpfs_port}/webhdfs/v1"
+      if service.deps.httpfs
+        httpfs_protocol = if service.deps.httpfs[0].options.env.HTTPFS_SSL_ENABLED then 'https' else 'http'
+        httpfs_port = service.deps.httpfs[0].options.http_port
+        webhdfs_url = "#{httpfs_protocol}://#{service.deps.httpfs[0].node.fqdn}:#{httpfs_port}/webhdfs/v1"
       else
         # Hue Install defines a dependency on HDFS client
-        nn_protocol = if service.use.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
-        nn_protocol = 'http' if service.use.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP' # _AND_HTTPS and not hue.ssl?.cacert
-        if service.use.hdfs_nn[0].options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
-          nn_host = service.use.hdfs_nn[0].options.active_nn_host
-          shortname = service.use.hdfs_nn[0].node.hostname
-          nn_http_port = service.use.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address.#{service.use.hdfs_nn[0].options.nameservice}.#{shortname}"].split(':')[1]
+        nn_protocol = if service.deps.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        nn_protocol = 'http' if service.deps.hdfs_nn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP' # _AND_HTTPS and not hue.ssl?.cacert
+        if service.deps.hdfs_nn[0].options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
+          nn_host = service.deps.hdfs_nn[0].options.active_nn_host
+          shortname = service.deps.hdfs_nn[0].node.hostname
+          nn_http_port = service.deps.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address.#{service.deps.hdfs_nn[0].options.nameservice}.#{shortname}"].split(':')[1]
           webhdfs_url = "#{nn_protocol}://#{nn_host}:#{nn_http_port}/webhdfs/v1"
         else
-          nn_host = service.use.hdfs_nn[0].node.fqdn
-          nn_http_port = service.use.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address"].split(':')[1]
+          nn_host = service.deps.hdfs_nn[0].node.fqdn
+          nn_http_port = service.deps.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{nn_protocol}-address"].split(':')[1]
           webhdfs_url = "#{nn_protocol}://#{nn_host}:#{nn_http_port}/webhdfs/v1"
 
       # YARN ResourceManager (MR2 Cluster)
       options.ini['hadoop']['yarn_clusters'] = {}
       options.ini['hadoop']['yarn_clusters']['default'] ?= {}
-      rm_hosts = service.use.yarn_rm.map( (srv) -> srv.node.fqdn)
-      rm_host = if rm_hosts.length > 1 then service.use.yarn_rm[0].options.active_rm_host else rm_hosts[0]
-      throw Error "No YARN ResourceManager configured" unless service.use.yarn_rm.length
+      rm_hosts = service.deps.yarn_rm.map( (srv) -> srv.node.fqdn)
+      rm_host = if rm_hosts.length > 1 then service.deps.yarn_rm[0].options.active_rm_host else rm_hosts[0]
+      throw Error "No YARN ResourceManager configured" unless service.deps.yarn_rm.length
       yarn_api_url = []
       # Support for RM HA was added in Hue 3.7
       if rm_hosts.length > 1
         # Active RM
-        rm_port = service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.address.#{service.use.yarn_rm[0].node.hostname}"].split(':')[1]
-        yarn_api_url[0] = if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.use.yarn_rm[0].node.hostname}"]}"
-        else "https://#{service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.use.yarn_rm[0].node.hostname}"]}"
+        rm_port = service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.address.#{service.deps.yarn_rm[0].node.hostname}"].split(':')[1]
+        yarn_api_url[0] = if service.deps.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.deps.yarn_rm[0].node.hostname}"]}"
+        else "https://#{service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.deps.yarn_rm[0].node.hostname}"]}"
 
         # Standby RM
-        rm_port_ha = service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.address.#{service.use.yarn_rm[0].node.hostname}"].split(':')[1]
-        yarn_api_url[1] = if service.use.yarn_rm[1].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.use.yarn_rm[0].node.hostname}"]}"
-        else "https://#{service.use.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.use.yarn_rm[0].node.hostname}"]}"
+        rm_port_ha = service.deps.yarn_rm[1].options.yarn_site["yarn.resourcemanager.address.#{service.deps.yarn_rm[0].node.hostname}"].split(':')[1]
+        yarn_api_url[1] = if service.deps.yarn_rm[1].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.deps.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.deps.yarn_rm[0].node.hostname}"]}"
+        else "https://#{service.deps.yarn_rm[1].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.deps.yarn_rm[0].node.hostname}"]}"
 
         # options.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
-        options.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{service.use.yarn_rm[0].node.hostname}"
+        options.ini['hadoop']['yarn_clusters']['default']['logical_name'] ?= "#{service.deps.yarn_rm[0].node.hostname}"
 
         # The [[ha]] section contains the 2nd YARN_RM information when HA is enabled
         options.ini['hadoop']['yarn_clusters']['ha'] ?= {}
         options.ini['hadoop']['yarn_clusters']['ha']['submit_to'] ?= "true"
         options.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_api_url'] ?= "#{yarn_api_url[1]}"
         # options.ini['hadoop']['yarn_clusters']['ha']['resourcemanager_port'] ?= "#{rm_port_ha}"
-        options.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{service.use.yarn_rm[1].node.hostname}"
+        options.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{service.deps.yarn_rm[1].node.hostname}"
         # options.ini['hadoop']['yarn_clusters']['ha']['logical_name'] ?= "#{yarn.site['yarn.resourcemanager.cluster-id']}"
       else
-        rm_port = service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.address'].split(':')[1]
-        yarn_api_url[0] = if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.http.address']}"
-        else "https://#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.https.address']}"
+        rm_port = service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.address'].split(':')[1]
+        yarn_api_url[0] = if service.deps.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://#{service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.http.address']}"
+        else "https://#{service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.webapp.https.address']}"
 
       options.ini['hadoop']['yarn_clusters']['default']['submit_to'] ?= "true"
       # options.ini['hadoop']['yarn_clusters']['default']['resourcemanager_host'] ?= "#{rm_host}"
@@ -219,46 +189,46 @@ Example:
       options.ini['hadoop']['hdfs_clusters'] ?= {}
       options.ini['hadoop']['hdfs_clusters']['default'] ?= {}
       # HA require webhdfs_url
-      options.ini['hadoop']['hdfs_clusters']['default']['fs_defaultfs'] ?= service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
+      options.ini['hadoop']['hdfs_clusters']['default']['fs_defaultfs'] ?= service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']
       options.ini['hadoop']['hdfs_clusters']['default']['webhdfs_url'] ?= webhdfs_url
       options.ini['hadoop']['hdfs_clusters']['default']['hadoop_hdfs_home'] ?= '/usr/lib/hadoop'
       options.ini['hadoop']['hdfs_clusters']['default']['hadoop_bin'] ?= '/usr/bin/hadoop'
-      options.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir'] ?= service.use.hadoop_core.options.conf_dir
+      options.ini['hadoop']['hdfs_clusters']['default']['hadoop_conf_dir'] ?= service.deps.hadoop_core.options.conf_dir
       # JobHistoryServer
-      jhs_protocol = if service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
+      jhs_protocol = if service.deps.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.http.policy'] is 'HTTP' then 'http' else 'https'
       jhs_port = if jhs_protocol is 'http'
-      then service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
-      else service.use.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
-      options.ini['hadoop']['yarn_clusters']['default']['history_server_api_url'] ?= "#{jhs_protocol}://#{service.use.mapred_jhs[0].node.fqdn}:#{jhs_port}"
+      then service.deps.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.address'].split(':')[1]
+      else service.deps.mapred_jhs[0].options.mapred_site['mapreduce.jobhistory.webapp.https.address'].split(':')[1]
+      options.ini['hadoop']['yarn_clusters']['default']['history_server_api_url'] ?= "#{jhs_protocol}://#{service.deps.mapred_jhs[0].node.fqdn}:#{jhs_port}"
 
       # Oozie
-      if service.use.oozie_server
+      if service.deps.oozie_server
         options.ini['liboozie'] ?= {}
         options.ini['liboozie']['security_enabled'] ?= 'true'
-        options.ini['liboozie']['oozie_url'] ?= service.use.oozie_server[0].options.oozie_site['oozie.base.url']
+        options.ini['liboozie']['oozie_url'] ?= service.deps.oozie_server[0].options.oozie_site['oozie.base.url']
       else
         blacklisted_app.push 'oozie'
       # WebHcat
-      if service.use.hive_webhcat
-        webhcat_port = service.use.hive_webhcat[0].options.webhcat_site['templeton.port']
-        templeton_url = "http://#{service.use.hive_webhcat[0].node.fqdn}:#{webhcat_port}/templeton/v1/"
+      if service.deps.hive_webhcat
+        webhcat_port = service.deps.hive_webhcat[0].options.webhcat_site['templeton.port']
+        templeton_url = "http://#{service.deps.hive_webhcat[0].node.fqdn}:#{webhcat_port}/templeton/v1/"
         options.ini['hcatalog'] ?= {}
         options.ini['hcatalog']['templeton_url'] ?= templeton_url
         options.ini['beeswax'] ?= {}
-      if service.use.hive_webhcat.length
-        for srv in service.use.hive_webhcat
+      if service.deps.hive_webhcat.length
+        for srv in service.deps.hive_webhcat
           srv.options.webhcat_site["webhcat.proxyuser.#{options.user.name}.users"] ?= '*'
           srv.options.webhcat_site["webhcat.proxyuser.#{options.user.name}.groups"] ?= '*'
       else
         blacklisted_app.push 'webhcat'
 
       # HiveServer2
-      throw Error "No Hive HCatalog Server configured" unless service.use.hive_server2
+      throw Error "No Hive HCatalog Server configured" unless service.deps.hive_server2
       options.ini['beeswax'] ?= {}
-      options.ini['beeswax']['hive_server_host'] ?= "#{service.use.hive_server2[0].node.fqdn}"
-      options.ini['beeswax']['hive_server_port'] ?= if service.use.hive_server2[0].options.hive_site['hive.server2.transport.mode'] is 'binary'
-      then service.use.hive_server2[0].options.hive_site['hive.server2.thrift.port']
-      else service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.port']
+      options.ini['beeswax']['hive_server_host'] ?= "#{service.deps.hive_server2[0].node.fqdn}"
+      options.ini['beeswax']['hive_server_port'] ?= if service.deps.hive_server2[0].options.hive_site['hive.server2.transport.mode'] is 'binary'
+      then service.deps.hive_server2[0].options.hive_site['hive.server2.thrift.port']
+      else service.deps.hive_server2[0].options.hive_site['hive.server2.thrift.http.port']
       options.ini['beeswax']['hive_conf_dir'] ?= '/etc/hive/conf' # Hive client is a dependency of Hue
       options.ini['beeswax']['server_conn_timeout'] ?= "240"
       # Desktop
@@ -278,8 +248,8 @@ Example:
 ## Desktop database
 
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'hue3'
       options.db.username ?= 'hue'
       throw Error "Required Option: db.password" unless options.db.password
@@ -310,16 +280,16 @@ Example:
       blacklisted_app.push 'search'
       blacklisted_app.push 'solr'
       # Sqoop
-      sqoop_hosts = service.use.sqoop.map( (srv) -> srv.node.fqdn)
+      sqoop_hosts = service.deps.sqoop.map( (srv) -> srv.node.fqdn)
 
       # HBase
       # Configuration for Hue version > 3.8.1 (July 2015)
       # Hue communicates with hbase throught the thrift server from Hue 3.7 version
       # Hbase has to be configured to offer impersonation
       # http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/
-      if service.use.hbase_thrift.length
+      if service.deps.hbase_thrift.length
         hbase_thrift_cluster = ''
-        for key, srv of service.use.hbase_thrift
+        for key, srv of service.deps.hbase_thrift
           host_adress = ''
           # from source code the hostname should be prefixed with https to warn hue that SSL is enabled
           # activating ssl make hue mismatch fully qualified hostname
@@ -329,7 +299,7 @@ Example:
           host_adress += "#{srv.node.fqdn}:#{srv.options.hbase_site['hbase.thrift.port']}"
           hbase_thrift_cluster +=  if key == '0' then "(Cluster|#{host_adress})" else ",(Cluster|https://#{host_adress})"
         options.ini['hbase'] ?= {}
-        options.ini['hbase']['hbase_conf_dir'] ?= service.use.hbase_client.options.conf_dir
+        options.ini['hbase']['hbase_conf_dir'] ?= service.deps.hbase_client.options.conf_dir
         # Enrich hbase client site with thrift related properties. needed for hbase to
         #communicate with hbase correctly
         for prop in [
@@ -341,7 +311,7 @@ Example:
           'hbase.thrift.kerberos.principal'
           'hbase.thrift.ssl.enabled'
           ]
-        then service.use.hbase_client.options.hbase_site[prop] ?= service.use.hbase_thrift[0].options.hbase_site[prop]
+        then service.deps.hbase_client.options.hbase_site[prop] ?= service.deps.hbase_thrift[0].options.hbase_site[prop]
         options.ini['hbase']['hbase_clusters'] ?= hbase_thrift_cluster
         # Hard limit of rows or columns per row fetched before truncating.
         options.ini['hbase']['truncate_limit'] ?= '500'
@@ -349,8 +319,8 @@ Example:
         # set to false if you want to unable
         # not stable
         # force the use of impersonation in hue.ini, it can be read by hue if set inside hbase-site.xml file
-        options.ini['hbase']['use_doas'] = if service.use.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.http'] then 'true' else 'false'
-        options.ini['hbase']['thrift_transport'] =  service.use.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.framed']
+        options.ini['hbase']['use_doas'] = if service.deps.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.http'] then 'true' else 'false'
+        options.ini['hbase']['thrift_transport'] =  service.deps.hbase_thrift[0].options.hbase_site['hbase.regionserver.thrift.framed']
       else
         blacklisted_app.push 'hbase'
 
@@ -428,11 +398,11 @@ Example:
 
 ## Configuration for Proxy Users
 
-      for srv in service.use.httpfs
+      for srv in service.deps.httpfs
         srv.options.site ?= {}
         srv.options.site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= '*'
         srv.options.site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
-      for srv in service.use.oozie_server
+      for srv in service.deps.oozie_server
         srv.options.oozie_site ?= {}
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= '*'
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
@@ -450,19 +420,19 @@ hdfs_client configuration directory.
           hosts.push node.fqdn unless node.fqdn in hosts
         hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
-      enrich_proxy_user srv for srv in service.use.hdfs_nn
-      enrich_proxy_user srv for srv in service.use.hdfs_dn
-      enrich_proxy_user srv for srv in service.use.yarn_rm
-      enrich_proxy_user srv for srv in service.use.yarn_nm
-      enrich_proxy_user srv for srv in service.use.hdfs_client
-      # enrich_proxy_user srv for srv in service.use.hive_server2
-      # enrich_proxy_user srv for srv in service.use.hive_webhcat
+      enrich_proxy_user srv for srv in service.deps.hdfs_nn
+      enrich_proxy_user srv for srv in service.deps.hdfs_dn
+      enrich_proxy_user srv for srv in service.deps.yarn_rm
+      enrich_proxy_user srv for srv in service.deps.yarn_nm
+      enrich_proxy_user srv for srv in service.deps.hdfs_client
+      # enrich_proxy_user srv for srv in service.deps.hive_server2
+      # enrich_proxy_user srv for srv in service.deps.hive_webhcat
 
 ## Wait
 
-      options.wait_db_admin = service.use.db_admin.options.wait
+      options.wait_db_admin = service.deps.db_admin.options.wait
       options.wait ?= {}
-      options.wait.http ?= for srv in service.use.huedocker
+      options.wait.http ?= for srv in service.deps.huedocker
         host: srv.node.fqdn
         port: srv.options.port or options.port or '8888'
 
@@ -470,7 +440,6 @@ hdfs_client configuration directory.
 
     {merge} = require 'nikita/lib/misc'
     db = require 'nikita/lib/misc/db'
-    migration = require 'masson/lib/migration'
 
 [home]: http://gethue.com
 [hdp-2.3.2.0-hue]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_installing_manually_book/content/prerequisites_hue.html)

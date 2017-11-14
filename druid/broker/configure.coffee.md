@@ -29,39 +29,36 @@ your specific hardware. The most commonly adjusted configurations are:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/druid/broker', ['ryba', 'druid', 'broker'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        druid: key: ['ryba', 'druid', 'base']
-        druid_coordinator: key: ['ryba', 'druid', 'coordinator']
-        druid_overlord: key: ['ryba', 'druid', 'overlord']
-        druid_historical: key: ['ryba', 'druid', 'historical']
-        druid_middlemanager: key: ['ryba', 'druid', 'middlemanager']
-        druid_broker: key: ['ryba', 'druid', 'broker']
-      @config.ryba.druid ?= {}
-      options = @config.ryba.druid.broker = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identities
 
-      options.group = merge {}, service.use.druid.options.group, options.group
-      options.user = merge {}, service.use.druid.options.user, options.user
+      options.group = merge {}, service.deps.druid.options.group, options.group
+      options.user = merge {}, service.deps.druid.options.user, options.user
+
+## Kerberos
+
+      options.krb5_service = merge {}, service.deps.druid.options.krb5_service, options.krb5_service
+      # Kerberos Druid Admin
+      options.krb5_user ?= service.deps.druid.options.krb5_user
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Environment
 
       # Layout
-      options.dir = service.use.druid.options.dir
-      options.log_dir = service.use.druid.options.log_dir
-      options.pid_dir = service.use.druid.options.pid_dir
+      options.dir = service.deps.druid.options.dir
+      options.log_dir = service.deps.druid.options.log_dir
+      options.pid_dir = service.deps.druid.options.pid_dir
       # Misc
       options.fqdn = service.node.fqdn
-      options.krb5_user ?= service.use.druid.options.krb5_user
-      options.version ?= service.use.druid.options.version
-      options.timezone ?= service.use.druid.options.timezone
-      options.overlord_runtime = service.use.druid_overlord[0].options.runtime
-      options.overlord_fqdn = service.use.druid_overlord[0].node.fqdn
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.hostname = service.node.hostname
+      options.version ?= service.deps.druid.options.version
+      options.timezone ?= service.deps.druid.options.timezone
+      options.overlord_runtime = service.deps.druid_overlord[0].options.runtime
+      options.overlord_fqdn = service.deps.druid_overlord[0].node.fqdn
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.force_check ?= false
 
@@ -71,10 +68,6 @@ your specific hardware. The most commonly adjusted configurations are:
       options.jvm.xms ?= '24g'
       options.jvm.xmx ?= '24g'
       options.jvm.max_direct_memory_size ?= options.jvm.xmx # Default is 4G
-
-## Kerberos
-
-      options.krb5_service = merge {}, service.use.druid.options.krb5_service, options.krb5_service
 
 ## Configuration
 
@@ -132,17 +125,16 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Wait
 
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_druid_coordinator = service.use.druid_coordinator[0].options.wait
-      options.wait_druid_overlord = service.use.druid_overlord[0].options.wait
-      options.wait_druid_historical = service.use.druid_historical[0].options.wait
-      options.wait_druid_middlemanager = service.use.druid_middlemanager[0].options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_druid_coordinator = service.deps.druid_coordinator[0].options.wait
+      options.wait_druid_overlord = service.deps.druid_overlord[0].options.wait
+      options.wait_druid_historical = service.deps.druid_historical[0].options.wait
+      options.wait_druid_middlemanager = service.deps.druid_middlemanager[0].options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.druid_broker
+      options.wait.tcp = for srv in service.deps.druid_broker
         host: srv.node.fqdn
         port: srv.options.runtime?['druid.port'] or '8082'
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

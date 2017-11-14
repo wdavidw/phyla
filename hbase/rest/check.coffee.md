@@ -117,19 +117,19 @@
           fi
           hbase --config #{options.conf_dir} shell 2>/dev/null <<-CMD
             create_namespace '#{options.test.namespace}'
-            grant '#{options.user.name}', 'RWC', '@#{options.test.namespace}'
+            grant '#{options.test.user.name}', 'RWC', '@#{options.test.namespace}'
             create '#{options.test.namespace}:#{options.test.table}', 'family1'
           CMD
           """
           code_skipped: 2
           trap: true
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           #{curl} -X POST --data '#{schema}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/schema
           #{curl} --data '#{rows}' #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/___false-row-key___/#{options.hostname}_rest%3A
           #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hbase --config #{options.conf_dir} shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase --config #{options.conf_dir} shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
         , (err, executed, stdout) ->
           return if err or not executed
           try

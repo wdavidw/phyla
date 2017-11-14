@@ -9,40 +9,22 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/yarn_rm', ['ryba', 'yarn', 'rm'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        mapred_jhs: key: ['ryba', 'mapred', 'jhs']
-        yarn_ts: key: ['ryba', 'yarn', 'ats']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        metrics: key: ['ryba', 'metrics']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      @config.ryba.yarn ?= {}
-      @config.ryba.yarn.rm ?= {}
-      options = @config.ryba.yarn.rm = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
-## Environnment
+## Environment
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-client'
@@ -51,21 +33,22 @@
       options.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
       # Java
       options.opts ?= {}
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.java_opts ?= ''
       options.heapsize ?= '1024'
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.use.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.use.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn NodeManager "yarn-site.xml"
       options.yarn_site ?= {}
       # Configuration
@@ -101,7 +84,7 @@ with automatic failover stores information inside "yarn.resourcemanager.ha.autom
 information inside "yarn.resourcemanager.zk-state-store.parent-path" (default to
 "/rmstore").
 
-      options.yarn_site['yarn.resourcemanager.zk-address'] ?= service.use.zookeeper_server
+      options.yarn_site['yarn.resourcemanager.zk-address'] ?= service.deps.zookeeper_server
       .filter (srv) -> srv.options.config['peerType'] is 'participant'
       .map (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       .join ','
@@ -130,7 +113,7 @@ inside the configuration.
         options.yarn_site["yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled"] ?= "true" # YARN default is "true"
       else
         throw Error "Invalid Number Of ResourceManager"
-      for srv in service.use.yarn_rm
+      for srv in service.deps.yarn_rm
         # srv.config.ryba.yarn ?= {}
         # srv.config.ryba.yarn.rm ?= {}
         srv.options.yarn_site ?= {}
@@ -151,16 +134,16 @@ inside the configuration.
 
 ## MapReduce JobHistory Server
 
-      if service.use.mapred_jhs
-        options.yarn_site['mapreduce.jobhistory.principal'] ?= service.use.mapred_jhs.options.mapred_site['mapreduce.jobhistory.principal']
+      if service.deps.mapred_jhs
+        options.yarn_site['mapreduce.jobhistory.principal'] ?= service.deps.mapred_jhs.options.mapred_site['mapreduce.jobhistory.principal']
         options.yarn_site['yarn.resourcemanager.bind-host'] ?= '0.0.0.0'
-        service.use.mapred_jhs.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
+        service.deps.mapred_jhs.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
         # TODO: detect https and port, see "../mapred_jhs/check"
-        jhs_protocol = if service.use.mapred_jhs.options.mapred_site['mapreduce.jobhistory.address'] is 'HTTP_ONLY' then 'http' else 'https'
+        jhs_protocol = if service.deps.mapred_jhs.options.mapred_site['mapreduce.jobhistory.address'] is 'HTTP_ONLY' then 'http' else 'https'
         jhs_protocol_key = if jhs_protocol is 'http' then '' else '.https'
-        jhs_address = service.use.mapred_jhs.options.mapred_site["mapreduce.jobhistory.webapp#{jhs_protocol_key}.address"]
+        jhs_address = service.deps.mapred_jhs.options.mapred_site["mapreduce.jobhistory.webapp#{jhs_protocol_key}.address"]
         options.yarn_site['yarn.log.server.url'] ?= "#{jhs_protocol}://#{jhs_address}/jobhistory/logs/"
-        service.use.mapred_jhs.options.yarn_site['yarn.http.policy'] ?= options.yarn_site['yarn.http.policy']
+        service.deps.mapred_jhs.options.yarn_site['yarn.http.policy'] ?= options.yarn_site['yarn.http.policy']
 
 ## Preemption
 
@@ -289,16 +272,16 @@ rmr /rmstore/ZKRMStateRoot
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
       'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
       'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
       'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -307,24 +290,24 @@ rmr /rmstore/ZKRMStateRoot
       options.metrics.sinks.graphite_enabled ?= false
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config['resourcemanager.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
         options.metrics.config['resourcemanager.sink.file.filename'] ?= 'resourcemanager-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
         options.metrics.config['resourcemanager.sink.ganglia.class'] ?= options.metrics.ganglia.class
-        options.metrics.config['resourcemanager.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config['resourcemanager.sink.ganglia.servers'] ?= "#{service.deps.ganglia.node.fqdn}:#{service.deps.ganglia.options.nn_port}"
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.yarn.rm.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
         throw Error 'Missing remote_port ryba.yarn.rm.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config["resourcemanager.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## Configuration for Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.root_logger ?= 'INFO,EWMA,RFA'
       options.opts['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
       options.opts['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
@@ -369,17 +352,17 @@ rmr /rmstore/ZKRMStateRoot
         'yarn.timeline-service.http-authentication.type'
         'yarn.timeline-service.http-authentication.kerberos.principal'
       ]
-        options.yarn_site[property] ?= if service.use.yarn_ts then service.use.yarn_ts.options.yarn_site[property] else null
+        options.yarn_site[property] ?= if service.deps.yarn_ts then service.deps.yarn_ts.options.yarn_site[property] else null
       # Export
-      service.use.yarn_ts.options.yarn_site ?= {}
-      service.use.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
-      service.use.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir']
-      service.use.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix']
-      service.use.yarn_ts.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
+      service.deps.yarn_ts.options.yarn_site ?= {}
+      service.deps.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
+      service.deps.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir']
+      service.deps.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix']
+      service.deps.yarn_ts.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
 
 ## Export to Yarn NodeManager
 
-      for srv in service.use.yarn_nm
+      for srv in service.deps.yarn_nm
         id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
         for property in [
           'yarn.http.policy'
@@ -399,7 +382,7 @@ rmr /rmstore/ZKRMStateRoot
           "yarn.resourcemanager.resource-tracker.address#{id}"
         ]
           srv.options.yarn_site[property] ?= options.yarn_site[property]
-      for srv in service.use.mapred_jhs
+      for srv in service.deps.mapred_jhs
         id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
         for property in [
           'yarn.http.policy'
@@ -422,13 +405,13 @@ rmr /rmstore/ZKRMStateRoot
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_dn = service.use.hdfs_dn[0].options.wait
-      options.wait_yarn_ts = service.use.yarn_ts.options.wait
-      options.wait_mapred_jhs = service.use.mapred_jhs.options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_dn = service.deps.hdfs_dn[0].options.wait
+      options.wait_yarn_ts = service.deps.yarn_ts.options.wait
+      options.wait_mapred_jhs = service.deps.mapred_jhs.options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.yarn_rm
+      options.wait.tcp = for srv in service.deps.yarn_rm
         [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
         then srv.options.yarn_site["yarn.resourcemanager.address#{id}"].split(':')
         else
@@ -436,7 +419,7 @@ rmr /rmstore/ZKRMStateRoot
           srv.options.yarn_site["yarn.resourcemanager.address#{id}"] ?= "#{srv.node.fqdn}:8050"
           srv.options.yarn_site["yarn.resourcemanager.address#{id}"].split(':')
         host: fqdn, port: port
-      options.wait.admin = for srv in service.use.yarn_rm
+      options.wait.admin = for srv in service.deps.yarn_rm
         [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
         then srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"].split(':')
         else
@@ -444,7 +427,7 @@ rmr /rmstore/ZKRMStateRoot
           srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"] ?= "#{srv.node.fqdn}:8141"
           srv.options.yarn_site["yarn.resourcemanager.admin.address#{id}"].split(':')
         host: fqdn, port: port
-      options.wait.webapp = for srv in service.use.yarn_rm
+      options.wait.webapp = for srv in service.deps.yarn_rm
         protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else '.https'
         default_http_port = if protocol is '' then '8088' else '8090'
         [fqdn, port] = unless options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true'
@@ -459,4 +442,3 @@ rmr /rmstore/ZKRMStateRoot
 
     appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

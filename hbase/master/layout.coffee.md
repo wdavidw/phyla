@@ -16,7 +16,7 @@ Wait for HDFS to be started.
 ## HDFS Layout
 
       @wait.execute
-        cmd: mkcmd.hdfs @, "hdfs --config #{options.hdfs_conf_dir} dfs -test -d /apps"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config #{options.hdfs_conf_dir} dfs -test -d /apps"
 
 ## HDFS
 
@@ -57,7 +57,7 @@ Create the directory structure with correct ownerships and permissions.
       #     """
       #     cmd += "\nhdfs --config #{options.hdfs_conf_dir} dfs -chmod 711 #{dir}"  if 3 + index is dirs.length
       #     @system.execute
-      #       cmd: mkcmd.hdfs @, cmd
+      #       cmd: mkcmd.hdfs options.hdfs_krb5_user, cmd
       #       code_skipped: 2
 
 # Module dependencies

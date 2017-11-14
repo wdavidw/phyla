@@ -2,11 +2,7 @@
 # OpenNebula Front Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/incubator/nebula/front', ['nebula', 'front'], require('nikita/lib/misc').merge require('.').use,
-        nebula_base: key: ['ryba', 'nebula', 'base']
-        nebula_node: key: ['ryba', 'nebula', 'node']
-      @config.ryba ?= {}
-      options = @config.nebula.front = service.options
+      options = service.options
 
 ## Validation
 
@@ -24,9 +20,8 @@
 
 ## Normalization
 
-      options.nebula_node_hosts = service.use.nebula_node.map (srv) -> srv.node.fqdn
+      options.nebula_node_hosts = service.deps.nebula_node.map (srv) -> srv.node.fqdn
 
 ## Dependencies
 
     path = require 'path'
-    migration = require 'masson/lib/migration'

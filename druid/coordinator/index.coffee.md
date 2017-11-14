@@ -10,7 +10,7 @@ managing segment replication, and balancing segment load.
 [coordinator]: http://druid.io/docs/latest/design/coordinator.html
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         zookeeper_server: module: 'ryba/zookeeper/server'
@@ -25,18 +25,15 @@ managing segment replication, and balancing segment load.
       configure:
         'ryba/druid/coordinator/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.coordinator
-          @call 'ryba/druid/prepare', options
-        'install': ->
-          options = @config.ryba.druid.coordinator
-          @call 'ryba/druid/coordinator/install', options
-          @call 'ryba/druid/coordinator/start', options
-        'start': ->
-          options = @config.ryba.druid.coordinator
-          @call 'ryba/druid/coordinator/start', options
+        'prepare':
+          'ryba/druid/prepare'
+        'install': [
+          'ryba/druid/coordinator/install'
+          'ryba/druid/coordinator/start'
+        ]
+        'start':
+          'ryba/druid/coordinator/start'
         'status':
           'ryba/druid/coordinator/status'
-        'stop': ->
-          options = @config.ryba.druid.coordinator
-          @call 'ryba/druid/coordinator/stop', options
+        'stop':
+          'ryba/druid/coordinator/stop'

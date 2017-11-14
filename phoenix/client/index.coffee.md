@@ -7,29 +7,39 @@ your SQL query, compiles it into a series of HBase scans, and orchestrates the
 running of those scans to produce regular JDBC result sets.
 
     module.exports =
-      use:
+      deps:
         java: module: 'masson/commons/java', local:true, implicit: true
-        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         hbase_master: module: 'ryba/hbase/master'
+        hbase_master_local: module: 'ryba/hbase/master', local: true
         hbase_regionserver: module: 'ryba/hbase/regionserver'
-        hbase_client: module: 'ryba/hbase/client', implicit: true
+        hbase_regionserver_local: module: 'ryba/hbase/regionserver', local: true
+        hbase_client: module: 'ryba/hbase/client'
+        hbase_client_local: module: 'ryba/hbase/client', local: true
       configure:
         'ryba/phoenix/client/configure'
-      plugin: ->
-        options = @config.ryba.hbase
+      plugin: (options) ->
         @after
           type: ['service', 'install']
           name: 'hbase-master'
         , ->
-          @call 'ryba/phoenix/client/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/phoenix/client/install', options.original
         @after
           type: ['service', 'install']
           name: 'hbase-regionserver'
         , ->
-          @call 'ryba/phoenix/client/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/phoenix/client/install', options.original
       commands:
-        'install': ->
-          options = @config.ryba.phoenix_client
-          @call 'ryba/phoenix/client/install', options
-          @call 'ryba/phoenix/client/init', options
-          @call 'ryba/phoenix/client/check', options
+        'install': [
+          'ryba/phoenix/client/install'
+          'ryba/phoenix/client/init'
+          'ryba/phoenix/client/check'
+        ]

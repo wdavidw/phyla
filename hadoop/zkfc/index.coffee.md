@@ -6,7 +6,7 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
 
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -15,28 +15,28 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
       configure:
         'ryba/hadoop/zkfc/configure'
-      plugin: ->
-        options = @config.ryba.zkfc
+      plugin: (options) ->
         @after
           type: ['service', 'start']
           name: 'hadoop-hdfs-namenode'
         , ->
-          @call 'ryba/hadoop/zkfc/install', options
-          @call 'ryba/hadoop/zkfc/start', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/hadoop/zkfc/install', options.original
+          @call 'ryba/hadoop/zkfc/start', options.original
       commands:
-        'check': ->
-          options = @config.ryba.zkfc
-          @call 'ryba/hadoop/zkfc/check', options
-        'install': ->
-          options = @config.ryba.zkfc
-          @call 'ryba/hadoop/zkfc/install', options
-          @call 'ryba/hadoop/zkfc/start', options
-          @call 'ryba/hadoop/zkfc/check', options
-        'start': ->
-          options = @config.ryba.zkfc
-          @call 'ryba/hadoop/zkfc/start', options
-        'stop': ->
-          options = @config.ryba.zkfc
-          @call 'ryba/hadoop/zkfc/stop', options
+        'check':
+          'ryba/hadoop/zkfc/check'
+        'install': [
+          'ryba/hadoop/zkfc/install'
+          'ryba/hadoop/zkfc/start'
+          'ryba/hadoop/zkfc/check'
+        ]
+        'start':
+          'ryba/hadoop/zkfc/start'
+        'stop':
+          'ryba/hadoop/zkfc/stop'
         'status':
           'ryba/hadoop/zkfc/status'

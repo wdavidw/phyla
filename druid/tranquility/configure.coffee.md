@@ -1,24 +1,21 @@
 
 # Tranquility Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/druid/tranquility', ['ryba', 'druid', 'tranquility'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        druid: key: ['ryba', 'druid']
-        druid_tranquility: key: ['ryba', 'druid', 'tranquility']
-      @config.ryba.druid ?= {}
-      options = @config.ryba.druid.tranquility = service.options
+    module.exports = (service) ->
+      options = service.options
 
-## identity
+## Identities
 
-      options.group = merge {}, service.use.druid.options.group, options.group
-      options.user = merge {}, service.use.druid.options.user, options.user
+      options.group = merge {}, service.deps.druid.options.group, options.group
+      options.user = merge {}, service.deps.druid.options.user, options.user
 
-## Layout
+## Environment
 
+      # Layout
       options.dir ?= '/opt/tranquility'
-      options.pid_dir = service.use.druid.options.pid_dir
+      options.pid_dir = service.deps.druid.options.pid_dir
+      # Misc
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Package
 
@@ -28,4 +25,3 @@
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

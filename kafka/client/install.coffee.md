@@ -110,7 +110,7 @@ Update the file "server.properties" with the properties defined by the
 
 ## Environment
 
- Exports JAAS configuration to producer JVM properties.
+Exports JAAS configuration to producer JVM properties.
 
       @file
         header: 'Environment'

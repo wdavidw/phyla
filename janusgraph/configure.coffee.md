@@ -1,52 +1,60 @@
 
 # JanusGraph Configure
 
-    module.exports = ->
-      janus = @config.ryba.janusgraph ?= {}
+    module.exports = (service) ->
+      options = service.options
+
+## Environment
+
       # Layout
-      janus.install_dir ?= '/opt/janusgraph'
-      janus.home ?= path.join janus.install_dir, 'current'
-      janus.version ?= '0.1.1'
-      janus.source ?= "https://github.com/JanusGraph/janusgraph/releases/download/v#{janus.version}/janusgraph-#{janus.version}-hadoop2.zip"
+      options.install_dir ?= '/opt/janusgraph'
+      options.home ?= path.join options.install_dir, 'current'
+      options.version ?= '0.1.1'
+      options.source ?= "https://github.com/JanusGraph/janusgraph/releases/download/v#{options.version}/janusgraph-#{options.version}-hadoop2.zip"
       # Configuration
-      janus.config ?= {}
+      options.config ?= {}
 
-Storage Backend
+## Kerberos
 
-      janus.config['storage.backend'] ?= 'hbase'
-      if janus.config['storage.backend'] is 'hbase'
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
+
+## Storage Backend
+
+      options.config['storage.backend'] ?= 'hbase'
+      if options.config['storage.backend'] is 'hbase'
         zk_hosts = @contexts('ryba/zookeeper/server').map( (ctx)-> ctx.config.host)
-        janus.config['storage.hostname'] ?= zk_hosts.join ','
-        janus.config['storage.hbase.table'] ?= 'janusgraph'
-        janus.config['storage.hbase.short-cf-names'] ?= true
+        options.config['storage.hostname'] ?= zk_hosts.join ','
+        options.config['storage.hbase.table'] ?= 'janusgraph'
+        options.config['storage.hbase.short-cf-names'] ?= true
 
-Indexation backend (mandatory even if it should not be)
+## Indexation backend (mandatory even if it should not be)
 
-      janus.config['index.search.backend'] ?= 'elasticsearch'
-      if janus.config['index.search.backend'] is 'elasticsearch'
+      options.config['index.search.backend'] ?= 'elasticsearch'
+      if options.config['index.search.backend'] is 'elasticsearch'
         es_ctxs = @contexts 'ryba/elasticsearch'
         if es_ctxs.length > 0
-          janus.config['index.search.hostname'] ?= es_ctxs[0].config.host
-          janus.config['index.search.elasticsearch.client-only'] ?= true
-          janus.config['index.search.elasticsearch.cluster-name'] ?= es_ctxs[0].config.ryba.elasticsearch.cluster.name
-        unless janus.config['index.search.hostname']? and janus.config['index.search.elasticsearch.cluster-name']?
+          options.config['index.search.hostname'] ?= es_ctxs[0].config.host
+          options.config['index.search.elasticsearch.client-only'] ?= true
+          options.config['index.search.elasticsearch.cluster-name'] ?= es_ctxs[0].config.ryba.elasticsearch.cluster.name
+        unless options.config['index.search.hostname']? and options.config['index.search.elasticsearch.cluster-name']?
           throw Error "Cannot autoconfigure elasticsearch. Provide manual config or install elasticsearch"
-      else if janus.config['index.search.backend'] is 'solr'
+      else if options.config['index.search.backend'] is 'solr'
         zk_ctxs = @contexts 'ryba/zookeeper/server'
         solr_ctxs = @contexts 'ryba/solr'
         if solr_ctxs.length > 0
-          janus.config['index.seach.solr.mode'] ?= solr_ctxs[0].config.ryba.solr.mode
-          janus.config['index.search.solr.zookeeper-url'] ?= "#{zk_ctxs[0].config.host}:#{zk_ctxs[0].config.ryba.zookeeper.port}"
-        unless janus.config['index.seach.solr.mode']? and janus.config['index.search.solr.zookeeper-url']?
+          options.config['index.seach.solr.mode'] ?= solr_ctxs[0].config.ryba.solr.mode
+          options.config['index.search.solr.zookeeper-url'] ?= "#{zk_ctxs[0].config.host}:#{zk_ctxs[0].config.ryba.zookeeper.port}"
+        unless options.config['index.seach.solr.mode']? and options.config['index.search.solr.zookeeper-url']?
           throw Error "Cannot autoconfigure solr. Provide manual config or install solr"
-      else throw Error "Invalid search.backend '#{janus.config['index.search.backend']}', 'solr' or 'elasticsearch' expected"
+      else throw Error "Invalid search.backend '#{options.config['index.search.backend']}', 'solr' or 'elasticsearch' expected"
 
 Cache configuration
 
-      janus.config['cache.db-cache'] ?= true
-      janus.config['cache.db-cache-clean-wait'] ?= 20
-      janus.config['cache.db-cache-time'] ?= 180000
-      janus.config['cache.db-cache-size'] ?= 0.5
+      options.config['cache.db-cache'] ?= true
+      options.config['cache.db-cache-clean-wait'] ?= 20
+      options.config['cache.db-cache-time'] ?= 180000
+      options.config['cache.db-cache-size'] ?= 0.5
 
 ## Dependencies
 

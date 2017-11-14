@@ -195,7 +195,7 @@ It uses local checksum if provided to upload or not.
           code_skipped: 1
         @file.download
           unless: -> @status(-1) or @status(-2)
-          source: "#{options.prod.directory}/#{options.prod.tar}"
+          source: "#{path.resole options.cache_dir, options.prod.directory}/#{options.prod.tar}"
           target: "#{tmp}/#{options.prod.tar}"
           binary: true
           md5: md5

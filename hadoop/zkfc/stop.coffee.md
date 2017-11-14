@@ -1,8 +1,7 @@
 
 # Hadoop ZKFC Stop
 
-    module.exports = header: 'HDFS ZKFC Stop', handler: ->
-      {clean_logs} = @config.ryba
+    module.exports = header: 'HDFS ZKFC Stop', handler: (options) ->
 
 ## Stop
 
@@ -22,6 +21,6 @@ The file storing the PID is "/var/run/hadoop-hdfs/hadoop-hdfs-zkfc.pid".
 
       @system.execute
         header: 'Clean Logs'
-        if: clean_logs
+        if: options.clean_logs
         cmd: 'rm /var/log/hadoop-hdfs/*-zkfc-*'
         code_skipped: 1

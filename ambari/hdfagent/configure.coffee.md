@@ -11,7 +11,7 @@
       @config.ryba.ambari ?= {}
       options = @config.ryba.ambari.hdfagent = service.options
 
-## Environnment
+## Environment
 
       options.fqdn = service.node.fqdn
       options.sudo ?= false

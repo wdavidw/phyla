@@ -6,7 +6,7 @@ Solr powers the search and navigation features of many of the world's largest in
 Solr can be found [here](http://wwwftp.ciril.fr/pub/apache/lucene/solr/standalone/)
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         ssl: module: 'masson/core/ssl', local: true
@@ -15,23 +15,21 @@ Solr can be found [here](http://wwwftp.ciril.fr/pub/apache/lucene/solr/standalon
         hadoop_core: module: 'ryba/hadoop/core', required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
         solr_cloud: module: 'ryba/solr/cloud'
-      configure: 'ryba/solr/cloud/configure'
+      configure:
+        'ryba/solr/cloud/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.solr.cloud
-          @call 'ryba/solr/cloud/prepare', options
-        'install': ->
-          options = @config.ryba.solr.cloud
-          @call 'ryba/solr/cloud/install', options
-          @call 'ryba/solr/cloud/start', options
-          @call 'ryba/solr/cloud/check', options
-        'start': ->
-          options = @config.ryba.solr.cloud
-          @call 'ryba/solr/cloud/start', options
-        'stop': ->
-          options = @config.ryba.solr.cloud
-          @call 'ryba/solr/cloud/stop', options
-        'check': ->
-          options = @config.ryba.solr.cloud
-          @call 'ryba/solr/cloud/wait', options
-          @call 'ryba/solr/cloud/check', options
+        'prepare':
+          'ryba/solr/cloud/prepare'
+        'install': [
+          'ryba/solr/cloud/install'
+          'ryba/solr/cloud/start'
+          'ryba/solr/cloud/check'
+        ]
+        'start':
+          'ryba/solr/cloud/start'
+        'stop':
+          'ryba/solr/cloud/stop'
+        'check': [
+          'ryba/solr/cloud/wait'
+          'ryba/solr/cloud/check'
+        ]

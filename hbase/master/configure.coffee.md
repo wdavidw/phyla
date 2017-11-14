@@ -2,32 +2,14 @@
 # HBase Master Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hbase/master', ['ryba', 'hbase', 'master'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        # hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        hbase_master: key: ['ryba', 'hbase', 'master']
-        ganglia_collector: key: ['ryba', 'ganglia']
-        metrics: key: ['ryba', 'metrics']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      @config.ryba.hbase ?= {}
-      options = @config.ryba.hbase.master = service.options
+      options = service.options
       
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Identities
 
@@ -56,7 +38,7 @@ Example
 ```
 
       # Hadoop Group
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       # Group
       options.group ?= {}
       options.group = name: options.group if typeof options.group is 'string'
@@ -74,11 +56,18 @@ Example
       options.user.limits ?= {}
       options.user.limits.nofile ?= 64000
       options.user.limits.nproc ?= true
-      # Admin Principal
+      # Kerberos Hbase Admin Principal
       options.admin ?= {}
       options.admin.name ?= options.user.name
       options.admin.principal ?= "#{options.admin.name}@#{options.krb5.realm}"
       throw Error 'Required Option: admin.password' unless options.admin.password
+
+## Kerberos
+
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Environment
 
@@ -88,7 +77,7 @@ Example
       options.pid_dir ?= '/var/run/hbase'
       # Env
       options.env ?= {}
-      options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
+      options.env['JAVA_HOME'] ?= "#{service.deps.java.options.java_home}"
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
       # Java
@@ -99,11 +88,11 @@ Example
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       # HDFS
-      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
-      options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
+      options.hdfs_conf_dir ?= service.deps.hadoop_core.options.conf_dir
+      options.hdfs_krb5_user ?= service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## RegionServers
 
@@ -128,14 +117,14 @@ activate or desactivate the RegionServer.
       # false: standalone and pseudo-distributed setups with managed Zookeeper
       # true: fully-distributed with unmanaged Zookeeper Quorum (see hbase-env.sh)
       options.hbase_site['hbase.cluster.distributed'] = 'true'
-      options.hbase_site['zookeeper.session.timeout'] ?= "#{20 * parseInt service.use.zookeeper_server[0].options.config['tickTime']}"
+      options.hbase_site['zookeeper.session.timeout'] ?= "#{20 * parseInt service.deps.zookeeper_server[0].options.config['tickTime']}"
       # Enter the HBase NameNode server hostname
       # http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/latest/CDH4-High-Availability-Guide/cdh4hag_topic_2_6.html
-      options.hbase_site['hbase.rootdir'] ?= "#{service.use.hdfs_nn[0].options.core_site['fs.defaultFS']}/apps/hbase/data"
+      options.hbase_site['hbase.rootdir'] ?= "#{service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']}/apps/hbase/data"
       # Comma separated list of Zookeeper servers (match to
       # what is specified in zoo.cfg but without portnumbers)
-      options.hbase_site['hbase.zookeeper.quorum'] ?= service.use.zookeeper_server.map( (srv) -> srv.node.fqdn ).join ','
-      options.hbase_site['hbase.zookeeper.property.clientPort'] ?= service.use.zookeeper_server[0].options.config['clientPort']
+      options.hbase_site['hbase.zookeeper.quorum'] ?= service.deps.zookeeper_server.map( (srv) -> srv.node.fqdn ).join ','
+      options.hbase_site['hbase.zookeeper.property.clientPort'] ?= service.deps.zookeeper_server[0].options.config['clientPort']
       throw Error "Required Option: hbase_site['hbase.zookeeper.quorum']" unless options.hbase_site['hbase.zookeeper.quorum']
       throw Error "Required Option: hbase_site['hbase.zookeeper.property.clientPort']" unless options.hbase_site['hbase.zookeeper.property.clientPort']
       # Short-circuit are true but socket.path isnt defined for hbase, only for hdfs, see http://osdir.com/ml/hbase-user-hadoop-apache/2013-03/msg00007.html
@@ -151,7 +140,7 @@ activate or desactivate the RegionServer.
         options.hbase_site['hbase.regionserver.kerberos.principal'] ?= "hbase/_HOST@#{options.krb5.realm}" # "rs/_HOST@#{realm}" <-- need zookeeper auth_to_local
         options.hbase_site['hbase.security.authentication.ui'] ?= 'kerberos'
         options.hbase_site['hbase.security.authentication.spnego.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
-        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= service.use.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
+        options.hbase_site['hbase.security.authentication.spnego.kerberos.keytab'] ?= service.deps.hadoop_core.options.core_site['hadoop.http.authentication.kerberos.keytab']
         options.hbase_site['hbase.coprocessor.master.classes'] ?= [
           'org.apache.hadoop.hbase.security.access.AccessController'
         ]
@@ -181,14 +170,14 @@ job to HBase. Secure bulk loading is implemented by a coprocessor, named
 
       # migration: wdavidw 170902, shouldnt this only apply to the RegionServer ?
       # # HDFS NN
-      # for srv in service.use.hdfs_nn
+      # for srv in service.deps.hdfs_nn
       #   srv.options.hdfs_site ?= {}
       #   srv.options.hdfs_site['dfs.block.local-path-access.user'] ?= ''
       #   users = srv.options.hdfs_site['dfs.block.local-path-access.user'].split(',').filter (str) -> str isnt ''
       #   users.push 'hbase' unless options.user.name in users
       #   srv.options.hdfs_site['dfs.block.local-path-access.user'] = users.sort().join ','
       # # HDFS DN
-      # srv = service.use.hdfs_dn
+      # srv = service.deps.hdfs_dn
       # srv.options.hdfs_site['dfs.block.local-path-access.user'] ?= ''
       # users = srv.options.hdfs_site['dfs.block.local-path-access.user'].split(',').filter (str) -> str isnt ''
       # users.push 'hbase' unless options.user.name in users
@@ -241,13 +230,9 @@ RS if RS count < 3.
       options.hbase_site['hbase.quota.enabled'] ?= 'false'
       options.hbase_site['hbase.quota.refresh.period'] ?= 300000
 
-## Ranger Plugin Configuration
-
-      # @config.ryba.hbase_plugin_is_master = true
-
 ## Configuration for Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.opts['hbase.security.log.file'] ?= 'SecurityAuth-master.audit'
       #HBase bin script use directly environment bariables
@@ -319,10 +304,10 @@ additionnal informations.
 According to the default "hadoop-metrics-hbase.properties", the list of
 supported contexts are "hbase", "jvm" and "rpc".
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
-      options.metrics.sinks.ganglia_enbaled ?= !!service.use.ganglia_collector
+      options.metrics.sinks.ganglia_enbaled ?= !!service.deps.ganglia_collector
       options.metrics.sinks.graphite_enabled ?= false
       options.metrics.config ?= {}
       options.metrics.config['*.period'] ?= '60'
@@ -331,7 +316,7 @@ supported contexts are "hbase", "jvm" and "rpc".
       options.metrics.config['hbase.extendedperiod'] ?= '3600'
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config['hbase.sink.file.filename'] ?= 'hbase-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enbaled
@@ -339,33 +324,33 @@ supported contexts are "hbase", "jvm" and "rpc".
         options.metrics.config['hbase.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
         options.metrics.config['jvm.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
         options.metrics.config['rpm.sink.ganglia.class'] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
-        options.metrics.config['hbase.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
-        options.metrics.config['jvm.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
-        options.metrics.config['rpc.sink.ganglia.servers'] ?= "#{service.use.ganglia_collector.node.fqdn}:#{service.use.ganglia_collector.options.nn_port}"
+        options.metrics.config['hbase.sink.ganglia.servers'] ?= "#{service.deps.ganglia_collector.node.fqdn}:#{service.deps.ganglia_collector.options.nn_port}"
+        options.metrics.config['jvm.sink.ganglia.servers'] ?= "#{service.deps.ganglia_collector.node.fqdn}:#{service.deps.ganglia_collector.options.nn_port}"
+        options.metrics.config['rpc.sink.ganglia.servers'] ?= "#{service.deps.ganglia_collector.node.fqdn}:#{service.deps.ganglia_collector.options.nn_port}"
       # Graphite sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.hbase.master.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
         throw Error 'Missing remote_port ryba.hbase.master.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config['*.sink.graphite.metrics_prefix'] ?= if options.metrics.sinks.graphite.config.metrics_prefix? then "#{options.metrics.sinks.graphite.config.metrics_prefix}.hbase" else "hbase"
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of options.metrics.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of options.metrics.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
         options.metrics.config['hbase.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config['jvm.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config['rpc.sink.graphite.class'] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
-      for srv in service.use.hbase_master
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
+      for srv in service.deps.hbase_master
         srv.options.master_site ?= {}
         srv.options.master_site['hbase.master.port'] ?= '60000'
         srv.options.master_site['hbase.master.info.port'] ?= '60010'
       options.wait = {}
-      options.wait.rpc = for srv in service.use.hbase_master
+      options.wait.rpc = for srv in service.deps.hbase_master
         host: srv.node.fqdn
         port: srv.options.master_site['hbase.master.port']
-      options.wait.http = for srv in service.use.hbase_master
+      options.wait.http = for srv in service.deps.hbase_master
         host: srv.node.fqdn
         port: srv.options.master_site['hbase.master.info.port']
 
@@ -373,7 +358,6 @@ supported contexts are "hbase", "jvm" and "rpc".
 
     appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 ## Resources
 

@@ -4,7 +4,7 @@
 [WebHCat](https://cwiki.apache.org/confluence/display/Hive/WebHCat) is a REST API for HCatalog. (REST stands for "representational state transfer", a style of API based on HTTP verbs).  The original name of WebHCat was Templeton.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -20,16 +20,14 @@
       configure:
         'ryba/hive/webhcat/configure'
       commands:
-        'install': ->
-          options = @config.ryba.webhcat
-          @call 'ryba/hive/webhcat/install', options
-          @call 'ryba/hive/webhcat/start', options
-          @call 'ryba/hive/webhcat/check', options
-        'start': ->
-          options = @config.ryba.webhcat
-          @call 'ryba/hive/webhcat/start', options
+        'install': [
+          'ryba/hive/webhcat/install'
+          'ryba/hive/webhcat/start'
+          'ryba/hive/webhcat/check'
+        ]
+        'start':
+          'ryba/hive/webhcat/start'
         'status':
           'ryba/hive/webhcat/status'
-        'stop': ->
-          options = @config.ryba.webhcat
-          @call 'ryba/hive/webhcat/stop', options
+        'stop':
+          'ryba/hive/webhcat/stop'

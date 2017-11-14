@@ -9,27 +9,17 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/druid/base', ['ryba', 'druid', 'base'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        db_admin: key: ['ryba', 'db_admin']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        # hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_client: key: ['ryba', 'yarn_client']
-        mapred_client: key: ['ryba', 'mapred']
-      @config.ryba.druid ?= {}
-      options = @config.ryba.druid.base = service.options
+    module.exports = (service) ->
+      options = service.options
 
-## Environnment
+## Environment
 
       # Layout
       options.dir ?= '/opt/druid'
       options.conf_dir ?= '/etc/druid/conf'
       options.log_dir ?= '/var/log/druid'
       options.pid_dir ?= '/var/run/druid'
-      options.hadoop_conf_dir = service.use.hdfs_client.options.conf_dir
+      options.hadoop_conf_dir = service.deps.hdfs_client.options.conf_dir
       # Java
       options.server_opts ?= ''
       options.server_heap ?= ''
@@ -58,18 +48,19 @@ Example:
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
-      # Druid Kerberos administrator user
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      # Kerberos Druid Admin
       options.krb5_user ?= {}
       options.krb5_user.principal ?= "druid@#{options.krb5.realm}"
       options.krb5_user.password ?= "druid123"
+      # Kerberos Druid Service
       options.krb5_service ?= {}
       options.krb5_service.principal ?= "druid/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5_service.keytab ?= "#{options.dir}/conf/druid/_common/druid.keytab"
-      # HDFS Kerberos administrator user
-      options.hdfs_krb5_user = service.use.hdfs_client.options.krb5_user
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hdfs_client.options.krb5_user
 
 ## Configuration
 
@@ -84,7 +75,7 @@ Example:
       # Logging
       options.common_runtime['druid.startup.logging.logProperties'] ?= 'true'
       # Zookeeper
-      zookeeper_quorum = for srv in service.use.zookeeper_server
+      zookeeper_quorum = for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.common_runtime['druid.zk.service.host'] ?= "#{zookeeper_quorum.join ','}"
@@ -94,9 +85,9 @@ Example:
 
       options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
+      options.db.engine ?= service.deps.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'druid'
       options.db.username ?= 'druid'
       throw Error "Require Options: db.password" unless options.db.password
@@ -139,4 +130,3 @@ Example:
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

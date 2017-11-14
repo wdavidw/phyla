@@ -11,36 +11,22 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/yarn_nm', ['ryba', 'yarn', 'nm'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        cgroups: key: ['cgroups']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        metrics: key: ['ryba', 'metrics']
-      @config.ryba ?= {}
-      @config.ryba.yarn ?= {}
-      options = @config.ryba.yarn.nm = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
-## Environnment
+## Environment
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-nodemanager'
@@ -49,21 +35,22 @@
       options.conf_dir ?= '/etc/hadoop-yarn-nodemanager/conf'
       # Java
       options.opts ?= {}
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.java_opts ?= ''
       options.heapsize ?= '1024'
       # Misc
       options.fqdn ?= service.node.fqdn
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.iptables_rules ?= []
       options.libexec ?= '/usr/hdp/current/hadoop-client/libexec'
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.use.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.use.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn NodeManager "yarn-site.xml"
       options.yarn_site ?= {}
       options.yarn_site['yarn.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
@@ -165,16 +152,16 @@ Resources:
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -183,7 +170,7 @@ Resources:
       options.metrics.sinks.graphite_enabled ?= false
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config['maptask.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
         options.metrics.config['maptask.sink.file.filename'] ?= 'maptask-metrics.out'
         options.metrics.config['nodemanager.sink.file.class'] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
@@ -193,12 +180,12 @@ Resources:
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
         options.metrics.config['nodemanager.sink.ganglia.class'] ?= options.metrics.ganglia.class
-        options.metrics.config['nodemanager.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
+        options.metrics.config['nodemanager.sink.ganglia.servers'] ?= "#{service.deps.ganglia.node.fqdn}:#{service.deps.ganglia.options.nn_port}"
         options.metrics.config['maptask.sink.ganglia.class'] ?= options.metrics.ganglia.class
-        options.metrics.config['maptask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
+        options.metrics.config['maptask.sink.ganglia.servers'] ?= "#{service.deps.ganglia.node.fqdn}:#{service.deps.ganglia.options.nn_port}"
         options.metrics.config['reducetask.sink.ganglia.class'] ?= options.metrics.ganglia.class
-        options.metrics.config['reducetask.sink.ganglia.servers'] ?= "#{service.use.ganglia.node.fqdn}:#{service.use.ganglia.options.nn_port}"
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config['reducetask.sink.ganglia.servers'] ?= "#{service.deps.ganglia.node.fqdn}:#{service.deps.ganglia.options.nn_port}"
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.yarn.nm.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
@@ -206,25 +193,21 @@ Resources:
         options.metrics.config["nodemanager.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config["maptask.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
         options.metrics.config["reducetask.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## List of Services
 
       options.yarn_site['yarn.nodemanager.aux-services'] ?= 'mapreduce_shuffle'
       options.yarn_site['yarn.nodemanager.aux-services.mapreduce_shuffle.class'] ?= 'org.apache.hadoop.mapred.ShuffleHandler'
 
-## Ranger Plugin Configuration
-
-      # @config.ryba.yarn_plugin_is_master = false
-
 ## Wait
 
       # Import Rules
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
       # Default configuration required by wait
-      for srv in service.use.yarn_nm
+      for srv in service.deps.yarn_nm
         srv.options.yarn_site ?= {}
         srv.options.yarn_site['yarn.nodemanager.address'] ?= "#{srv.node.fqdn}:45454"
         srv.options.yarn_site['yarn.nodemanager.localizer.address'] ?= "#{srv.node.fqdn}:8040"
@@ -232,13 +215,13 @@ Resources:
         srv.options.yarn_site['yarn.nodemanager.webapp.https.address'] ?= "#{srv.node.fqdn}:8044"
       # Local Rules
       options.wait = {}
-      options.wait.tcp = for srv in service.use.yarn_nm
+      options.wait.tcp = for srv in service.deps.yarn_nm
         port = srv.options.yarn_site['yarn.nodemanager.address'].split(':')[1]
         host: srv.node.fqdn, port: port
-      options.wait.tcp_localiser = for srv in service.use.yarn_nm
+      options.wait.tcp_localiser = for srv in service.deps.yarn_nm
         port = srv.options.yarn_site['yarn.nodemanager.localizer.address'].split(':')[1]
         host: srv.node.fqdn, port: port
-      options.wait.webapp = for srv in service.use.yarn_nm
+      options.wait.webapp = for srv in service.deps.yarn_nm
         protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
         port = srv.options.yarn_site["yarn.nodemanager.webapp.#{protocol}address"].split(':')[1]
         host: srv.node.fqdn, port: port
@@ -246,7 +229,6 @@ Resources:
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 [yarn-cgroup-red7]: https://issues.apache.org/jira/browse/YARN-2194
 [container]: http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/SecureContainer.html

@@ -226,14 +226,6 @@ Enable stats collection in Ganglia and Graphite
           replace: "#{k}=#{v}"
           append: true
 
-## Ranger HBase Plugin Install
-
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length > 0
-      # , ->
-      #   @call -> @config.ryba.hbase_plugin_is_master = false
-      #   @call 'ryba/ranger/plugins/hbase/install'
-
 # Module dependencies
 
     quote = require 'regexp-quote'

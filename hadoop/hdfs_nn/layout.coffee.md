@@ -29,13 +29,13 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
 
       @call header: 'HDFS layout', (opts)->
         @wait.execute
-          cmd: mkcmd.hdfs @, "hdfs --config '#{options.conf_dir}' dfs -test -d /"
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config '#{options.conf_dir}' dfs -test -d /"
         @system.execute
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           hdfs --config '#{options.conf_dir}' dfs -chmod 755 /
           """
         @system.execute
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /tmp; then exit 2; fi
           hdfs --config '#{options.conf_dir}' dfs -mkdir /tmp
           hdfs --config '#{options.conf_dir}' dfs -chown #{options.user.name}:#{options.hadoop_group.name} /tmp
@@ -45,7 +45,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
         , (err, executed, stdout) ->
           options.log? 'Directory "/tmp" prepared' if executed
         @system.execute
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /user; then exit 2; fi
           hdfs --config '#{options.conf_dir}' dfs -mkdir /user
           hdfs --config '#{options.conf_dir}' dfs -chown #{options.user.name}:#{options.hadoop_group.name} /user
@@ -58,7 +58,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
         , (err, executed, stdout) ->
           options.log? 'Directory "/user/{test_user}" prepared' if executed
         @system.execute
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /apps; then exit 2; fi
           hdfs --config '#{options.conf_dir}' dfs -mkdir /apps
           hdfs --config '#{options.conf_dir}' dfs -chown #{options.user.name}:#{options.hadoop_group.name} /apps
@@ -72,7 +72,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
 
       @system.execute
         header: 'HDP Layout'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         version=`readlink /usr/hdp/current/hadoop-client | sed 's/.*\\/\\(.*\\)\\/hadoop/\\1/'`
         hdfs --config '#{options.conf_dir}' dfs -mkdir -p /hdp/apps/$version
         hdfs --config '#{options.conf_dir}' dfs -chown -R  #{options.user.name}:#{options.hadoop_group.name} /hdp
@@ -81,7 +81,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
         hdfs --config '#{options.conf_dir}' dfs -chmod -R 555 /hdp/apps/$version
         """
         trap: true
-        unless_exec: mkcmd.hdfs @, """
+        unless_exec: mkcmd.hdfs options.hdfs_krb5_user, """
         version=`readlink /usr/hdp/current/hadoop-client | sed 's/.*\\/\\(.*\\)\\/hadoop/\\1/'`
         hdfs --config '#{options.conf_dir}' dfs -test -d /hdp/apps/$version
         """

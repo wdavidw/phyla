@@ -10,7 +10,7 @@ From 1.0 thrift can enable impersonation for other service
 [like hue][hue-hbase-impersonation].
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -24,22 +24,19 @@ From 1.0 thrift can enable impersonation for other service
       configure:
         'ryba/hbase/thrift/configure'
       commands:
-        'check': ->
-          options = @config.ryba.hbase.thrift
-          @call 'ryba/hbase/thrift/check', options
-        'install': ->
-          options = @config.ryba.hbase.thrift
-          @call 'ryba/hbase/thrift/install', options
-          @call 'ryba/hbase/thrift/start', options
-          @call 'ryba/hbase/thrift/check', options
-        'start': ->
-          options = @config.ryba.hbase.thrift
-          @call 'ryba/hbase/thrift/start', options
+        'check':
+          'ryba/hbase/thrift/check'
+        'install': [
+          'ryba/hbase/thrift/install'
+          'ryba/hbase/thrift/start'
+          'ryba/hbase/thrift/check'
+        ]
+        'start':
+          'ryba/hbase/thrift/start'
         'status':
           'ryba/hbase/thrift/status'
-        'stop': ->
-          options = @config.ryba.hbase.thrift
-          @call 'ryba/hbase/thrift/stop', options
+        'stop':
+          'ryba/hbase/thrift/stop'
 
-  [hue-hbase-impersonation]:(http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/)
-  [hbase-configuration]:(http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/cdh_sg_hbase_authentication.html/)
+[hue-hbase-impersonation]:(http://gethue.com/hbase-browsing-with-doas-impersonation-and-kerberos/)
+[hbase-configuration]:(http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/cdh_sg_hbase_authentication.html/)

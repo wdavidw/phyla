@@ -10,29 +10,11 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
 (e.g. Hive, Ranger).
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/atlas', ['ryba', 'atlas'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        ssl: key: ['ssl']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hbase_master: key: ['ryba', 'hbase', 'master']
-        hbase_client: key: ['ryba', 'hbase', 'client']
-        kafka_client: key: ['ryba', 'kafka', 'client']
-        solr_client: key: ['ryba', 'solr']
-        kafka_broker: key: ['ryba', 'kafka', 'broker']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        ranger_kafka: key: ['ryba', 'ranger', 'kafka']
-        ranger_hbase: key: ['ryba', 'ranger', 'hbase']
-        atlas: key: ['ryba', 'atlas']
-        solr_cloud: key: ['ryba', 'solr', 'cloud']
-        # ranger_solr: key: ['ryba', 'ranger', 'solr_cloud_docker']
-        # ranger_tagsync: key: ['ryba', 'ranger', 'tagsync'] # migration: wdavidw 171006, service does not exists
-      options = @config.ryba.atlas = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       # Group
       options.group = name: options.group if typeof options.group is 'string'
       options.group ?= {}
@@ -47,24 +29,24 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
       options.user.home ?= '/var/lib/atlas'
       options.user.groups ?= ['hadoop']
       options.user.gid = options.group.name
-      options.hbase_admin = service.use.hbase_master[0].options.admin
-      options.kafka_admin = service.use.kafka_broker[0].options.admin
+      options.hbase_admin = service.deps.hbase_master[0].options.admin
+      options.kafka_admin = service.deps.kafka_broker[0].options.admin
 
 ## Access
       
-      options.ranger_kafka_install = service.use.ranger_kafka[0].options.install if service.use.ranger_kafka
-      options.ranger_hbase_install = service.use.ranger_hbase[0].options.install if service.use.ranger_hbase
-      # options.ranger_solr_install = service.use.ranger_solr[0].options.install if service.use.ranger_solr
-      options.ranger_admin = service.use.ranger_admin
-      options.hbase_conf_dir = service.use.hbase_client.options.conf_dir
-      options.solr_cloud = service.use.solr_cloud[0] if service.use.solr_cloud
+      options.ranger_kafka_install = service.deps.ranger_kafka[0].options.install if service.deps.ranger_kafka
+      options.ranger_hbase_install = service.deps.ranger_hbase[0].options.install if service.deps.ranger_hbase
+      # options.ranger_solr_install = service.deps.ranger_solr[0].options.install if service.deps.ranger_solr
+      options.ranger_admin = service.deps.ranger_admin
+      options.hbase_conf_dir = service.deps.hbase_client.options.conf_dir
+      options.solr_cloud = service.deps.solr_cloud[0] if service.deps.solr_cloud
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Environment
 
@@ -90,7 +72,9 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
       # Java
       options.min_heap ?= '512m'
       options.max_heap ?= '512m'
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      # Misc
+      options.clean_logs ?= false
 
 ## Configuration
 
@@ -112,7 +96,7 @@ itself as a client. It uses the JAAS mechanism.
 The JAAS informations can be set via a jaas file or the properties can be set directly
 from atlas-application.properties file.
 
-      options.application.properties['atlas.authentication.method'] ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication']
+      options.application.properties['atlas.authentication.method'] ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
       if options.application.properties['atlas.authentication.method'] is 'kerberos'
         options.application.properties['atlas.authentication.principal'] ?= "#{options.user.name}/_HOST@#{options.krb5.realm}"
         options.application.properties['atlas.authentication.keytab'] ?= '/etc/security/keytabs/atlas.service.keytab'
@@ -131,7 +115,7 @@ from atlas-application.properties file.
         match_princ = /^(.+?)[@\/]/.exec options.application.properties['atlas.authentication.principal']
         throw Error 'Invalid Atlas  principal' unless match_princ?
         options.admin_principal ?= "#{options.user.name}@#{options.krb5.realm}"
-        throw Error 'Missing Atlas Admin Principal Password ryba.atlas.admin_password' unless options.admin_password?
+        throw Error 'Missing Atlas Admin Principal Password admin_password' unless options.admin_password?
         match_admin = /^(.+?)[@\/]/.exec options.admin_principal
         throw Error "Principal Name does not match admin user name" unless match_admin[1] is match_princ[1]
 
@@ -145,7 +129,7 @@ The solution is to escape all commas in the DNs used for LDAP configuration.
 Forexample, `atlas.authentication.method.ldap.userDNpattern`=`cn=users\,cn=accounts\,dc=field\,dc=hortonworks\,dc=com`.
 
       options.application.properties['atlas.authentication.method.ldap'] ?= 'false' #No custom configs
-      options.application.properties['atlas.authentication.method.kerberos'] ?= "#{service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'}"
+      options.application.properties['atlas.authentication.method.kerberos'] ?= "#{service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'}"
       options.application.properties['atlas.authentication.method.file'] ?= 'true'
       # Configure kerberos authentication
       if options.application.properties['atlas.authentication.method.kerberos'] is 'true'
@@ -167,7 +151,7 @@ Forexample, `atlas.authentication.method.ldap.userDNpattern`=`cn=users\,cn=accou
 Atlas accepts only simple (file) or Ranger based [authorization](http://atlas.incubator.apache.org/Authentication-Authorization.html).
 
       # for now ranger tagsync does not exist
-      # options.application.properties['atlas.authorizer.impl'] ?= if service.use.ranger_tagsync.length > 0 then 'ranger' else 'simple'
+      # options.application.properties['atlas.authorizer.impl'] ?= if service.deps.ranger_tagsync.length > 0 then 'ranger' else 'simple'
       options.application.properties['atlas.authorizer.impl'] ?= 'simple'
       if options.application.properties['atlas.authorizer.impl'] is 'simple'
         options.application.properties['atlas.auth.policy.file'] ?= "#{options.conf_dir}/policy-store.txt"
@@ -182,23 +166,23 @@ Atlas server does take care of parallel executions of the setup steps.
 ## SSL
 Atlas SSL Encryption can be enabled by configuring following properties.
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
-      options.truststore ?= {}
-      options.keystore ?= {}
+      options.ssl = merge {}, service.deps.ssl?.options, ssl:
+        truststore: target: "#{options.conf_dir}/truststore"
+        keystore: target: "#{options.conf_dir}/keystore"
+      , options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
         throw Error "Required Option: ssl.cacert" if not options.ssl.cacert
-        options.truststore.target ?= "#{options.conf_dir}/truststore"
-        throw Error "Required Property: truststore.password" if not options.truststore.password
-        options.keystore.target ?= "#{options.conf_dir}/keystore"
-        throw Error "Required Property: keystore.password" if not options.keystore.password
-        options.truststore.caname ?= 'hadoop_root_ca'
-      throw Error 'Missing serverkey_password' unless options.serverkey_password?
-      options.application.properties['atlas.enableTLS'] ?= 'true'
-      options.application.properties['keystore.file'] ?= options.keystore.target
-      options.application.properties['truststore.file'] ?= options.truststore.target
+        options.application.properties['atlas.enableTLS'] ?= 'true'
+        # Truststore
+        options.application.properties['truststore.file'] ?= options.ssl.truststore.target
+        throw Error "Required Property: truststore.password" if not options.ssl.truststore.password
+        # Keystore
+        throw Error 'Missing ssl.keystore.keypass' unless options.ssl.keystore.keypass
+        options.application.properties['keystore.file'] ?= options.ssl.keystore.target
+        throw Error "Required Property: keystore.password" if not options.ssl.keystore.password
       options.application.properties['client.auth.enabled'] ?= "false"
       options.application.properties['atlas.server.http.port'] ?= '21000'
       options.application.properties['atlas.server.https.port'] ?= '21443'
@@ -225,11 +209,11 @@ Failover is automatically based on Zookeeper leader election.
 The Quorum property is mandatory even if the HA is not enabled or the following error is thrown
 Error injecting constructor, java.lang.NullPointerException: connectionString cannot be null
 
-      zookeeper_quorum = for srv in service.use.zookeeper_server
+      zookeeper_quorum = for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.application.properties['atlas.server.ha.zookeeper.connect'] ?= zookeeper_quorum.join ','
-      if service.use.atlas.length > 1
+      if service.deps.atlas.length > 1
         options.application.properties['atlas.server.ha.zookeeper.acl'] ?= "sasl:#{options.user.name}@#{options.krb5.realm}"
         options.application.properties['atlas.server.ha.zookeeper.auth'] ?= "sasl:#{options.user.name}@#{options.krb5.realm}"
         options.application.properties['atlas.server.ha.zookeeper.zkroot'] ?= '/apache_atlas'
@@ -240,7 +224,7 @@ Using Official atlas [documentation](http://atlas.incubator.apache.org/HighAvail
 for HA configuration, (not available on HDP website).
 Ryba does configure atlas server with the same port for every instance.
 
-      options.application.properties['atlas.server.ha.enabled'] ?= if service.use.atlas.length > 1 then 'true' else 'false'
+      options.application.properties['atlas.server.ha.enabled'] ?= if service.deps.atlas.length > 1 then 'true' else 'false'
       options.application.properties['atlas.server.ids'] ?= service.nodes.map( (node) -> node.hostname ).join ','
       for node in service.nodes
         options.application.properties["atlas.server.address.#{node.hostname}"] ?= "#{node.fqdn}:#{port}"
@@ -261,14 +245,14 @@ Ryba does configure atlas server with the same port for every instance.
 
 Required for Ranger integration or anytime there is a consumer of entity change notifications.
 
-      if service.use.kafka_broker?
+      if service.deps.kafka_broker?
         # Includes the required Atlas directories to the hadoop-env configuration export
-        service.use.hadoop_core.options.hadoop_classpath = add_prop  service.use.hadoop_core.options.hadoop_classpath, "#{options.conf_dir}:/usr/hdp/current/atlas-server/hook/hive", ':'
+        service.deps.hadoop_core.options.hadoop_classpath = add_prop  service.deps.hadoop_core.options.hadoop_classpath, "#{options.conf_dir}:/usr/hdp/current/atlas-server/hook/hive", ':'
         # Configure Kafka Broker properties
         options.application.properties['atlas.notification.embedded'] ?= 'false'
         options.application.properties['atlas.kafka.sasl.kerberos.service.name'] ?= 'kafka'
         options.application.properties['atlas.kafka.data'] ?= "#{options.user.home}/data/kafka" # {options.user.home}/keystore"
-        options.application.properties['atlas.kafka.zookeeper.connect'] ?= "#{service.use.kafka_broker[0].options.config['zookeeper.connect']}"
+        options.application.properties['atlas.kafka.zookeeper.connect'] ?= "#{service.deps.kafka_broker[0].options.config['zookeeper.connect']}"
         options.application.properties['atlas.kafka.zookeeper.session.timeout.ms'] ?= '1000'
         options.application.properties['atlas.kafka.zookeeper.sync.time.ms'] ?= '20'
         options.application.properties['atlas.kafka.auto.commit.interval.ms'] ?= '1000'
@@ -276,7 +260,7 @@ Required for Ranger integration or anytime there is a consumer of entity change 
         options.application.properties['atlas.kafka.entities.group.id'] ?= 'atlas'
         options.application.properties['atlas.kafka.auto.commit.enable'] ?= 'false'
         options.application.properties['atlas.notification.create.topics'] ?= 'false'
-        options.application.properties['atlas.notification.replicas'] ?= "#{service.use.kafka_broker.length}"
+        options.application.properties['atlas.notification.replicas'] ?= "#{service.deps.kafka_broker.length}"
         options.application.properties['atlas.notification.log.failed.messages'] ?= '500'
         options.application.properties['atlas.notification.consumer.retry.interval'] ?= '10'
         options.application.properties['atlas.notification.hook.retry.interval'] ?= '1000'
@@ -290,28 +274,28 @@ Required for Ranger integration or anytime there is a consumer of entity change 
         options.application.properties['atlas.jaas.KafkaClient.option.serviceName'] ?= 'kafka'
         options.application.properties['atlas.jaas.KafkaClient.option.storeKey'] ?= 'true'
         options.application.properties['atlas.jaas.KafkaClient.option.useKeyTab'] ?= 'true'
-        options.kafka_partitions ?= Math.max(service.use.kafka_broker.length-1,1)
-        options.kafka_replication ?= Math.max(service.use.kafka_broker.length-1,1)
+        options.kafka_partitions ?= Math.max(service.deps.kafka_broker.length-1,1)
+        options.kafka_replication ?= Math.max(service.deps.kafka_broker.length-1,1)
         # Choose kafka broker channel by preference order
         chanels = []
-        chanels.push 'SASL_SSL' if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' and options.application.properties['atlas.enableTLS'] is 'true'
-        chanels.push 'SASL_PLAINTEXT' if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+        chanels.push 'SASL_SSL' if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' and options.application.properties['atlas.enableTLS'] is 'true'
+        chanels.push 'SASL_PLAINTEXT' if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
         chanels.push 'SSL' if options.application.properties['atlas.enableTLS'] is 'true'
         chanels.push 'PLAINTEXT'
         # Recording choosen protocol
         options.application.properties['atlas.kafka.security.protocol'] ?= chanels[0]
         options.application.kafka_chanel = options.application.properties['atlas.kafka.security.protocol']
         # `kafka.broker.protocols` are available client protocols for communicating with broker
-        if options.application.kafka_chanel in service.use.kafka_broker[0].options.protocols
-          brokers = service.use.kafka_broker.map( (srv) =>
+        if options.application.kafka_chanel in service.deps.kafka_broker[0].options.protocols
+          brokers = service.deps.kafka_broker.map( (srv) =>
             "#{srv.node.fqdn}:#{srv.options.ports[options.application.kafka_chanel]}"
           ).join ','
           # construcut the bootstrap listeners string base on channel
           # i.e.: SASL_SSL://master1.ryba:9096,master2.ryba:9096,master3.ryba:9096 for example
           options.application.properties['atlas.kafka.bootstrap.servers'] ?= "#{options.application.kafka_chanel}://#{brokers}"
           if options.application.kafka_chanel in ['SSL','SASL_SSL']
-            options.application.properties['atlas.kafka.ssl.truststore.location'] ?= service.use.kafka_client.options.consumer.config['ssl.truststore.location']
-            options.application.properties['atlas.kafka.ssl.truststore.password'] ?= service.use.kafka_client.options.consumer.config['ssl.truststore.password']
+            options.application.properties['atlas.kafka.ssl.truststore.location'] ?= service.deps.kafka_client.options.consumer.config['ssl.truststore.location']
+            options.application.properties['atlas.kafka.ssl.truststore.password'] ?= service.deps.kafka_client.options.consumer.config['ssl.truststore.password']
         else
           throw Error "Atlas Selected Kafka Protocol #{options.application.kafka_chanel} is not allowed by Kafka Brokers configuration"
         #Kafka Ranger Plugin
@@ -359,7 +343,7 @@ Required for Ranger integration or anytime there is a consumer of entity change 
 
 # ## Ranger Tag Base Policies configuration
 # 
-#       for srv in service.use.ranger_tagsync
+#       for srv in service.deps.ranger_tagsync
 #         srv.options.atlas_properties ?= {}
 #         for prop in [
 #           'atlas.notification.embedded'
@@ -386,10 +370,10 @@ It configures policies in case ranger is enabled on the cluster
       options.storage_engine ?= 'hbase'
       if options.storage_engine is 'hbase'
         #HBase configurations
-        if service.use.hbase_master
+        if service.deps.hbase_master
           options.application.properties['atlas.graph.storage.backend'] ?= 'hbase'
-          options.application.properties['atlas.graph.storage.hostname'] ?= service.use.hbase_master[0].options.hbase_site['hbase.zookeeper.quorum']
-          options.application.properties['zookeeper.znode.parent'] ?= service.use.hbase_master[0].options.hbase_site['zookeeper.znode.parent']
+          options.application.properties['atlas.graph.storage.hostname'] ?= service.deps.hbase_master[0].options.hbase_site['hbase.zookeeper.quorum']
+          options.application.properties['zookeeper.znode.parent'] ?= service.deps.hbase_master[0].options.hbase_site['zookeeper.znode.parent']
           options.application.namespace ?= 'atlas'
           options.application.properties['atlas.graph.storage.hbase.table'] ?= "#{options.application.namespace}:atlas_titan"
           options.application.properties['atlas.audit.hbase.tablename'] ?= "#{options.application.namespace}:atlas_entity_audit"
@@ -446,7 +430,7 @@ Atlas support only solr on cloud mode. Atlas' Ryba installation support solrcoud
 in or out of docker.
 
       options.indexing_engine ?= 'solr'
-      options.solr_client_source ?= service.use.solr_client.options.source
+      options.solr_client_source ?= service.deps.solr_client.options.source
       options.solr_client_source = if options.solr_client_source is 'HDP'
       then '/opt/lucidworks-hdpsearch/solr'
       else '/usr/solr/current'
@@ -464,20 +448,20 @@ in or out of docker.
             throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
             throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
           when 'cloud'
-            throw Error 'No Solr Cloud Server configured' unless service.use.solr_cloud.length > 0
+            throw Error 'No Solr Cloud Server configured' unless service.deps.solr_cloud.length > 0
               # options.solr_admin_user ?= 'solr'
               # options.solr_admin_password ?= 'SolrRocks' #Default
             options.solr.ssl = options.solr_cloud.options.ssl
             options.solr.cluster_config ?=
               user: options.solr_cloud.options.user
               atlas_collection_dir: "#{options.user.home}/atlas-infra"
-              hosts: service.use.solr_cloud.map (srv) -> srv.node.fqdn
+              hosts: service.deps.solr_cloud.map (srv) -> srv.node.fqdn
               zk_urls: options.solr_cloud.options.zkhosts
               zk_connect: options.solr_cloud.options.zk_connect
-              master: service.use.solr_cloud[0].node.fqdn
+              master: service.deps.solr_cloud[0].node.fqdn
               port: options.solr_cloud.options.port
-              authentication: service.use.hadoop_core.options.core_site['hadoop.security.authentication']
-            if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+              authentication: service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
+            if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
               options.solr.cluster_config.admin_principal = options.solr_cloud.options.admin_principal
               options.solr.cluster_config.admin_password  = options.solr_cloud.options.admin_password
             urls = options.solr_cloud.options.zk_connect.split(',').map( (host) -> "#{host}/#{options.solr_cloud.options.zk_node}").join(',')
@@ -494,7 +478,7 @@ in or out of docker.
           #     , -> @call 'ryba/atlas/solr_layout'
       #   options.solr_type ?= 'cloud_docker'
       #   solr_ctx = {}
-      #   options.application.properties['atlas.solr.kerberos.enable'] ?= if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' then 'true' else 'false'
+      #   options.application.properties['atlas.solr.kerberos.enable'] ?= if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' then 'true' else 'false'
       #   switch options.solr_type
           # when 'cloud'
           #   throw Error 'No Solr Cloud Server configured' unless sc_ctxs.length > 0
@@ -511,7 +495,7 @@ in or out of docker.
           #       name: 'solr'
           #     , -> @call 'ryba/atlas/solr_layout'
           # when 'cloud_docker'
-          #   throw Error 'No Solr Cloud Server configured' unless service.use.solr_cloud_docker.length > 0
+          #   throw Error 'No Solr Cloud Server configured' unless service.deps.solr_cloud_docker.length > 0
           #   options.solr_cluster_name ?= 'atlas_infra'
           #   options.solr_admin_principal ?= 'solr'
           #   throw Error 'missing Solr Admin Principal for titan database' unless options.solr_admin_password?
@@ -519,10 +503,10 @@ in or out of docker.
           #     name: 'ranger'
           #     secret: 'ranger123'
           #   ]
-          #   options.solr ?= merge {}, service.use.solr_cloud_docker[0].options, options.solr
+          #   options.solr ?= merge {}, service.deps.solr_cloud_docker[0].options, options.solr
           #   #configure atlas'titan solr cluster and pass config to solr's context
           #   options.solr.cluster_config ?= {}
-          #   options.solr.cluster_config.authentication ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication']
+          #   options.solr.cluster_config.authentication ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
           #   if options.solr.cluster_config.authentication is 'kerberos'
           #     options.solr.cluster_config.admin_principal = options.solr_admin_principal
           #     options.solr.cluster_config.admin_password  = options.solr_admin_password
@@ -530,15 +514,15 @@ in or out of docker.
           #   options.solr.cluster_config.atlas_collection_dir = "#{options.solr.conf_dir}/clusters/#{options.solr_cluster_name}/atlas_solr"
           #   options.solr.cluster_config.volumes.push "#{options.solr.cluster_config.atlas_collection_dir}:/atlas_solr" if options.solr.cluster_config.volumes.indexOf("#{options.solr.conf_dir}/clusters/#{options.solr_cluster_name}/atlas_solr:/atlas_solr") is -1
           #   options.solr.cluster_config['containers'] ?= options.solr.hosts.length
-          #   options.solr.cluster_config['master'] ?= service.use.solr_cloud_docker[0].node.fqdn
+          #   options.solr.cluster_config['master'] ?= service.deps.solr_cloud_docker[0].node.fqdn
           #   options.solr.cluster_config['heap_size'] ?= '256m'
           #   options.solr.cluster_config['port'] ?= 8985
           #   options.solr.cluster_config.zk_opts ?= {}
           #   options.solr.cluster_config['hosts'] ?= options.solr.hosts
           #   #Search for a cloud_docker cluster find in solr.cloud_docker.clusters
-          #   for srv in service.use.solr_cloud_docker
+          #   for srv in service.deps.solr_cloud_docker
           #     srv.options.clusters[options.solr_cluster_name] =  configure_solr_cluster options.solr , options.solr_cluster_name, options.solr.cluster_config
-          #   options.solr.cluster_config = merge {}, service.use.solr_cloud_docker[0].options.clusters[options.solr_cluster_name], options.solr.cluster_config
+          #   options.solr.cluster_config = merge {}, service.deps.solr_cloud_docker[0].options.clusters[options.solr_cluster_name], options.solr.cluster_config
           #   #Concifugre collections
           #   options.solr.collections ?=
           #     'vertex_index':
@@ -616,18 +600,27 @@ in or out of docker.
 ## Wait
 
       options.wait ?= {}
-      options.wait.tcp ?= for srv in service.use.atlas
+      options.wait.tcp ?= for srv in service.deps.atlas
         host: srv.node.fqdn
         port: srv.options.port or 21443
       options.wait_solr ?= switch options.solr_type
         when 'cloud_docker' then  options.solr.cluster_config['hosts'].map (host) ->
           host: host, port: options.solr.cluster_config['port']
-      options.wait_kafka = service.use.kafka_broker[0].options.wait
-      options.wait_ranger = service.use.ranger_admin.options.wait
-      options.wait_hbase = service.use.hbase_master[0].options.wait
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-
+      options.wait_kafka = service.deps.kafka_broker[0].options.wait
+      options.wait_ranger = service.deps.ranger_admin.options.wait
+      options.wait_hbase = service.deps.hbase_master[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      
+      options.wait ?= {}
+      options.wait.http = for srv in service.deps.atlas
+        srv.options.application.properties['atlas.enableTLS'] ?= options.application.properties['atlas.enableTLS']
+        srv.options.application.properties["atlas.server.http.port"] ?= '21000'
+        srv.options.application.properties["atlas.server.https.port"] ?= '21443'
+        host: srv.node.fqdn
+        port: unless srv.options.application.properties['atlas.enableTLS'] is 'true'
+        then srv.options.application.properties["atlas.server.http.port"]
+        else srv.options.application.properties["atlas.server.https.port"]
 
 
 ## Utility function
@@ -641,7 +634,6 @@ in or out of docker.
 ## Dependencies
 
     configure_solr_cluster = require '../solr/cloud_docker/clusterize'
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [titan]:(http://titan.thinkaurelius.com)

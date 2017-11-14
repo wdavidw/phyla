@@ -1,9 +1,8 @@
 
 # HDF Repository Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/hdf', ['ryba', 'hdf'], {}
-      options = @config.ryba.hdf = service.options
+    module.exports = (service) ->
+      options = service.options
       
       options.source ?= null
       options.target ?= 'hdf.repo'
@@ -13,4 +12,3 @@
 ## Dependencies
 
     path = require('path').posix
-    migration = require 'masson/lib/migration'

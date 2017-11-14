@@ -4,8 +4,7 @@
 The only declared dependency is MySQL Client which install the MySQL JDBC
 driver used by Sqoop.
 
-    module.exports = header: 'Sqoop Install', handler: ->
-      {sqoop, hadoop_group} = @config.ryba
+    module.exports = header: 'Sqoop Install', handler: (options) ->
 
 ## Register
 
@@ -23,8 +22,8 @@ cat /etc/group | grep hadoop
 hadoop:x:502:yarn,mapred,hdfs,hue
 ```
 
-      @system.group header: 'Group', hadoop_group
-      @system.user header: 'User', sqoop.user
+      @system.group header: 'Group', options.group.name
+      @system.user header: 'User', options.user
 
 ## Environment
 
@@ -32,7 +31,7 @@ Upload the "sqoop-env.sh" file into the "/etc/sqoop/conf" folder.
 
       @file
         header:'Sqoop Environment'
-        target: "#{sqoop.conf_dir}/sqoop-env.sh"
+        target: "#{options.conf_dir}/sqoop-env.sh"
         source: "#{__dirname}/resources/sqoop-env.sh"
         local: true
         write: [
@@ -48,8 +47,8 @@ Upload the "sqoop-env.sh" file into the "/etc/sqoop/conf" folder.
            match: /^export ZOOCFGDIR=.*$/m # Sqoop default is "/etc/zookeeper/conf"
            replace: "export ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf} # RYBA for HDP"
         ]
-        uid: sqoop.user.name
-        gid: hadoop_group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o755
         backup: true
 
@@ -59,12 +58,12 @@ Upload the "sqoop-site.xml" files into the "/etc/sqoop/conf" folder.
 
       @hconfigure
         header: 'Sqoop Site'
-        target: "#{sqoop.conf_dir}/sqoop-site.xml"
+        target: "#{options.conf_dir}/sqoop-site.xml"
         source: "#{__dirname}/resources/sqoop-site.xml"
         local: true
-        properties: sqoop.site
-        uid: sqoop.user.name
-        gid: hadoop_group.name
+        properties: options.sqoop_site
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o755
         merge: true
 
@@ -100,9 +99,9 @@ the Sqoop library folder.
 
       @call
         header: 'Database Connector'
-        if: -> @config.ryba.sqoop.libs.length
+        if: options.libs.length
       , ->
-        for lib in  @config.ryba.sqoop.libs
+        for lib in options.libs
           @file.download
             source: lib
             target: "/usr/hdp/current/sqoop-client/lib/#{path.basename lib}"

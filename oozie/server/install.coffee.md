@@ -58,17 +58,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           name: 'zip' # Required by the "prepare-war" command
         @service
           name: 'extjs-2.2-1'
-        # @call if: @contexts('ryba/falcon').length, ->
-        #   @service
-        #     name: 'falcon'
-        #   @hdp_select
-        #     name: 'falcon-client'
-        @service
-          name: 'falcon'
-          if: @contexts('ryba/falcon').length
-        @hdp_select
-          name: 'falcon-client'
-          if: @contexts('ryba/falcon').length
+        @call if: options.has_falcon, ->
+          @service
+            name: 'falcon'
+          @hdp_select
+            name: 'falcon-client'
         @service
           name: 'oozie' # Also install oozie-client and bigtop-tomcat
         @hdp_select
@@ -426,15 +420,23 @@ the ShareLib contents without having to go into HDFS.
 
       @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.hadoop_conf_dir
       @call
+        header: 'Share lib Wait'
+        unless: options.upload_share_lib
+      , ->
+        # Not sure this options.upload_share_lib condition is really necessary,
+        # Maybe it would be acceptable to run the sharelib generation concurrently
+        # in case of multiple Oozie Servers.
+        console.log 'todo'
+      @call
         header: 'Share lib'
-        if: @contexts('ryba/oozie/server')[0].config.host is @config.host
+        if: options.upload_share_lib
       , ->
         @hdfs_mkdir
           target: "/user/#{options.user.name}/share/lib"
           user: "#{options.user.name}"
           group:  "#{options.group.name}"
           mode: 0o0755
-          krb5_user: @config.ryba.hdfs.krb5_user
+          krb5_user: options.hdfs_krb5_user
         # Extract the released sharelib locally
         @call
           unless_exec:"""
@@ -494,7 +496,7 @@ the ShareLib contents without having to go into HDFS.
         @system.execute
           if: -> @status -1 or @status -2 or @status -3 or @status -4
           header: 'Deploy to HDFS'
-          cmd: mkcmd.hdfs @, """
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           su -l oozie -c "/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs #{options.default_fs} /usr/hdp/current/oozie-server/share"
           hdfs dfs -chmod -R 755 /user/#{options.user.name}
           """

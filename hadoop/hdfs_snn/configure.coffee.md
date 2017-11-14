@@ -2,36 +2,31 @@
 # Hadoop HDFS SecondaryNameNode 
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/hdfs_jn', ['ryba', 'hdfs', 'jn'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-      options = @config.ryba.hdfs.snn = service.options
+      options = service.options
 
 ## Environment
 
       # Layout
-      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
-      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.pid_dir ?= service.deps.hadoop_core.options.hdfs.pid_dir
+      options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-journalnode/conf'
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       # Misc
       options.clean_logs ?= false
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
       # Admin Information
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
@@ -58,4 +53,3 @@
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

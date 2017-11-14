@@ -80,6 +80,15 @@ OpenTSDB archive comes with an RPM
           user: opentsdb.user.name
           exec: true
 
+## Ranger User
+
+      @ranger_user
+        header: 'Ranger User'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
+
 ## Ulimit
 
 Increase ulimit for the OpenTSDB user. By default, ryba will create the file:

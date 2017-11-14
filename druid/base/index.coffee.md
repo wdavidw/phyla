@@ -5,7 +5,7 @@
 data store.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
@@ -16,9 +16,7 @@ data store.
       configure:
         'ryba/druid/base/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.base
-          @call 'ryba/druid/base/prepare', options
-        'install': ->
-          options = @config.ryba.druid.base
-          @call 'ryba/druid/base/install', options
+        'prepare':
+          'ryba/druid/base/prepare'
+        'install':
+          'ryba/druid/base/install'

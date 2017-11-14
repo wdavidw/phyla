@@ -132,7 +132,7 @@ to allow user to create none-determisitic functions.
         source: "#{__dirname}/../resources/ranger-admin"
         local: true
         mode: 0o0755
-        context: @config.ryba
+        context: options
       @system.tmpfs
         if_os: name: ['redhat','centos'], version: '7'
         mount: '/var/run/ranger'

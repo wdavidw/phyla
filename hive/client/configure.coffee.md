@@ -17,42 +17,34 @@ Example:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hive/client', ['ryba', 'hive', 'client'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_client: key: ['ryba', 'yarn_client']
-        mapred_client: key: ['ryba', 'mapred']
-        tez: key: ['ryba', 'tez']
-        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
-      @config.ryba ?= {}
-      @config.ryba.hive ?= {}
-      options = @config.ryba.hive.client = service.options
+      options = service.options
 
 ## Environment
 
       # Layout
       options.conf_dir ?= '/etc/hive/conf'
       # Opts and Java
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.env ?= {}
       options.opts = ""
       options.heapsize = 1024
-      options.aux_jars ?= service.use.hive_hcatalog[0].options.aux_jars
+      options.aux_jars ?= service.deps.hive_hcatalog[0].options.aux_jars
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
       options.force_check ?= false
+      options.phoenix_enabled ?= !!service.deps.phoenix_client
 
 ## Identities
 
-      options.user = merge {}, service.use.hive_hcatalog[0].options.user, options.user
-      options.group = merge {}, service.use.hive_hcatalog[0].options.group, options.group
-      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+      options.user = merge {}, service.deps.hive_hcatalog[0].options.user, options.user
+      options.group = merge {}, service.deps.hive_hcatalog[0].options.group, options.group
+      options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
+
+## Kerberos
+
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Configuration
 
@@ -67,8 +59,8 @@ Example:
       # options.hive_site['hive.mapjoin.smalltable.filesize'] ?= '50000000'
 
       options.hive_site['hive.execution.engine'] ?= 'tez'
-      options.hive_site['hive.tez.container.size'] ?= service.use.tez.options.tez_site['tez.am.resource.memory.mb']
-      options.hive_site['hive.tez.java.opts'] ?= service.use.tez.options.tez_site['hive.tez.java.opts']
+      options.hive_site['hive.tez.container.size'] ?= service.deps.tez.options.tez_site['tez.am.resource.memory.mb']
+      options.hive_site['hive.tez.java.opts'] ?= service.deps.tez.options.tez_site['hive.tez.java.opts']
       # Size per reducer. The default in Hive 0.14.0 and earlier is 1 GB. In
       # Hive 0.14.0 and later the default is 256 MB.
       # HDP set it to 64 MB which seems wrong
@@ -104,7 +96,7 @@ Example:
         'hive.auto.convert.sortmerge.join.noconditionaltask'
         'hive.exec.max.created.files'
         # Transaction, read/write locks
-      ] then options.hive_site[property] ?= service.use.hive_hcatalog[0].options.hive_site[property]
+      ] then options.hive_site[property] ?= service.deps.hive_hcatalog[0].options.hive_site[property]
 
 ## Configure SSL
 
@@ -113,23 +105,22 @@ Example:
 
 ## Test
 
-      options.ranger_hdfs_install = service.use.ranger_hdfs[0].options.install if service.use.ranger_hdfs
-      options.test = merge {}, service.use.test_user.options, options.test
+      options.ranger_hdfs_install = service.deps.ranger_hdfs[0].options.install if service.deps.ranger_hdfs
+      options.test = merge {}, service.deps.test_user.options, options.test
       # Hive Hcatalog
-      options.hive_hcatalog = for srv in service.use.hive_hcatalog
+      options.hive_hcatalog = for srv in service.deps.hive_hcatalog
         # fqdn: srv.options.fqdn
         hostname: srv.options.hostname
         # hive_site: srv.options.hive_site
 
 ## Wait
 
-      options.wait_hive_hcatalog = service.use.hive_hcatalog[0].options.wait
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+      options.wait_hive_hcatalog = service.deps.hive_hcatalog[0].options.wait
+      options.wait_ranger_admin = service.deps.ranger_admin.options.wait if service.deps.ranger_admin
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 ## Notes
 

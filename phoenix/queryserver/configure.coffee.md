@@ -2,14 +2,7 @@
 # Phoenix QueryServer Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/phoenix/queryserver', ['ryba', 'phoenix', 'queryserver'], require('nikita/lib/misc').merge require('.').use,
-        java: key: ['java']
-        krb5_client: key: ['krb5_client']
-        hadoop_core: key: ['ryba']
-        hbase_client: key: ['ryba', 'hbase', 'client']
-        phoenix_client: key: ['ryba', 'phoenix', 'client']
-      @config.ryba ?= {}
-      options = @config.ryba.phoenix_queryserver = service.options
+      options = service.options
 
 ## Users and Groups
 
@@ -27,11 +20,14 @@
       options.group.system ?= true
       options.user.gid = options.group.name
 
-## Layout
+## Environment
 
+      # Layout
       options.conf_dir ?= '/etc/phoenix/conf'
       options.log_dir ?= '/var/log/phoenix'
       options.pid_dir ?= '/var/run/phoenix'
+      # Misc
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## QueryServer Configuration
 
@@ -56,11 +52,10 @@
 ## Other Configurations
 
       options.host = service.node.fqdn
-      options.java_home = service.use.java.options.java_home
+      options.java_home = service.deps.java.options.java_home
 
 ## Dependencies
 
     string = require 'nikita/lib/misc/string'
     {merge} = require 'nikita/lib/misc'
     appender = require '../../lib/appender'
-    migration = require 'masson/lib/migration'

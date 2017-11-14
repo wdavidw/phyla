@@ -107,7 +107,7 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
       @call header: 'HDFS Layout', ->
         # status = user_owner = group_owner = null
         # @system.execute
-        #   cmd: mkcmd.hdfs @, "hdfs dfs -stat '%g;%u;%n' /apps/falcon"
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -stat '%g;%u;%n' /apps/falcon"
         #   code_skipped: 1
         # , (err, exists, stdout) ->
         #   return next err if err
@@ -115,13 +115,13 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
         #   [user_owner, group_owner, filename] = stdout.trim().split ';' if exists
         # @call ->
         #   @system.execute
-        #     cmd: mkcmd.hdfs @, 'hdfs dfs -mkdir /apps/falcon'
+        #     cmd: mkcmd.hdfs options.hdfs_krb5_user, 'hdfs dfs -mkdir /apps/falcon'
         #     unless: -> status
         #   @system.execute
-        #     cmd: mkcmd.hdfs @, "hdfs dfs -chown #{user.name} /apps/falcon"
+        #     cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -chown #{user.name} /apps/falcon"
         #     if: not status or user.name isnt user_owner
         #   @system.execute
-        #     cmd: mkcmd.hdfs @, "hdfs dfs -chgrp #{group.name} /apps/falcon"
+        #     cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -chgrp #{group.name} /apps/falcon"
         #     if: not status or group.name isnt group_owner
         @hdfs_mkdir
           target: '/apps/falcon'

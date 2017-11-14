@@ -6,7 +6,7 @@ you have to use it for administering HBase, create and drop tables, list and alt
 Client code accessing a cluster finds the cluster by querying ZooKeeper.
 
     module.exports =
-      use:
+      deps:
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
         mapred_client: module: 'ryba/hadoop/mapred_client', required: true
@@ -17,11 +17,10 @@ Client code accessing a cluster finds the cluster by querying ZooKeeper.
       configure:
         'ryba/hbase/client/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hbase.client
-          @call 'ryba/hbase/client/install', options
-          @call 'ryba/hbase/client/replication', options
-          @call 'ryba/hbase/client/check', options
-        'check': ->
-          options = @config.ryba.hbase.client
-          @call 'ryba/hbase/client/check', options
+        'install': [
+          'ryba/hbase/client/install'
+          'ryba/hbase/client/replication'
+          'ryba/hbase/client/check'
+        ]
+        'check':
+          'ryba/hbase/client/check'

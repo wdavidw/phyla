@@ -40,7 +40,7 @@ is added membership to the group hadoop to gain read access.
       @system.execute
         header: 'HTTP JMX'
         retry: 3
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         host=`curl -s -k --negotiate -u : #{url} | grep tag.Hostname | sed 's/^.*:.*"\\(.*\\)".*$/\\1/g'`
         [ "$host" == '#{options.fqdn}' ] || [ "$host" == '#{options.hostname}' ]
         """

@@ -7,7 +7,7 @@ Ranger User sync is a process separated from ranger policy manager, which is in 
 importing user/groups from different sources (LDAP, AD, UNIX).
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         openldap_server: module: 'masson/core/openldap_server'
@@ -18,14 +18,12 @@ importing user/groups from different sources (LDAP, AD, UNIX).
         ranger_admin: module: 'ryba/ranger/admin'
       configure: 'ryba/ranger/usersync/configure'
       commands:
-        'install': ->
-          options = @config.ryba.ranger.usersync
-          @call 'ryba/ranger/usersync/install', options
-          @call 'ryba/ranger/usersync/start', options
-        'start': ->
-          options = @config.ryba.ranger.usersync
-          @call 'ryba/ranger/usersync/start', options
-        'stop': ->
-          options = @config.ryba.ranger.usersync
-          @call 'ryba/ranger/usersync/stop', options
+        'install': [
+          'ryba/ranger/usersync/install'
+          'ryba/ranger/usersync/start'
+        ]
+        'start':
+          'ryba/ranger/usersync/start'
+        'stop':
+          'ryba/ranger/usersync/stop'
 s

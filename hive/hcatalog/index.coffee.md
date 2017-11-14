@@ -10,7 +10,7 @@ distributed file system (HDFS) and ensures that users need not worry about where
 format their data is stored — RCFile format, text files, SequenceFiles, or ORC files.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -31,26 +31,22 @@ format their data is stored — RCFile format, text files, SequenceFiles, or ORC
       configure:
         'ryba/hive/hcatalog/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'ryba/hive/hcatalog/install', options
-          @call 'ryba/hive/hcatalog/start', options
-          @call 'ryba/hive/hcatalog/check', options
-        'check': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'ryba/hive/hcatalog/check', options
-        'start': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'ryba/hive/hcatalog/start', options
+        'install': [
+          'ryba/hive/hcatalog/install'
+          'ryba/hive/hcatalog/start'
+          'ryba/hive/hcatalog/check'
+        ]
+        'check':
+          'ryba/hive/hcatalog/check'
+        'start':
+          'ryba/hive/hcatalog/start'
         'status':
           'ryba/hive/hcatalog/status'
-        'stop': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'ryba/hive/hcatalog/stop', options
-        'report': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'masson/bootstrap/report'
-          @call 'ryba/hive/hcatalog/report', options
-        'backup': ->
-          options = @config.ryba.hive.hcatalog
-          @call 'ryba/hive/hcatalog/backup', options
+        'stop':
+          'ryba/hive/hcatalog/stop'
+        'report': [
+          'masson/bootstrap/report'
+          'ryba/hive/hcatalog/report'
+        ]
+        'backup':
+          'ryba/hive/hcatalog/backup'

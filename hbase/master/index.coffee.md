@@ -7,10 +7,11 @@ In a distributed cluster, the Master typically runs on the NameNode.
 J Mohamed Zahoor goes into some more detail on the Master Architecture in this blog posting, [HBase HMaster Architecture](http://blog.zahoor.in/2012/08/hbase-hmaster-architecture/)
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         zookeeper_server: module: 'ryba/zookeeper/server', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true
@@ -25,20 +26,16 @@ J Mohamed Zahoor goes into some more detail on the Master Architecture in this b
         log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hbase/master/configure'
-        # 'ryba/ranger/plugins/hbase/configure'
       commands:
-        'check': ->
-          options = @config.ryba.hbase.master
-          @call 'ryba/hbase/master/check', options
-        'install': ->
-          options = @config.ryba.hbase.master
-          @call 'ryba/hbase/master/install', options
-          @call 'ryba/hbase/master/layout', options
-          @call 'ryba/hbase/master/start', options
-          @call 'ryba/hbase/master/check', options
-        'start': ->
-          options = @config.ryba.hbase.master
-          @call 'ryba/hbase/master/start', options
-        'stop': ->
-          options = @config.ryba.hbase.master
-          @call 'ryba/hbase/master/stop', options
+        'check':
+          'ryba/hbase/master/check'
+        'install': [
+          'ryba/hbase/master/install'
+          'ryba/hbase/master/layout'
+          'ryba/hbase/master/start'
+          'ryba/hbase/master/check'
+        ]
+        'start':
+          'ryba/hbase/master/start'
+        'stop':
+          'ryba/hbase/master/stop'

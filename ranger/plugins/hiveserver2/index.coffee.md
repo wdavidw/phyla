@@ -1,7 +1,7 @@
 # Ranger HiveServer2 Plugin
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
@@ -13,12 +13,15 @@
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
       configure:
         'ryba/ranger/plugins/hiveserver2/configure'
-      plugin: ->
-        options = @config.ryba.ranger.hive
+      plugin: (options) ->
         @before
           type: ['service', 'start']
           name: 'hive-server2'
         , ->
-          @call 'ryba/ranger/plugins/hiveserver2/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/hiveserver2/install', options.original
         # @after 'ryba/hive/server2/install', ->
         #   @call 'ryba/ranger/plugins/hiveserver2/install', options

@@ -2,10 +2,7 @@
 # MongoDB Repo Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/mongodb/repo', ['ryba', 'mongodb','repo'], {}
-      @config.ryba ?= {}
-      @config.ryba.mongodb ?= {}
-      options = @config.ryba.mongodb.repo = service.options
+      options = service.options
 
       options.source ?= null
       options.target ?= 'mongodb.repo'
@@ -16,4 +13,3 @@
 ## Dependencies
 
     path = require('path').posix
-    migration = require 'masson/lib/migration'

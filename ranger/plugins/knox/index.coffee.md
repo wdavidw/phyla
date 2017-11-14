@@ -1,7 +1,7 @@
 # Ranger Knox Plugin
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         hadoop_core: use: true, module: 'ryba/hadoop/core', local: true
@@ -10,15 +10,16 @@
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
       configure:
         'ryba/ranger/plugins/knox/configure'
-      plugin: ->
-        options = @config.ryba.ranger.knox
+      plugin: (options) ->
         @before
           type: ['service', 'start']
           name: 'knox-server'
         , ->
-          options = @config.ryba.ranger.knox
-          @call 'ryba/ranger/plugins/knox/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/knox/install', options.original
       commands:
-        install: ->
-          options = @config.ryba.ranger.knox
-          @call 'ryba/ranger/plugins/knox/install', options
+        install:
+          'ryba/ranger/plugins/knox/install'

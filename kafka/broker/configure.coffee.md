@@ -15,30 +15,15 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/kafka/broker', ['ryba', 'kafka', 'broker'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        hdp: key: ['ryba', 'hdp']
-        hdf: key: ['ryba', 'hdf']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        kafka_broker: key: ['ryba', 'kafka', 'broker']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        metrics: key: ['ryba', 'metrics']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba.kafka ?= {}
-      options = @config.ryba.kafka.broker = service.options
+    module.exports = (service) ->
+      options = service.options
       
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Identities
 
@@ -85,10 +70,12 @@ Example:
       # options.env['KAFKA_LOG4J_OPTS'] ?= "-Dlog4j.configuration=file:$base_dir/../config/log4j.properties -Dkafka.root.logger=INFO, kafkaAppender"
       options.env['KAFKA_LOG4J_OPTS'] ?= "-Dlog4j.configuration=file:#{options.conf_dir}/log4j.properties"
       options.env['KAFKA_GC_LOG_OPTS'] ?= "-Xloggc:$LOG_DIR/$GC_LOG_FILE_NAME -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps "
+      # Misc
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## ZooKeeper Quorun
 
-      options.zookeeper_quorum ?= for srv in service.use.zookeeper_server
+      options.zookeeper_quorum ?= for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
 
@@ -109,7 +96,7 @@ Example:
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
       options.metrics.sinks.ganglia_enabled ?= false
@@ -126,7 +113,7 @@ Example:
 
 # Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
 
       options.log4j.properties ?= {}
       options.log4j.properties['log4j.appender.stdout'] ?= 'org.apache.log4j.ConsoleAppender'
@@ -237,7 +224,7 @@ Example PLAINTEXT and SSL:
   }
 }
 
-      options.protocols ?= if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' then ['SASL_SSL'] else ['SSL']
+      options.protocols ?= if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos' then ['SASL_SSL'] else ['SSL']
       return Error 'No protocol specified' unless options.protocols.length > 0
       options.ports ?= {}
       options.ports['PLAINTEXT'] ?= '9092'
@@ -249,13 +236,13 @@ Example PLAINTEXT and SSL:
 
 Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
 
-      options.config['security.inter.broker.protocol'] ?= if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.config['security.inter.broker.protocol'] ?= if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
       then ['SASL_SSL']
       else ['SSL']
 
 ## Security SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
       options.config['ssl.keystore.location'] ?= "#{options.conf_dir}/keystore"
       throw Error "Required Option: options.config['ssl.keystore.password']" unless options.config['ssl.keystore.password']
       options.config['ssl.key.password'] ?= options.config['ssl.keystore.password']
@@ -295,22 +282,21 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
       options.wait = {}
-      # options.wait.brokers = for srv in service.use.kafka_broker
+      # options.wait.brokers = for srv in service.deps.kafka_broker
       #   for protocol in options.protocols
       #     host: srv.node.fqdn
       #     port: options.ports[protocol]
       for protocol in options.protocols
-        options.wait[protocol] = for srv in service.use.kafka_broker
+        options.wait[protocol] = for srv in service.deps.kafka_broker
           host: srv.node.fqdn
           port: options.ports[protocol]
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 [kafka-security]:(http://kafka.apache.org/documentation.html#security)
 [hdp-security-kafka]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_Security_Guide/content/ch_wire-kafka.html)

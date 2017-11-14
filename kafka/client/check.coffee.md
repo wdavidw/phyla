@@ -336,7 +336,7 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
           | grep 'User:#{options.test.user.name} has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
-          cmd:  mkcmd.test @, """
+          cmd:  mkcmd.test options.test_krb5_user, """
           (
             sleep 5
             echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \
@@ -414,7 +414,7 @@ Trustore location and password given to line command because if executed before 
           | grep 'User:#{options.test.user.name} has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
-          cmd:  mkcmd.test @, """
+          cmd:  mkcmd.test options.test_krb5_user, """
           (
             sleep 5
             echo 'hello #{options.hostname}' | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh \

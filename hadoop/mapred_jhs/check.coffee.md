@@ -23,7 +23,7 @@ For this reason, the "retry" property is set to the high value of "10".
       @system.execute
         header: 'HTTP'
         retry: 200
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         curl -s --insecure --negotiate -u : #{protocol}://#{host}:#{port}/ws/v1/history/info
         """
         # code_skipped: 2 # doesnt seems to be used

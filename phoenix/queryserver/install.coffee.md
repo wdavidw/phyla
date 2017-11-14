@@ -17,13 +17,13 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
 ## IPTables
 
-  | Service             | Port  | Proto  | Parameter                     |
-  |---------------------|-------|--------|-------------------------------|
-  | Phoenix QueryServer | 8765  | HTTP   | phoenix.queryserver.http.port |
+| Service             | Port  | Proto  | Parameter                     |
+|---------------------|-------|--------|-------------------------------|
+| Phoenix QueryServer | 8765  | HTTP   | phoenix.queryserver.http.port |
 
       @tools.iptables
         header: 'IPTables'
-        if: @config.iptables.action is 'start'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.phoneix_site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
         ]
@@ -40,7 +40,7 @@ We use the SPNEGO keytab, so we let hadoop/core handle principal & keytab
       # @krb5.addprinc krb5,
       #     header: 'Kerberos'
       #     if: phoenix.queryserver.site['hbase.security.authentication'] is 'kerberos'
-      #     principal: phoenix.queryserver.site['phoenix.queryserver.kerberos.principal'].replace '_HOST', @config.host
+      #     principal: phoenix.queryserver.site['phoenix.queryserver.kerberos.principal'].replace '_HOST', options.fqdn
       #     randkey: true
       #     keytab: phoenix.queryserver.site['phoenix.queryserver.keytab.file']
       #     uid: phoenix.user.name

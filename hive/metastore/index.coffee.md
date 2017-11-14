@@ -11,14 +11,12 @@ distributed file system (HDFS) and ensures that users need not worry about where
 format their data is stored — RCFile format, text files, SequenceFiles, or ORC files.
 
     module.exports =
-      use:
+      deps:
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
       configure:
         'ryba/hive/metastore/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hive.metastore
-          @call 'ryba/hive/metastore/install', options
-        'backup': ->
-          options = @config.ryba.hive.metastore
-          @call 'ryba/hive/metastore/backup', options
+        'install':
+          'ryba/hive/metastore/install'
+        'backup':
+          'ryba/hive/metastore/backup'

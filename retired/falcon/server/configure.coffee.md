@@ -17,14 +17,6 @@ associated processing and management tasks on Hadoop clusters.
       @config.ryba.falcon ?= {}
       falcon = @config.ryba.falcon.server ?= {}
 
-## Environment
-
-      falcon.conf_dir ?= '/etc/falcon/conf'
-      falcon.log_dir ?= '/var/log/falcon'
-      falcon.pid_dir ?= '/var/run/falcon'
-      falcon.server_opts ?= ''
-      falcon.server_heap ?= ''
-
 ## Identities
 
       # Group
@@ -41,6 +33,19 @@ associated processing and management tasks on Hadoop clusters.
       falcon.user.home ?= '/var/lib/falcon'
       falcon.user.groups ?= ['hadoop']
       falcon.user.gid = falcon.group.name
+
+## Kerberos
+
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+
+## Environment
+
+      falcon.conf_dir ?= '/etc/falcon/conf'
+      falcon.log_dir ?= '/var/log/falcon'
+      falcon.pid_dir ?= '/var/run/falcon'
+      falcon.server_opts ?= ''
+      falcon.server_heap ?= ''
 
 ## Runtime
 

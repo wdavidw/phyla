@@ -1,0 +1,15 @@
+[Unit]
+Description=HDFS Httpfs
+
+[Service]
+Type=forking
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/httpfs.pid
+ExecStart=export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && export KMS_CONFIG={{options.conf_dir}} && export CATALINA_PID={{options.pid_dir}} && /usr/hdp/current/hadoop-kms/sbin/kms.sh start
+ExecReload=export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && export KMS_CONFIG={{options.conf_dir}} && export CATALINA_PID={{options.pid_dir}} && /usr/hdp/current/hadoop-kms/sbin/kms.sh restart
+ExecStop=export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && export KMS_CONFIG={{options.conf_dir}} && export CATALINA_PID={{options.pid_dir}} && /usr/hdp/current/hadoop-kms/sbin/kms.sh stop
+LimitNOFILE={{options.user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target

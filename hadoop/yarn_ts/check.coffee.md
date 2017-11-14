@@ -22,7 +22,7 @@ Check the HTTP server with a JMX request.
       address = options.yarn_site["yarn.timeline-service.webapp.#{address_key}"]
       @system.execute
         header: 'HTTP Port'
-        cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{address}/jmx?qry=Hadoop:service=ApplicationHistoryServer,name=JvmMetrics"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{address}/jmx?qry=Hadoop:service=ApplicationHistoryServer,name=JvmMetrics"
       , (err, executed, stdout) ->
         throw err if err
         data = JSON.parse stdout

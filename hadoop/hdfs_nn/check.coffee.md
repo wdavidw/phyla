@@ -27,7 +27,7 @@ Wait for the HDFS NameNode to be started.
       @system.execute
         retry: 2
         header: 'HTTP'
-        cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
       , (err, executed, stdout) ->
         throw err if err
         data = JSON.parse stdout
@@ -49,7 +49,7 @@ See More http://hadoop.apache.org/docs/r2.0.2-alpha/hadoop-yarn/hadoop-yarn-site
       @system.execute
         header: 'HA Health'
         if: -> options.nameservice
-        cmd: mkcmd.hdfs @, "hdfs --config '#{options.conf_dir}' haadmin -checkHealth #{options.hostname}"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config '#{options.conf_dir}' haadmin -checkHealth #{options.hostname}"
 
 ## Check FSCK
 
@@ -67,7 +67,7 @@ Additionnal information may be found on the [CentOS HowTos site][corblk].
         header: 'FSCK'
         retry: 3
         wait: 60000
-        cmd: mkcmd.hdfs @, "exec 5>&1; hdfs --config #{options.conf_dir} fsck / | tee /dev/fd/5 | tail -1 | grep HEALTHY 1>/dev/null"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "exec 5>&1; hdfs --config #{options.conf_dir} fsck / | tee /dev/fd/5 | tail -1 | grep HEALTHY 1>/dev/null"
         if: options.force_check or check_hdfs_fsck
 
 ## Check HDFS
@@ -77,7 +77,7 @@ Attemp to place a file inside HDFS. the file "/etc/passwd" will be placed at
 
       @system.execute
         header: 'HDFS'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         if hdfs --config '#{options.conf_dir}' dfs -test -f /user/#{options.test.user.name}/#{options.hostname}-nn; then exit 2; fi
         echo 'Upload file to HDFS'
         hdfs --config '#{options.conf_dir}' dfs -put /etc/passwd /user/#{options.test.user.name}/#{options.hostname}-nn
@@ -98,7 +98,7 @@ for more information.
         if: options.active_nn_host isnt options.fqdn
       , ->
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
           kdestroy
           """
@@ -117,13 +117,13 @@ for more information.
         shortname = if options.nameservice then ".#{options.hostname}" else ''
         address = options.hdfs_site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs --config '#{options.conf_dir}' dfs -touchz check-#{options.hostname}-webhdfs
           kdestroy
           """
           code_skipped: 2
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
           kdestroy
           """
@@ -134,7 +134,7 @@ for more information.
           catch e then throw Error e
           throw Error "Invalid result" unless count
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/?op=GETDELEGATIONTOKEN"
           kdestroy
           """

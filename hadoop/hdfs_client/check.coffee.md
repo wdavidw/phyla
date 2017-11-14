@@ -18,7 +18,7 @@ the NameNode has started.
 
       @system.execute.assert
         header: 'NameNode'
-        cmd: mkcmd.test @, "hdfs dfs -test -d /user/#{options.test.user.name}"
+        cmd: mkcmd.test options.test_krb5_user, "hdfs dfs -test -d /user/#{options.test.user.name}"
         retry: 5
         sleep: 5000
 
@@ -30,7 +30,7 @@ Run an HDFS command requiring a DataNode.
         header: 'DataNode'
         retry: 20
         sleep: 5000
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         if hdfs dfs -test -f /user/#{options.test.user.name}/#{options.hostname}-hdfs; then exit 2; fi
         hdfs dfs -touchz /user/#{options.test.user.name}/#{options.hostname}-hdfs
         """

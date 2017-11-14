@@ -12,7 +12,7 @@ separate processes and you can run each on a different server.
 [overlord]: http://druid.io/docs/latest/design/indexing-service.html
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
         zookeeper_server: module: 'ryba/zookeeper/server'
@@ -25,19 +25,15 @@ separate processes and you can run each on a different server.
       configure:
         'ryba/druid/overlord/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.overlord
-          @call 'ryba/druid/prepare', options
-        'install': ->
-          options = @config.ryba.druid.overlord
-          @call 'ryba/druid/overlord/install', options
-          @call 'ryba/druid/overlord/start', options
-        'start': ->
-          options = @config.ryba.druid.overlord
-          console.log options.wait_zookeeper_server
-          @call 'ryba/druid/overlord/start', options
+        'prepare':
+          'ryba/druid/prepare'
+        'install': [
+          'ryba/druid/overlord/install'
+          'ryba/druid/overlord/start'
+        ]
+        'start':
+          'ryba/druid/overlord/start'
         'status':
           'ryba/druid/overlord/status'
-        'stop': ->
-          options = @config.ryba.druid.overlord
-          @call 'ryba/druid/overlord/stop', options
+        'stop':
+          'ryba/druid/overlord/stop'

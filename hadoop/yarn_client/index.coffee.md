@@ -5,9 +5,10 @@ The [Hadoop YARN Client](http://hadoop.apache.org/docs/current/hadoop-yarn/hadoo
 The URI resources are grouped into APIs based on the type of information returned. Some URI resources return collections while others return singletons.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
@@ -16,14 +17,13 @@ The URI resources are grouped into APIs based on the type of information returne
       configure:
         'ryba/hadoop/yarn_client/configure'
       commands:
-        'check': ->
-          options = @config.ryba.yarn_client
-          @call 'ryba/hadoop/yarn_client/check', options
-        'install': ->
-          options = @config.ryba.yarn_client
-          @call 'ryba/hadoop/yarn_client/install', options
-          @call 'ryba/hadoop/yarn_client/check', options
-        'report': ->
-          options = @config.ryba.yarn_client
-          @call 'masson/bootstrap/report', options
-          @call 'ryba/hadoop/yarn_client/report', options
+        'check':
+          'ryba/hadoop/yarn_client/check'
+        'install': [
+          'ryba/hadoop/yarn_client/install'
+          'ryba/hadoop/yarn_client/check'
+        ]
+        'report': [
+          'masson/bootstrap/report'
+          'ryba/hadoop/yarn_client/report'
+        ]

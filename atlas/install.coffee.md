@@ -104,35 +104,36 @@ Install Atlas packages
 
 ## SSL 
 
-      # Server: import certificates, private and public keys to hosts with a server
+Import certificates, private and public keys of the host.
+
       @java.keystore_add
         keystore: options.application.properties['keystore.file']
-        storepass: options.keystore.password
-        caname: "hadoop_root_ca"
-        cacert: "#{options.ssl.cacert.source}"
-        key: "#{options.ssl.key.source}"
-        cert: "#{options.ssl.cert.source}"
-        keypass: options.serverkey_password
-        name: options.shortname
+        storepass: options.ssl.keystore.password
+        key: options.ssl.key.source
+        cert: options.ssl.cert.source
+        keypass: options.ssl.keystore.keypass
+        name: options.ssl.key.name
         local: options.ssl.cert.local
+        uid: options.user.name
+        gid: options.group.name
+        mode: 0o0640
+      @java.keystore_add
+        keystore: options.application.properties['keystore.file']
+        storepass: options.ssl.keystore.password
+        caname: "hadoop_root_ca"
+        cacert: options.ssl.cacert.source
+        local: options.ssl.cacert.local
       @java.keystore_add
         keystore: options.application.properties['truststore.file']
-        storepass: options.keystore.password
+        storepass: options.ssl.truststore.password
         caname: "hadoop_root_ca"
-        cacert: "#{options.ssl.cacert.source}"
+        cacert: options.ssl.cacert.source
         local: options.ssl.cacert.local
-      @system.chown
-        target: options.application.properties['keystore.file']
         uid: options.user.name
         gid: options.group.name
-        mode: 0o0755
-      @system.chown
-        target: options.application.properties['truststore.file']
-        uid: options.user.name
-        gid: options.group.name
-        mode: 0o0755
+        mode: 0o0644
       @call
-        if: -> @status(-3) or @status(-4)
+        if: -> @status(-3) or @status(-2)
         header: 'Generate Credentials SSL provider file'
       , (_, callback) ->
         options.ssh.shell (err, stream) =>
@@ -149,33 +150,33 @@ Install Atlas packages
                 data = ''
               when /Please enter the password value for keystore.password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.keystore.password}"
-                stream.write "#{options.keystore.password}\n"
+                options.log "write: #{options.ssl.keystore.password}"
+                stream.write "#{options.ssl.keystore.password}\n"
                 data = ''
               when /Please enter the password value for keystore.password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.keystore.password}"
-                stream.write "#{options.keystore.password}\n"
+                options.log "write: #{options.ssl.keystore.password}"
+                stream.write "#{options.ssl.keystore.password}\n"
                 data = ''
               when /Please enter the password value for truststore.password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.truststore.password}"
-                stream.write "#{options.truststore.password}\n"
+                options.log "write: #{options.ssl.truststore.password}"
+                stream.write "#{options.ssl.truststore.password}\n"
                 data = ''
               when /Please enter the password value for truststore.password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.truststore.password}"
-                stream.write "#{options.truststore.password}\n"
+                options.log "write: #{optionsssl.ssl.truststore.password}"
+                stream.write "#{options.ssl.truststore.password}\n"
                 data = ''
               when /Please enter the password value for password:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.serverkey_password}"
-                stream.write "#{options.serverkey_password}\n"
+                options.log "write: #{options.ssl.keystore.keypass}"
+                stream.write "#{options.ssl.keystore.keypass}\n"
                 data = ''
               when /Please enter the password value for password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{options.serverkey_password}"
-                stream.write "#{options.serverkey_password}\n"
+                options.log "write: #{options.ssl.keystore.keypass}"
+                stream.write "#{options.ssl.keystore.keypass}\n"
                 data = ''
               when /Entry for keystore.password already exists/.test data
                 stream.write "y\n"

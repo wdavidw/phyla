@@ -12,7 +12,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 ## Service
 
     module.exports =  header: 'HBase Rest Stop', handler: (options) ->
-      {hbase, clean_logs} = @config.ryba
+
       @service.stop
         header: 'Service'
         name: 'hbase-rest'
@@ -21,11 +21,11 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
       @call
         header: 'Clean Logs'
-        if: -> @config.ryba.clean_logs
+        if: options.clean_logs
       , ->
         @system.execute
-          cmd: "rm #{hbase.log_dir}/*-rest-*"
+          cmd: "rm #{options.log_dir}/*-rest-*"
           code_skipped: 1
         @system.execute
-          cmd: "rm #{hbase.log_dir}/gc.log-*"
+          cmd: "rm #{options.log_dir}/gc.log-*"
           code_skipped: 1

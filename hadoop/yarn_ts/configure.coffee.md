@@ -9,33 +9,22 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/yarn_ts', ['ryba', 'yarn', 'ats'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-      @config.ryba ?= {}
-      @config.ryba.yarn ?= {}
-      @config.ryba.yarn.rm ?= {}
-      options = @config.ryba.yarn.ats = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       
-## Environnment
+## Environment
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-timelineserver'
@@ -44,18 +33,19 @@
       options.conf_dir ?= '/etc/hadoop-yarn-timelineserver/conf'
       # Java
       options.opts ?= ''
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.heapsize ?= '1024'
       # Misc
       options.fqdn = service.node.fqdn
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.use.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.use.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn ATS "yarn-site.xml"
       options.yarn_site ?= {}
       # The hostname of the Timeline service web application.
@@ -108,20 +98,20 @@
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.hadoop_core.options.metrics, options.metrics
+      options.metrics = merge {}, service.deps.hadoop_core.options.metrics, options.metrics
 
 ## Export to Yarn NodeManager
 
-      for srv in service.use.yarn_nm
+      for srv in service.deps.yarn_nm
         for property in [
           'yarn.timeline-service.enabled'
           'yarn.timeline-service.address'
@@ -136,16 +126,17 @@
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
       options.wait = {}
-      options.wait.webapp = for ats_ctx in @contexts 'ryba/hadoop/yarn_ts'
-        {yarn} = ats_ctx.config.ryba
-        protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
-        [host, port] = options.yarn_site["yarn.timeline-service.webapp.#{protocol}address"].split ':'
+      options.wait.webapp = for srv in service.deps.yarn_ts
+        srv.options.yarn_site['yarn.http.policy'] ?= options.yarn_site['yarn.http.']
+        srv.options.yarn_site['yarn.timeline-service.webapp.address'] ?= "#{srv.node.fqdn}:8188"
+        srv.options.yarn_site['yarn.timeline-service.webapp.https.address'] ?= "#{srv.node.fqdn}:8190"
+        protocol = if srv.options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
+        [host, port] = srv.options.yarn_site["yarn.timeline-service.webapp.#{protocol}address"].split ':'
         host: host, port: port
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

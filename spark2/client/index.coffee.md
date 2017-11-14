@@ -43,14 +43,14 @@ the computing power of your laptop, client mode able to leverage the full power
 of your cluster.
 
     module.exports =
-      use:
-        hdfs: 'ryba/hadoop/hdfs_client'
-        yarn_nm: 'ryba/hadoop/yarn_nm'
-        hive_client: 'ryba/hive/client'
+      deps:
+        hdfs: module: 'ryba/hadoop/hdfs_client'
+        yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        hive_client: module: 'ryba/hive/client'
         hive_beeline: module: 'ryba/hive/beeline'
-        oozie: 'ryba/ooozie/client'
-        graphite: 'ryba/graphite/carbon'
-        ganglia: 'ryba/retired/ganglia/collector'
+        oozie: module: 'ryba/ooozie/client'
+        graphite: module: 'ryba/graphite/carbon'
+        ganglia: module: 'ryba/retired/ganglia/collector'
       configure:
         'ryba/spark/client/configure'
       commands:
