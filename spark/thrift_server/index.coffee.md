@@ -8,13 +8,14 @@ It starts a custom instance of hive-sever2 and enabled user to register spark ba
 in order to make the data accessible to hive clients.
 
     module.exports =
-      use:
+      deps:
         'krb5_client': module: 'masson/core/krb5_client'
-        'java': implicit: true, module: 'masson/commons/java'
+        'java': module: 'masson/commons/java', , local: true, auto: true
         'hdfs': 'ryba/hadoop/hdfs_client'
         'hive_server2': 'ryba/hive/server2'
-        'spark': implicit: true, module: 'ryba/spark/client'
+        'spark': module: 'ryba/spark/client', local: true, auto: true
         'yarn_nm': 'ryba/hadoop/yarn_nm'
+        'tez': module: 'ryba/tez', local: true
       configure :
         'ryba/spark/thrift_server/configure'
       commands:

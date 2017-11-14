@@ -10,7 +10,7 @@ log’s management and auxiliary services which may be exploited by different YA
 applications.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
@@ -24,27 +24,24 @@ applications.
         metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/yarn_nm/configure'
-        # 'ryba/ranger/plugins/yarn/configure'
       commands:
-        # 'backup': 'ryba/hadoop/yarn_nm/backup'
-        'check': ->
-          options = @config.ryba.yarn.nm
-          @call 'ryba/hadoop/yarn_nm/check', options
-        'install': ->
-          options = @config.ryba.yarn.nm
-          @call 'masson/core/info'
-          @call 'ryba/hadoop/yarn_nm/install', options
-          @call 'ryba/hadoop/yarn_nm/start', options
-          @call 'ryba/hadoop/yarn_nm/check', options
-        'report': ->
-          options = @config.ryba.yarn.nm
-          @call 'masson/bootstrap/report'
-          @call 'ryba/hadoop/yarn_nm/report', options
-        'start': ->
-          options = @config.ryba.yarn.nm
-          @call 'ryba/hadoop/yarn_nm/start', options
+        # 'backup':
+        #   'ryba/hadoop/yarn_nm/backup'
+        'check':
+          'ryba/hadoop/yarn_nm/check'
+        'install': [
+          'masson/core/info'
+          'ryba/hadoop/yarn_nm/install'
+          'ryba/hadoop/yarn_nm/start'
+          'ryba/hadoop/yarn_nm/check'
+        ]
+        'report': [
+          'masson/bootstrap/report'
+          'ryba/hadoop/yarn_nm/report'
+        ]
+        'start':
+          'ryba/hadoop/yarn_nm/start'
         'status':
           'ryba/hadoop/yarn_nm/status'
-        'stop': ->
-          options = @config.ryba.yarn.nm
-          @call 'ryba/hadoop/yarn_nm/stop', options
+        'stop':
+          'ryba/hadoop/yarn_nm/stop'

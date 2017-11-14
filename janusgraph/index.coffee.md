@@ -9,10 +9,11 @@ JanusGraph is a project under The Linux Foundation, and includes participants
 from Expero, Google, GRAKN.AI, Hortonworks, and IBM. 
 
     module.exports =
-      use:
-        hbase: implicit: true, module: 'ryba/hbase/client'
-        java: implicit: true, module: 'masson/commons/java'
-        zk: 'ryba/zookeeper/server'
+      deps:
+        java: module: 'masson/commons/java', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
+        zookeeper_server: 'ryba/zookeeper/server'
+        hbase_client: implicit: true, module: 'ryba/hbase/client'
         elasticsearch: 'ryba/elasticsearch'
         solr: 'ryba/solr'
       configure:

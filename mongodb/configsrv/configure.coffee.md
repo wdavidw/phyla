@@ -5,16 +5,7 @@ They can be installed and configured on their own.
 
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/mongodb/configsrv', ['ryba', 'mongodb', 'configsrv'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        locale: key: ['locale']
-        ssl: key: ['ssl']
-        # repo: key: ['ryba','mongodb','repo']
-        config_servers: key: ['ryba', 'mongodb', 'configsrv']
-      @config.ryba ?= {}
-      @config.ryba.mongodb ?= {}
-      options = @config.ryba.mongodb.configsrv = service.options
+      options = service.options
 
 ## Identities
 
@@ -49,7 +40,7 @@ They can be installed and configured on their own.
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       # Setting the role of mongod process as a mongodb config server
       options.config ?= {}
@@ -106,8 +97,8 @@ The replica set config servers must run the WiredTiger storage engine
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled = !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
@@ -139,9 +130,9 @@ The replica set config servers must run the WiredTiger storage engine
 Kerberos authentication is only avaiable in enterprise edition.
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       options.config.security.sasl ?= {}
       options.config.security.sasl.hostName ?= service.node.fqdn
       options.config.security.sasl.serviceName ?= 'mongodb' # Can override only on enterprise edition
@@ -158,7 +149,7 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
       throw Error 'Missing Replica Set Name ryba.mongodb.configsrv.replicaset' unless options.replicaset?
       options.replicasets = {}
       options.is_master ?= false
-      for srv in service.use.config_servers
+      for srv in service.deps.config_servers
         options.replicasets[srv.options.replicaset] ?= {}
         options.replicasets[srv.options.replicaset]['hosts'] ?= []
         options.replicasets[srv.options.replicaset]['hosts'].push srv.node.fqdn
@@ -169,9 +160,9 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.config_servers
+      options.wait.tcp = for srv in service.deps.config_servers
         host: srv.node.fqdn
         port: options.config.net.port
       options.wait.local =
@@ -180,7 +171,6 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 

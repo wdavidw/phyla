@@ -8,9 +8,9 @@ associated processing and management tasks on Hadoop clusters.
 
     module.exports =
       use:
-        hadoop_core: implicit: true, module: 'ryba/hadoop/core'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
-        test_user: implicit: true, module: 'ryba/commons/test_user'
+        hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true
+        krb5_client: module: 'masson/core/krb5_client', local: true, auto: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
       configure:
         'ryba/falcon/client/configure'
       commands:

@@ -112,7 +112,7 @@ directive once you enter the beeline shell.
             url += ";httpPath=#{hive_server2.hive_site['hive.server2.thrift.http.path']}"
           beeline = "beeline -u \"#{url}\" --silent=true "
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -f -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table || true
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
@@ -127,7 +127,7 @@ directive once you enter the beeline shell.
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{directory}/result"
             trap: true
             retry: 3
 
@@ -157,7 +157,7 @@ directive once you enter the beeline shell.
           directory = "check-#{options.hostname}-hive_server2-zoo-#{namespace}"
           db = "check_#{options.hostname}_hs2_zoo_#{namespace}"
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -f -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table || true
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
@@ -172,7 +172,7 @@ directive once you enter the beeline shell.
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Check Sparl SQL Thrift Server
@@ -199,7 +199,7 @@ directive once you enter the beeline shell.
             url += ";httpPath=#{spark_thrift_server.hive_site['hive.server2.thrift.http.path']}"
           beeline = "beeline -u \"#{url}\" --silent=true "
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -f -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table || true
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
@@ -214,7 +214,7 @@ directive once you enter the beeline shell.
             -e "DROP TABLE #{db}.my_table;" \
             -e "DROP DATABASE #{db};"
             """
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Dependencies

@@ -20,21 +20,21 @@ to colocate the Transquility servers with the Druid middleManagers and historica
 [readme]: https://github.com/druid-io/tranquility
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
+        iptables: module: 'masson/core/iptables', local: true
         druid: module: 'ryba/druid/base', local: true, auto: true, implicit: true
         druid_tranquility: module: 'ryba/druid/tranquility'
       configure:
         'ryba/druid/tranquility/configure'
       commands:
-        'prepare': ->
-          options = @config.ryba.druid.tranquility
-          @call 'ryba/druid/tranquility/prepare', options
-        'install': ->
-          options = @config.ryba.druid.tranquility
-          @call 'ryba/druid/tranquility/install', options
-          @call 'ryba/druid/tranquility/start', options
+        'prepare':
+          'ryba/druid/tranquility/prepare'
+        'install': [
+          'ryba/druid/tranquility/install'
+          'ryba/druid/tranquility/start'
+        ]
         # 'start':
         #   'ryba/druid/tranquility/start'
         # 'status':

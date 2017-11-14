@@ -11,10 +11,12 @@ in Zookeeper.
 broker: http://druid.io/docs/latest/design/broker.html
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true, recommanded: true
+        iptables: module: 'masson/core/iptables', local: true
         zookeeper_server: module: 'ryba/zookeeper/server'
+        hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         druid: module: 'ryba/druid/base', local: true, auto: true, implicit: true
         druid_coordinator: module: 'ryba/druid/coordinator'
         druid_overlord: module: 'ryba/druid/overlord'
@@ -24,22 +26,18 @@ broker: http://druid.io/docs/latest/design/broker.html
       configure:
         'ryba/druid/broker/configure'
       commands:
-        check: ->
-          options = @config.ryba.druid.broker
-          @call 'ryba/druid/broker/check', options
-        prepare: ->
-          options = @config.ryba.druid.broker
-          @call 'ryba/druid/prepare', options
-        install: ->
-          options = @config.ryba.druid.broker
-          @call 'ryba/druid/broker/install', options
-          @call 'ryba/druid/broker/start', options
-          @call 'ryba/druid/broker/check', options
-        start: ->
-          options = @config.ryba.druid.broker
-          @call 'ryba/druid/broker/start', options
-        status:
+        'check':
+          'ryba/druid/broker/check'
+        'prepare':
+          'ryba/druid/prepare'
+        'install': [
+          'ryba/druid/broker/install'
+          'ryba/druid/broker/start'
+          'ryba/druid/broker/check'
+        ]
+        'start':
+          'ryba/druid/broker/start'
+        'status':
           'ryba/druid/broker/status'
-        stop: ->
-          options = @config.ryba.druid.broker
-          @call 'ryba/druid/broker/stop', options
+        'stop':
+          'ryba/druid/broker/stop'

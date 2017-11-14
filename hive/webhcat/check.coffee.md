@@ -17,7 +17,7 @@
 
       @system.execute
         header: 'Status'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         if hdfs dfs -test -f #{options.fqdn}-webhcat; then exit 2; fi
         curl -s --negotiate -u : http://#{options.fqdn}:#{options.webhcat_site['templeton.port']}/templeton/v1/status
         hdfs dfs -touchz #{options.fqdn}-webhcat

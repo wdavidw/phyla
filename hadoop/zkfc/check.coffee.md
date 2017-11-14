@@ -1,9 +1,7 @@
 
 # Hadoop ZKFC Check
 
-    module.exports = header: 'HDFS ZKFC Check', handler: ->
-        {hdfs} = @config.ryba
-        nn_ctxs = @contexts 'ryba/hadoop/hdfs_nn'
+    module.exports = header: 'HDFS ZKFC Check', handler: (options) ->
 
 ## Test SSH Fencing
 
@@ -16,11 +14,10 @@ is a comma-separated list of SSH private key files.
 Strict host key checking is disabled during this check with the
 "StrictHostKeyChecking" argument set to "no".
 
-        for nn_ctx in nn_ctxs
-          source = nn_ctx.config.host if nn_ctx.config.host is @config.host
-          target = nn_ctx.config.host if nn_ctx.config.host isnt @config.host
+        source = options.active_nn_host
+        target = options.standby_nn_host
+        [target, source] = [source, target] unless options.fqdn is options.active_nn_host
         @system.execute
           header: 'SSH Fencing'
-          if: -> nn_ctxs.length > 1
           retry: 100
-          cmd: "su -l #{hdfs.user.name} -c \"ssh -q -o StrictHostKeyChecking=no #{hdfs.user.name}@#{target} hostname\""
+          cmd: "su -l #{options.user.name} -c \"ssh -q -o StrictHostKeyChecking=no #{options.user.name}@#{target} hostname\""

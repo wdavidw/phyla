@@ -64,6 +64,7 @@ HDFS directory. Note, the parent directories are created by the
         target: '/hdp/apps/$version/mapreduce/mapreduce.tar.gz'
         id: options.hostname
         lock: '/tmp/ryba-mapreduce.lock'
+        krb5_user: options.hdfs_krb5_user
 
 ## Ulimit
 

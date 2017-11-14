@@ -280,13 +280,13 @@ and access their tables, but prevents them from deleting tables they don't
 own.
 
       @call header: 'HDFS Layout', ->
-        # cmd = mkcmd.hdfs @, "hdfs dfs -config #{options.hdfs_conf_dir} -test -d /user && hdfs dfs -test -d /apps && hdfs dfs -test -d /tmp"
+        # cmd = mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -config #{options.hdfs_conf_dir} -test -d /user && hdfs dfs -test -d /apps && hdfs dfs -test -d /tmp"
         # @wait.execute
         #   cmd: cmd
         #   code_skipped: 1
         # migration: wdavidw 170907, commented since the if condition disabled it
         # @system.execute
-        #   cmd: mkcmd.hdfs @, """
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         #   if hdfs dfs -ls /user/#{hive_user} &>/dev/null; then exit 1; fi
         #   hdfs dfs -mkdir /user/#{hive_user}
         #   hdfs dfs -chown #{hive_user}:#{hdfs.user.name} /user/#{hive_user}
@@ -305,7 +305,7 @@ own.
           conf_dir: options.hdfs_conf_dir
           krb5_user: options.hdfs_krb5_user
         # @system.execute
-        #   cmd: mkcmd.hdfs @, """
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         #   if hdfs dfs -ls /apps/#{hive_user}/warehouse &>/dev/null; then exit 3; fi
         #   hdfs dfs -mkdir /apps/#{hive_user}
         #   hdfs dfs -mkdir /apps/#{hive_user}/warehouse
@@ -314,7 +314,7 @@ own.
         #   """
         #   code_skipped: 3
         # @system.execute
-        #   cmd: mkcmd.hdfs @, "hdfs dfs -chmod -R #{hive.warehouse_mode or '1777'} /apps/#{hive_user}/warehouse"
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -chmod -R #{hive.warehouse_mode or '1777'} /apps/#{hive_user}/warehouse"
        # migration: wdavidw 170907, get path from config and change group ownerships
         @hdfs_mkdir
           header: 'Warehouse Dir'
@@ -337,7 +337,7 @@ own.
           conf_dir: options.hdfs_conf_dir
           krb5_user: options.hdfs_krb5_user
         # @system.execute
-        #   cmd: mkcmd.hdfs @, """
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         #   if hdfs dfs -ls /tmp/scratch &> /dev/null; then exit 1; fi
         #   hdfs dfs -mkdir /tmp 2>/dev/null
         #   hdfs dfs -mkdir /tmp/scratch
@@ -364,6 +364,7 @@ own.
           target: "/apps/hive/install/hive-exec-#{version}.jar"
           clean: "/apps/hive/install/hive-exec-*.jar"
           lock: "/tmp/hive-exec-#{version}.jar"
+          krb5_user: options.hdfs_krb5_user
 
 ## SSL
 

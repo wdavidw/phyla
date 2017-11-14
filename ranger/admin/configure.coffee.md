@@ -3,17 +3,8 @@
 This modules configures every hadoop plugin needed to enable Ranger. It configures
 variables but also inject some function to be executed.
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/admin', ['ryba', 'ranger', 'admin'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        mysql_client: key: ['mysql']
-        db_admin: key: ['ryba', 'db_admin']
-        hadoop_core: key: ['ryba']
-        solr_cloud_docker: key: ['ryba', 'solr', 'cloud_docker']
-      @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.admin ?= service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identities
 
@@ -40,20 +31,20 @@ variables but also inject some function to be executed.
       options.log_dir ?= '/var/log/ranger/admin'
       # Misc
       options.clean_logs ?= false
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.fqdn ?= service.node.fqdn # Used by Solr embedded
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.enabled ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin = service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
 
 ## Log4j
 
@@ -109,7 +100,7 @@ User can be External and Internal. Only Internal users can be created from the r
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       # Needed starting from 2.5 version to not have problem during setup execution
-      options.install['hadoop_conf'] ?= "#{service.use.hadoop_core.options.hadoop_conf_dir}"
+      options.install['hadoop_conf'] ?= "#{service.deps.hadoop_core.options.hadoop_conf_dir}"
       options.install['RANGER_ADMIN_LOG_DIR'] ?= "#{options.log_dir}"
 
 # Kerberos
@@ -217,10 +208,10 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
       options.retention ?=  "+#{options.audit_retention_period}"
       switch options.solr_type
         when 'single'
-          throw Error 'No Solr Standalone Server configured' unless service.use.solr_standalone
-          options.install['audit_solr_port'] ?= service.use.solr_standalone[0].options.port
+          throw Error 'No Solr Standalone Server configured' unless service.deps.solr_standalone
+          options.install['audit_solr_port'] ?= service.deps.solr_standalone[0].options.port
           options.install['audit_solr_zookeepers'] ?= 'NONE'
-          solrs_urls = service.use.solr_standalone.map( (srv) -> 
+          solrs_urls = service.deps.solr_standalone.map( (srv) -> 
            "#{if srv.options.ssl.enabled then 'https://' else 'http://'}#{srv.node.fqdn}:#{srv.options.port}")
           .map (url) -> "#{url}/solr/ranger_audits"
           .join ','
@@ -264,7 +255,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           if options.krb5.enabled
             options.solr.principal ?= "#{options.solr.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
             options.solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
-          options.solr.ssl = merge options.solr.ssl or {}, service.use.hadoop_core.options.ssl
+          options.solr.ssl = merge options.solr.ssl or {}, service.deps.hadoop_core.options.ssl
           # lucasbak 11102017
           # in HDP 2.5.3 SSL enabled solr sink is not supported
           options.solr.ssl.enabled = false
@@ -273,7 +264,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           options.solr.ssl_truststore_pwd ?= 'solr123'
           options.solr.ssl_keystore_path ?= "#{options.solr.conf_dir}/keystore"
           options.solr.ssl_keystore_pwd ?= 'solr123'
-          options.solr.env['SOLR_JAVA_HOME'] ?= service.use.java.options.java_home
+          options.solr.env['SOLR_JAVA_HOME'] ?= service.deps.java.options.java_home
           options.solr.env['SOLR_HOST'] ?= service.node.fqdn
           options.solr.env['SOLR_HEAP'] ?= "512m"
           options.solr.env['SOLR_PORT'] ?= "#{options.solr.port}"
@@ -284,18 +275,18 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             options.solr.env['SOLR_SSL_TRUST_STORE'] ?= options.solr.ssl_truststore_path
             options.solr.env['SOLR_SSL_TRUST_STORE_PASSWORD'] ?= options.solr.ssl_truststore_pwd
             options.solr.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'
-          options.solr.jre_home ?= service.use.java.options.jre_home
+          options.solr.jre_home ?= service.deps.java.options.jre_home
           solrs_urls = "#{if options.solr.ssl.enabled then 'https://' else 'http://'}#{service.node.fqdn}:#{options.solr.port}/solr/ranger_audits"
           options.install['audit_solr_zookeepers'] ?= 'NONE'
         when 'cloud'
-          throw Error 'No Solr Docker Server configured' unless service.use.solr_cloud
+          throw Error 'No Solr Docker Server configured' unless service.deps.solr_cloud
           solr = sc_ctxs[0].config.ryba.solr
-          options.install['audit_solr_port'] ?= service.use.solr_cloud[0].options.port
-          solrs_urls = service.use.solr_cloud.map( (srv) ->
+          options.install['audit_solr_port'] ?= service.deps.solr_cloud[0].options.port
+          solrs_urls = service.deps.solr_cloud.map( (srv) ->
             "#{if srv.options.ssl.enabled then 'https://' else 'http://'}#{srv.node.fqdn}:#{srv.options.port}")
           # .map( (url) -> if options.solr_type is 'single' then "#{url}/solr/ranger_audits" else "#{url}")
           .join(',')
-          options.install['audit_solr_zookeepers'] ?= service.use.solr_cloud[0].options.zkhosts
+          options.install['audit_solr_zookeepers'] ?= service.deps.solr_cloud[0].options.zkhosts
           # TODO: migration can't handle this for now
           if @params.command is 'install'
             sc_ctxs = @contexts 'ryba/solr/cloud'
@@ -306,7 +297,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
             , -> @call 'ryba/ranger/admin/solr_bootstrap'
           break;
         when 'cloud_docker'
-          throw Error 'No Solr Cloud Docker Server configured' unless service.use.solr_cloud_docker or options.cluster_name
+          throw Error 'No Solr Cloud Docker Server configured' unless service.deps.solr_cloud_docker or options.cluster_name
           # scd_ctxs = @contexts 'ryba/solr/cloud_docker'
           # options.cluster_name ?= 'ranger_cluster'
           # options.solr_admin_user ?= 'solr'
@@ -402,15 +393,15 @@ Configure SSL for Ranger policymanager (webui).
       options.site['ranger.service.https.attrib.clientAuth'] ?= 'false'
       options.site['ranger.service.https.attrib.keystore.file'] ?= '/etc/ranger/admin/conf/keystore'
       options.site['ranger.service.https.attrib.keystore.pass'] ?= 'ryba123'
-      options.site['ranger.service.https.attrib.keystore.keyalias'] ?= @config.shortname
+      options.site['ranger.service.https.attrib.keystore.keyalias'] ?= service.node.hostname
 
 # Ranger Admin Databases
 
 Configures the Ranger WEBUi (policymanager) database. For now only mysql is supported.
 
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       switch options.db.engine
         when 'mysql', 'mariadb'
           options.install['DB_FLAVOR'] ?= 'MYSQL' # we support only mysql for now
@@ -503,7 +494,7 @@ Ryba injects function to the different contexts.
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait = {}
       options.wait.http = {}
       options.wait.http.username = 'admin'
@@ -513,7 +504,6 @@ Ryba injects function to the different contexts.
 ## Dependencies
 
     quote = require 'regexp-quote'
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [ranger-2.4.0]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/configure-the-ranger-policy-administration-authentication-moades.html)

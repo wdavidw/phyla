@@ -12,7 +12,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 ## Service
 
     module.exports =  header: 'HBase Thrift Stop', handler: (options) ->
-      {hbase} = @config.ryba
+
       @service.stop
         header: 'Service'
         name: 'hbase-thrift'
@@ -21,11 +21,11 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
       @call
         header: 'Clean Logs'
-        if: -> @config.ryba.clean_logs
+        if: options.clean_logs
       , ->
         @system.execute
-          cmd: "rm #{hbase.thrift.log_dir}/*-thrift-*"
+          cmd: "rm #{options.log_dir}/*-thrift-*"
           code_skipped: 1
         @system.execute
-          cmd: "rm #{hbase.thrift.log_dir}/gc.log-*"
+          cmd: "rm #{options.log_dir}/gc.log-*"
           code_skipped: 1

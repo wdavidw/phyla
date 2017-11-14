@@ -15,7 +15,7 @@ configured with the location of both NameNodes, and send block location
 information and heartbeats to both.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         iptables: module: 'masson/core/iptables', local: true
@@ -28,19 +28,16 @@ information and heartbeats to both.
       configure:
         'ryba/hadoop/hdfs_dn/configure'
       commands:
-        'check': ->
-          options = @config.ryba.hdfs.dn
-          @call 'ryba/hadoop/hdfs_dn/check', options
-        'install': ->
-          options = @config.ryba.hdfs.dn
-          @call 'ryba/hadoop/hdfs_dn/install', options
-          @call 'ryba/hadoop/hdfs_dn/start', options
-          @call 'ryba/hadoop/hdfs_dn/check', options
-        'start': ->
-          options = @config.ryba.hdfs.dn
-          @call 'ryba/hadoop/hdfs_dn/start', options
+        'check':
+          'ryba/hadoop/hdfs_dn/check'
+        'install': [
+          'ryba/hadoop/hdfs_dn/install'
+          'ryba/hadoop/hdfs_dn/start'
+          'ryba/hadoop/hdfs_dn/check'
+        ]
+        'start':
+          'ryba/hadoop/hdfs_dn/start'
         'status':
           'ryba/hadoop/hdfs_dn/status'
-        'stop': ->
-          options = @config.ryba.hdfs.dn
-          @call 'ryba/hadoop/hdfs_dn/stop', options
+        'stop':
+          'ryba/hadoop/hdfs_dn/stop'

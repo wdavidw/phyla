@@ -18,6 +18,15 @@ Options include:
 *   `parent.user`   
 *   `parent.group`   
 
+## Exmple
+
+```coffee
+@registry.register 'hdfs_mdkir', 'ryba/lib/hdfs_mdkir'
+@hdfs_mdkir
+  target: '/path/to/dir'
+  user: 'myself'
+```
+
 ## Source Code
 
     module.exports = (options, callback) ->

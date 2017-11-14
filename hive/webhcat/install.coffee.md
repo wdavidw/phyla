@@ -109,7 +109,7 @@ Upload configuration inside '/etc/hive-webhcat/conf/webhcat-site.xml'.
 
 ## Env
 
-Update environnmental variables inside '/etc/hive-webhcat/conf/webhcat-env.sh'.
+Update environmental variables inside '/etc/hive-webhcat/conf/webhcat-env.sh'.
 
       @call header: 'Webhcat Env', ->
         options.java_opts = ''
@@ -139,6 +139,7 @@ HDFS directory. Note, the parent directories are created by the
             source: "/usr/hdp/current/#{lib}-client/#{lib}.tar.gz"
             target: "/hdp/apps/$version/#{lib}/#{lib}.tar.gz"
             lock: "/tmp/ryba-#{lib}.lock"
+            krb5_user: options.hdfs_krb5_user
         )
 
         # Avoid HTTP response
@@ -146,7 +147,7 @@ HDFS directory. Note, the parent directories are created by the
 
       @system.execute
         header: 'Fix HDFS tmp'
-        cmd: mkcmd.hdfs @, """
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
         if hdfs dfs -test -d /tmp/hadoop-hcat; then exit 2; fi
         hdfs dfs -mkdir -p /tmp/hadoop-hcat
         hdfs dfs -chown HTTP:#{options.hadoop_group.name} /tmp/hadoop-hcat

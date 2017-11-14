@@ -3,32 +3,25 @@
 # YARN Client Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/mapred_client', ['ryba', 'yarn_client'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_ts: key: ['ryba', 'yarn', 'ats']
-      @config.ryba ?= {}
-      options = @config.ryba.yarn_client = service.options
+      options = service.options
 
 ## Environment
 
       options.log_dir ?= '/var/log/hadoop-yarn'
       # options.pid_dir ?= '/var/run/hadoop-yarn'
-      options.conf_dir ?= service.use.hadoop_core.options.conf_dir
+      options.conf_dir ?= service.deps.hadoop_core.options.conf_dir
       options.opts ?= ''
       options.heapsize ?= '1024'
       options.home ?= '/usr/hdp/current/hadoop-yarn-client'
       # Misc
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
 
 ## Identities
 
-      options.group = merge {}, service.use.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.yarn.user, options.user
+      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Configuration
 
@@ -44,7 +37,7 @@
       # 100 nodes, we recommend this configuration value be set to false to
       # reduce the load on the Application Timeline Service.
       # see http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.8/bk_HDP_RelNotes/content/behav-changes-228.html
-      default_save_am_info = if service.use.yarn_nm.length > 100 then 'false' else 'true'
+      default_save_am_info = if service.deps.yarn_nm.length > 100 then 'false' else 'true'
       options.yarn_site['yarn.generic-application-history.save-non-am-container-meta-info'] ?= "#{default_save_am_info}"
 
 ## Yarn Timeline Server
@@ -58,9 +51,9 @@
         'yarn.timeline-service.http-authentication.type'
         'yarn.timeline-service.http-authentication.kerberos.principal'
       ]
-        options.yarn_site[property] ?= if service.use.yarn_ats then service.use.yarn_ats.options.yarn_site[property] else null
+        options.yarn_site[property] ?= if service.deps.yarn_ats then service.deps.yarn_ats.options.yarn_site[property] else null
 
-      for srv in service.use.yarn_nm
+      for srv in service.deps.yarn_nm
         for property in [
           # 'yarn.log-aggregation-enable'
           # 'yarn.log-aggregation.retain-check-interval-seconds'
@@ -69,7 +62,7 @@
         ]
           options.yarn_site[property] ?= srv.options.yarn_site[property]
 
-      for srv in service.use.yarn_rm
+      for srv in service.deps.yarn_rm
         id = if srv.options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
         for property in [
           'yarn.resourcemanager.principal'
@@ -89,10 +82,9 @@
 
 ## Wait
 
-      options.wait_yarn_ts = service.use.yarn_ts[0].options.wait
-      options.wait_yarn_rm = service.use.yarn_rm[0].options.wait
+      options.wait_yarn_ts = service.deps.yarn_ts[0].options.wait
+      options.wait_yarn_rm = service.deps.yarn_rm[0].options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

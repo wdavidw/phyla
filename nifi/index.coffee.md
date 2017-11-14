@@ -11,7 +11,7 @@ and objectives of NiFi includes:
   * SSL, SSH, HTTPS, encrypted content, etc...
 
       module.exports =
-        use:
+        deps:
           krb5_client: implicit: true, module: 'masson/core/krb5_client', local: true
           iptables: module: 'masson/core/iptables', local: true
           ssl: module: 'masson/core/ssl', local: true
@@ -25,23 +25,18 @@ and objectives of NiFi includes:
         configure:
           'ryba/nifi/configure'
         commands:
-          'install': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/install', options
-            @call 'ryba/nifi/start', options
-            @call 'ryba/nifi/check', options
-          'check': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/check', options
-          'prepare': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/prepare', options
-          'status': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/status', options
-          'start': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/start', options
-          'stop': ->
-            options = @config.ryba.nifi
-            @call 'ryba/nifi/stop', options
+          'install': [
+            'ryba/nifi/install'
+            'ryba/nifi/start'
+            'ryba/nifi/check'
+          ]
+          'check':
+            'ryba/nifi/check'
+          'prepare':
+            'ryba/nifi/prepare'
+          'status':
+            'ryba/nifi/status'
+          'start':
+            'ryba/nifi/start'
+          'stop':
+            'ryba/nifi/stop'

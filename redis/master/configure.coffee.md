@@ -5,11 +5,7 @@ Redis replication adopts a slave-master architecture. This module configure the 
 that slave will link to. Redis does only user one master.
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/redis/master', ['ryba', 'redis', 'master'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        yum: key: ['yum']
-      @config.ryba.redis ?= {}
-      options = @config.ryba.redis.master ?= service.options
+      options = service.options
 
 ## Identities
 
@@ -35,7 +31,7 @@ The Redis package does create the redis user.
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.conf_dir ?= "/etc/redis"
       options.pid_dir ?= '/var/run/redis'
@@ -89,7 +85,6 @@ Add password authentication
 ## Dependencies
 
     quote = require 'regexp-quote'
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [redis-replication]:https://redis.io/topics/replication

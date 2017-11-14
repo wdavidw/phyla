@@ -4,7 +4,7 @@
 [Yarn ResourceManager ](http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/ResourceManagerRestart.html) is the central authority that manages resources and schedules applications running atop of YARN.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -21,30 +21,27 @@
         log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/yarn_rm/configure'
-        # 'ryba/ranger/plugins/yarn/configure'
       commands:
-        # 'backup': 'ryba/hadoop/yarn_rm/backup'
-        'check': ->
-          options = @config.ryba.yarn.rm
+        # 'backup':
+        #   'ryba/hadoop/yarn_rm/backup'
+        'check':
           'ryba/hadoop/yarn_rm/check'
-        'report': ->
-          options = @config.ryba.yarn.rm
-          @call 'masson/bootstrap/report'
-          @call 'ryba/hadoop/yarn_rm/report', options
-        'install': ->
-          options = @config.ryba.yarn.rm
-          @call 'ryba/hadoop/yarn_rm/install', options
-          @call 'ryba/hadoop/yarn_rm/scheduler', options
-          @call 'ryba/hadoop/yarn_rm/start', options
-          @call 'ryba/hadoop/yarn_rm/check', options
-        'start': ->
-          options = @config.ryba.yarn.rm
-          @call 'ryba/hadoop/yarn_rm/start', options
+        'report': [
+          'masson/bootstrap/report'
+          'ryba/hadoop/yarn_rm/report'
+        ]
+        'install': [
+          'ryba/hadoop/yarn_rm/install'
+          'ryba/hadoop/yarn_rm/scheduler'
+          'ryba/hadoop/yarn_rm/start'
+          'ryba/hadoop/yarn_rm/check'
+        ]
+        'start':
+          'ryba/hadoop/yarn_rm/start'
         'status':
           'ryba/hadoop/yarn_rm/status'
-        'stop': ->
-          options = @config.ryba.yarn.rm
-          @call 'ryba/hadoop/yarn_rm/stop', options
+        'stop':
+          'ryba/hadoop/yarn_rm/stop'
 
 
 [restart]: http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/ResourceManagerRestart.html

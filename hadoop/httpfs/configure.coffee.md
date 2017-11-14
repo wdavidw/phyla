@@ -5,26 +5,14 @@ The default configuration is located inside the source code in the location
 "hadoop-hdfs-project/hadoop-hdfs-httpfs/src/main/resources/httpfs-default.xml".
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/https', ['ryba', 'httpfs'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        hadoop_core: key: ['ryba']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        httpfs: key: ['ryba', 'httpfs']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      options = @config.ryba.httpfs = service.options
+      options = service.options
 
 ## Environment
 
       # layout
       options.pid_dir ?= '/var/run/httpfs'
       options.conf_dir ?= '/etc/hadoop-httpfs/conf'
-      options.hdfs_conf_dir ?= service.use.hdfs_client.options.conf_dir
+      options.hdfs_conf_dir ?= service.deps.hdfs_client.options.conf_dir
       options.log_dir ?= '/var/log/hadoop-httpfs'
       options.tmp_dir ?= '/var/tmp/hadoop-httpfs'
       # Environment
@@ -38,6 +26,7 @@ The default configuration is located inside the source code in the location
       options.catalina.opts ?= {}
       # Misc
       options.fqdn ?= service.node.fqdn
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Identities
 
@@ -55,19 +44,21 @@ The default configuration is located inside the source code in the location
       options.user.home = "/var/lib/#{options.user.name}"
       options.user.gid = options.group.name
       options.user.groups ?= 'hadoop'
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.use.hdfs_client.options.core_site, options.core_site or {}
-      options.java_home ?= service.use.java.options.java_home or '/usr/java/default'
+      options.core_site = merge {}, service.deps.hdfs_client.options.core_site, options.core_site or {}
+      options.java_home ?= service.deps.java.options.java_home or '/usr/java/default'
       # Env
       options.env ?= {}
       options.env.HTTPFS_SSL_ENABLED ?= 'true' # Default is "false"
@@ -85,15 +76,15 @@ The default configuration is located inside the source code in the location
       options.httpfs_site['httpfs.hadoop.authentication.type'] ?= 'kerberos'
       options.httpfs_site['httpfs.hadoop.authentication.kerberos.keytab'] ?= '/etc/security/keytabs/httpfs.service.keytab' # Default to "${user.home}/httpfs.keytab"
       options.httpfs_site['httpfs.hadoop.authentication.kerberos.principal'] ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}" # Default to "${user.name}/${httpfs.hostname}@${kerberos.realm}"
-      options.httpfs_site['httpfs.authentication.kerberos.name.rules'] ?= service.use.hadoop_core.options.core_site['hadoop.security.auth_to_local']
+      options.httpfs_site['httpfs.authentication.kerberos.name.rules'] ?= service.deps.hadoop_core.options.core_site['hadoop.security.auth_to_local']
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
 
 ## Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       if options.log4j.remote_host? && options.log4j.remote_port?
         options.catalina.opts['httpfs.log.server.logger'] = 'INFO,httpfs,socket'
@@ -105,21 +96,20 @@ The default configuration is located inside the source code in the location
 
 Export the proxy user to all DataNodes and NameNodes
 
-      for srv in [service.use.hdfs_dn..., service.use.hdfs_nn...]
+      for srv in [service.deps.hdfs_dn..., service.deps.hdfs_nn...]
         srv.options.core_site ?= {}
-        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= service.use.httpfs.map((srv) -> srv.node.fqdn).join ','
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= service.deps.httpfs.map((srv) -> srv.node.fqdn).join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
       options.wait = {}
-      options.wait.http = for srv in service.use.httpfs
+      options.wait.http = for srv in service.deps.httpfs
         host: srv.node.fqdn
         port: srv.options.http_port or '14000'
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

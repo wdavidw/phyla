@@ -22,27 +22,8 @@ Example :
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/zookeeper/server', ['ryba', 'zookeeper'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        java: key: ['java']
-        hdp: key: ['hdp']
-        krb5_client: key: ['krb5_client']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      options = @config.ryba.zookeeper = service.options
-
-## Environment
-
-      # Layout
-      options.conf_dir ?= '/etc/zookeeper/conf'
-      options.log_dir ?= '/var/log/zookeeper'
-      options.pid_dir ?= '/var/run/zookeeper'
-      options.conf_dir ?= '/etc/zookeeper/conf'
-      # Misc
-      options.clean_logs ?= false
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
-
+      options = service.options
+      
 ## Identities
 
       # Groups
@@ -73,9 +54,21 @@ Example :
       options.opts.jvm ?= {}
       options.opts.jvm['-Xmx'] ?= '1024m'
       options.opts.jvm['-Xms'] ?= '1024m'
+      options.opts.java_properties['zookeeper.security.auth_to_local'] ?= '$ZOO_AUTH_TO_LOCAL'
+      # if options.env['SERVER_JVMFLAGS'].indexOf('-Dzookeeper.security.auth_to_local') is -1
+      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dzookeeper.security.auth_to_local=$ZOO_AUTH_TO_LOCAL"
+      # if options.env['JMXPORT']? and options.env['SERVER_JVMFLAGS'].indexOf('-D') is -1
+      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dcom.sun.management.jmxremote.rmi.port=#JMXPORT"
+      # Internal
 
-## Configuration
+## Environment
 
+      # Layout
+      options.conf_dir ?= '/etc/zookeeper/conf'
+      options.log_dir ?= '/var/log/zookeeper'
+      options.pid_dir ?= '/var/run/zookeeper'
+      options.conf_dir ?= '/etc/zookeeper/conf'
+      # Env
       options.env ?= {}
       options.env['ZOOKEEPER_HOME'] ?= "/usr/hdp/current/zookeeper-client"
       options.env['ZOO_AUTH_TO_LOCAL'] ?= "RULE:[1:\\$1]RULE:[2:\\$1]"
@@ -85,16 +78,16 @@ Example :
       options.env['SERVER_JVMFLAGS'] ?= "-Xmx1024m -Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-server.jaas ${JAVA_OPTS}"
       options.env['CLIENT_JVMFLAGS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-client.jaas"
       options.env['JAVA'] ?= '$JAVA_HOME/bin/java'
-      options.env['JAVA_HOME'] ?= "#{service.use.java.options.java_home}"
+      options.env['JAVA_HOME'] ?= "#{service.deps.java.options.java_home}"
       options.env['CLASSPATH'] ?= '$CLASSPATH:/usr/share/zookeeper/*'
       options.env['ZOO_LOG4J_PROP'] ?= 'INFO,ROLLINGFILE' #was 'INFO,CONSOLE, ROLLINGFILE'
-      options.opts.java_properties['zookeeper.security.auth_to_local'] ?= '$ZOO_AUTH_TO_LOCAL'
-      # if options.env['SERVER_JVMFLAGS'].indexOf('-Dzookeeper.security.auth_to_local') is -1
-      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dzookeeper.security.auth_to_local=$ZOO_AUTH_TO_LOCAL"
-      # if options.env['JMXPORT']? and options.env['SERVER_JVMFLAGS'].indexOf('-D') is -1
-      #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dcom.sun.management.jmxremote.rmi.port=#JMXPORT"
-      # Internal
-      options.id ?= service.use.zookeeper_server.map( (srv) -> srv.node.fqdn ).indexOf(service.node.fqdn)+1
+      # Misc
+      options.clean_logs ?= false
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+
+## Configuration
+
+      options.id ?= service.deps.zookeeper_server.map( (srv) -> srv.node.fqdn ).indexOf(service.node.fqdn)+1
       options.fqdn ?= service.node.fqdn
       options.peer_port ?= 2888
       options.leader_port ?= 3888
@@ -120,9 +113,9 @@ Example :
       # If zookeeper node is participant (to election) or only observer
       # Adding new observer nodes allow horizontal scaling without slowing write
       options.config['peerType'] ?= 'participant'
-      connect_string = "#{@config.host}:#{options.peer_port}:#{options.leader_port}"
+      connect_string = "#{service.node.fqdn}:#{options.peer_port}:#{options.leader_port}"
       connect_string += ":observer" if options.config['peerType'] is 'observer'
-      for srv, i in service.use.zookeeper_server
+      for srv, i in service.deps.zookeeper_server
         srv.options.config ?= {}
         if srv.options.config["server.#{options.id}"]? and srv.options.config["server.#{options.id}"] isnt connect_string
           throw Error "Zk Server id '#{options.id}' is already registered on #{srv.node.fqdn}"
@@ -138,19 +131,20 @@ Example :
       # Superuser
       options.superuser ?= {}
       # zookeeper.superuser.password ?= 'ryba123'
+      options.has_observers = service.deps.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'observer' ).length > 0
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       options.krb5.principal ?= "zookeeper/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5.keytab ?= '/etc/security/keytabs/zookeeper.service.keytab'
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
 
       if options.log4j.remote_host? and options.log4j.remote_port? and options.env['ZOO_LOG4J_PROP'].indexOf('SOCKET') is -1
         options.env['ZOO_LOG4J_PROP'] = "#{options.env['ZOO_LOG4J_PROP']},SOCKET"
@@ -189,15 +183,15 @@ Example :
 ## Test
 
       # Zookeeper Server
-      options.zookeeper_server = for srv in service.use.zookeeper_server
+      options.zookeeper_server = for srv in service.deps.zookeeper_server
         fqdn: srv.node.fqdn
         port: srv.options.config['clientPort'] or 2181
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.zookeeper_server
+      options.wait.tcp = for srv in service.deps.zookeeper_server
         srv.options.config ?= {}
         continue unless srv.options.config['peerType'] is 'participant'
         host: srv.node.fqdn
@@ -205,5 +199,4 @@ Example :
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'

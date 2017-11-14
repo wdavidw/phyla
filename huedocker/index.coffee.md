@@ -15,7 +15,7 @@ beloaded to the target server
 ```
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', implicit: true, local: true
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
@@ -42,32 +42,26 @@ beloaded to the target server
         zookeeper_server: 'ryba/zookeeper/server'
         sqoop: 'ryba/sqoop'
         huedocker: 'ryba/huedocker'
-      configure: 'ryba/huedocker/configure'
+      configure:
+        'ryba/huedocker/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/install', options
-          @call 'ryba/huedocker/start', options
-          @call 'ryba/huedocker/check', options
-        'start': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/start', options
-        'wait': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/wait', options
-        'check': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/check', options
-        'stop': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/stop', options
-        'status': ->
-          options = @config.ryba.hue_docker
-          @call 'ryba/huedocker/status', options
-        'prepare': ->
-          options = @config.ryba.hue_docker
-          options.ssh = null
-          @call 'ryba/huedocker/prepare', options
+        'install': [
+          'ryba/huedocker/install'
+          'ryba/huedocker/start'
+          'ryba/huedocker/check'
+        ]
+        'start':
+          'ryba/huedocker/start'
+        'wait':
+          'ryba/huedocker/wait'
+        'check':
+          'ryba/huedocker/check'
+        'stop':
+          'ryba/huedocker/stop'
+        'status':
+          'ryba/huedocker/status'
+        'prepare':
+          'ryba/huedocker/prepare'
 
 
 [home]: http://gethue.com

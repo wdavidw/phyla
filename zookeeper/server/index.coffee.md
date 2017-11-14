@@ -9,7 +9,7 @@ file. The file is similar to the one used in standalone mode, but with a few
 differences.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -22,19 +22,16 @@ differences.
       commands:
         # 'backup':
         #   'ryba/zookeeper/server/backup'
-        'check': ->
-          options = @config.ryba.zookeeper
-          @call 'ryba/zookeeper/server/check', options
-        'install': ->
-          options = @config.ryba.zookeeper
-          @call 'ryba/zookeeper/server/install', options
-          @call 'ryba/zookeeper/server/start', options
-          @call 'ryba/zookeeper/server/check', options
-        'start': ->
-          options = @config.ryba.zookeeper
-          @call 'ryba/zookeeper/server/start', options
+        'check':
+          'ryba/zookeeper/server/check'
+        'install': [
+          'ryba/zookeeper/server/install'
+          'ryba/zookeeper/server/start'
+          'ryba/zookeeper/server/check'
+        ]
+        'start':
+          'ryba/zookeeper/server/start'
         'status':
           'ryba/zookeeper/server/status'
-        'stop': ->
-          options = @config.ryba.zookeeper
-          @call 'ryba/zookeeper/server/stop', options
+        'stop':
+          'ryba/zookeeper/server/stop'

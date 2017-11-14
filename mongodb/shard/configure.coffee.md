@@ -2,24 +2,14 @@
 ## Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/mongodb/shard', ['ryba', 'mongodb', 'shard'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        locale: key: ['locale']
-        ssl: key: ['ssl']
-        repo: key: ['ryba','mongodb','repo']
-        config_servers: key: ['ryba', 'mongodb', 'configsrv']
-        shard_servers: key: ['ryba', 'mongodb', 'shard']
-      @config.ryba ?= {}
-      @config.ryba.mongodb ?= {}
-      options = @config.ryba.mongodb.shard = service.options
+      options = service.options
 
 ## Identities
 
 By default, merge group and user from the MongoDb config server.
 
-      options.group = merge service.use.config_servers[0].options.group, options.group
-      options.user = merge service.use.config_servers[0].options.user, options.user
+      options.group = merge service.deps.config_servers[0].options.group, options.group
+      options.user = merge service.deps.config_servers[0].options.user, options.user
 
 ## Configuration
 
@@ -35,7 +25,7 @@ By default, merge group and user from the MongoDb config server.
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.config ?= {}
       # setting the role of mongod process as a mongodb config server
@@ -75,7 +65,7 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
       throw Error 'Missing Replica Set Name ryba.options.replicaset' unless options.replicaset?
       options.replicasets = {}
       options.is_master ?= false
-      for srv in service.use.shard_servers
+      for srv in service.deps.shard_servers
         options.replicasets[srv.options.replicaset] ?= {}
         options.replicasets[srv.options.replicaset]['hosts'] ?= []
         options.replicasets[srv.options.replicaset]['hosts'].push srv.node.fqdn
@@ -123,8 +113,8 @@ config servers replica set will hold metadata.
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled = !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
@@ -156,9 +146,9 @@ Kerberos authentication is only avaiable in enterprise edition.
 Should work nonetheless.
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       options.config.security.sasl ?= {}
       options.config.security.sasl.hostName ?= service.node.fqdn
       options.config.security.sasl.serviceName ?= 'mongodb' # Can override only on interprise edition
@@ -166,9 +156,9 @@ Should work nonetheless.
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.shard_servers
+      options.wait.tcp = for srv in service.deps.shard_servers
         host: srv.node.fqdn
         port: options.config.net.port or 27019
       options.wait.local =
@@ -177,7 +167,6 @@ Should work nonetheless.
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [mongod-ssl]:(https://docs.mongodb.org/manual/reference/configuration-options/#net.ssl.mode)

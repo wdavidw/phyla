@@ -10,31 +10,8 @@ loop on topologies to provide missing values
 
 ## Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/knox/server', ['ryba', 'knox'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        sssd: key: ['sssd']
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        db_admin: key: ['ryba', 'db_admin']
-        test_user: key: ['ryba', 'test_user']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        httpfs: key: ['ryba', 'httpfs']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        hive_server2: key: ['ryba', 'hive', 'server2']
-        hive_webhcat: key: ['ryba', 'webhcat']
-        oozie_server: key: ['ryba', 'oozie', 'server']
-        hbase_rest: key: ['ryba', 'hbase', 'rest']
-        knox_server: key: ['ryba', 'knox']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        log4j: key: ['ryba', 'log4j']
-        # ranger_knox: key: ['ryba', 'ranger', 'knox']
-      @config.ryba ?= {}
-      options = @config.ryba.knox = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -46,7 +23,7 @@ loop on topologies to provide missing values
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Identities
 
@@ -70,20 +47,20 @@ loop on topologies to provide missing values
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       options.krb5_user ?= {}
       options.krb5_user.principal ?= "#{options.user.name}/#{options.fqdn}@#{options.krb5.realm}"
       options.krb5_user.keytab ?= '/etc/security/keytabs/options.service.keytab'
 
 ## Test
 
-      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
-      options.test = merge {}, service.use.test_user.options, options.test
-      if service.use.ranger_admin?
-        service.use.ranger_admin.options.users ?= {}
-        service.use.ranger_admin.options.users[options.test.user.name] ?=
+      options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
+      options.test = merge {}, service.deps.test_user.options, options.test
+      if service.deps.ranger_admin?
+        service.deps.ranger_admin.options.users ?= {}
+        service.deps.ranger_admin.options.users[options.test.user.name] ?=
           "name": options.test.user.name
           "firstName": options.test.user.name
           "lastName": 'hadoop'
@@ -106,13 +83,13 @@ Knox reads its own env variable to retrieve configuration.
 
 ## Java
 
-      options.java_home = service.use.java.options.java_home
-      options.jre_home = service.use.java.options.jre_home
+      options.java_home = service.deps.java.options.java_home
+      options.jre_home = service.deps.java.options.jre_home
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       # options.truststore ?= {}
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -157,14 +134,14 @@ Knox reads its own env variable to retrieve configuration.
           hosts.push node.fqdn unless node.fqdn in hosts
         hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
-      enrich_proxy_user srv for srv in service.use.hdfs_nn
-      enrich_proxy_user srv for srv in service.use.hdfs_dn
-      enrich_proxy_user srv for srv in service.use.yarn_rm
-      enrich_proxy_user srv for srv in service.use.yarn_nm
+      enrich_proxy_user srv for srv in service.deps.hdfs_nn
+      enrich_proxy_user srv for srv in service.deps.hdfs_dn
+      enrich_proxy_user srv for srv in service.deps.yarn_rm
+      enrich_proxy_user srv for srv in service.deps.yarn_nm
       # Probably hbase rest is reading "core-site.xml" from "/etc/hadoop/conf"
-      # enrich_proxy_user srv, 'hbase_rest' for srv in service.use.hbase_rest
-      enrich_proxy_user srv, 'hdfs_client' for srv in service.use.hdfs_client
-      for srv in service.use.httpfs
+      # enrich_proxy_user srv, 'hbase_rest' for srv in service.deps.hbase_rest
+      enrich_proxy_user srv, 'hdfs_client' for srv in service.deps.hdfs_client
+      for srv in service.deps.httpfs
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] or ''
         hosts = hosts.split ','
@@ -172,7 +149,7 @@ Knox reads its own env variable to retrieve configuration.
           hosts.push node.fqdn unless node.fqdn in hosts
         hosts = hosts.join ' '
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= hosts
-      for srv in service.use.oozie_server
+      for srv in service.deps.oozie_server
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or ''
         hosts = hosts.split ','
@@ -214,18 +191,18 @@ Example:
 ```
 
 
-      nameservice = service.use.hdfs_nn[0].options.nameservice
+      nameservice = service.deps.hdfs_nn[0].options.nameservice
       options.topologies ?= {}
       for nameservice, topology of options.topologies
         topology[nameservice] ?= {}
         topology[nameservice].services ?= {}
-        topology[nameservice].services['namenode'] ?= !!service.use.hdfs_nn
-        topology[nameservice].services['webhdfs'] ?= !!service.use.hdfs_nn
-        topology[nameservice].services['jobtracker'] ?= !!service.use.yarn_rm
-        topology[nameservice].services['hive'] ?= !!service.use.hive_server2
-        topology[nameservice].services['webhcat'] ?= !!service.use.hive_webhcat
-        topology[nameservice].services['oozie'] ?= !!service.use.oozie_server
-        topology[nameservice].services['webhbase'] ?= !!service.use.hbase_rest
+        topology[nameservice].services['namenode'] ?= !!service.deps.hdfs_nn
+        topology[nameservice].services['webhdfs'] ?= !!service.deps.hdfs_nn
+        topology[nameservice].services['jobtracker'] ?= !!service.deps.yarn_rm
+        topology[nameservice].services['hive'] ?= !!service.deps.hive_server2
+        topology[nameservice].services['webhcat'] ?= !!service.deps.hive_webhcat
+        topology[nameservice].services['oozie'] ?= !!service.deps.oozie_server
+        topology[nameservice].services['webhbase'] ?= !!service.deps.hbase_rest
         # Configure providers
         topology.providers ?= {}
         topology.providers['authentication'] ?= {}
@@ -239,9 +216,9 @@ Example:
         throw Error 'Need One Realm when ShiroProvider is used' unless topology.realms?
         for realm, realm_config of topology.realms
           if realm_config.sssd_lookup
-            throw Error 'masson/core/sssd must be used when realm.sssd_lookup is set' unless service.use.sssd?
-            throw Error "masson/core/sssd ldap domain #{realm_config.sssd_lookup} does not exist" unless service.use.sssd.options.config[realm_config.sssd_lookup]?
-            realm_config = merge {}, realm_config, service.use.sssd.options.config[realm_config.sssd_lookup]
+            throw Error 'masson/core/sssd must be used when realm.sssd_lookup is set' unless service.deps.sssd?
+            throw Error "masson/core/sssd ldap domain #{realm_config.sssd_lookup} does not exist" unless service.deps.sssd.options.config[realm_config.sssd_lookup]?
+            realm_config = merge {}, realm_config, service.deps.sssd.options.config[realm_config.sssd_lookup]
           else
             throw Error 'Required property ldap_uri' unless realm_config['ldap_uri']?
             throw Error 'Required property ldap_default_bind_dn' unless realm_config['ldap_default_bind_dn']?
@@ -285,7 +262,7 @@ internal cluster user and/or group. This allows the Knox Gateway accept requests
 from external users without requiring internal cluster user names to be exposed.
 
         topology.providers['identity-assertion'] ?= name: 'Pseudo'
-        topology.providers['authorization'] ?= if service.use.ranger_admin? then name: 'XASecurePDPKnox' else name: 'AclsAuthz'
+        topology.providers['authorization'] ?= if service.deps.ranger_admin? then name: 'XASecurePDPKnox' else name: 'AclsAuthz'
         ## Services
         topology.services ?= {}
         topology.services.knox ?= ''
@@ -296,27 +273,27 @@ This mechanism can be used to configure a specific gateway without having to dec
 
         # Namenode & WebHDFS
         if topology.services['namenode'] is true
-          if service.use.hdfs_nn
-            topology.services['namenode'] = service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
+          if service.deps.hdfs_nn
+            topology.services['namenode'] = service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']
           else throw Error 'Cannot autoconfigure KNOX namenode service, no namenode declared'  
         if topology.services['webhdfs'] is true
-          throw Error 'Cannot autoconfigure KNOX webhdfs service, no namenode declared' unless service.use.hdfs_nn
+          throw Error 'Cannot autoconfigure KNOX webhdfs service, no namenode declared' unless service.deps.hdfs_nn
           # WebHDFS auto configuration rules:
           # We provide by default namenode WebHDFS (default implementation, embedded in namenode) instead of httpfs. Httpfs put request through knox create empty files.
           # We also configure HA for WebHDFS if namenodes are in HA-mode
 
-          # if service.use.httpfs
-          #   if service.use.httpfs.length > 1
+          # if service.deps.httpfs
+          #   if service.deps.httpfs.length > 1
           #     topology.providers['ha'] ?= name: 'HaProvider'
           #     topology.providers['ha'].config ?= {}
           #     topology.providers['ha'].config['WEBHDFS'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;maxRetryAttempts=300;retrySleep=1000;enabled=true'
-          #   topology.services['webhdfs'] = service.use.httpfs.map (srv) -> "http#{if srv.options.env.HTTPFS_SSL_ENABLED is 'true' then 's' else ''}://#{ctx.config.host}:#{ctx.config.ryba.httpfs.http_port}/webhdfs/v1"
-          if service.use.hdfs_nn.length > 1
+          #   topology.services['webhdfs'] = service.deps.httpfs.map (srv) -> "http#{if srv.options.env.HTTPFS_SSL_ENABLED is 'true' then 's' else ''}://#{ctx.config.host}:#{ctx.config.ryba.httpfs.http_port}/webhdfs/v1"
+          if service.deps.hdfs_nn.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['WEBHDFS'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;maxRetryAttempts=300;retrySleep=1000;enabled=true'
             topology.services['webhdfs'] = []
-            for srv in service.use.hdfs_nn
+            for srv in service.deps.hdfs_nn
               protocol = if srv.options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
               port = srv.options.hdfs_site["dfs.namenode.#{protocol}-address.#{srv.options.nameservice}.#{srv.node.hostname}"].split(':')[1]
               # We ensure that the default active namenode is first in the list !
@@ -330,10 +307,10 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## Yarn ResourceManager
 
         if topology.services['jobtracker'] is true
-          if service.use.yarn_rm
-            rm_shortname = if service.use.yarn_rm.length > 1 then ".#{service.use.yarn_rm[0].node.hostname}" else ''
-            rm_address = service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.address#{rm_shortname}"]
-            rm_ws_address = service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{rm_shortname}"]
+          if service.deps.yarn_rm
+            rm_shortname = if service.deps.yarn_rm.length > 1 then ".#{service.deps.yarn_rm[0].node.hostname}" else ''
+            rm_address = service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.address#{rm_shortname}"]
+            rm_ws_address = service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{rm_shortname}"]
             topology.services['jobtracker'] = "rpc://#{rm_address}"
             topology.services['RESOURCEMANAGER'] = "https://#{rm_ws_address}/ws"
           else throw Error 'Cannot autoconfigure KNOX jobtracker service, no resourcemanager declared'
@@ -341,16 +318,16 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## Hive Server2
 
         if topology.services['hive'] is true
-          if service.use.hive_server2.length is 1
-            host = service.use.hive_server2[0].node.fqdn
-            port = service.use.hive_server2[0].options.hive_site['hive.server2.thrift.http.port']
-            protocol = if service.use.hive_server2[0].options.hive_site['hive.server2.use.SSL'] is 'true' then 'https' else 'http'
+          if service.deps.hive_server2.length is 1
+            host = service.deps.hive_server2[0].node.fqdn
+            port = service.deps.hive_server2[0].options.hive_site['hive.server2.thrift.http.port']
+            protocol = if service.deps.hive_server2[0].options.hive_site['hive.server2.use.SSL'] is 'true' then 'https' else 'http'
             topology.services['hive'] = "#{protocol}://#{host}:#{port}/cliservice"
-          else if service.use.hive_server2.length > 1
+          else if service.deps.hive_server2.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['HIVE'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true;' + 
-            "zookeeperEnsemble=#{service.use.hive_server2[0].options.hive_site['hive.zookeeper.quorum']};zookeeperNamespace=#{service.use.hive_server2[0].options.hive_site['hive.server2.zookeeper.namespace']}"
+            "zookeeperEnsemble=#{service.deps.hive_server2[0].options.hive_site['hive.zookeeper.quorum']};zookeeperNamespace=#{service.deps.hive_server2[0].options.hive_site['hive.server2.zookeeper.namespace']}"
             topology.services.hive = ''
           else
             throw Error 'Cannot autoconfigure KNOX hive service, no hiveserver2 declared'
@@ -358,13 +335,13 @@ This mechanism can be used to configure a specific gateway without having to dec
 # Hive WebHCat
 
         if topology.services['webhcat'] is true
-          throw Error 'Cannot autoconfigure KNOX webhcat service, no webhcat declared' unless service.use.hive_webhcat
+          throw Error 'Cannot autoconfigure KNOX webhcat service, no webhcat declared' unless service.deps.hive_webhcat
           topology.services['webhcat'] = []
-          for srv in service.use.hive_webhcat
+          for srv in service.deps.hive_webhcat
             fqdn = srv.node.fqdn
             port = srv.options.webhcat_site['templeton.port']
             topology.services['webhcat'].push "http://#{fqdn}:#{port}/templeton"
-          if service.use.hive_webhcat.length > 1
+          if service.deps.hive_webhcat.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['WEBHCAT'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true'
@@ -372,11 +349,11 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## Oozie
 
         if topology.services['oozie'] is true
-          throw Error 'Cannot autoconfigure KNOX oozie service, no oozie declared' unless service.use.oozie_server
+          throw Error 'Cannot autoconfigure KNOX oozie service, no oozie declared' unless service.deps.oozie_server
           topology.services['oozie'] = []
-          for srv in service.use.oozie_server
+          for srv in service.deps.oozie_server
             topology.services['oozie'].push srv.options.oozie_site['oozie.base.url']
-          if service.use.oozie_server.length > 1
+          if service.deps.oozie_server.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['OOZIE'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true'
@@ -384,9 +361,9 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## WebHBase
 
         if topology.services['webhbase'] is true
-          throw Error 'Cannot autoconfigure KNOX webhbase service, no webhbase declared' unless service.use.hbase_rest
+          throw Error 'Cannot autoconfigure KNOX webhbase service, no webhbase declared' unless service.deps.hbase_rest
           topology.services['webhbase'] = []
-          for srv in service.use.hbase_rest
+          for srv in service.deps.hbase_rest
             protocol = if srv.options.hbase_site['hbase.rest.ssl.enabled'] is 'true' then 'https' else 'http'
             port = srv.options.hbase_site['hbase.rest.port']
             if options.config.webhbase?
@@ -395,7 +372,7 @@ This mechanism can be used to configure a specific gateway without having to dec
                 params: options.config.webhbase
             else
               topology.services['webhbase'].push "#{protocol}://#{srv.node.fqdn}:#{port}" 
-          if service.use.hbase_rest.length > 1
+          if service.deps.hbase_rest.length > 1
             topology.providers['ha'] ?= name: 'HaProvider'
             topology.providers['ha'].config ?= {}
             topology.providers['ha'].config['WEBHBASE'] ?= 'maxFailoverAttempts=3;failoverSleep=1000;enabled=true'
@@ -403,16 +380,16 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## HBase
 
         if topology.services['hbaseui'] is true
-          throw Error 'Cannot autoconfigure KNOX hbaseui service, no hbaseui declared' unless service.use.hbase_master
+          throw Error 'Cannot autoconfigure KNOX hbaseui service, no hbaseui declared' unless service.deps.hbase_master
           topology.services['hbaseui'] = []
-          for srv in service.use.hbase_master
-            protocol = if service.use.hbase_master.hbase_site['hbase.ssl.enabled'] is 'true' then 'https' else 'http'
-            port = service.use.hbase_master.hbase_site['hbase.master.info.port']
+          for srv in service.deps.hbase_master
+            protocol = if service.deps.hbase_master.hbase_site['hbase.ssl.enabled'] is 'true' then 'https' else 'http'
+            port = service.deps.hbase_master.hbase_site['hbase.master.info.port']
             topology.services['hbaseui'].push "#{protocol}://#{srv.node.fqdn}:#{port}"
 
 ## Configuration for Log4J
 
-      options.log4j ?= merge {}, service.use.log4j?.options, options.log4j
+      options.log4j ?= merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.properties ?= {}
       options.log4j.properties['app.log.dir'] ?= "#{options.log_dir}"
@@ -439,9 +416,9 @@ This mechanism can be used to configure a specific gateway without having to dec
 
 ## Wait
 
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+      options.wait_ranger_admin = service.deps.ranger_admin.options.wait if service.deps.ranger_admin
       options.wait ?= {}
-      options.wait.tcp = for srv in service.use.knox_server
+      options.wait.tcp = for srv in service.deps.knox_server
         host: srv.node.fqdn
         port: options.gateway_site['gateway.port']
 
@@ -449,6 +426,5 @@ This mechanism can be used to configure a specific gateway without having to dec
 
     appender = require '../../lib/appender'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 [knox-conf-example]:https://github.com/apache/knox/blob/master/gateway-release/home/templates/sandbox.knoxrealm2.xml

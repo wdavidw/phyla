@@ -52,7 +52,8 @@ Populates the Oozie directory with the Atlas server JAR files.
 
 ## Kafka Topics ACL
 
-          #wait for topics to exists
+Wait for topics to exists.
+
           @system.execute
             header: 'KafKa Topic ACL Hive User (Simple)'
             if: options.hive_bridge_enabled

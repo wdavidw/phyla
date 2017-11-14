@@ -226,7 +226,7 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 ## Kerberos
 
 Create a service principal for this NameNode. The principal is named after
-"nn/#{@config.host}@#{realm}".
+"nn/#{fqdn}@#{realm}".
 
       @krb5.addprinc options.krb5.admin,
         header: 'Krb5 Service'
@@ -358,7 +358,7 @@ ${HADOOP_CONF_DIR}/core-site.xml
       @system.execute
         header: 'Policy Reloaded'
         if: -> @status -1
-        cmd: mkcmd.hdfs @, "service hadoop-hdfs-namenode status && hdfs --config '#{options.conf_dir}' dfsadmin -refreshServiceAcl"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "service hadoop-hdfs-namenode status && hdfs --config '#{options.conf_dir}' dfsadmin -refreshServiceAcl"
         code_skipped: 3
 
 ## Dependencies

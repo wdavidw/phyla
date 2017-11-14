@@ -11,7 +11,7 @@ Once a machine is added to the swarm cluster (manager or agent), it will be conf
 to communicate by default with the `ryba/swarm/manager`.
 
     module.exports =
-      use:
+      deps:
         docker: module: 'masson/commons/docker', local: true, required: true, auto: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         swarm_manager: 'ryba/swarm/manager'
@@ -19,13 +19,11 @@ to communicate by default with the `ryba/swarm/manager`.
       configure:
         'ryba/swarm/manager/configure'
       commands:
-        install: ->
-          options = @config.ryba.swarm.manager
-          @call 'ryba/swarm/manager/install', options
-          @call 'ryba/swarm/manager/start', options
-        stop: ->
-          options = @config.ryba.swarm.manager
-          @call 'ryba/swarm/manager/stop', options
-        start: ->
-          options = @config.ryba.swarm.manager
-          @call 'ryba/swarm/manager/start', options
+        install: [
+          'ryba/swarm/manager/install'
+          'ryba/swarm/manager/start'
+        ]
+        stop:
+          'ryba/swarm/manager/stop'
+        start:
+          'ryba/swarm/manager/start'

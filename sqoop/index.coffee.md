@@ -5,13 +5,15 @@
 Apache Hadoop and structured datastores such as relational databases.
 
       module.exports =
-        use:
-          java: implicit: true, module: 'masson/commons/java'
+        deps:
+          krb5_client: module: 'masson/core/krb5_client', local: true, required: true
+          java: module: 'masson/commons/java', local: true
           mysql_client: 'masson/commons/mysql/client'
-          hadoop_core: 'ryba/hadoop/core'
-          hdfs_client: implicit: true, module: 'ryba/hadoop/hdfs_client'
-          hive_client: implicit: true, module: 'ryba/hive/client'
-          yarn_client: implicit: true, module: 'ryba/hadoop/yarn_client'
+          mariadb_client: 'masson/commons/mariadb/client'
+          hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
+          hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
+          hive_client: module: 'ryba/hive/client', local: true, auto: true, implicit: true
+          yarn_client: module: 'ryba/hadoop/yarn_client', local: true, auto: true, implicit: true
         configure:
           'ryba/sqoop/configure'
         commands:

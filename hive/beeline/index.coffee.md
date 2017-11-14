@@ -2,7 +2,7 @@
 # Hive Beeline (Server2 Client)
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
@@ -15,10 +15,9 @@
       configure:
         'ryba/hive/beeline/configure'
       commands:
-        'install': ->
-          options = @config.ryba.hive.beeline
-          @call 'ryba/hive/beeline/install', options
-          @call 'ryba/hive/beeline/check', options
-        'check': ->
-          options = @config.ryba.hive.beeline
-          @call 'ryba/hive/beeline/check', options
+        'install': [
+          'ryba/hive/beeline/install'
+          'ryba/hive/beeline/check'
+        ]
+        'check':
+          'ryba/hive/beeline/check'

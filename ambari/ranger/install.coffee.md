@@ -29,7 +29,7 @@
           keystore: options.ssl.truststore.target
           storepass: options.ssl.truststore.password
           caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
+          cacert: options.ssl.cacert.source
           local: options.ssl.cacert.local
           uid: options.user.name
           gid: options.group.name
@@ -46,16 +46,20 @@
         @java.keystore_add
           keystore: options.ssl.keystore.target
           storepass: options.ssl.keystore.password
-          caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
-          key: "#{options.ssl.key.source}"
-          cert: "#{options.ssl.cert.source}"
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
           keypass: options.ssl.keystore.keypass
-          name: @config.shortname
-          local: options.ssl.cert.local
+          name: options.ssl.key.name
+          local: options.ssl.key.local
           uid: options.user.name
           gid: options.group.name
           mode: 0o0600
+        @java.keystore_add
+          keystore: options.ssl.keystore.target
+          storepass: options.ssl.keystore.password
+          caname: "hadoop_root_ca"
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 ## Dependencies
 

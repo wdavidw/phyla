@@ -26,15 +26,7 @@ ryba:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/solr/client', ['ryba', 'solr'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        # solr_cloud: key: ['ryba','solr','cloud']
-        # solr_cloud_docker: key: ['ryba','solr','cloud_docker']
-      
-      @config.ryba ?= {}
-      @config.ryba.solr ?= {}
-      options = @config.ryba.solr = service.options
+      options = service.options
 
 ## Environment
 
@@ -56,4 +48,3 @@ ryba:
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

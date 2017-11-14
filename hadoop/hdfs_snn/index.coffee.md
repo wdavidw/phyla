@@ -2,7 +2,7 @@
 # Hadoop HDFS SecondaryNameNode 
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -10,14 +10,13 @@
     configure:
       'ryba/hadoop/hdfs_snn/configure'
     commands:
-      'install': ->
-        options = @config.ryba.hdfs.snn
-        @call 'ryba/hadoop/hdfs_snn/install', options
-        @call 'ryba/hadoop/hdfs_snn/start', options
+      'install': [
+        'ryba/hadoop/hdfs_snn/install'
+        'ryba/hadoop/hdfs_snn/start'
+      ]
       'start':
         'ryba/hadoop/hdfs_snn/start'
       'status':
         'ryba/hadoop/hdfs_snn/status'
-      'stop': ->
-        options = @config.ryba.hdfs.snn
-        @call 'ryba/hadoop/hdfs_snn/stop', options
+      'stop':
+        'ryba/hadoop/hdfs_snn/stop'

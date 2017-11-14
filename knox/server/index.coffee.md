@@ -6,7 +6,7 @@ clusters. The gateway provides a single access point for all REST interactions
 with Hadoop clusters.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         sssd: module: 'masson/core/sssd', local: true
         iptables: module: 'masson/core/iptables', local: true
@@ -30,23 +30,19 @@ with Hadoop clusters.
       configure:
         'ryba/knox/server/configure'
       commands:
-        install: ->
-          options = @config.ryba.knox
-          @call 'ryba/knox/server/install', options
-          @call 'ryba/knox/server/start', options
-          @call 'ryba/knox/server/check', options
-        check: ->
-          options = @config.ryba.knox
-          @call 'ryba/knox/server/check', options
-        start: ->
-          options = @config.ryba.knox
-          @call 'ryba/knox/server/start', options
-        stop: ->
-          options = @config.ryba.knox
-          @call 'ryba/knox/server/stop', options
-        status: ->
-          options = @config.ryba.knox
-          @call 'ryba/knox/server/status', options
+        install: [
+          'ryba/knox/server/install'
+          'ryba/knox/server/start'
+          'ryba/knox/server/check'
+        ]
+        check:
+          'ryba/knox/server/check'
+        start:
+          'ryba/knox/server/start'
+        stop:
+          'ryba/knox/server/stop'
+        status:
+          'ryba/knox/server/status'
 
 # Knox Installation and configuration
 

@@ -32,11 +32,11 @@
 ### END INIT INFO
 
 NAME='Hadoop KMS'
-USER='{{ryba.kms.user.name}}'
-GROUP='{{ryba.kms.group.name}}'
-CONF_DIR='{{ryba.kms.conf_dir}}'
-RUN_DIR='{{ryba.kms.pid_dir}}'
-PID_FILE='{{ryba.kms.pid_dir}}/kms.pid'
+USER='{{options.user.name}}'
+GROUP='{{options.group.name}}'
+CONF_DIR='{{options.conf_dir}}'
+RUN_DIR='{{options.pid_dir}}'
+PID_FILE='{{options.pid_dir}}/kms.pid'
 CMD="su - $USER -c \"export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && export KMS_CONFIG=/etc/hadoop-kms/conf && export CATALINA_PID=/var/run/hadoop-kms && /usr/hdp/current/hadoop-kms/sbin/kms.sh start\""
 
 KILL_FORCE=0

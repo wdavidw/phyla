@@ -7,16 +7,15 @@
 
       @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
 
-      protocol = if options.site['ranger.service.https.attrib.ssl.enabled'] is 'true' then 'https' else 'http'
-      port = options.site["ranger.service.#{protocol}.port"]
 
 ## Web UI Admin Account
 Modify admin account password. By default the login:pwd  is `admin:admin`.
 
       @call header: 'Ranger Admin Account', ->
+        protocol = if options.site['ranger.service.https.attrib.ssl.enabled'] is 'true' then 'https' else 'http'
         @connection.wait
-          host: @config.host
-          port: port
+          host: options.fqdn
+          port: options.site["ranger.service.#{protocol}.port"]
         @system.execute
           header: "Check admin password"
           cmd: """

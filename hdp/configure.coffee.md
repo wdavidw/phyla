@@ -1,9 +1,8 @@
 
 # HDP Repository Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/hdp', ['ryba', 'hdp'], {}
-      options = @config.ryba.hdp = service.options
+    module.exports = (service) ->
+      options = service.options
       
 ## Configuration
 
@@ -16,4 +15,3 @@
 ## Dependencies
 
     path = require('path').posix
-    migration = require 'masson/lib/migration'

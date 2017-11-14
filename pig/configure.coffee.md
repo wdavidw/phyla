@@ -28,19 +28,8 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/pig', ['ryba', 'pig'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        hadoop_core: key: ['ryba']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_client: key: ['ryba', 'yarn_client']
-        mapred_client: key: ['ryba', 'mapred_client']
-        hive_client: key: ['ryba', 'hive', 'client']
-      @config.ryba ?= {}
-      @config.ryba.oozie ?= {}
-      options = @config.ryba.pig = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identities
 
@@ -58,12 +47,17 @@ Example:
       options.user.comment ?= 'Pig User'
       options.user.home ?= '/var/lib/pig'
 
+## Kerberos
+
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
+
 ## Environment
 
       # Layout
       options.conf_dir ?= '/etc/pig/conf'
       # Java
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       # Misc
       options.hostname ?= service.node.hostname
 
@@ -73,13 +67,12 @@ Example:
 
 ## Test
 
-      options.test = merge {}, service.use.test_user.options, options.test
+      options.test = merge {}, service.deps.test_user.options, options.test
 
 ## Wait
 
-      options.wait_yarn_rm = service.use.yarn_rm[0].options.wait
+      options.wait_yarn_rm = service.deps.yarn_rm[0].options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

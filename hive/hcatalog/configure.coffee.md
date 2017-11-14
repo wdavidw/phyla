@@ -28,33 +28,8 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/hive/hcatalog', ['ryba', 'hive', 'hcatalog'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        db_admin: key: ['ryba', 'db_admin']
-        mapred_client: key: ['ryba', 'mapred']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        tez: key: ['ryba', 'tez']
-        hive_metastore: key: ['ryba', 'hive', 'metastore']
-        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
-        # hive_server2: key: ['ryba', 'hive', 'server2']
-        # hive_client: key: ['ryba', 'hive']
-        # hbase_thrift: key: ['ryba', 'hbase', 'thrift']
-        hbase_client: key: ['ryba', 'hbase', 'client']
-        log4j: key: ['ryba', 'log4j']
-        # phoenix_client: key: ['ryba', 'phoenix'] # actuall, phoenix expose no configuration
-        # ranger_admin: key: ['ryba', 'ranger', 'admin']
-      @config.ryba ?= {}
-      @config.ryba.hive ?= {}
-      options = @config.ryba.hive.hcatalog = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -62,9 +37,9 @@ Example:
       options.conf_dir ?= '/etc/hive-hcatalog/conf'
       options.log_dir ?= '/var/log/hive-hcatalog'
       options.pid_dir ?= '/var/run/hive-hcatalog'
-      options.hdfs_conf_dir ?= service.use.hdfs_client.options.conf_dir
+      options.hdfs_conf_dir ?= service.deps.hdfs_client.options.conf_dir
       # Opts and Java
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.opts ?= ''
       options.heapsize ?= 1024
       options.libs ?= []
@@ -72,18 +47,19 @@ Example:
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
       options.clean_logs ?= false
-      options.tez_enabled ?= service.use.tez
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.tez_enabled ?= service.deps.tez
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       # HDFS
-      options.hdfs_conf_dir ?= service.use.hadoop_core.options.conf_dir
-      options.hdfs_krb5_user ?= service.use.hadoop_core.options.hdfs.krb5_user
+      options.hdfs_conf_dir ?= service.deps.hadoop_core.options.conf_dir
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      # HDFS Kerberos Admin
+      options.hdfs_krb5_user ?= service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Identities
 
@@ -141,7 +117,7 @@ Example:
       options.hive_site['hive.metastore.port'] ?= '9083'
       options.hive_site['hive.hwi.listen.port'] ?= '9999'
       options.hive_site['hive.metastore.uris'] ?= (
-        for srv in service.use.hive_hcatalog
+        for srv in service.deps.hive_hcatalog
           srv.options.hive_site ?= {}
           srv.options.hive_site['hive.metastore.port'] ?= 9083
           "thrift://#{srv.node.fqdn}:#{srv.options.hive_site['hive.metastore.port'] or '9083'}"
@@ -199,8 +175,8 @@ ${hive.scratch.dir.permission}.
 Import database information from the Hive Metastore
 
       
-      options.db = merge {}, service.use.hive_metastore.options.db, options.db
-      merge options.hive_site, service.use.hive_metastore.options.hive_site
+      options.db = merge {}, service.deps.hive_metastore.options.db, options.db
+      merge options.hive_site, service.deps.hive_metastore.options.hive_site
 
 ## Configure Transactions and Lock Manager
 
@@ -209,7 +185,7 @@ full ACID semantics at the row level, so that one application can add rows while
 another reads from the same partition without interfering with each other.
 
       # Get ZooKeeper Quorum
-      zookeeper_quorum = for srv in service.use.zookeeper_server
+      zookeeper_quorum = for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       # Enable Table Lock Manager
@@ -230,7 +206,7 @@ hive.compactor.initiator.on can be activated on only one node !
 [hive compactor initiator][initiator]
 So we provide true by default on the 1st hive-hcatalog-server, but we force false elsewhere
 
-      if service.use.hive_hcatalog[0].node.fqdn is service.node.fqdn
+      if service.deps.hive_hcatalog[0].node.fqdn is service.node.fqdn
         options.hive_site['hive.compactor.initiator.on'] ?= 'true'
       else
         options.hive_site['hive.compactor.initiator.on'] = 'false'
@@ -272,7 +248,7 @@ default to the [DBTokenStore]. Also worth of interest is the
 
 ## Proxy users
 
-      for srv in service.use.yarn_rm
+      for srv in service.deps.yarn_rm
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
       # migration: david 170907, dont know why we doing locally since looping
@@ -284,7 +260,7 @@ default to the [DBTokenStore]. Also worth of interest is the
 
 ## Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.application ?= 'metastore'
       options.log4j.properties['hive.log.file'] ?= 'hcatalog.log'
@@ -360,12 +336,12 @@ default to the [DBTokenStore]. Also worth of interest is the
 
 ## Wait
 
-      options.wait_krb5_client ?= service.use.krb5_client.options.wait
-      options.wait_zookeeper_server ?= service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
-      options.wait_db_admin ?= service.use.db_admin.options.wait
+      options.wait_krb5_client ?= service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server ?= service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
+      options.wait_db_admin ?= service.deps.db_admin.options.wait
       options.wait = {}
-      options.wait.rpc = for srv in service.use.hive_hcatalog
+      options.wait.rpc = for srv in service.deps.hive_hcatalog
         srv.options.hive_site ?= {}
         srv.options.hive_site['hive.metastore.port'] ?= 9083
         host: srv.node.fqdn
@@ -375,7 +351,6 @@ default to the [DBTokenStore]. Also worth of interest is the
 
     {merge} = require 'nikita/lib/misc'
     db = require 'nikita/lib/misc/db'
-    migration = require 'masson/lib/migration'
 
 [HIVE-7935]: https://issues.apache.org/jira/browse/HIVE-7935
 [ha_hdp_2.2]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.0/Hadoop_HA_v22/ha_hive_metastore/index.html#Item1.1.2

@@ -12,10 +12,10 @@ Apache Atlas Needs the following components to be started.
 
 Wait for Kerberos, HBase, Hive, Kafka and Ranger.
 
-      @call once: true, 'masson/core/krb5_client/wait', options.wait_krb5_client
-      @call once: true, 'ryba/hbase/regionserver/wait', options.wait_hbase
-      @call once: true, 'ryba/kafka/broker/wait', options.wait_kafka
-      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger
+      @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/hbase/regionserver/wait', once: true, options.wait_hbase
+      @call 'ryba/kafka/broker/wait', once: true, options.wait_kafka
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger
       
       @connection.wait
         if: options.solr_type is 'cloud_docker'

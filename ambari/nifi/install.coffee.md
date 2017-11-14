@@ -41,24 +41,28 @@
           @java.keystore_add
             keystore: options.ssl.truststore.target
             storepass: options.ssl.truststore.password
-            caname: "#{cert.name}"
-            cacert: "#{cert.source}"
+            caname: cert.name
+            cacert: cert.source
             local: cert.local
         # Server: import certificates, private and public keys to hosts with a server
         # `keytool -list -v -keystore /etc/nifi/conf/keystore.jks -storepass NifiKeystore123-`
         @java.keystore_add
           keystore: options.ssl.keystore.target
           storepass: options.ssl.keystore.password
-          caname: "hadoop_root_ca"
-          cacert: "#{options.ssl.cacert.source}"
-          key: "#{options.ssl.key.source}"
-          cert: "#{options.ssl.cert.source}"
+          key: options.ssl.key.source
+          cert: options.ssl.cert.source
           keypass: options.ssl.keystore.keypass
-          name: @config.shortname
+          name: options.ssl.key.name
           local: options.ssl.cert.local
           uid: options.user.name
           gid: options.group.name
           mode: 0o0600
+        @java.keystore_add
+          keystore: options.ssl.keystore.target
+          storepass: options.ssl.keystore.password
+          caname: "hadoop_root_ca"
+          cacert: options.ssl.cacert.source
+          local: options.ssl.cacert.local
 
 ## Dependencies
 

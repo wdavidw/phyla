@@ -69,8 +69,18 @@ such as "%app-type% and %time:yyyyMMdd%".
           uid: options.kafka_user.name
           gid: options.kafka_group.name
           mode: 0o0750
-        @call ->
+        @call header: 'HDFS Paths', ->
           for target in options.policy_hdfs_audit.resources.path.values
+            console.log
+              target: target
+              mode: 0o0750
+              parent:
+                mode: 0o0711
+                user: options.user.name
+                group: options.group.name
+              uid: options.kafka_user.name
+              gid: options.kafka_group.name
+              krb5_user: options.hdfs_krb5_user
             @hdfs_mkdir
               target: target
               mode: 0o0750

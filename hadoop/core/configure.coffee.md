@@ -67,17 +67,7 @@ Default configuration:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/core', ['ryba'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        test_user: key: ['ryba', 'test_user']
-        hdp: key: ['ryba', 'hdp']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        ganglia: key: ['ryba', 'ganglia']
-        graphite: key: ['ryba', 'graphite']
-        metrics: key: ['ryba', 'metrics']
-      options = @config.ryba = service.options
+      options = service.options
       options.yarn ?= {}
       options.mapred ?= {}
 
@@ -93,7 +83,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
 
       throw Error "Invalid Hostname: #{service.node.fqdn} should not contain \"_\"" if /_/.test service.node.fqdn
 
-## Environnment
+## Environment
 
       # Layout
       options.conf_dir ?= '/etc/hadoop/conf'
@@ -174,9 +164,9 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # Spnego
       options.spnego ?= {}
       options.spnego.principal ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"
@@ -204,13 +194,26 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       # Default group mapping
       options.core_site['hadoop.security.group.mapping'] ?= 'org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback'
       # Get ZooKeeper Quorum
-      zookeeper_quorum = for srv in service.use.zookeeper_server
+      zookeeper_quorum = for srv in service.deps.zookeeper_server
         continue unless srv.options.config['peerType'] is 'participant'
         "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       options.core_site['ha.zookeeper.quorum'] ?= zookeeper_quorum
-      # Topology
-      # http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
+
+## Topology
+
+      # Script imported from http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
       options.core_site['net.topology.script.file.name'] ?= "#{options.conf_dir}/rack_topology.sh"
+      options.topology = service.nodes
+      .filter (node) ->
+        node.services.some (service) ->
+          service.module in ['ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
+      .map (node) ->
+        throw Error "Required Node Option: ip for node #{JSON.stringify node.id}" unless node.ip
+        id: node.id, ip: node.ip, rack: node.rack
+      # Validate rack
+      if options.topology.some( (node) -> node.rack )
+        for node in options.topology
+          throw Error "Required Option: rack required in node #{node.id} because at least one rack is defined"
 
 Configuration for HTTP
 
@@ -223,7 +226,7 @@ Configuration for HTTP
       options.core_site['hadoop.http.authentication.kerberos.keytab'] ?= options.spnego.keytab
       # Cluster domain
       unless options.core_site['hadoop.http.authentication.cookie.domain']
-        domains = @contexts('ryba/hadoop/core').map( (ctx) -> ctx.config.host.split('.').slice(1).join('.') ).filter( (el, pos, self) -> self.indexOf(el) is pos )
+        domains = service.deps.hadoop_core.map( (srv) -> srv.node.fqdn.split('.').slice(1).join('.') ).filter( (el, pos, self) -> self.indexOf(el) is pos )
         throw Error "Multiple domains, set 'hadoop.http.authentication.cookie.domain' manually" if domains.length isnt 1
         options.core_site['hadoop.http.authentication.cookie.domain'] = domains[0]
 
@@ -311,8 +314,8 @@ keytool -list -v -keystore keystore -alias hadoop
 
 [hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         options.ssl_client ?= {}
         options.ssl_server ?= {}
@@ -403,7 +406,7 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 "datanode", "nodemanager", "maptask", "reducetask", "journalnode",
 "historyserver", "nimbus", "supervisor".
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
 
       # Hadoop metrics
       options.metrics ?= {}
@@ -417,21 +420,21 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
       options.metrics.config['*.period'] ?= '60'
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config['nodemanager.sink.file.filename'] ?= 'nodemanager-metrics.out'
         options.metrics.config['mrappmaster.sink.file.filename'] ?= 'mrappmaster-metrics.out'
         options.metrics.config['jobhistoryserver.sink.file.filename'] ?= 'jobhistoryserver-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Unvalid metrics sink, please provide ryba.metrics.sinks.graphite.config.server_host and server_port' unless options.metrics.sinks.graphite.config.server_host? and options.metrics.sinks.graphite.config.server_port?
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## Log4j
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.hadoop_root_logger ?= 'INFO,RFA'
       options.log4j.hadoop_security_logger ?= 'INFO,RFAS'
       options.log4j.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
@@ -441,4 +444,3 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
     path = require 'path'
     quote = require 'regexp-quote'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

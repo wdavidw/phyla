@@ -13,7 +13,7 @@ The Standby node is capable of reading the edits from the JNs, and is constantly
 watching them for changes to the edit log.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -26,17 +26,15 @@ watching them for changes to the edit log.
       commands:
         # 'backup':
         #   'ryba/hadoop/hdfs_jn_backup'
-        'check': ->
-          options = @config.ryba.hdfs.jn
-          @call 'ryba/hadoop/hdfs_jn/check', options
-        'install': ->
-          options = @config.ryba.hdfs.jn
-          @call 'ryba/hadoop/hdfs_jn/install', options
-          @call 'ryba/hadoop/hdfs_jn/start', options
-          @call 'ryba/hadoop/hdfs_jn/check', options
-        'start': ->
-          options = @config.ryba.hdfs.jn
-          @call 'ryba/hadoop/hdfs_jn/start', options
+        'check':
+          'ryba/hadoop/hdfs_jn/check'
+        'install': [
+          'ryba/hadoop/hdfs_jn/install'
+          'ryba/hadoop/hdfs_jn/start'
+          'ryba/hadoop/hdfs_jn/check'
+        ]
+        'start':
+          'ryba/hadoop/hdfs_jn/start'
         'status':
           'ryba/hadoop/hdfs_jn/status'
         'stop':

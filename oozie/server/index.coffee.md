@@ -7,7 +7,7 @@ These actions can be  Hadoop Map/Reduce jobs, Pig jobs arranged in a control dep
 Please check Oozie page
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
@@ -29,23 +29,18 @@ Please check Oozie page
         log4j: module: 'ryba/log4j', local: true
       configure: 'ryba/oozie/server/configure'
       commands:
-        backup: ->
-          options = @config.ryba.oozie.server
-          @call 'ryba/oozie/server/backup', options
-        install: ->
-          options = @config.ryba.oozie.server
-          @call 'ryba/oozie/server/install', options
-          @call 'ryba/oozie/server/start', options
-          @call 'ryba/oozie/server/check', options
-        start: ->
-          options = @config.ryba.oozie.server
-          @call 'ryba/oozie/server/start', options
-          @call 'ryba/oozie/server/check', options
-        status: ->
-          options = @config.ryba.oozie.server
-          @call 'ryba/oozie/server/status', options
-        stop: ->
-          options = @config.ryba.oozie.server
-          @call 'ryba/oozie/server/stop', options
+        backup:
+          'ryba/oozie/server/backup'
+        install: [
+          'ryba/oozie/server/install'
+          'ryba/oozie/server/start'
+          'ryba/oozie/server/check'
+        ]
+        start:
+          'ryba/oozie/server/start'
+        status:
+          'ryba/oozie/server/status'
+        stop:
+          'ryba/oozie/server/stop'
 
 [Oozie]: https://oozie.apache.org/docs/3.1.3-incubating/index.html

@@ -2,16 +2,11 @@
 # Hadoop KMS Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/kms', ['ryba', 'kms'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-      @config.ryba ?= {}
-      options = @config.ryba.kms ?= {}
+      options = service.options
 
 ## Identities
 
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       options.group = name: options.group if typeof options.group is 'string'
       options.group ?= {}
       options.group.name ?= 'kms'
@@ -36,7 +31,7 @@
       options.http_port ?= 16000
       options.admin_port ?= 16001
       options.max_threads ?= 1000
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Configuration
 
@@ -78,13 +73,13 @@ KMS delegation token secret manager can be configured with the following propert
 
 ## HTTP Authentication Signature
 
-      # zookeeper_quorum = for srv in service.use.zookeeper_server then "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
+      # zookeeper_quorum = for srv in service.deps.zookeeper_server then "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider'] ?= 'zookeeper'
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.path'] ?= '/hadoop-kms/hadoop-auth-signature-secret'
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string'] ?= "#{zookeeper_quorum}"
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type'] ?= 'kerberos'
       # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab'] ?= "#{options.conf_dir}/kms.keytab"
-      # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal'] ?= 'kms/#{@config.host}@{realm}'
+      # options.kms_site['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal'] ?= 'kms/#{options.fqdn}@{realm}'
 
 ## Access Control
 
@@ -172,7 +167,7 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
       # Password to the Java Keystore stored in the 'kms.keystore' file
       throw Error 'Required Options: ssl.password' unless options.ssl.password
       options.kms_site['hadoop.kms.key.provider.uri'] ?= "jceks://file@/#{options.conf_dir}/kms.keystore"
@@ -181,4 +176,3 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

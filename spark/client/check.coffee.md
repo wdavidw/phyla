@@ -6,7 +6,7 @@ Run twice "[Spark Pi][Spark-Pi]" example for validating installation . The confi
 Spark programs are divided into a driver part and executors part.
 The driver program manages the executors task.
 
-    module.exports = header: 'Spark Check', handler: (options) ->
+    module.exports = header: 'Spark Client Check', handler: (options) ->
 
 ## Register
 
@@ -26,7 +26,7 @@ In this mode the driver is the YARN application master (running inside YARN).
       @call header: 'YARN Cluster', ->
         applicationId = null
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
             spark-submit \
               --class org.apache.spark.examples.SparkPi \
               --master yarn-cluster --num-executors 2 --driver-memory 512m \
@@ -34,7 +34,7 @@ In this mode the driver is the YARN application master (running inside YARN).
               #{options.client_dir}/lib/spark-examples*.jar 10 2>&1 /dev/null \
             | grep -m 1 "proxy\/application_";
           """
-          unless_exec : unless options.force_check then mkcmd.test @, """
+          unless_exec : unless options.force_check then mkcmd.test options.test_krb5_user, """
           hdfs dfs -test \
             -f check-#{options.hostname}-spark-cluster
           """
@@ -47,7 +47,7 @@ In this mode the driver is the YARN application master (running inside YARN).
           if: -> @status -1
         ,->
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             yarn logs -applicationId #{applicationId} 2>&1 /dev/null | grep -m 1 "Pi is roughly";
             """
           , (err, status, stdout, stderr) ->
@@ -57,7 +57,7 @@ In this mode the driver is the YARN application master (running inside YARN).
             pi = parseFloat(log_result[log_result.length - 1])
             throw Error 'Invalid Output' unless pi > 3.00 and pi < 3.20
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -touchz check-#{options.hostname}-spark-cluster
           """
           if: -> @status -2
@@ -74,7 +74,7 @@ In this mode the driver is the spark master running outside yarn.
         file_check = "check-#{options.hostname}-spark-client"
         applicationId = null
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
             spark-submit \
               --class org.apache.spark.examples.SparkPi \
               --master yarn-client --num-executors 2 --driver-memory 512m \
@@ -82,7 +82,7 @@ In this mode the driver is the spark master running outside yarn.
               #{options.client_dir}/lib/spark-examples*.jar 10 2>&1 /dev/null \
             | grep -m 1 "Pi is roughly";
           """
-          unless_exec : unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{file_check}"
+          unless_exec : unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{file_check}"
         , (err, executed, stdout, stderr) ->
           return err if err
           return unless executed
@@ -91,7 +91,7 @@ In this mode the driver is the spark master running outside yarn.
           return Error 'Invalid Output' unless pi > 3.00 and pi < 3.20
           return
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -touchz #{file_check}
           """
           if: -> @status -1
@@ -106,16 +106,16 @@ yarn-client mode, not yarn-cluster.
         directory = "check-#{options.hostname}-spark_shell_scala"
         db = "check_#{options.hostname}_spark_shell_scala"
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           echo 'println(\"spark_shell_scala\")' | spark-shell --master yarn-client 2>/dev/null | grep ^spark_shell_scala$
           """
-          unless_exec : unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{file_check}"
+          unless_exec : unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{file_check}"
         , (err, executed, stdout) ->
           return err if err
           return unless executed
           return Error 'Invalid Output' unless stdout.indexOf 'spark_shell_scala' > -1
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -touchz #{file_check}
           """
           if: -> @status -1
@@ -178,8 +178,10 @@ yarn-client mode, not yarn-cluster.
 Executes hive queries to check communication with Hive.
 Creating database from SparkSql is not supported for now.
 
-      @call header: 'Shell (Hive SQL)', ->
-        return unless @contexts('ryba/hive/server2').length
+      @call
+        header: 'Shell (Hive SQL)'
+        if: !!options.hive_server2
+      , ->
         dir_check = "check-#{options.hostname}-spark-shell-scala-sql"
         directory = "check-#{options.hostname}-spark_shell_scala-sql"
         db = "check_#{options.hostname}_spark_shell_hive"
@@ -204,8 +206,8 @@ Creating database from SparkSql is not supported for now.
         for url in urls
           beeline = "beeline -u \"#{url}\" --silent=true "
           @system.execute
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{dir_check}/_SUCCESS"
-            cmd: mkcmd.test @, """
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{dir_check}/_SUCCESS"
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -skipTrash #{directory} || true
             hdfs dfs -rm -r -skipTrash #{dir_check} || true
             hdfs dfs -mkdir -p #{directory}/my_db/spark_sql_test
@@ -234,16 +236,16 @@ Creating database from SparkSql is not supported for now.
         directory = "check-#{options.hostname}-spark_shell_python"
         db = "check_#{options.hostname}_spark_shell_python"
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           echo 'print \"spark_shell_python\"' | pyspark  --master yarn-client 2>/dev/null | grep ^spark_shell_python$
           """
-          unless_exec : unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{file_check}"
+          unless_exec : unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{file_check}"
         , (err, executed, stdout) ->
           return err if err
           return unless executed
           return Error 'Invalid Output' unless stdout.indexOf 'spark_shell_python' > -1
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -touchz #{file_check}
           """
           if: -> @status -1

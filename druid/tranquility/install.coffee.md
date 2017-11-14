@@ -11,10 +11,10 @@
 
       @tools.iptables
         header: 'IPTables'
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: 8200, protocol: 'tcp', state: 'NEW', comment: "Druid Tranquility" }
         ]
-        if: @config.iptables.action is 'start'
 
 ## Identities
 

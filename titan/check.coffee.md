@@ -2,7 +2,7 @@
 # Titan Check
 
     module.exports = header: 'Titan Check', handler: ->
-      {force_check, hbase, titan} = @config.ryba
+      {hbase, titan} = @config.ryba
       {shortname} = @config
 
 ## Wait
@@ -29,11 +29,11 @@ Check the configuration file (current.properties).
           #{titan.install_dir}/current/bin/gremlin.sh 2>/dev/null <<< \"g = TitanFactory.open('titan-hbase-#{titan.config['index.search.backend']}-test.properties')\" | grep '==>titangraph'
           hbase shell 2>/dev/null <<< "grant 'ryba', 'RWC', 'titan-test'"
           """
-          unless_exec: unless force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists 'titan-test'\""
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"exists 'titan-test'\""
         , (err, status) ->
           check = true if status
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           cd #{titan.home}
           cmd="TitanFactory.open('titan-#{titan.config['storage.backend']}-#{titan.config['index.search.backend']}-test.properties')"
           #{titan.install_dir}/current/bin/gremlin.sh <<< "$cmd" | grep '==>titangraph'

@@ -2,7 +2,9 @@
 # HDP Repository Install
 
     module.exports = header: 'HDP Install', handler: (options) ->
-      options = @config.ryba.hdp
+
+## Repository
+
       @tools.repo
         if: options.source?
         header: 'Repository'

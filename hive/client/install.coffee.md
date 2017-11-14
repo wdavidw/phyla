@@ -30,7 +30,7 @@ is installed on the host.
 
       @service
         name: 'phoenix'
-        if: @has_service 'ryba/phoenix/client'
+        if: options.phoenix_enabled
       # migration: wdavidw 170908, attempt to simplify package installation
       @service 'hive'
       @hdp_select 'hive-webhcat' # Selecting "hive-client" throw "Invalid package" error

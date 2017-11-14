@@ -33,41 +33,25 @@ your specific hardware. The most commonly adjusted configurations are:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/druid/historical', ['ryba', 'druid', 'historical'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        # hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        # yarn_client: key: ['ryba', 'yarn_client']
-        # mapred_client: key: ['ryba', 'mapred']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        druid: key: ['ryba', 'druid', 'base']
-        druid_coordinator: key: ['ryba', 'druid', 'coordinator']
-        druid_overlord: key: ['ryba', 'druid', 'overlord']
-        druid_historical: key: ['ryba', 'druid', 'historical']
-        # druid_middlemanager: key: ['ryba', 'druid', 'middlemanager']
-        # druid_broker: key: ['ryba', 'druid', 'broker']
-      @config.ryba.druid ?= {}
-      options = @config.ryba.druid.historical = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identity
       
-      options.group ?= merge {}, service.use.druid.options.user, options.group
-      options.user ?= merge {}, service.use.druid.options.user, options.user
+      options.group ?= merge {}, service.deps.druid.options.user, options.group
+      options.user ?= merge {}, service.deps.druid.options.user, options.user
 
 ## Environment
 
       # Layout
-      options.dir = service.use.druid.options.dir
-      options.log_dir = service.use.druid.options.log_dir
-      options.pid_dir = service.use.druid.options.pid_dir
-      options.hadoop_conf_dir = service.use.hdfs_client.options.conf_dir
+      options.dir = service.deps.druid.options.dir
+      options.log_dir = service.deps.druid.options.log_dir
+      options.pid_dir = service.deps.druid.options.pid_dir
+      options.hadoop_conf_dir = service.deps.hdfs_client.options.conf_dir
       # Miscs
-      options.version ?= service.use.druid.options.version
-      options.timezone ?= service.use.druid.options.timezone
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.version ?= service.deps.druid.options.version
+      options.timezone ?= service.deps.druid.options.timezone
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
 
 ## Java
@@ -117,17 +101,17 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Kerberos
 
-      options.krb5_service = merge {}, service.use.druid.options.krb5_service, options.krb5_service
+      options.krb5_service = merge {}, service.deps.druid.options.krb5_service, options.krb5_service
 
 ## Wait
 
-      options.wait_krb5_client ?= service.use.krb5_client.options.wait
-      options.wait_zookeeper_server ?= service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn ?= service.use.hdfs_nn[0].options.wait
-      options.wait_druid_coordinator ?= service.use.druid_coordinator[0].options.wait
-      options.wait_druid_overlord ?= service.use.druid_overlord[0].options.wait
+      options.wait_krb5_client ?= service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server ?= service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn ?= service.deps.hdfs_nn[0].options.wait
+      options.wait_druid_coordinator ?= service.deps.druid_coordinator[0].options.wait
+      options.wait_druid_overlord ?= service.deps.druid_overlord[0].options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.druid_historical
+      options.wait.tcp = for srv in service.deps.druid_historical
         host: srv.node.fqdn
         port: srv.options.runtime?['druid.port'] or '8083'
 
@@ -135,4 +119,3 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

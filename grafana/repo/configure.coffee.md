@@ -2,9 +2,7 @@
 # Grafana Repository Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/grafana/repo', ['ryba', 'grafana', 'repo'], {}
-      @config.ryba.grafana ?= {}
-      options = @config.ryba.grafana.repo = service.options
+      options = service.options
 
 ## Configuration
 
@@ -17,4 +15,3 @@
 ## Dependencies
 
     path = require('path').posix
-    migration = require 'masson/lib/migration'

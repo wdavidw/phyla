@@ -2,17 +2,11 @@
 # Grafana Configure
   
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/grafana/webui', ['ryba', 'grafana', 'webui' ], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        db_admin: key: ['ryba', 'db_admin']
-        grafana_webui: key: ['ryba', 'grafana', 'webui']
-        grafana_repo: key: ['ryba', 'grafana', 'repo']
-      @config.ryba.grafana ?= {}
-      options = @config.ryba.grafana.webui = service.options
+      options = service.options
 
 ## Access
 
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
 ## Identities
 
@@ -39,8 +33,8 @@
 Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'grafana'
       options.db.username ?= 'grafana'
       throw Error "Required Option: db.password" unless options.db.password
@@ -48,7 +42,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 ## Configuration
       
       # options.source ?= 'https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-4.5.2-1.x86_64.rpm'
-      # options.download ?= service.use.grafana_webui[0].node.fqdn is service.node.fqdn
+      # options.download ?= service.deps.grafana_webui[0].node.fqdn is service.node.fqdn
       options.log_dir ?= '/var/log/grafana'
       options.conf_dir ?= '/etc/grafana/conf'
       options.run_dir ?= '/var/run/grafana'
@@ -72,8 +66,8 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
 # SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
@@ -98,13 +92,12 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
 ## Wait
 
-      options.wait_db_admin = service.use.db_admin.options.wait
+      options.wait_db_admin = service.deps.db_admin.options.wait
       options.wait ?= {}
-      options.wait.http = for srv in service.use.grafana_webui
+      options.wait.http = for srv in service.deps.grafana_webui
         host: srv.node.fqdn
         port: srv.options.ini['server']['http_port'] or options.ini['server']['http_port'] or 3000
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'

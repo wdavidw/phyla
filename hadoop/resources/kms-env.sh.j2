@@ -22,11 +22,11 @@
 
 # KMS logs directory
 #
-export KMS_LOG={{ryba.kms.log_dir}}
+export KMS_LOG={{options.log_dir}}
 
 # KMS pid directory
 # Note, added by ryba
-export CATALINA_PID={{ryba.kms.pid_dir}}/kms.pid
+export CATALINA_PID={{options.pid_dir}}/kms.pid
 
 # KMS temporary directory
 #
@@ -34,15 +34,15 @@ export CATALINA_PID={{ryba.kms.pid_dir}}/kms.pid
 
 # The HTTP port used by KMS
 #
-export KMS_HTTP_PORT={{ryba.kms.http_port}}
+export KMS_HTTP_PORT={{options.http_port}}
 
 # The Admin port used by KMS
 #
-export KMS_ADMIN_PORT={{ryba.kms.admin_port}}
+export KMS_ADMIN_PORT={{options.admin_port}}
 
 # The maximum number of Tomcat handler threads
 #
-export KMS_MAX_THREADS={{ryba.kms.max_threads}}
+export KMS_MAX_THREADS={{options.max_threads}}
 
 # The location of the SSL keystore if using SSL
 #

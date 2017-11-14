@@ -23,47 +23,25 @@ Example
     }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/oozie/server', ['ryba', 'oozie', 'server'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        db_admin: key: ['ryba', 'db_admin']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        hdfs_nn: key: ['ryba', 'hdfs', 'nn']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        hbase_master: key: ['ryba', 'hbase', 'master']
-        hive_hcatalog: key: ['ryba', 'hive', 'hcatalog']
-        hive_server2: key: ['ryba', 'hive', 'server2']
-        hive_webhcat: key: ['ryba', 'webhcat']
-        spark_client: key: ['ryba', 'hive', 'client']
-        oozie_server: key: ['ryba', 'oozie', 'server']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      @config.ryba.oozie ?= {}
-      options = @config.ryba.oozie.server = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Supported Actions
 
       # Falcon
-      # Falcon register itself
-      # options.falcon ?= {}
-      # options.falcon.enabled ?= !!service.use.falcon_server
+      options.has_falcon ?= !!service.deps.falcon_server
       # HBase
       options.hbase ?= {}
-      options.hbase.enabled ?= !!service.use.hbase_master
+      options.hbase.enabled ?= !!service.deps.hbase_master
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Environment
 
@@ -77,17 +55,17 @@ Example
       # Java
       options.heap_size ?= '256m'
       # Misc
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
-      options.default_fs ?= service.use.hdfs_nn[0].options.core_site['fs.defaultFS']
-      options.java_home = service.use.java.options.java_home
-      options.hadoop_conf_dir ?= service.use.hdfs_client.options.conf_dir
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.default_fs ?= service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']
+      options.java_home = service.deps.java.options.java_home
+      options.hadoop_conf_dir ?= service.deps.hdfs_client.options.conf_dir
       options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib'
       options.clean_logs ?= false
 
 ## Identities
 
       # Hadoop Group
-      options.hadoop_group = service.use.hadoop_core.options.hadoop_group
+      options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
       # Group
       options.group ?= {}
       options.group = name: options.group if typeof options.group is 'string'
@@ -104,8 +82,8 @@ Example
 
 ## Security
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       options.ssl.truststore ?= {}
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -128,8 +106,8 @@ Example
 ## Database
 
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'oozie'
       options.db.username ?= 'oozie'
       throw Error "Required Option: db.password" unless options.db.password
@@ -157,7 +135,7 @@ Example
       options.oozie_site['oozie.authentication.type'] ?= 'kerberos'
       options.oozie_site['oozie.authentication.kerberos.principal'] ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"
       options.oozie_site['oozie.authentication.kerberos.keytab'] ?= '/etc/oozie/conf/spnego.service.keytab'
-      options.oozie_site['oozie.authentication.kerberos.name.rules'] ?= service.use.hdfs_client.options.core_site['hadoop.security.auth_to_local']
+      options.oozie_site['oozie.authentication.kerberos.name.rules'] ?= service.deps.hdfs_client.options.core_site['hadoop.security.auth_to_local']
       options.oozie_site['oozie.service.HadoopAccessorService.nameNode.whitelist'] ?= '' # Fix space value
       options.oozie_site['oozie.credentials.credentialclasses'] ?= [
        'hcat=org.apache.oozie.action.hadoop.HCatCredentials'
@@ -180,6 +158,7 @@ Example
       log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
       '''
       # Sharelib add-ons
+      options.upload_share_lib = service.nodes[0].id is service.node.id
       options.sharelib ?= {}
       options.sharelib.distcp ?= []
       options.sharelib.hcatalog ?= []
@@ -236,13 +215,13 @@ hdfs_client configuration directory.
           hosts.push node.fqdn unless node.fqdn in hosts
         hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
-      enrich_proxy_user srv for srv in service.use.hdfs_nn
-      enrich_proxy_user srv for srv in service.use.hdfs_dn
-      enrich_proxy_user srv for srv in service.use.yarn_rm
-      enrich_proxy_user srv for srv in service.use.yarn_nm
-      # enrich_proxy_user srv for srv in service.use.hive_server2
-      # enrich_proxy_user srv for srv in service.use.hive_hcatalog
-      # enrich_proxy_user srv for srv in service.use.hbase_master
+      enrich_proxy_user srv for srv in service.deps.hdfs_nn
+      enrich_proxy_user srv for srv in service.deps.hdfs_dn
+      enrich_proxy_user srv for srv in service.deps.yarn_rm
+      enrich_proxy_user srv for srv in service.deps.yarn_nm
+      # enrich_proxy_user srv for srv in service.deps.hive_server2
+      # enrich_proxy_user srv for srv in service.deps.hive_hcatalog
+      # enrich_proxy_user srv for srv in service.deps.hbase_master
 
 ## Configuration for Hadoop
 
@@ -254,7 +233,7 @@ hdfs_client configuration directory.
 
 ## Configuration for Log4J
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.opts ?= {}# used to set variable in oozie-env.sh
       if options.log4j.server_port?
         options.log4j.opts['extra_appender'] = ",socket_server"
@@ -270,13 +249,13 @@ hdfs_client configuration directory.
 Config [High Availability][oozie-ha]. They should be configured against
 the same database. It uses zookeeper for enabling HA.
 
-      options.ha = if service.use.zookeeper_server.length > 1 then true else false
+      options.ha = if service.deps.zookeeper_server.length > 1 then true else false
       if options.ha
-        quorum = service.use.zookeeper_server
+        quorum = service.deps.zookeeper_server
         .filter (srv) -> srv.options.config['peerType'] is 'participant'
         .map (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
         .join ','
-        # quorum = for srv in service.use.zookeeper_server
+        # quorum = for srv in service.deps.zookeeper_server
         #   continue unless  srv.options.config['peerType'] is 'participant'
         #   "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
         options.oozie_site['oozie.zookeeper.connection.string'] ?= quorum
@@ -295,15 +274,15 @@ the same database. It uses zookeeper for enabling HA.
 ## Wait
 
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.use.hdfs_nn[0].options.wait
-      options.wait_hbase_master = service.use.hbase_master[0].options.wait
-      options.wait_hive_hcatalog = service.use.hive_hcatalog[0].options.wait
-      options.wait_hive_server2 = service.use.hive_server2[0].options.wait
-      options.wait_hive_webhcat = service.use.hive_webhcat[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn[0].options.wait
+      options.wait_hbase_master = service.deps.hbase_master[0].options.wait
+      options.wait_hive_hcatalog = service.deps.hive_hcatalog[0].options.wait
+      options.wait_hive_server2 = service.deps.hive_server2[0].options.wait
+      options.wait_hive_webhcat = service.deps.hive_webhcat[0].options.wait
       options.wait = {}
-      options.wait.http = for srv in service.use.oozie_server
+      options.wait.http = for srv in service.deps.oozie_server
         # {fqdn, port} = url.parse oozie_ctx.config.ryba.oozie.site['oozie.base.url']
         host: srv.node.fqdn
         port: srv.options.http_port or if srv.options.ssl?.enabled or options.ssl.enabled then 11443 else 11000
@@ -311,6 +290,5 @@ the same database. It uses zookeeper for enabling HA.
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
 
 [oozie-ha]:(https://oozie.apache.org/docs/4.2.0/AG_Install.html#High_Availability_HA)

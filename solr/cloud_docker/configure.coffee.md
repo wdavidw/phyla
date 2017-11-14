@@ -38,20 +38,7 @@ ryba:
 ```
 
     module.exports =  (service) ->
-      service = migration.call @, service, 'ryba/solr/cloud_docker', ['ryba', 'solr', 'cloud_docker'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        docker: key: ['docker']
-        krb5_client: key: ['krb5_client']
-        ssl: key: ['ssl']
-        java: key: ['java']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hadoop_core: key: ['ryba']
-        # hdfs_client: key: ['ryba', 'hdfs_client']
-        solr_cloud_docker: key: ['ryba','solr','cloud_docker']
-        swarm_agent: key: ['ryba', 'swarm', 'agent']
-      @config.ryba ?= {}
-      @config.ryba.solr ?= {}
-      options = @config.ryba.solr.cloud_docker = service.options
+      options = service.options
 
 ## Identities
 
@@ -238,4 +225,3 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 
     configure_solr_cluster = require './clusterize'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

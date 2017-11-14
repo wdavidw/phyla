@@ -18,7 +18,7 @@ List the files and diretory from the HDFS root.
       protocol = if options.env.HTTPFS_SSL_ENABLED is 'true' then 'https' else 'http'
       @system.execute
         header: 'List Files'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         curl --fail -k --negotiate -u: \
           #{protocol}://#{options.fqdn}:#{options.http_port}/webhdfs/v1?op=GETFILESTATUS
         """

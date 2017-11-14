@@ -5,7 +5,7 @@ This service must be collocated with the Hive Server2. Also, it required an
 Atlas server to be active.
 
     module.exports =
-      use:
+      deps:
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         kafka_broker: module: 'ryba/kafka/broker', reguired: true
         hive_server2: module: 'ryba/hive/server2', local: true, required: true
@@ -13,8 +13,7 @@ Atlas server to be active.
         atlas: module: 'ryba/atlas'
       configure:
         'ryba/atlas/hive/configure'
-      plugin: ->
-        options = @config.ryba.atlas.hive
+      plugin: (options) ->
         @before
           type: ['service','start']
           name: 'hive-server2'
@@ -36,11 +35,5 @@ Atlas server to be active.
             header: 'Atlas Hiveserver2 Application Properties'
             target: "#{options.conf_dir}/atlas-application.properties"
             content: options.application.properties
-      commands:
-        install: ->
-          options = @config.ryba.atlas.hive
-          
-          
-            
 
 [atlas-apache]: http://atlas.incubator.apache.org

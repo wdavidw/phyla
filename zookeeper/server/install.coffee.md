@@ -49,7 +49,7 @@ We open the client port if:
 - the node is an observer
 - the node is participant but there is no other observer on the cluster
 
-      if options.config['peerType'] is 'observer' or @contexts('ryba/zookeeper/server').filter( (ctx) -> options.config['peerType'] is 'observer' ).length is 0
+      if options.config['peerType'] is 'observer' or not options.has_observers
         rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.config['clientPort'], protocol: 'tcp', state: 'NEW', comment: "Zookeeper Client" }
       @tools.iptables
         header: 'IPTables'

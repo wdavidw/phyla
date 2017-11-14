@@ -15,7 +15,7 @@ List the current FS root locations for the Hive databases.
 
       @system.execute
         header: 'Info FS Roots'
-        cmd: mkcmd.hdfs @, "hive --service metatool -listFSRoot 2>/dev/nul"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "hive --service metatool -listFSRoot 2>/dev/nul"
       , (err, _, stdout) ->
         return if err
         count = 0

@@ -19,41 +19,32 @@ Example:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/hdfs_jn', ['ryba', 'hdfs', 'jn'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_jn: key: ['ryba', 'hdfs', 'jn']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        metrics: key: ['ryba', 'metrics']
-      @config.ryba ?= {}
-      @config.ryba.hdfs ?= {}
-      @config.ryba.hdfs.jn ?= {}
-      options = @config.ryba.hdfs.jn = service.options
+      options = service.options
 
 ## Environment
 
-      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
-      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.pid_dir ?= service.deps.hadoop_core.options.hdfs.pid_dir
+      options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-journalnode/conf'
-      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
+      options.hadoop_opts ?= service.deps.hadoop_core.options.hadoop_opts
       # Java
-      options.java_home ?= service.use.java.options.java_home
-      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
+      options.java_home ?= service.deps.java.options.java_home
+      options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
       # Misc
       options.clean_logs ?= false
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.fqdn = service.node.fqdn
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Configuration
 
-      options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
       options.hdfs_site ?= {}
       options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
       options.hdfs_site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
@@ -67,9 +58,9 @@ Example:
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      # options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      # options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # Kerberos
       # TODO: Principal should be "jn/{host}@{realm}", however, there is
       # no properties to have a separated keytab between jn and spnego principals
@@ -79,13 +70,13 @@ Example:
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.config["*.period"] ?= '60'
@@ -95,31 +86,31 @@ Example:
       options.metrics.sinks.graphite_enabled ?= false
       # File sink
       if options.metrics.sinks.file_enabled
-        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.file.config if service.use.metrics?.options?.sinks?.file_enabled
+        options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.file.config if service.deps.metrics?.options?.sinks?.file_enabled
         options.metrics.config["journalnode.sink.file.class"] ?= 'org.apache.hadoop.metrics2.sink.FileSink'
         options.metrics.config['journalnode.sink.file.filename'] ?= 'journalnode-metrics.out'
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
         options.metrics.config["journalnode.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.hdfs.jn.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
         throw Error 'Missing remote_port ryba.hdfs.jn.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config["journalnode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
       options.wait = {}
-      options.wait.rpc = for srv in service.use.hdfs_jn
+      options.wait.rpc = for srv in service.deps.hdfs_jn
         srv.options.hdfs_site ?= {}
         srv.options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
         [_, port] = srv.options.hdfs_site['dfs.journalnode.rpc-address'].split ':'
         host: srv.node.fqdn, port: port
-      options.wait.http = for srv in service.use.hdfs_jn
+      options.wait.http = for srv in service.deps.hdfs_jn
         srv.options.hdfs_site ?= {}
         policy = srv.options.hdfs_site['dfs.http.policy'] or options.hdfs_site['dfs.http.policy']
         address = if policy is 'HTTP_ONLY'
@@ -131,4 +122,3 @@ Example:
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

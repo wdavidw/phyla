@@ -2,7 +2,7 @@
 Install Solr Plugin by default on solr_cloud_docker host.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
@@ -13,9 +13,12 @@ Install Solr Plugin by default on solr_cloud_docker host.
         ranger_solr_cloud_docker: module: 'ryba/ranger/plugins/solr_cloud_docker'
       configure:
         'ryba/ranger/plugins/solr_cloud_docker/configure'
-      plugin: ->
-        options = @config.ryba.ranger.solr_cloud_docker
+      plugin: (options) ->
         @before
           type: ['docker', 'compose','up']
         , ->
-          @call 'ryba/ranger/plugins/solr_cloud_docker/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/solr_cloud_docker/install', options.original

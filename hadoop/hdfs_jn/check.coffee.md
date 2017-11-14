@@ -31,7 +31,7 @@ Test the HTTP server with a JMX request.
         retry: 3
         sleep: 3000
         header: 'SPNEGO'
-        cmd: mkcmd.hdfs @, "curl --negotiate -k -u : #{protocol}://#{@config.host}:#{port}/jmx?qry=Hadoop:service=JournalNode,name=JournalNodeInfo"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=JournalNode,name=JournalNodeInfo"
       , (err, executed, stdout) ->
         throw err if err
         data = JSON.parse stdout

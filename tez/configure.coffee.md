@@ -2,18 +2,9 @@
 ## Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/tez', ['ryba', 'tez'], require('nikita/lib/misc').merge require('.').use,
-        java: key: ['javas']
-        httpd: key: ['httpd']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs']
-        yarn_nm: key: ['ryba', 'yarn', 'nm']
-        yarn_rm: key: ['ryba', 'yarn', 'rm']
-        yarn_ts: key: ['ryba', 'yarn', 'ats']
-        yarn_client: key: ['ryba', 'yarn_client']
-      options = @config.ryba.tez = service.options
+      options = service.options
 
-## Environnment
+## Environment
 
       options.env ?= {}
       options.env['TEZ_CONF_DIR'] ?= '/etc/tez/conf'
@@ -22,6 +13,13 @@
       # Misc
       options.hostname = service.node.hostname
       options.force_check ?= false
+
+## Kerberos
+
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Configuration
 
@@ -37,8 +35,8 @@
 ## Resource Allocation
 
       memory_per_container = 512
-      rm_memory_max_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
-      rm_memory_min_mb = service.use.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
+      rm_memory_max_mb = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.maximum-allocation-mb']
+      rm_memory_min_mb = service.deps.yarn_rm[0].options.yarn_site['yarn.scheduler.minimum-allocation-mb']
       am_memory_mb = options.tez_site['tez.am.resource.memory.mb'] or memory_per_container
       am_memory_mb = Math.min rm_memory_max_mb, am_memory_mb
       am_memory_mb = Math.max rm_memory_min_mb, am_memory_mb
@@ -99,36 +97,32 @@ Enrich the Yarn NodeManager with additionnal IPTables rules.
 
       # Range of ports that the AM can use when binding for client connections
       options.tez_site['tez.am.client.am.port-range'] ?= '34816-36864'
-      for srv in service.use.yarn_nm
+      for srv in service.deps.yarn_nm
         srv.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.tez_site['tez.am.client.am.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Tez AM Range" }
 
 
 ## UI
 
       options.ui ?= {}
-      options.ui.enabled ?= !!service.use.httpd
+      options.ui.enabled ?= !!service.deps.httpd
       if options.ui.enabled
         options.ui.env ?= {}
         options.ui.env.hosts ?= {}
         unless options.tez_site['tez.tez-ui.history-url.base'] and options.ui.html_path
-          unless service.use.httpd
+          unless service.deps.httpd
             throw 'Install masson/commons/httpd on ' + service.node.fqdn + ' or specify tez_site[\'tez.tez-ui.history-url.base\'] and ui.html_path if ui.enabled'
           options.tez_site['tez.tez-ui.history-url.base'] ?= "http://#{service.node.fqdn}/tez-ui"
-          options.ui.html_path ?= "#{service.use.httpd.options.user.home}/tez-ui"
-        id = if service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{service.use.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-        options.ui.env.hosts.timeline ?= if service.use.yarn_ts[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + service.use.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.address']
-        else "https://"+ service.use.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
-        options.ui.env.hosts.rm ?= if service.use.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
-        else "https://"+ service.use.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
+          options.ui.html_path ?= "#{service.deps.httpd.options.user.home}/tez-ui"
+        id = if service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        options.ui.env.hosts.timeline ?= if service.deps.yarn_ts[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.address']
+        else "https://"+ service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
+        options.ui.env.hosts.rm ?= if service.deps.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+        then "http://" + service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
+        else "https://"+ service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
         ## Tez Site when UI is enabled
         options.tez_site['tez.runtime.convert.user-payload.to.history-text'] ?= 'true'
         options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'
-
-## Dependencies
-
-    migration = require 'masson/lib/migration'
 
 [tez]: http://tez.apache.org/
 [instructions]: (http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.0/HDP_Man_Install_v22/index.html#Item1.8.4)

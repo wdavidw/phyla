@@ -44,11 +44,7 @@
 ## Source Code
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/esdocker', ['ryba','esdocker'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        ssl: key: ['ssl']
-        esdocker: key: ['ryba', 'esdocker']
-      options = @config.ryba.esdocker = service.options
+      options = service.options
 
 ## Identities
 
@@ -72,7 +68,7 @@
 ## Elastic config
 
       options.clusters ?= {}
-      options.ssl = merge {}, service.use.ssl, options.ssl
+      options.ssl = merge {}, service.deps.ssl, options.ssl
       throw Error 'Required property "ryba.ssl.cacert" or "ryba.options.ssl.cacert"' unless options.ssl.cacert?
       throw Error 'Required property "ryba.ssl.cert"' unless options.ssl.cert?
       throw Error 'Required property "ryba.ssl.key"' unless options.ssl.key?
@@ -81,7 +77,7 @@
       options.ssl.dest_cert = "#{options.ssl.dest_dir}/cert.pem"
       options.ssl.dest_key = "#{options.ssl.dest_dir}/key.pem"
       options.fqdn ?= servide.node.fqdn
-      options.hosts ?= service.use.esdocker.map (srv) -> srv.node.fqdn
+      options.hosts ?= service.deps.esdocker.map (srv) -> srv.node.fqdn
 
 ## Kernerl
 

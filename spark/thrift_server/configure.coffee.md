@@ -1,7 +1,7 @@
 
 # Spark Thrift Server
 
-    module.exports = ->
+    module.exports = (service) ->
       {realm, core_site} = @config.ryba
       hs2_ctxs = @contexts 'ryba/hive/server2'
       sc_ctxs = @contexts 'ryba/spark/client'
@@ -44,6 +44,7 @@ Only port, execution engine and dynamic discovery change (not supported).
       spark.thrift.hive_site['hive.server2.support.dynamic.service.discovery'] = 'false' 
 
 ### Spark Defaults
+
 Inherits some of the basic spark yarn-cluster based installation
 
       spark.thrift.conf ?= {}
@@ -75,6 +76,11 @@ Inherits some of the basic spark yarn-cluster based installation
         'spark.yarn.submit.file.replication'
       ] then spark.thrift.conf[prop] ?= sc_ctx.config.ryba.spark.conf[prop]
 
+## Tez
+
+Tez configuration directory is injected into "spark-env.sh".
+
+      options.tez_conf_dir = service.deps.tez.options.env['TEZ_CONF_DIR'] if service.deps.tez
 
 ### Log4j Properties
 

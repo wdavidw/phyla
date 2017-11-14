@@ -134,16 +134,16 @@ Note, we are re-using the namespace created above.
 
       @call header: 'Shell', ->
         @wait.execute
-          cmd: mkcmd.test @, "hbase shell 2>/dev/null <<< \"exists '#{options.test.namespace}:#{options.test.table}'\" | grep 'Table #{options.test.namespace}:#{options.test.table} does exist'"
+          cmd: mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"exists '#{options.test.namespace}:#{options.test.table}'\" | grep 'Table #{options.test.namespace}:#{options.test.table} does exist'"
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hbase shell 2>/dev/null <<-CMD
             alter '#{options.test.namespace}:#{options.test.table}', {NAME => '#{options.hostname}'}
             put '#{options.test.namespace}:#{options.test.table}', 'my_row', '#{options.hostname}:my_column', 10
             scan '#{options.test.namespace}:#{options.test.table}',  {COLUMNS => '#{options.hostname}'}
           CMD
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}'}\" | egrep '[0-9]+ row'"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}'}\" | egrep '[0-9]+ row'"
         , (err, executed, stdout) ->
           isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test stdout
           throw Error 'Invalid command output' if executed and not isRowCreated
@@ -152,13 +152,13 @@ Note, we are re-using the namespace created above.
 
       @call header: 'MapReduce', ->
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           hdfs dfs -rm -skipTrash check-#{options.hostname}-hbase-mapred
           echo -e '1,toto\\n2,tata\\n3,titi\\n4,tutu' | hdfs dfs -put -f - /user/ryba/test_import.csv
           hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=, -Dimporttsv.columns=HBASE_ROW_KEY,family1:value #{options.test.namespace}:#{options.test.table} /user/ryba/test_import.csv
           hdfs dfs -touchz check-#{options.hostname}-hbase-mapred
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f check-#{options.hostname}-hbase-mapred"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-hbase-mapred"
 
 ## Check Splits
 
@@ -170,7 +170,7 @@ Note, we are re-using the namespace created above.
           echo "create '#{table}', 'cf1', SPLITS => ['1', '2', '3']" | hbase shell 2>/dev/null;
           echo "scan 'hbase:meta',  {COLUMNS => 'info:regioninfo', FILTER => \\"PrefixFilter ('#{table}')\\"}" | hbase shell 2>/dev/null
           """
-          unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{options.test.namespace}'\" | grep -w 'test_splits'"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"list '#{options.test.namespace}'\" | grep -w 'test_splits'"
         , (err, executed, stdout) ->
           throw err if err
           return unless executed
@@ -182,11 +182,11 @@ Note, we are re-using the namespace created above.
           throw Error 'Invalid Splits Count' unless count is 4
 
       # Note: inspiration for when namespace are functional
-      # cmd = mkcmd.test @, "hbase shell 2>/dev/null <<< \"list_namespace_tables 'ryba'\" | egrep '[0-9]+ row'"
+      # cmd = mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"list_namespace_tables 'ryba'\" | egrep '[0-9]+ row'"
       # @waitForExecution cmd, (err) ->
       #   return  err if err
       #   @system.execute
-      #     cmd: mkcmd.test @, """
+      #     cmd: mkcmd.test options.test_krb5_user, """
       #     if hbase shell 2>/dev/null <<< "list_namespace_tables 'ryba'" | egrep '[0-9]+ row'; then exit 2; fi
       #     hbase shell 2>/dev/null <<-CMD
       #       create 'ryba.#{options.hostname}', 'family1'
@@ -217,7 +217,7 @@ This check is only executed if more than two HBase Master are declared.
           echo "scan '#{table}',  { CONSISTENCY => 'STRONG' }" | hbase shell 2>/dev/null
           echo "scan '#{table}',  { CONSISTENCY => 'TIMELINE' }" | hbase shell 2>/dev/null
           """
-          # unless_exec: unless options.force_check then mkcmd.test @, "hbase shell 2>/dev/null <<< \"list '#{table}'\" | grep -w '#{table}'"
+          # unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"list '#{table}'\" | grep -w '#{table}'"
 
 ## Dependencies
 

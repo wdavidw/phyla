@@ -44,8 +44,8 @@ export SPARK_CLASSPATH=${SPARK_HOME}/lib/*:${HADOOP_HOME}/lib/*:${HBASE_HOME}/li
 # The java implementation to use.
 export JAVA_HOME=/usr/java/default/
 
-if [ -d "{{ryba.tez.env['TEZ_CONF_DIR']}}" ]; then
-  export TEZ_CONF_DIR={{ryba.tez.env['TEZ_CONF_DIR']}}
+if [ -d "{{options.tez_conf_dir}}" ]; then
+  export TEZ_CONF_DIR={{options.tez_conf_dir}}
 else
   export TEZ_CONF_DIR=
 fi

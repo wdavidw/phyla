@@ -9,45 +9,35 @@ This modules injects installation actions in the `ryba/solr/cloud_docker` contex
 As a consequence, `ryba/ranger/admin` and `ryba/solr/cloud_docker` must not be installed on
 the same machine.
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/ranger/plugins/solr_cloud_docker', ['ryba', 'ranger', 'solr_cloud_docker'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        solr_cloud_docker: key: ['ryba', 'solr', 'cloud_docker']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        ranger_hdfs: key: ['ryba', 'ranger', 'hdfs']
-        ranger_solr_cloud_docker: key: ['ryba', 'ranger','solr_cloud_docker']
-      @config.ryba.ranger ?= {}
-      options = @config.ryba.ranger.solr_cloud_docker = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.enabled ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.enabled ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       # Admin Information
-      options.krb5.admin = service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin = service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Environment
 
       # Layout
-      options.conf_dir ?= service.use.solr_cloud_docker.options.conf_dir
+      options.conf_dir ?= service.deps.solr_cloud_docker.options.conf_dir
       
 ## Identities
 
-      options.group = merge {}, service.use.ranger_admin.options.group, options.group or {}
-      options.user = merge {}, service.use.ranger_admin.options.user, options.user or {}
-      options.solr_user = service.use.solr_cloud_docker.options.user
-      options.solr_group = service.use.solr_cloud_docker.options.group
-      options.hadoop_group = service.use.hadoop_core.options.hadoop_group
-      options.hdfs_krb5_user = service.use.hadoop_core.options.hdfs.krb5_user
+      options.group = merge {}, service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge {}, service.deps.ranger_admin.options.user, options.user or {}
+      options.solr_user = service.deps.solr_cloud_docker.options.user
+      options.solr_group = service.deps.solr_cloud_docker.options.group
+      options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Access
 
-      options.ranger_admin ?= service.use.ranger_admin
-      options.hdfs_install ?= service.use.ranger_hdfs[0].options.install
+      options.ranger_admin ?= service.deps.ranger_admin
+      options.hdfs_install ?= service.deps.ranger_hdfs[0].options.install
 
 ## Plugin User
 
@@ -70,7 +60,7 @@ lib file available to solr process inside the container.
 
       options.service_repos ?= {}
       options.solr_plugins ?= {}
-      for name, cluster_config of service.use.solr_cloud_docker.options.clusters
+      for name, cluster_config of service.deps.solr_cloud_docker.options.clusters
         for host, config of cluster_config.config_hosts
           config.security["authorization"] ?= {}
           config.security["authorization"]['class'] = 'org.apache.ranger.authorization.solr.authorizer.RangerSolrAuthorizer'
@@ -100,7 +90,7 @@ lib file available to solr process inside the container.
         options.solr_plugins[name].install['REPOSITORY_NAME'] ?= name
         options.solr_plugins[name].install['PYTHON_COMMAND_INVOKER'] ?= 'python'
         options.solr_plugins[name].install['CUSTOM_USER'] ?= "#{options.solr_user.name}"
-        options.solr_plugins[name].install['POLICY_MGR_URL'] ?= service.use.ranger_admin.options.install['policymgr_external_url']
+        options.solr_plugins[name].install['POLICY_MGR_URL'] ?= service.deps.ranger_admin.options.install['policymgr_external_url']
         options.solr_plugins[name].install['COMPONENT_INSTALL_DIR_NAME'] ?= "#{options.conf_dir}/clusters/#{name}/server"
         options.solr_plugins[name].data_dir ?= cluster_config.data_dir
 
@@ -110,14 +100,14 @@ lib file available to solr process inside the container.
         if options.solr_plugins[name].install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
           # migration: lucasbak 11102017
           # honored but not used by plugin
-          # options.solr_plugins[name].install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/audit"
-          # options.solr_plugins[name].install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.use.ranger_admin.options.conf_dir}/%app-type%/archive"
+          # options.solr_plugins[name].install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.deps.ranger_admin.options.conf_dir}/%app-type%/audit"
+          # options.solr_plugins[name].install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.deps.ranger_admin.options.conf_dir}/%app-type%/archive"
           options.solr_plugins[name].install['XAAUDIT.SUMMARY.ENABLE'] ?= 'true'
           # AUDIT TO HDFS
           options.solr_plugins[name].install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
-          options.solr_plugins[name].install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/#{name}/"
+          options.solr_plugins[name].install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.deps.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/#{name}/"
           options.solr_plugins[name].install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{cluster_config.log_dir}/audit/hdfs/spool"
-          options.solr_plugins[name].install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.use.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
+          options.solr_plugins[name].install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.deps.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
           options.solr_plugins[name].install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
           options.solr_plugins[name].install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{cluster_config.log_dir}/audit/hdfs/spool"
           options.solr_plugins[name].install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{cluster_config.log_dir}/ranger/%app-type%/audit"
@@ -215,10 +205,10 @@ Used only if SSL is enabled between Policy Admin Tool and Plugin
 
         
         if options.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-          options.solr_plugins[name].install['SSL_KEYSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.location']
-          options.solr_plugins[name].install['SSL_KEYSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_server['ssl.server.keystore.password']
-          options.solr_plugins[name].install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.location']
-          options.solr_plugins[name].install['SSL_TRUSTSTORE_PASSWORD'] ?= service.use.hadoop_core.options.ssl_client['ssl.client.truststore.password']
+          options.solr_plugins[name].install['SSL_KEYSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.location']
+          options.solr_plugins[name].install['SSL_KEYSTORE_PASSWORD'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.password']
+          options.solr_plugins[name].install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_client['ssl.client.truststore.location']
+          options.solr_plugins[name].install['SSL_TRUSTSTORE_PASSWORD'] ?= service.deps.hadoop_core.options.ssl_client['ssl.client.truststore.password']
           # migration: lucasbak 25102017
           # use solr cluster config
           # options.solr_plugins[name].install['SSL_KEYSTORE_FILE_PATH'] ?= cluster_config.env['SOLR_SSL_KEY_STORE']
@@ -242,9 +232,8 @@ which does need it.
 
 ## Wait
 
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait
+      options.wait_ranger_admin = service.deps.ranger_admin.options.wait
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

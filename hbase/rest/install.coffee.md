@@ -137,7 +137,7 @@ Create the Kerberos keytab for the service principal.
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: options.hbase_site['hbase.rest.kerberos.principal'].replace '_HOST', @config.host
+        principal: options.hbase_site['hbase.rest.kerberos.principal'].replace '_HOST', options.fqdn
         randkey: true
         keytab: options.hbase_site['hbase.rest.keytab.file']
         uid: options.user.name

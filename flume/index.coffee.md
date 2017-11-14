@@ -8,12 +8,11 @@ tolerant with tunable reliability mechanisms and many failover and recovery
 mechanisms.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
       configure:
         'ryba/flume/configure'
       commands:
-        'install': ->
-          options = @config.ryba.flume
-          @call 'ryba/flume/install', options
+        'install':
+          'ryba/flume/install'

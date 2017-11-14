@@ -27,13 +27,8 @@ Example:
 }
 ```
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/flume', ['ryba', 'flume'], require('nikita/lib/misc').merge require('.').use,
-        krb5_client: key: ['krb5_client']
-        hadoop_core: key: ['ryba']
-      @config.ryba ?= {}
-      @config.ryba.oozie ?= {}
-      options = @config.ryba.flume = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -59,15 +54,11 @@ Example:
 
       # Administration
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # Flume Principal
       options.krb5_user ?= {}
-      options.krb5_user.principal ?= "#{options.user.name}/#{service.use.fqdn}@#{options.krb5.realm}"
+      options.krb5_user.principal ?= "#{options.user.name}/#{service.deps.fqdn}@#{options.krb5.realm}"
       options.krb5_user.keytab ?= "#{options.conf_dir}/flume.service.keytab"
       options.krb5_user.randkey ?= true
-
-## Dependencies
-
-    migration = require 'masson/lib/migration'

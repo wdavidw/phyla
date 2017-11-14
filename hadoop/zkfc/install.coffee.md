@@ -100,15 +100,15 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 ## Kerberos
 
 Create a service principal for the ZKFC daemon to authenticate with Zookeeper.
-The principal is named after "zkfc/#{@config.host}@#{realm}" and its keytab
+The principal is named after "zkfc/#{fqdn}@#{realm}" and its keytab
 is stored as "/etc/security/keytabs/zkfc.service.keytab".
 
 The Jaas file is registered as an Java property inside 'hadoop-env.sh' and is
 stored as "/etc/hadoop/conf/zkfc.jaas"
 
       @call header: 'Kerberos', ->
-        zkfc_principal = options.principal.replace '_HOST', @config.host
-        nn_principal = options.nn_principal.replace '_HOST', @config.host
+        zkfc_principal = options.principal.replace '_HOST', options.fqdn
+        nn_principal = options.nn_principal.replace '_HOST', options.fqdn
         @krb5.addprinc options.krb5.admin,
           principal: zkfc_principal
           keytab: options.keytab
@@ -223,7 +223,7 @@ inserted if ALL users or the HDFS user access is denied.
           gid: options.hadoop_group.name
           mode: 0o644
         @call (_, callback) ->
-          fs.readFile "#{options.ssh_fencing.public_key}", (err, content) =>
+          fs.readFile null, "#{options.ssh_fencing.public_key}", (err, content) =>
             return callback err if err
             @file
               target: "#{options.user.home}/.ssh/authorized_keys"
@@ -234,7 +234,7 @@ inserted if ALL users or the HDFS user access is denied.
               mode: 0o600
             , (err, written) =>
               return callback err if err
-              @fs.readFile '/etc/security/access.conf', 'utf8', (err, source) =>
+              fs.readFile options.ssh, '/etc/security/access.conf', 'utf8', (err, source) =>
                 return callback err if err
                 content = []
                 # exclude = ///^\-\s?:\s?(ALL|#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$///
@@ -277,6 +277,6 @@ NameNode, we wait for the active NameNode to take leadership and start the ZKFC 
 
 ## Dependencies
 
-    fs = require 'fs'
+    fs = require 'ssh2-fs'
     mkcmd = require '../../lib/mkcmd'
     {merge} = require 'nikita/lib/misc'

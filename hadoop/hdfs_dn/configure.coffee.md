@@ -27,51 +27,44 @@ Example:
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hadoop/hdfs_dn', ['ryba', 'hdfs', 'dn'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        iptables: key: ['iptables']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hadoop_core: key: ['ryba']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        hdfs_dn: key: ['ryba', 'hdfs', 'dn']
-        metrics: key: ['ryba', 'metrics']
-        log4j: key: ['ryba', 'log4j']
-      @config.ryba ?= {}
-      @config.ryba.hdfs ?= {}
-      @config.ryba.hdfs.dn ?= {}
-      options = @config.ryba.hdfs.dn = service.options
+      options = service.options
 
 ## Environment
 
 Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
 
-      options.pid_dir ?= service.use.hadoop_core.options.hdfs.pid_dir
-      options.secure_dn_pid_dir ?= service.use.hadoop_core.options.hdfs.secure_dn_pid_dir
-      options.log_dir ?= service.use.hadoop_core.options.hdfs.log_dir
+      options.pid_dir ?= service.deps.hadoop_core.options.hdfs.pid_dir
+      options.secure_dn_pid_dir ?= service.deps.hadoop_core.options.hdfs.secure_dn_pid_dir
+      options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-datanode/conf'
       # Java
       options.opts ?= {}
       options.java_opts ?= ''
-      options.java_home ?= service.use.java.options.java_home
+      options.java_home ?= service.deps.java.options.java_home
       options.newsize ?= '200m'
       options.heapsize ?= '1024m'
-      options.hadoop_heap ?= service.use.hadoop_core.options.hadoop_heap
+      options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
       # Misc
       options.clean_logs ?= false
-      options.hadoop_opts ?= service.use.hadoop_core.options.hadoop_opts
+      options.hadoop_opts ?= service.deps.hadoop_core.options.hadoop_opts
       options.sysctl ?= {}
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.fqdn = service.node.fqdn
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.use.hadoop_core.options.hdfs.group, options.group 
-      options.user = merge {}, service.use.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group 
+      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
+
+## Kerberos
+
+      # Kerberos HDFS Admin
+      options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 
 ## Configuration
 
-      options.core_site = merge {}, service.use.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
       # Note: moved during masson migration from nn to dn
       options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
       options.hdfs_site ?= {}
@@ -111,20 +104,20 @@ memory that you can lock than what you have configured.
 ## Kerberos
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       options.krb5.principal ?= "dn/#{service.node.fqdn}@#{options.krb5.realm}"
       options.krb5.keytab ?= '/etc/security/keytabs/dn.service.keytab'
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # Configuration in "core-site.xml"
       options.hdfs_site['dfs.datanode.kerberos.principal'] ?= options.krb5.principal.replace service.node.fqdn, '_HOST'
       options.hdfs_site['dfs.datanode.keytab.file'] ?= options.krb5.keytab
 
 ## SSL
 
-      options.ssl = merge {}, service.use.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.use.hadoop_core.options.ssl_server, options.ssl_server or {}
-      options.ssl_client = merge {}, service.use.hadoop_core.options.ssl_client, options.ssl_client or {}
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Tuning
 
@@ -162,12 +155,12 @@ memory that you can lock than what you have configured.
 
 [Short Circuit]: https://hadoop.apache.org/docs/r2.4.1/hadoop-project-dist/hadoop-hdfs/ShortCircuitLocalReads.html
 
-      options.hdfs_site['dfs.client.read.shortcircuit'] ?= if @has_service 'ryba/hadoop/hdfs_dn' then 'true' else 'false'
+      options.hdfs_site['dfs.client.read.shortcircuit'] ?= if (service.node.services.some (srv) -> srv.module is 'ryba/hadoop/hdfs_dn') then 'true' else 'false'
       options.hdfs_site['dfs.domain.socket.path'] ?= '/var/lib/hadoop-hdfs/dn_socket'
 
 ## Metrics
 
-      options.metrics = merge {}, service.use.metrics?.options, options.metrics
+      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
@@ -180,19 +173,19 @@ memory that you can lock than what you have configured.
       # Ganglia sink, accepted properties are "servers" and "supportsparse"
       if options.metrics.sinks.ganglia_enabled
         options.metrics.config["datanode.sink.ganglia.class"] ?= 'org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31'
-        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.use.metrics?.options?.sinks?.ganglia_enabled
+        options.metrics.config["*.sink.ganglia.#{k}"] ?= v for k, v of options.sinks.ganglia.config if service.deps.metrics?.options?.sinks?.ganglia_enabled
       # Graphite Sink
       if options.metrics.sinks.graphite_enabled
         throw Error 'Missing remote_host ryba.hdfs.dn.metrics.sinks.graphite.config.server_host' unless options.metrics.sinks.graphite.config.server_host?
         throw Error 'Missing remote_port ryba.hdfs.dn.metrics.sinks.graphite.config.server_port' unless options.metrics.sinks.graphite.config.server_port?
         options.metrics.config["datanode.sink.graphite.class"] ?= 'org.apache.hadoop.metrics2.sink.GraphiteSink'
-        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.use.metrics.options.sinks.graphite.config if service.use.metrics?.options?.sinks?.graphite_enabled
+        options.metrics.config["*.sink.graphite.#{k}"] ?= v for k, v of service.deps.metrics.options.sinks.graphite.config if service.deps.metrics?.options?.sinks?.graphite_enabled
 
 ## Configuration for Log4J
 Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the variable
 `options.log4j.properties`
 
-      options.log4j = merge {}, service.use.log4j?.options, options.log4j
+      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.root_logger ?= 'INFO,RFA'
       options.log4j.security_logger ?= 'INFO,RFAS'
@@ -228,23 +221,23 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
       options.wait = {}
-      options.wait.tcp = for srv in service.use.hdfs_dn
+      options.wait.tcp = for srv in service.deps.hdfs_dn
         is_krb5 = options.core_site['hadoop.security.authentication'] is 'kerberos'
         addr = if srv.options.hdfs_site?['dfs.datanode.address']?
         then srv.options.hdfs_site['dfs.datanode.address']
         else unless is_krb5 then '0.0.0.0:50010' else  '0.0.0.0:1004'
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
-      options.wait.ipc = for srv in service.use.hdfs_dn
+      options.wait.ipc = for srv in service.deps.hdfs_dn
         addr = if srv.options.hdfs_site?['dfs.datanode.ipc.address']?
         then srv.options.hdfs_site['dfs.datanode.ipc.address']
         else '0.0.0.0:50020'
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
-      options.wait.http = for srv in service.use.hdfs_dn
+      options.wait.http = for srv in service.deps.hdfs_dn
         policy = if srv.options.hdfs_site?['dfs.http.policy']?
         then srv.options.hdfs_site['dfs.http.policy']
         else options.hdfs_site['dfs.http.policy']
@@ -258,5 +251,4 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
     appender = require '../../lib/appender'

@@ -16,19 +16,15 @@ format their data is stored — RCFile format, text files, SequenceFiles, or ORC
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/hive/metastore', ['ryba', 'hive', 'metastore'], require('nikita/lib/misc').merge require('.').use,
-        db_admin: key: ['ryba', 'db_admin']
-      @config.ryba ?= {}
-      @config.ryba.hive ?= {}
-      options = @config.ryba.hive.metastore = service.options
+      options = service.options
 
 ## Configure Database
 
 Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
       options.db ?= {}
-      options.db.engine ?= service.use.db_admin.options.engine
-      options.db = merge {}, service.use.db_admin.options[options.db.engine], options.db
+      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'hive'
       options.db.username ?= 'hive'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -74,4 +70,3 @@ keystore file](https://cwiki.apache.org/confluence/display/Hive/AdminManual+Conf
 
     db = require 'nikita/lib/misc/db'
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

@@ -17,7 +17,7 @@ traffic to be encrypted. This includes the web UI for Namenodes and Resource
 Managers, Web HDFS interactions, and others.
 
     module.exports =
-      use:
+      deps:
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -27,9 +27,9 @@ Managers, Web HDFS interactions, and others.
         ganglia: module: 'ryba/retired/ganglia/collector', single: true
         graphite: module: 'ryba/graphite', single: true
         metrics: module: 'ryba/metrics', local: true
+        hadoop_core: module: 'ryba/hadoop/core'
       configure:
         'ryba/hadoop/core/configure'
       commands:
-        'install': ->
-          options = @config.ryba
-          @call 'ryba/hadoop/core/install', options
+        'install':
+          'ryba/hadoop/core/install'

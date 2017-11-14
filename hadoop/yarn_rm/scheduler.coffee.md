@@ -36,7 +36,7 @@ ResourceCalculator class name is expected.
       @system.execute
         header: 'Reload'
         if: -> @status -1
-        cmd: mkcmd.hdfs @, "service hadoop-yarn-resourcemanager status && yarn --config #{options.conf_dir} rmadmin -refreshQueues || exit 0"
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, "service hadoop-yarn-resourcemanager status && yarn --config #{options.conf_dir} rmadmin -refreshQueues || exit 0"
 
 
 ## Dependencies

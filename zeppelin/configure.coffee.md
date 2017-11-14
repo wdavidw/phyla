@@ -2,19 +2,7 @@
 # Zeppelin Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/zeppelin', ['ryba', 'zeppelin'], require('nikita/lib/misc').merge require('.').use,
-        # krb5_client: key: ['krb5_client']
-        # java: key: ['java']
-        docker: key: ['docker']
-        # test_user: key: ['ryba', 'test_user']
-        # hadoop_core: key: ['ryba']
-        hdfs_client: key: ['ryba', 'hdfs_client']
-        # yarn_client: key: ['ryba', 'yarn_client']
-        # mapred_client: key: ['ryba', 'mapred']
-        spark_client: key: ['ryba', 'spark', 'client']
-        hive_client: key: ['ryba', 'hive', 'client']
-      @config.ryba ?= {}
-      options = @config.ryba.zeppelin = service.options
+      options = service.options
 
 ## Prepare
 
@@ -42,9 +30,9 @@
 
       options.conf_dir ?= '/var/lib/zeppelin/conf'
       options.log_dir ?= '/var/log/zeppelin'
-      options.hadoop_conf_dir ?= service.use.hdfs_client.options.conf_dir
+      options.hadoop_conf_dir ?= service.deps.hdfs_client.options.conf_dir
       # Misc
-      options.hdfs_defaultfs = service.use.hdfs_client.options.core_site['fs.defaultFS']
+      options.hdfs_defaultfs = service.deps.hdfs_client.options.core_site['fs.defaultFS']
       options.cache_dir ?= '/tmp'
 
 ## Build & Prod
@@ -100,7 +88,7 @@
 ## Env
 
       options.env ?= {}
-      options.env['HADOOP_CONF_DIR'] = service.use.hdfs_client.options.conf_dir
+      options.env['HADOOP_CONF_DIR'] = service.deps.hdfs_client.options.conf_dir
       options.env['ZEPPELIN_LOG_DIR'] ?= '/var/log/zeppelin'
       options.env['ZEPPELIN_PID_DIR'] ?= '/var/run/zeppelin'
       options.env['ZEPPELIN_PORT'] ?= options.zeppelin_site['zeppelin.server.port']
@@ -112,8 +100,3 @@
       #options.env['SPARK_YARN_JAR'] ?= 'file:///var/lib/zeppelin/interpreter/spark/zeppelin-spark-0.6.0-incubating-SNAPSHOT.jar'
       # options.env['SPARK_YARN_JAR'] ?= 'hdfs:///user/spark/share/lib/spark-assembly-1.3.1.2.3.0.0-2557-hadoop2.7.1.2.3.0.0-2557.jar'
       options.env['HADOOP_HOME'] ?= '/usr/hdp/current/hadoop-client'
-
-# Module Dependencies
-
-    # {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

@@ -26,8 +26,8 @@
 NAME='Ranger Admin PolicyMgr'
 BIN_PATH=/usr/bin
 MOD_NAME=ranger-admin
-USER='{{ranger.user.name}}'
-CONF_DIR='{{ranger.admin.conf_dir}}'
+USER='{{options.user.name}}'
+CONF_DIR='{{options.conf_dir}}'
 PID_FILE='/var/run/ranger/rangeradmin.pid'
 CMD=""
 KILL_FORCE=0

@@ -38,11 +38,11 @@ kafka:x:496:kafka
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      @call header: 'IPTables', handler: ->
-        return unless @config.iptables.action is 'start'
-        @tools.iptables
-          rules: for protocol in options.protocols
-            { chain: 'INPUT', jump: 'ACCEPT', dport: options.ports[protocol], protocol: 'tcp', state: 'NEW', comment: "Kafka Broker #{protocol}" }
+      @tools.iptables
+        header: 'IPTables'
+        if: options.iptables
+        rules: for protocol in options.protocols
+          chain: 'INPUT', jump: 'ACCEPT', dport: options.ports[protocol], protocol: 'tcp', state: 'NEW', comment: "Kafka Broker #{protocol}"
 
 ## Package
 

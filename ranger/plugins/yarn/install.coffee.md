@@ -93,13 +93,19 @@ we execute this task using the rest api.
 
 ## HDFS Audit Layout
 
-        @system.execute
-          header: 'HDFS Audit Layout'
-          cmd: mkcmd.hdfs @, """
-          hdfs --config #{options.conf_dir} dfs -mkdir -p /#{options.user.name}/audit/yarn
-          hdfs --config #{options.conf_dir} dfs -chown -R #{options.yarn_user.name}:#{options.yarn_user.name} /#{options.user.name}/audit/yarn
-          hdfs --config #{options.conf_dir} dfs -chmod 750 /#{options.user.name}/audit/yarn
-          """
+        # @system.execute
+        #   header: 'HDFS Audit Layout'
+        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, """
+        #   hdfs --config #{options.conf_dir} dfs -mkdir -p /#{options.user.name}/audit/yarn
+        #   hdfs --config #{options.conf_dir} dfs -chown -R #{options.yarn_user.name}:#{options.yarn_user.name} /#{options.user.name}/audit/yarn
+        #   hdfs --config #{options.conf_dir} dfs -chmod 750 /#{options.user.name}/audit/yarn
+        #   """
+        @hdfs_mkdir
+          target: "/#{options.user.name}/audit/yarn"
+          user: options.yarn_user.name
+          mode: 0o0750
+          conf_dir: options.conf_dir
+          krb5_user: options.hdfs_krb5_user
 
 ## Properties
 

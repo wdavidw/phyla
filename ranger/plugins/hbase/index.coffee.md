@@ -1,7 +1,7 @@
 # Ranger HBase Plugin
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
@@ -12,19 +12,25 @@
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
       configure:
         'ryba/ranger/plugins/hbase/configure'
-      plugin: ->
-        options = @config.ryba.ranger.hbase
+      plugin: (options) ->
         @before
           type: ['service', 'start']
           name: 'hbase-master'
         , ->
-          @call 'ryba/ranger/plugins/hbase/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/hbase/install', options.original
         @before
           type: ['service', 'start']
           name: 'hbase-regionserver'
         , ->
-          @call 'ryba/ranger/plugins/hbase/install', options
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/hbase/install', options.original
       commands:
-        install: ->
-          options = @config.ryba.ranger.hbase
-          @call 'ryba/ranger/plugins/hbase/install', options
+        install:
+          'ryba/ranger/plugins/hbase/install'

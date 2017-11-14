@@ -7,7 +7,7 @@
 Knox doesn't seem to re-sync when ranger-admin is not available. Add wait to ensure plugin
 does not stop syncing.
 
-      @call once: true, 'ryba/ranger/admin/wait', options.wait_ranger_admin
+      @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin if options.wait_ranger_admin
 
 ## Service
 

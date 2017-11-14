@@ -2,32 +2,21 @@
 
 ## Configure
 
-    module.exports = ->
-      service = migration.call @, service, 'ryba/kafka/client', ['ryba', 'kafka', 'client'], require('nikita/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        krb5_client: key: ['krb5_client']
-        test_user: key: ['ryba', 'test_user']
-        hdp: key: ['ryba', 'hdp']
-        hdf: key: ['ryba', 'hdf']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-        kafka_broker: key: ['ryba', 'kafka', 'broker']
-        ranger_admin: key: ['ryba', 'ranger', 'admin']
-        ranger_kafka: key: ['ryba', 'ranger', 'kafka']
-      @config.ryba.kafka ?= {}
-      options = @config.ryba.kafka.client = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Identities
 
 Merge group and user from the Kafka broker configuration.
 
-      options.group = merge {}, service.use.kafka_broker[0].options.group, options.group
-      options.user = merge {}, service.use.kafka_broker[0].options.user, options.user
+      options.group = merge {}, service.deps.kafka_broker[0].options.group, options.group
+      options.user = merge {}, service.deps.kafka_broker[0].options.user, options.user
       # Admin principal
       options.admin ?= {}
-      options.admin.principal ?= service.use.kafka_broker[0].options.admin.principal
-      options.admin.password ?= service.use.kafka_broker[0].options.admin.password
+      options.admin.principal ?= service.deps.kafka_broker[0].options.admin.principal
+      options.admin.password ?= service.deps.kafka_broker[0].options.admin.password
       # Ranger
-      options.ranger_admin ?= service.use.ranger_admin.options.admin if service.use.ranger_admin
+      options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
 
 ## Environment
 
@@ -35,11 +24,16 @@ Merge group and user from the Kafka broker configuration.
       options.conf_dir ?= '/etc/kafka/conf'
       # Env
       options.env ?= {}
-      # Kerberos
-      if service.use.kafka_broker[0].options.config['zookeeper.set.acl'] is 'true'
-        options.env['KAFKA_KERBEROS_PARAMS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/kafka-client.jaas"
       # Misc
       options.hostname = service.node.hostname
+
+## Kerberos
+
+      # JAAS
+      if service.deps.kafka_broker[0].options.config['zookeeper.set.acl'] is 'true'
+        options.env['KAFKA_KERBEROS_PARAMS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/kafka-client.jaas"
+      # Kerberos Test Principal
+      options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
 ## Configuration
 
@@ -47,7 +41,7 @@ Merge group and user from the Kafka broker configuration.
       # Consumer
       options.consumer ?= {}
       options.consumer.config ?= {}
-      options.consumer.config['zookeeper.connect'] ?= service.use.kafka_broker[0].options.zookeeper_quorum
+      options.consumer.config['zookeeper.connect'] ?= service.deps.kafka_broker[0].options.zookeeper_quorum
       options.consumer.config['group.id'] ?= 'ryba-consumer-group'
       # Producer
       options.producer ?= {}
@@ -59,7 +53,7 @@ Merge group and user from the Kafka broker configuration.
       # which result with the error:
       # Conflicting serviceName values found in JAAS and Kafka configs value in JAAS file kafka, value in Kafka config kafka
       # fixed in 0.9.0.1
-      # kafka.consumer.config['sasl.kerberos.service.name'] =  service.use.kafka_broker[0].options.config['sasl.kerberos.service.name']
+      # kafka.consumer.config['sasl.kerberos.service.name'] =  service.deps.kafka_broker[0].options.config['sasl.kerberos.service.name']
       delete options.consumer.config['sasl.kerberos.service.name']
 
 ## Brokers and protocols
@@ -68,13 +62,13 @@ Producer config does not support several protocol like kafka/broker (for
 example the 'listeners' property), this is why we make dynamic discovery of the 
 best protocol available and pass needed protocol to command line in the checks.
 
-      options.protocols = service.use.kafka_broker[0].options.protocols
+      options.protocols = service.deps.kafka_broker[0].options.protocols
       options.brokers = {}
       for protocol in options.protocols
-        options.brokers[protocol] = for srv in service.use.kafka_broker
+        options.brokers[protocol] = for srv in service.deps.kafka_broker
           "#{srv.node.fqdn}:#{srv.options.ports[protocol]}"
-      ssl_enabled = if  service.use.kafka_broker[0].options.config['ssl.keystore.location'] then true else false
-      sasl_enabled = if  service.use.kafka_broker[0].options.kerberos then true else false
+      ssl_enabled = if  service.deps.kafka_broker[0].options.config['ssl.keystore.location'] then true else false
+      sasl_enabled = if  service.deps.kafka_broker[0].options.kerberos then true else false
       recommended_protocol = if sasl_enabled
         if ssl_enabled then 'SASL_SSL' else 'SASL_PLAINTEXT'
       else
@@ -97,9 +91,9 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
       # Configuration
-      ssl_enabled = service.use.kafka_broker[0].options.protocols.some (protocol) ->
+      ssl_enabled = service.deps.kafka_broker[0].options.protocols.some (protocol) ->
         protocol in ['SASL_SSL', 'SSL']
       if ssl_enabled
         options.config['ssl.truststore.location'] ?= "#{options.conf_dir}/truststore"
@@ -111,17 +105,16 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## Test
 
-      options.ranger_install = service.use.ranger_kafka[0].options.install if service.use.ranger_kafka
-      options.test = merge {}, service.use.test_user.options, options.test
+      options.ranger_install = service.deps.ranger_kafka[0].options.install if service.deps.ranger_kafka
+      options.test = merge {}, service.deps.test_user.options, options.test
 
 ## Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
-      options.wait_kafka_broker = service.use.kafka_broker[0].options.wait
-      options.wait_ranger_admin = service.use.ranger_admin.options.wait if service.use.ranger_admin
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_kafka_broker = service.deps.kafka_broker[0].options.wait
+      options.wait_ranger_admin = service.deps.ranger_admin.options.wait if service.deps.ranger_admin
 
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'

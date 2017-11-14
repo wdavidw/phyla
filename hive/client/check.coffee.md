@@ -83,7 +83,7 @@ engine.
           directory = "check-#{options.hostname}-hive_hcatalog_mr-#{hive_hcatalog.hostname}"
           db = "check_#{options.hostname}_hive_hcatalog_mr_#{hive_hcatalog.hostname}"
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
@@ -97,7 +97,7 @@ engine.
             hive -S -e "SET hive.execution.engine=mr; SELECT SUM(col2) FROM #{db}.my_table;" | hdfs dfs -put - #{directory}/result
             hive -e "DROP TABLE #{db}.my_table; DROP DATABASE #{db};"
             """
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Check HCatalog Tez
@@ -109,7 +109,7 @@ Use the [Hive CLI][hivecli] client to execute SQL queries using the Tez engine.
           directory = "check-#{options.hostname}-hive_hcatalog_tez-#{hive_hcatalog.hostname}"
           db = "check_#{options.hostname}_hive_hcatalog_tez_#{hive_hcatalog.hostname}"
           @system.execute
-            cmd: mkcmd.test @, """
+            cmd: mkcmd.test options.test_krb5_user, """
             hdfs dfs -rm -r -skipTrash #{directory} || true
             hdfs dfs -mkdir -p #{directory}/my_db/my_table
             echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - #{directory}/my_db/my_table/data
@@ -122,7 +122,7 @@ Use the [Hive CLI][hivecli] client to execute SQL queries using the Tez engine.
             hive -S -e "set hive.execution.engine=tez; SELECT SUM(col2) FROM #{db}.my_table;" | hdfs dfs -put - #{directory}/result
             hive -e "DROP TABLE #{db}.my_table; DROP DATABASE #{db};"
             """
-            unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -f #{directory}/result"
+            unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{directory}/result"
             trap: true
 
 ## Dependencies

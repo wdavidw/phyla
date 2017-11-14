@@ -8,15 +8,15 @@ programs is that their structure is amenable to substantial parallelization,
 which in turns enables them to handle very large data sets.
 
     module.exports =
-      use:
+      deps:
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         java: module: 'masson/commons/java', local: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
-        test_user: module: 'ryba/commons/test_user', local: true, auto: true, implicit: true
+        test_user: module: 'ryba/commons/test_user', local: true, auto: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
         yarn_client: module: 'ryba/hadoop/yarn_client', local: true, auto: true, implicit: true
         mapred_client: module: 'ryba/hadoop/mapred_client', local: true, auto: true, implicit: true
-        hive_client: module: 'ryba/hive/client', local: true, auto: true, implicit: true # In case pig is run through hcat
+        hive_client: module: 'ryba/hive/client', local: true, required: true # In case pig is run through hcat
       configure:
         'ryba/pig/configure'
       commands:

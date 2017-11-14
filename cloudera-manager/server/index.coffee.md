@@ -10,7 +10,7 @@ or the [cloudera cdh repo][Cloudera-cdh-repo].
 
 
     module.exports =
-      use:
+      deps:
         java: implicit: true, module: 'masson/commons/java'
         db_admin: implicit: true, module: 'ryba/commons/db_admin'
       configure:

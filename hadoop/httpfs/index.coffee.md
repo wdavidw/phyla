@@ -6,7 +6,7 @@ System operations (read and write). And it is inteoperable with the webhdfs REST
 HTTP API.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
@@ -14,25 +14,22 @@ HTTP API.
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
-        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, required: true # local: true, 
+        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true
         httpfs: module: 'ryba/hadoop/httpfs'
         log4j: module: 'ryba/log4j', local: true
       configure:
         'ryba/hadoop/httpfs/configure'
       commands:
-        'check': ->
-          options = @config.ryba.httpfs
-          @call 'ryba/hadoop/httpfs/check', options
-        'install': ->
-          options = @config.ryba.httpfs
-          @call 'ryba/hadoop/httpfs/install', options
-          @call 'ryba/hadoop/httpfs/start', options
-          @call 'ryba/hadoop/httpfs/check', options
-        'start': ->
-          options = @config.ryba.httpfs
-          @call 'ryba/hadoop/httpfs/start', options
-        'stop': ->
-          options = @config.ryba.httpfs
-          @call 'ryba/hadoop/httpfs/stop', options
+        'check':
+          'ryba/hadoop/httpfs/check'
+        'install': [
+          'ryba/hadoop/httpfs/install'
+          'ryba/hadoop/httpfs/start'
+          'ryba/hadoop/httpfs/check'
+        ]
+        'start':
+          'ryba/hadoop/httpfs/start'
+        'stop':
+          'ryba/hadoop/httpfs/stop'
         'status':
           'ryba/hadoop/httpfs/status'

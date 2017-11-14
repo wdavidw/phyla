@@ -30,7 +30,7 @@ Shell script to be executed inside one or multiple YARN containers.
           """
           mode: 0o0640
         @system.execute
-          cmd: mkcmd.test @, """
+          cmd: mkcmd.test options.test_krb5_user, """
           yarn org.apache.hadoop.yarn.applications.distributedshell.Client \
             -jar /usr/hdp/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar \
             -shell_script #{scriptpath} \
@@ -59,13 +59,13 @@ to re-execute the check.
       # 10 000 000 000 = 100 Go
       @system.execute
         header: 'Teragen & Terasort'
-        cmd: mkcmd.test @, """
+        cmd: mkcmd.test options.test_krb5_user, """
         hdfs dfs -rm -r check-#{options.hostname}-mapred || true
         hdfs dfs -mkdir -p check-#{options.hostname}-mapred
         hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar teragen 100 check-#{options.hostname}-mapred/input
         hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar terasort check-#{options.hostname}-mapred/input check-#{options.hostname}-mapred/output
         """
-        unless_exec: unless options.force_check then mkcmd.test @, "hdfs dfs -test -d check-#{options.hostname}-mapred/output"
+        unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d check-#{options.hostname}-mapred/output"
         trap: true
 
 ## Dependencies

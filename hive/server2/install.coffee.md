@@ -188,12 +188,12 @@ Create the directories to store the logs and pid information. The properties
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: options.hive_site['hive.server2.authentication.kerberos.principal'].replace '_HOST', @config.host
+        unless: options.principal_identical_to_hcatalog
+        principal: options.hive_site['hive.server2.authentication.kerberos.principal'].replace '_HOST', options.fqdn
         randkey: true
         keytab: options.hive_site['hive.server2.authentication.kerberos.keytab']
         uid: options.user.name
         gid: options.group.name
-        unless: @has_service('ryba/hive/hcatalog') and options.hive_site['hive.metastore.kerberos.principal'] is options.hive_site['hive.server2.authentication.kerberos.principal']
 
 ## Ranger Hive Plugin Install
       # 
