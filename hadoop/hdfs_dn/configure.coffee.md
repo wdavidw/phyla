@@ -38,8 +38,6 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
       options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-datanode/conf'
       # Java
-      options.opts ?= {}
-      options.java_opts ?= ''
       options.java_home ?= service.deps.java.options.java_home
       options.newsize ?= '200m'
       options.heapsize ?= '1024m'
@@ -61,6 +59,17 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
 
       # Kerberos HDFS Admin
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
 
 ## Configuration
 
@@ -191,6 +200,8 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
       options.log4j.security_logger ?= 'INFO,RFAS'
       options.log4j.audit_logger ?= 'INFO,RFAAUDIT'
       if options.log4j.remote_host? and options.log4j.remote_port?
+        # adding SOCKET appender
+        options.log4j.socket_client ?= "SOCKET"
         # Root logger
         if options.log4j.root_logger.indexOf(options.log4j.socket_client) is -1
         then options.log4j.root_logger += ",#{options.log4j.socket_client}"
@@ -200,8 +211,6 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
         # Audit Logger
         if options.log4j.audit_logger.indexOf(options.log4j.socket_client) is -1
         then options.log4j.audit_logger += ",#{options.log4j.socket_client}"
-        # adding SOCKET appender
-        options.log4j.socket_client ?= "SOCKET"
         # Adding Application name, remote host and port values in namenode's opts
         options.opts['hadoop.log.application'] ?= 'datanode'
         options.opts['hadoop.log.remote_host'] ?= options.log4j.remote_host

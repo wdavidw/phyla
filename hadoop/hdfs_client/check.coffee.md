@@ -26,7 +26,7 @@ the NameNode has started.
 
 Run an HDFS command requiring a DataNode.
 
-      @system.execute
+      @system.execute.assert
         header: 'DataNode'
         retry: 20
         sleep: 5000
@@ -35,6 +35,8 @@ Run an HDFS command requiring a DataNode.
         hdfs dfs -touchz /user/#{options.test.user.name}/#{options.hostname}-hdfs
         """
         code_skipped: 2
+        retry: 5
+        sleep: 5000
 
 ## Check Kerberos Mapping
 

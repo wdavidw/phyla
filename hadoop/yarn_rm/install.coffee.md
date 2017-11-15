@@ -169,7 +169,9 @@ inside "/etc/init.d" and activate it on startup.
           replace: "#{k}=#{v}"
           append: true
       @call header: 'YARN Env', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
+        YARN_RESOURCEMANAGER_OPTS = options.opts.base
+        YARN_RESOURCEMANAGER_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        YARN_RESOURCEMANAGER_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           target: "#{options.conf_dir}/yarn-env.sh"
           source: "#{__dirname}/../resources/yarn-env.sh.j2"
@@ -182,7 +184,7 @@ inside "/etc/init.d" and activate it on startup.
             HADOOP_LIBEXEC_DIR: ''
             YARN_HEAPSIZE: options.heapsize
             YARN_RESOURCEMANAGER_HEAPSIZE: options.heapsize
-            YARN_RESOURCEMANAGER_OPTS: options.java_opts
+            YARN_RESOURCEMANAGER_OPTS: YARN_RESOURCEMANAGER_OPTS
             # YARN_OPTS: options.client_opts # should be yarn_client.opts, not sure if needed
             YARN_ROOT_LOGGER: options.log4j.root_logger
           uid: options.user.name

@@ -96,7 +96,7 @@ The default configuration is located inside the source code in the location
 
 Export the proxy user to all DataNodes and NameNodes
 
-      for srv in [service.deps.hdfs_dn..., service.deps.hdfs_nn...]
+      for srv in [service.deps.hdfs_dn..., service.deps.hdfs_nn..., service.deps.hdfs_client]
         srv.options.core_site ?= {}
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= service.deps.httpfs.map((srv) -> srv.node.fqdn).join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'

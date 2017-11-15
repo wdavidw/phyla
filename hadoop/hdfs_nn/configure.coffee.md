@@ -56,10 +56,16 @@ Example:
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
       options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
-## Namenode Java Options
+## System Options
 
-      # opts will be rendered as -Dkey=value and appended to java_opts
       options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
 
 ## Configuration
 
@@ -259,6 +265,9 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
           'fs.permissions.umask-mode'
           'dfs.block.access.token.enable'
         ] then srv.options.hdfs_site[property] ?= options.hdfs_site[property]
+        for property in [
+          'fs.defaultFS'
+        ] then srv.options.core_site[property] ?= options.core_site[property]
         for property of options.hdfs_site
           ok = false
           ok = true if /^dfs\.namenode\.\w+-address/.test property
@@ -274,6 +283,9 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
           'fs.permissions.umask-mode'
           'dfs.block.access.token.enable'
         ] then srv.options.hdfs_site[property] ?= options.hdfs_site[property]
+        for property in [
+          'fs.defaultFS'
+        ] then srv.options.core_site[property] ?= options.core_site[property]
         for property of options.hdfs_site
           ok = false
           ok = true if /^dfs\.namenode\.\w+-address/.test property

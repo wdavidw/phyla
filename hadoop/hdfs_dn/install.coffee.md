@@ -186,7 +186,9 @@ mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @call header: 'Environment', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
+        HADOOP_DATANODE_OPTS = options.opts.base
+        HADOOP_DATANODE_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HADOOP_DATANODE_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           header: 'Environment'
           target: "#{options.conf_dir}/hadoop-env.sh"
@@ -197,7 +199,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_SECURITY_LOGGER: options.log4j.security_logger
             HDFS_AUDIT_LOGGER: options.log4j.audit_logger
             HADOOP_HEAPSIZE: options.hadoop_heap
-            HADOOP_DATANODE_OPTS: options.java_opts
+            HADOOP_DATANODE_OPTS: HADOOP_DATANODE_OPTS
             HADOOP_LOG_DIR: options.log_dir
             HADOOP_PID_DIR: options.pid_dir
             HADOOP_OPTS: options.hadoop_opts
@@ -205,8 +207,6 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_SECURE_DN_USER: options.user.name
             HADOOP_SECURE_DN_LOG_DIR: options.log_dir
             HADOOP_SECURE_DN_PID_DIR: options.secure_dn_pid_dir
-            datanode_heapsize: options.heapsize
-            datanode_newsize: options.newsize
             java_home: options.java_home
           uid: options.user.name
           gid: options.hadoop_group.name

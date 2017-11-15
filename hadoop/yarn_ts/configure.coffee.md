@@ -32,13 +32,24 @@
       options.pid_dir ?= '/var/run/hadoop-yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-timelineserver/conf'
       # Java
-      options.opts ?= ''
       options.java_home ?= service.deps.java.options.java_home
-      options.heapsize ?= '1024'
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
       # Misc
       options.fqdn = service.node.fqdn
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of heapsize
 
 ## Configuration
 
