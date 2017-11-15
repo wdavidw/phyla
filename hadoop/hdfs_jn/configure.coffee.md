@@ -30,6 +30,8 @@ Example:
       # Java
       options.java_home ?= service.deps.java.options.java_home
       options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
+      options.newsize ?= '200m'
+      options.heapsize ?= '1024m'
       # Misc
       options.clean_logs ?= false
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
@@ -41,6 +43,17 @@ Example:
       options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
       options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
 
 ## Configuration
 

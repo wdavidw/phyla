@@ -137,24 +137,28 @@ Update the "yarn-site.xml" configuration file.
         target: "#{options.conf_dir}/log4j.properties"
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
-      @file.render
-        target: "#{options.conf_dir}/yarn-env.sh"
-        source: "#{__dirname}/../resources/yarn-env.sh.j2"
-        local: true
-        context:
-          JAVA_HOME: options.java_home
-          HADOOP_YARN_HOME: options.home
-          YARN_LOG_DIR: options.log_dir
-          YARN_PID_DIR: options.pid_dir
-          HADOOP_LIBEXEC_DIR: ''
-          YARN_HEAPSIZE: options.heapsize
-          YARN_HISTORYSERVER_HEAPSIZE: options.heapsize
-          YARN_HISTORYSERVER_OPTS: options.opts
-          YARN_OPTS: options.opts
-        uid: options.user.name
-        gid: options.hadoop_group.name
-        mode: 0o0755
-        backup: true
+      @call header: 'Environment', ->
+        YARN_TIMELINESERVER_OPTS = options.opts.base
+        YARN_TIMELINESERVER_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        YARN_TIMELINESERVER_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
+        @file.render
+          target: "#{options.conf_dir}/yarn-env.sh"
+          source: "#{__dirname}/../resources/yarn-env.sh.j2"
+          local: true
+          context:
+            JAVA_HOME: options.java_home
+            HADOOP_YARN_HOME: options.home
+            YARN_LOG_DIR: options.log_dir
+            YARN_PID_DIR: options.pid_dir
+            HADOOP_LIBEXEC_DIR: ''
+            YARN_HEAPSIZE: options.heapsize
+            YARN_HISTORYSERVER_HEAPSIZE: options.heapsize
+            YARN_HISTORYSERVER_OPTS: YARN_TIMELINESERVER_OPTS
+            YARN_TIMELINESERVER_OPTS: YARN_TIMELINESERVER_OPTS
+          uid: options.user.name
+          gid: options.hadoop_group.name
+          mode: 0o0755
+          backup: true
       @file.render
         header: 'Env'
         target: "#{options.conf_dir}/hadoop-env.sh"

@@ -11,6 +11,7 @@
 ## Wait
 
       @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
 
 ## IPTables
 
@@ -183,7 +184,9 @@ SSH connection to the node to gather the memory and CPU informations.
         source: "#{__dirname}/../resources/log4j.properties"
         local: true
       @call header: 'YARN Env', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts 
+        YARN_NODEMANAGER_OPTS = options.opts.base
+        YARN_NODEMANAGER_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        YARN_NODEMANAGER_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           header: 'YARN Env'
           target: "#{options.conf_dir}/yarn-env.sh"
@@ -197,7 +200,7 @@ SSH connection to the node to gather the memory and CPU informations.
             HADOOP_LIBEXEC_DIR: options.libexec
             YARN_HEAPSIZE: options.heapsize
             YARN_NODEMANAGER_HEAPSIZE: options.heapsize
-            YARN_NODEMANAGER_OPTS: options.java_opts
+            YARN_NODEMANAGER_OPTS: YARN_NODEMANAGER_OPTS
             YARN_OPTS: options.java_opts
           uid: options.user.name
           gid: options.hadoop_group.name

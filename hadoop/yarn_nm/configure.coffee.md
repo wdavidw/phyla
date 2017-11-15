@@ -34,10 +34,9 @@
       options.pid_dir ?= '/var/run/hadoop-yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-nodemanager/conf'
       # Java
-      options.opts ?= {}
       options.java_home ?= service.deps.java.options.java_home
-      options.java_opts ?= ''
-      options.heapsize ?= '1024'
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
       # Misc
       options.fqdn ?= service.node.fqdn
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
@@ -85,6 +84,17 @@
       options.yarn_site['yarn.log-aggregation-enable'] ?= 'true'
       options.yarn_site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
       options.yarn_site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of datanode heapsize
 
 ## Container Executor
 

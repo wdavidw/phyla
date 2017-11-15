@@ -145,8 +145,11 @@ The location for JSVC depends on the platform. The Hortonworks documentation
 mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
+      @call header: 'Environment', ->
+        HADOOP_JOURNALNODE_OPTS = options.opts.base
+        HADOOP_JOURNALNODE_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HADOOP_JOURNALNODE_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
-          header: 'Environment'
           target: "#{options.conf_dir}/hadoop-env.sh"
           source: "#{__dirname}/../resources/hadoop-env.sh.j2"
           local: true
@@ -154,6 +157,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_HEAPSIZE: options.hadoop_heap
             HADOOP_LOG_DIR: options.log_dir
             HADOOP_PID_DIR: options.pid_dir
+            HADOOP_JOURNALNODE_OPTS: HADOOP_JOURNALNODE_OPTS
             HADOOP_OPTS: options.hadoop_opts
             HADOOP_CLIENT_OPTS: ''
             java_home: options.java_home
@@ -162,6 +166,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
           mode: 0o755
           backup: true
           eof: true
+        
 
 Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collector like Ganglia or Graphite.
 

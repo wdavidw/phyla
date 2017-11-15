@@ -11,7 +11,7 @@
       # options.pid_dir ?= '/var/run/hadoop-yarn'
       options.conf_dir ?= service.deps.hadoop_core.options.conf_dir
       options.opts ?= ''
-      options.heapsize ?= '1024'
+      options.heapsize ?= '1024m'
       options.home ?= '/usr/hdp/current/hadoop-yarn-client'
       # Misc
       options.java_home ?= service.deps.java.options.java_home

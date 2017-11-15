@@ -32,16 +32,26 @@
       options.pid_dir ?= '/var/run/hadoop-yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
       # Java
-      options.opts ?= {}
       options.java_home ?= service.deps.java.options.java_home
-      options.java_opts ?= ''
-      options.heapsize ?= '1024'
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of heapsize
 
 ## Configuration
 
@@ -91,7 +101,7 @@ information inside "yarn.resourcemanager.zk-state-store.parent-path" (default to
 
 Enable JAAS/Kerberos connection between YARN RM and ZooKeeper.
 
-      options.opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/yarn-rm.jaas"
+      options.opts.java_properties['java.security.auth.login.config'] ?= "#{options.conf_dir}/yarn-rm.jaas"
 
 ## High Availability with Manual Failover
 
@@ -309,8 +319,8 @@ rmr /rmstore/ZKRMStateRoot
 
       options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.root_logger ?= 'INFO,EWMA,RFA'
-      options.opts['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
-      options.opts['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
+      options.opts.java_properties['yarn.server.resourcemanager.appsummary.logger'] = 'INFO,RMSUMMARY'
+      options.opts.java_properties['yarn.server.resourcemanager.audit.logger'] = 'INFO,RMAUDIT'
       # adding SOCKET appender
       if options.log4j.remote_host? and options.log4j.remote_port?
         options.log4j.socket_client ?= "SOCKET"
@@ -318,15 +328,15 @@ rmr /rmstore/ZKRMStateRoot
         if options.log4j.root_logger.indexOf(options.log4j.socket_client) is -1
         then options.log4j.root_logger += ",#{options.log4j.socket_client}"
         # Security Logger
-        if options.opts['yarn.server.resourcemanager.appsummary.logger'].indexOf(options.log4j.socket_client) is -1
-        then options.opts['yarn.server.resourcemanager.appsummary.logger'] += ",#{options.log4j.socket_client}"
+        if options.opts.java_properties['yarn.server.resourcemanager.appsummary.logger'].indexOf(options.log4j.socket_client) is -1
+        then options.opts.java_properties['yarn.server.resourcemanager.appsummary.logger'] += ",#{options.log4j.socket_client}"
         # Audit Logger
-        if options.opts['yarn.server.resourcemanager.audit.logger'].indexOf(options.log4j.socket_client) is -1
-        then options.opts['yarn.server.resourcemanager.audit.logger'] += ",#{options.log4j.socket_client}"
+        if options.opts.java_properties['yarn.server.resourcemanager.audit.logger'].indexOf(options.log4j.socket_client) is -1
+        then options.opts.java_properties['yarn.server.resourcemanager.audit.logger'] += ",#{options.log4j.socket_client}"
 
-        options.opts['hadoop.log.application'] = 'resourcemanager'
-        options.opts['hadoop.log.remote_host'] = options.log4j.remote_host
-        options.opts['hadoop.log.remote_port'] = options.log4j.remote_port
+        options.opts.java_properties['hadoop.log.application'] = 'resourcemanager'
+        options.opts.java_properties['hadoop.log.remote_host'] = options.log4j.remote_host
+        options.opts.java_properties['hadoop.log.remote_port'] = options.log4j.remote_port
 
         options.log4j.socket_opts ?=
           Application: '${hadoop.log.application}'

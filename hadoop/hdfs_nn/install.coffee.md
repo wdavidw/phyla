@@ -143,7 +143,9 @@ mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @call header: 'Environment', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
+        HADOOP_NAMENODE_OPTS = options.opts.base
+        HADOOP_NAMENODE_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HADOOP_NAMENODE_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           header: 'Environment'
           target: "#{options.conf_dir}/hadoop-env.sh"
@@ -154,7 +156,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_SECURITY_LOGGER: options.log4j.security_logger
             HDFS_AUDIT_LOGGER: options.log4j.audit_logger
             HADOOP_HEAPSIZE: options.hadoop_heap
-            HADOOP_NAMENODE_OPTS: options.java_opts
+            HADOOP_NAMENODE_OPTS: HADOOP_NAMENODE_OPTS
             HADOOP_NAMENODE_INIT_HEAPSIZE: options.hadoop_namenode_init_heap
             HADOOP_LOG_DIR: options.log_dir
             HADOOP_PID_DIR: options.pid_dir
