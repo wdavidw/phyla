@@ -8,11 +8,9 @@ Configure Hadoop metrics. Does not write anyfile.
     #other module does read only from it
     
     module.exports =
-      use: {}
+      deps: {}
       configure: (service) ->
-        service = migration.call @, service, 'ryba/metrics', ['ryba', 'metrics'], require('nikita/lib/misc').merge require('.').use,
-          {}
-        options = @config.ryba.metrics = service.options
+        options = service.options
 
 ## Configuration
 Each provider has two properties:
@@ -64,4 +62,3 @@ Each provider has two properties:
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
