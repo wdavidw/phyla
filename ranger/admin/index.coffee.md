@@ -15,12 +15,13 @@ access control over Hadoop data access components like Apache Hive and Apache HB
         # remove ryba/solr/cloud from logs destination
         # keep only solr embedded and solr/cloud_docker
         # solr_cloud: module: 'ryba/solr/cloud'
-        solr_cloud_docker: module: 'ryba/solr/cloud_docker'
+        solr_client: module: 'ryba/solr/client', local: true
       configure:
         'ryba/ranger/admin/configure'
       commands:
         'install': [
           'ryba/ranger/solr/install'
+          'ryba/ranger/solr/bootstrap'
           'ryba/ranger/admin/install'
           'ryba/ranger/admin/start'
           'ryba/ranger/admin/setup'
