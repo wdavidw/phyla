@@ -8,11 +8,9 @@ Configure Log4j. Does not write anyfile.
     # other module does read only from it
     
     module.exports =
-      use: {}
+      deps: {}
       configure: (service) ->
-        service = migration.call @, service, 'ryba/metrics', ['ryba', 'log4j'], require('nikita/lib/misc').merge require('.').use,
-          {}
-        options = @config.ryba.log4j = service.options
+        options = service.options
 
 ## Configuration
       
@@ -23,4 +21,3 @@ Configure Log4j. Does not write anyfile.
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'
-    migration = require 'masson/lib/migration'
