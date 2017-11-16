@@ -58,7 +58,7 @@ Example
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.default_fs ?= service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']
       options.java_home = service.deps.java.options.java_home
-      options.hadoop_conf_dir ?= service.deps.hdfs_client.options.conf_dir
+      options.hadoop_conf_dir ?= service.deps.hdfs_client_local.options.conf_dir
       options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib'
       options.clean_logs ?= false
 
@@ -135,7 +135,7 @@ Example
       options.oozie_site['oozie.authentication.type'] ?= 'kerberos'
       options.oozie_site['oozie.authentication.kerberos.principal'] ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"
       options.oozie_site['oozie.authentication.kerberos.keytab'] ?= '/etc/oozie/conf/spnego.service.keytab'
-      options.oozie_site['oozie.authentication.kerberos.name.rules'] ?= service.deps.hdfs_client.options.core_site['hadoop.security.auth_to_local']
+      options.oozie_site['oozie.authentication.kerberos.name.rules'] ?= service.deps.hdfs_client_local.options.core_site['hadoop.security.auth_to_local']
       options.oozie_site['oozie.service.HadoopAccessorService.nameNode.whitelist'] ?= '' # Fix space value
       options.oozie_site['oozie.credentials.credentialclasses'] ?= [
        'hcat=org.apache.oozie.action.hadoop.HCatCredentials'
@@ -219,16 +219,20 @@ hdfs_client configuration directory.
       enrich_proxy_user srv for srv in service.deps.hdfs_dn
       enrich_proxy_user srv for srv in service.deps.yarn_rm
       enrich_proxy_user srv for srv in service.deps.yarn_nm
-      # enrich_proxy_user srv for srv in service.deps.hive_server2
-      # enrich_proxy_user srv for srv in service.deps.hive_hcatalog
-      # enrich_proxy_user srv for srv in service.deps.hbase_master
+      enrich_proxy_user srv for srv in service.deps.hdfs_client
+      # migration: lucasbak 13112017
+      # need hdfs_client for proxy_user
+      # service.deps.hdfs_client.filter (srv) -> console.log service.node.id
+      # .filter (srv) ->
+      #   srv.node.id is
+      #  srv for srv in service.deps.hive_server2
 
 ## Configuration for Hadoop
 
       options.hadoop_config ?= {}
-      options.hadoop_config['mapreduce.jobtracker.kerberos.principal'] ?= "mapred/#{srv.node.fqdn}@#{options.krb5.realm}"
-      options.hadoop_config['yarn.resourcemanager.principal'] ?= "yarn/#{srv.node.fqdn}@#{options.krb5.realm}"
-      options.hadoop_config['dfs.namenode.kerberos.principal'] ?= "hdfs/#{srv.node.fqdn}@#{options.krb5.realm}"
+      options.hadoop_config['mapreduce.jobtracker.kerberos.principal'] ?= "mapred/_HOST@#{options.krb5.realm}"
+      options.hadoop_config['yarn.resourcemanager.principal'] ?= "yarn/_HOST@#{options.krb5.realm}"
+      options.hadoop_config['dfs.namenode.kerberos.principal'] ?= "hdfs/_HOST@#{options.krb5.realm}"
       options.hadoop_config['mapreduce.framework.name'] ?= "yarn"
 
 ## Configuration for Log4J
