@@ -44,8 +44,8 @@ nikita
 ```
 
     module.exports = (options) ->
-      throw Error 'Required Options: agent_source' unless options.agent_source
-      throw Error 'Required Options: agent_target' unless options.agent_target
+      throw Error 'Required Options: jar_source' unless options.jar_source
+      throw Error 'Required Options: jar_target' unless options.jar_target
       throw Error 'Required Options: config' unless options.config
       throw Error 'Required Options: target' unless options.target
       throw Error 'Required Options: title' unless options.title
@@ -59,8 +59,8 @@ nikita
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "JMX Exporter #{options.title}" }
         ]
       @file.download
-        source: options.agent_source
-        target: options.agent_target
+        source: options.jar_source
+        target: options.jar_target
       @file.yaml
         target: options.target
         content: options.config

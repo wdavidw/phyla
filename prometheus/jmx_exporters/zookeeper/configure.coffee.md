@@ -2,65 +2,49 @@
 # Configure JMX Exporter
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/prometheus/jmx_exporters/zookeeper', ['ryba', 'prometheus', 'jmx_exporters', 'zookeeper'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        # ssl: key: ['ssl']
-        hadoop_core: key: ['ryba']
-        java: key: ['java']
-        jmx_exporter: key: ['ryba', 'prometheus', '.jmx_exporters', 'zookeeper']
-        zookeeper_server: key: ['ryba', 'zookeeper']
-      @config.ryba.prometheus ?= {}
-      @config.ryba.prometheus.jmx_exporters ?= {}
-      options = @config.ryba.prometheus.jmx_exporters.zookeeper = service.options
+      options = service.options
 
 ## Identities
 
-      options.hadoop_group = service.use.hadoop_core.options.hadoop_group
+      options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
       # Group
-      options.group ?= {}
-      options.group = name: options.group if typeof options.group is 'string'
-      options.group.name ?= 'prometheus'
-      options.group.system ?= true
-      # User
-      options.user ?= {}
-      options.user = name: options.user if typeof options.user is 'string'
-      options.user.name ?= 'prometheus'
-      options.user.home ?= "/var/lib/#{options.user.name}"
-      options.user.system ?= true
-      options.user.comment ?= 'Prometheus User'
-      options.user.groups ?= 'hadoop'
-      options.user.gid ?= options.group.name
-      options.user.limits ?= {}
-      options.user.limits.nofile ?= 64000
-      options.user.limits.nproc ?= true
+      options.group ?= merge {}, service.deps.prometheus_monitor[0].options.group, options.group
+      options.user ?= merge {}, service.deps.prometheus_monitor[0].options.user, options.user
 
 ## Package
     
       options.version ?= '0.1.0'
       #standalone server
-      options.standalone_source ?= "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/#{options.version}/jmx_prometheus_httpserver-#{options.version}-jar-with-dependencies.jar"
-      # java agent
-      options.agent_source ?= "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/#{options.version}/jmx_prometheus_javaagent-#{options.version}.jar"
-      options.download = service.use.jmx_exporter[0].node.fqdn is service.node.fqdn
-      options.install_dir ?= "/usr/promotheus/#{options.version}/jmx_exporter"
-      options.latest_dir ?= '/usr/promotheus/latest/jmx_exporter'
+      options.jar_source ?= "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/#{options.version}/jmx_prometheus_httpserver-#{options.version}-jar-with-dependencies.jar"
+      options.download = service.deps.jmx_exporter[0].node.fqdn is service.node.fqdn
+      options.install_dir ?= "/usr/prometheus/#{options.version}/jmx_exporter"
+
+## Enable JMX Server
+
+      service.deps.zookeeper_server.options.env['JMXPORT'] ?= 9011
+      service.deps.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.authenticate'] ?= 'false'
+      service.deps.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'false'
+      service.deps.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.port'] ?= service.deps.zookeeper_server.options.env['JMXPORT']
 
 ## Configuration
 configure JMX Exporter to scrape Zookeeper metrics. [this example][example] is taken from
 [JMX Exporter][jmx_exporter] repository.
 
       options.conf_dir ?= "/etc/prometheus-exporter-jmx/conf"
-      options.java_home ?= service.use.java.options.java_home
-      options.run_dir ?= '/var/run/promotheus'
+      options.java_home ?= service.deps.java.options.java_home
+      options.run_dir ?= '/var/run/prometheus'
+      options.conf_file ?= "#{options.conf_dir}/zookeeper.yaml"
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.port ?= 5556
+      options.cluster_name ?= "ryba-env-metal"
       options.config ?= {}
+      options.config['hostPort'] ?= "#{service.deps.zookeeper_server.node.fqdn}:#{service.deps.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.port']}"
       options.config['startDelaySeconds'] ?= 0
-      options.config['hostPort'] ?= "#{service.use.zookeeper_server.node.fqdn}:#{service.use.zookeeper_server.options.env['JMXPORT']}"
+      options.config['lowercaseOutputName'] ?= true
       options.config['ssl'] ?= false
       options.config['rules'] ?= []
       options.config['rules'].push
@@ -84,12 +68,52 @@ configure JMX Exporter to scrape Zookeeper metrics. [this example][example] is t
           'replicaId': "$2"
           'memberType': "$3"
 
-## Enable JMX Agent
+## Register Prometheus Scrapper
+configure by default two new label, one cluster and the other service
+Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
-      service.use.zookeeper_server.options.opts.jvm['-javaagent'] ?= ":#{options.install_dir}/jmx_exporter_agent.jar=#{options.port}:#{options.conf_dir}/zookeeper.yaml"
-      service.use.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.port'] ?= '5555'
-      service.use.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.authenticate'] ?= 'false'
-      service.use.zookeeper_server.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'false'
+      options.relabel_configs ?= [
+          source_labels: ['job']
+          regex: "([a-zA-Z0-9\\-\\_]*).([a-zA-Z0-9]*)"
+          target_label: "cluster"
+          replacement: "$1"
+        ,
+          source_labels: ['job']
+          regex: "([a-zA-Z0-9\\-\\_]*).([a-zA-Z0-9]*)"
+          target_label: "service"
+          replacement: "$2"
+        ,
+          source_labels: ['__address__']
+          regex: "([a-zA-Z0-9\\-\\_\\.]*):([a-zA-Z0-9]*)"
+          target_label: "hostname"
+          replacement: "$1"
+        ]
+      for srv in service.deps.prometheus_monitor
+        srv.options.config ?= {}
+        srv.options.config['scrape_configs'] ?= []
+        scrape_config = null
+        # iterate through configuration to find zookeeper's one
+        # register current fqdn if not already existing
+        for conf in srv.options.config['scrape_configs']
+          scrape_config = conf if conf.job_name is "#{options.cluster_name}.zookeeper"
+        exist = scrape_config?
+        scrape_config ?=
+          job_name: "#{options.cluster_name}.zookeeper"
+          static_configs:
+            [
+              targets: []
+            ]
+          relabel_configs: options.relabel_configs
+        for static_config in scrape_config.static_configs
+          hostPort = "#{service.node.fqdn}:#{options.port}"
+          static_config.targets ?= []
+          static_config.targets.push hostPort unless static_config.targets.indexOf(hostPort) isnt -1
+        srv.options.config['scrape_configs'].push scrape_config unless exist
+
+      # service.deps.zookeeper_server.options.opts.jvm['-javaagent'] ?= ":#{options.install_dir}/jmx_exporter_agent.jar=#{options.port}:#{options.conf_dir}/zookeeper.yaml"
+      # this properties should be enabled for remote JMX connection
+      # letting commented until needed
+      # options.config['hostPort'] ?= "#{service.deps.zookeeper_server.node.fqdn}:#{service.deps.zookeeper_server.options.env['JMXPORT']}" if options.env['JMXPORT']
 
 ## Wait
 
@@ -100,7 +124,6 @@ configure JMX Exporter to scrape Zookeeper metrics. [this example][example] is t
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 [example]:(https://github.com/prometheus/jmx_exporter/blob/master/example_configs/zookeeper.yaml)
