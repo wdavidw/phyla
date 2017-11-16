@@ -47,7 +47,6 @@
             uid: options.user.name
             gid: options.group.name
             perm: '0750'
-          @service.startup
 
 ## Environment
 
@@ -66,22 +65,14 @@
 
 ## SQL Connectors
 
-      @call
-        header: 'MySQL Client'
+      @service
+        header: 'mysql client'
         if: options.db.engine in ['mariadb', 'mysql']
-      , ->
-        @service
-          name: 'mysql'
-        @service
-          name: 'mysql-connector-java'
-      @call
-        header: 'Postgres Client'
+        name: 'mysql'
+      @service
+        header: 'postgres client'
         if: options.db.engine is 'postgresql'
-      , ->
-        @service
-          name: 'postgresql'
-        @service
-          name: 'postgresql-jdbc'
+        name: 'postgresql'
 
 ## DB
 

@@ -2,7 +2,7 @@
 # Grafana Repository
 
     module.exports =
-      use: {}
+      deps: {}
       configure:
         'ryba/grafana/repo/configure'
       commands:

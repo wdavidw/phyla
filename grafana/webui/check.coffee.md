@@ -9,5 +9,7 @@ Check that the webui is listening for connections.
           sleep: 5000
           header: 'Port'
           servers: options.wait.http.filter (server) -> server.host is options.fqdn
+          retry: 20
+          sleep: 5000
                 
         
