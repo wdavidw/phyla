@@ -2,13 +2,7 @@
 # Prometheus Configure
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/prometheus/monitor', ['ryba', 'prometheus', 'monitor'], require('nikita/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        ssl: key: ['ssl']
-        prometheus_monitor: key: ['ryba', 'prometheus', 'monitor']
-        jmx_exporter_zookeeper: key: ['ryba', 'prometheus', 'jmx_exporters', 'zookeeper']
-      @config.ryba.prometheus ?= {}
-      options = @config.ryba.prometheus.monitor = service.options
+      options = service.options
 
 ## Identities
 
@@ -40,9 +34,9 @@ in order for systemd to start correctly the process.
       options.version ?= '2.0.0-rc.2'
       options.source ?= "https://github.com/prometheus/prometheus/releases/download/v#{options.version}/prometheus-#{options.version}.linux-amd64.tar.gz"
       # options.repo ?= 'https://packagecloud.io/prometheus-rpm/release/packages/el/7/prometheus-1.8.1-1.el7.centos.x86_64.rpm'
-      options.download = service.use.prometheus_monitor[0].node.fqdn is service.node.fqdn
-      options.install_dir ?= "/usr/promotheus/#{options.version}/monitor"
-      options.latest_dir ?= '/usr/promotheus/latest/monitor'
+      options.download = service.deps.prometheus_monitor[0].node.fqdn is service.node.fqdn
+      options.install_dir ?= "/usr/prometheus/#{options.version}/monitor"
+      options.latest_dir ?= '/usr/prometheus/latest/monitor'
 
 ## Layout
 
@@ -57,18 +51,69 @@ in order for systemd to start correctly the process.
       options.config['global'] ?= {}
       options.config['global']['scrape_interval'] ?= '15s'
       options.config['global']['evaluation_interval'] ?= '20s'
+      options.config['scrape_configs'] ?= []
 
 ## Scrappers
-      
-      options.config['scrape_configs'] ?= []
-      if service.use.jmx_exporter_zookeeper.length > 0
-        options.config['scrape_configs'].push
-          job_name: 'zookeeper'
-          static_configs:
-            [
-              targets: for srv in service.use.jmx_exporter_zookeeper
-                "#{srv.node.fqdn}:#{srv.options.port}"
-            ]
+configure by default two new label, one cluster and the other service
+Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
+
+      options.relabel_configs ?= [
+          source_labels: ['job']
+          regex: "([a-zA-Z0-9\\-\\_]*).([a-zA-Z0-9]*)"
+          target_label: "cluster"
+          replacement: "$1"
+        ,
+          source_labels: ['job']
+          regex: "([a-zA-Z0-9\\-\\_]*).([a-zA-Z0-9]*)"
+          target_label: "service"
+          replacement: "$2"
+        ,
+          source_labels: ['__address__']
+          regex: "([a-zA-Z0-9\\-\\_\\.]*):([a-zA-Z0-9]*)"
+          target_label: "hostname"
+          replacement: "$1"
+        ]
+#       options.config['scrape_configs'] ?= []
+#       ## Zookeeper
+#       if service.deps.jmx_exporter_zookeeper?.length > 0
+#         options.config['scrape_configs'].push
+#           job_name: "#{service.deps.jmx_exporter_zookeeper[0].options.cluster_name}.zookeeper"
+#           static_configs:
+#             [
+#               targets: for srv in service.deps.jmx_exporter_zookeeper
+#                 "#{srv.node.fqdn}:#{srv.options.port}"
+#             ]
+#           relabel_configs: options.relabel_configs
+#       ## HDFS CLient
+#       if service.deps.jmx_exporter_hdfs_dn?.length > 0
+#         options.config['scrape_configs'].push
+#           job_name: "#{service.deps.jmx_exporter_hdfs_dn[0].options.cluster_name}.datanode"
+#           static_configs:
+#             [
+#               targets: for srv in service.deps.jmx_exporter_hdfs_dn
+#                 "#{srv.node.fqdn}:#{srv.options.port}"
+#             ]
+#           relabel_configs: options.relabel_configs
+#       ## HDFS JournalNode
+#       if service.deps.jmx_exporter_hdfs_jn?.length > 0
+#         options.config['scrape_configs'].push
+#           job_name: "#{service.deps.jmx_exporter_hdfs_jn[0].options.cluster_name}.journalnode"
+#           static_configs:
+#             [
+#               targets: for srv in service.deps.jmx_exporter_hdfs_jn
+#                 "#{srv.node.fqdn}:#{srv.options.port}"
+#             ]
+#           relabel_configs: options.relabel_configs
+#       ## HDFS NameNode
+#       if service.deps.jmx_exporter_hdfs_nn?.length > 0
+#         options.config['scrape_configs'].push
+#           job_name: "#{service.deps.jmx_exporter_hdfs_nn[0].options.cluster_name}.namenode"
+#           static_configs:
+#             [
+#               targets: for srv in service.deps.jmx_exporter_hdfs_nn
+#                 "#{srv.node.fqdn}:#{srv.options.port}"
+#             ]
+#           relabel_configs: options.relabel_configs
 
 ## Storage
 
@@ -77,8 +122,8 @@ in order for systemd to start correctly the process.
 
 ## SSL
 
-      # options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      # options.ssl.enabled ?= !!service.use.ssl
+      # options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      # options.ssl.enabled ?= !!service.deps.ssl
       # if options.ssl.enabled
       #   throw Error "Required Option: ssl.cert" if  not options.ssl.cert
       #   throw Error "Required Option: ssl.key" if not options.ssl.key
@@ -93,13 +138,12 @@ in order for systemd to start correctly the process.
 ## Wait
 
       options.wait ?= {}
-      options.wait.tcp ?= for srv in service.use.prometheus_monitor
+      options.wait.tcp ?= for srv in service.deps.prometheus_monitor
           host: srv.node.fqdn
           port: srv.options.port or options.port or 9091
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
     {merge} = require 'nikita/lib/misc'
 
 ## Documentation

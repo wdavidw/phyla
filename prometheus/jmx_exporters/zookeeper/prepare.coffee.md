@@ -1,7 +1,7 @@
 
 # Prometheus Montior Prepare
 
-    module.exports = header: 'Prometheus JMX Exporter Prepare', handler: (options) ->
+    module.exports = header: 'JMX Exporter Prepare', handler: (options) ->
 
 ## Cache file
 
