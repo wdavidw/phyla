@@ -75,7 +75,7 @@ Example :
       options.env['ZOO_LOG_DIR'] ?= "#{options.log_dir}"
       options.env['ZOOPIDFILE'] ?= "#{options.pid_dir}/zookeeper_server.pid"
       options.env['JAVA_OPTS'] ?= options.opts.base
-      options.env['SERVER_JVMFLAGS'] ?= "-Xmx1024m -Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-server.jaas ${JAVA_OPTS}"
+      options.env['SERVER_JVMFLAGS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-server.jaas ${JAVA_OPTS}"
       options.env['CLIENT_JVMFLAGS'] ?= "-Djava.security.auth.login.config=#{options.conf_dir}/zookeeper-client.jaas"
       options.env['JAVA'] ?= '$JAVA_HOME/bin/java'
       options.env['JAVA_HOME'] ?= "#{service.deps.java.options.java_home}"
