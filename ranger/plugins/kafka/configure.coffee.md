@@ -153,7 +153,7 @@ from Hadoop Core.
 
 ## Solr storage
 
-      if options.install['audit_store'] is 'solr'
+      if service.deps.ranger_admin.options.install['audit_store'] is 'solr'
         options.install['XAAUDIT.SOLR.IS_ENABLED'] ?= 'true'
         options.install['XAAUDIT.SOLR.ENABLE'] ?= 'true'
         options.install['XAAUDIT.SOLR.URL'] ?= service.deps.ranger_admin.options.install['audit_solr_urls']

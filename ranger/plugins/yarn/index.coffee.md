@@ -5,7 +5,9 @@
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
-        yarn_rm: module: 'ryba/hadoop/yarn_rm', local: true, required: true
+        yarn_nm: module: 'ryba/hadoop/yarn_nm', local: true
+        yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        yarn_rm_local: module: 'ryba/hadoop/yarn_rm', local: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
       configure:
         'ryba/ranger/plugins/yarn/configure'
@@ -13,6 +15,15 @@
         @before
           type: ['service', 'start']
           name: 'hadoop-yarn-resourcemanager'
+        , ->
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/ranger/plugins/yarn/install', options.original
+        @before
+          type: ['service', 'start']
+          name: 'hadoop-yarn-nodemanager'
         , ->
           delete options.original.type
           delete options.original.handler

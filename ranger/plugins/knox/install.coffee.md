@@ -48,7 +48,7 @@ tested.
 
       @krb5.addprinc options.krb5.admin,
         header: 'Plugin Principal'
-        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        principal: "#{options.service_repo.configs.username}"
         password: options.service_repo.configs.password
 
 ## Audit Layout
