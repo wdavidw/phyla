@@ -15,7 +15,8 @@ Please check Oozie page
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         zookeeper_server: module: 'ryba/zookeeper/server'
         hadoop_core: module: 'ryba/hadoop/core', local: true
-        hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
+        hdfs_client_local: module: 'ryba/hadoop/hdfs_client', local: true
+        hdfs_client: module: 'ryba/hadoop/hdfs_client'
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
