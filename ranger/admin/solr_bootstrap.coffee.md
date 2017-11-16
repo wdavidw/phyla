@@ -2,7 +2,7 @@
 # Ranger Admin : SolR Bootstrap
 
     module.exports = header: 'Ranger Audit Solr Boostrap', handler: (options) ->
-      # return unless options.solr_type is 'cloud'
+      return unless options.solr_type is 'embedded'
       {solr} = @config.ryba
       ranger =  @contexts('ryba/ranger/admin')[0].config.ryba.ranger
       {password} = ranger.admin
@@ -189,20 +189,6 @@ Note: Compatible with every version of docker available at this time.
                     #{url} -H 'Content-type:application/json' \
                     -d '#{JSON.stringify('set-user-role': new_role )}'
                   """
-
-## Zookeeper Znode ACL
-
-      @system.execute
-        unless: mode is 'standalone'
-        header: 'Zookeeper SolrCloud Znode ACL'
-        unless_exec: mkcmd.solr @, """
-        zookeeper-client -server #{zk_connect} \
-          getAcl /#{zk_node} | grep \"'sasl,'#{solr.user.name}\"
-        """
-        cmd: mkcmd.solr @, """
-        zookeeper-client -server #{zk_connect} \
-          setAcl /#{zk_node} sasl:#{solr.user.name}:cdrwa
-        """
 
 ## Dependencies
 

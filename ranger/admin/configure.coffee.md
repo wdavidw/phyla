@@ -200,32 +200,16 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
 ```
 
       options.solr_type ?= 'embedded'
-      # solr = {}
+      options.solr_client_source ?= service.deps.solr_client.options.source if service.deps.solr_client
+      options.solr_client_source = if options.solr_client_source is 'HDP'
+      then '/opt/lucidworks-hdpsearch/solr'
+      else '/usr/solr/current'      # solr = {}
       solrs_urls = ''
       # solr_ctx = {}
       # Retention period in day to keep audit logs
       options.audit_retention_period ?= '1095' #value in days. default to 3 years.
       options.retention ?=  "+#{options.audit_retention_period}"
       switch options.solr_type
-        when 'single'
-          throw Error 'No Solr Standalone Server configured' unless service.deps.solr_standalone
-          options.install['audit_solr_port'] ?= service.deps.solr_standalone[0].options.port
-          options.install['audit_solr_zookeepers'] ?= 'NONE'
-          solrs_urls = service.deps.solr_standalone.map( (srv) -> 
-           "#{if srv.options.ssl.enabled then 'https://' else 'http://'}#{srv.node.fqdn}:#{srv.options.port}")
-          .map (url) -> "#{url}/solr/ranger_audits"
-          .join ','
-          # TODO: migration can't handle this for now
-          if @params.command is 'install'
-            st_ctxs = @contexts 'ryba/solr/standalone'
-            st_ctxs[0]
-            .after
-              type: ['java','keystore_add']
-              keystore: solr_ctx[0].config.ryba.solr["#{options.solr_type}"]['ssl_truststore_path']
-              storepass: solr_ctx[0].config.ryba.solr["#{options.solr_type}"]['ssl_keystore_pwd']
-              caname: "hadoop_root_ca"
-            , -> @call 'ryba/ranger/admin/solr_bootstrap'
-          break;
         when 'embedded'
           options.solr ?= {}
           options.solr.group ?= {}
@@ -278,80 +262,52 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           options.solr.jre_home ?= service.deps.java.options.jre_home
           solrs_urls = "#{if options.solr.ssl.enabled then 'https://' else 'http://'}#{service.node.fqdn}:#{options.solr.port}/solr/ranger_audits"
           options.install['audit_solr_zookeepers'] ?= 'NONE'
-        when 'cloud'
-          throw Error 'No Solr Docker Server configured' unless service.deps.solr_cloud
-          solr = sc_ctxs[0].config.ryba.solr
-          options.install['audit_solr_port'] ?= service.deps.solr_cloud[0].options.port
-          solrs_urls = service.deps.solr_cloud.map( (srv) ->
-            "#{if srv.options.ssl.enabled then 'https://' else 'http://'}#{srv.node.fqdn}:#{srv.options.port}")
-          # .map( (url) -> if options.solr_type is 'single' then "#{url}/solr/ranger_audits" else "#{url}")
-          .join(',')
-          options.install['audit_solr_zookeepers'] ?= service.deps.solr_cloud[0].options.zkhosts
-          # TODO: migration can't handle this for now
-          if @params.command is 'install'
-            sc_ctxs = @contexts 'ryba/solr/cloud'
-            solr_ctx[0]
-            .after
-              type: ['service','start']
-              name: 'solr'
-            , -> @call 'ryba/ranger/admin/solr_bootstrap'
-          break;
-        when 'cloud_docker'
-          throw Error 'No Solr Cloud Docker Server configured' unless service.deps.solr_cloud_docker or options.cluster_name
-          # scd_ctxs = @contexts 'ryba/solr/cloud_docker'
-          # options.cluster_name ?= 'ranger_cluster'
-          # options.solr_admin_user ?= 'solr'
-          # options.solr_admin_password ?= 'SolrRocks' #Default
-          # options.solr_users ?= [
-          #   name: 'ranger'
-          #   secret: 'ranger123'
-          # ]
-          # # Get Solr Method Configuration
-          # solr_clusterize = require '../../solr/cloud_docker/clusterize'
-          # # {solr} = scd_ctxs[0].config.ryba
-          # # solr.cloud_docker.clusters ?= {}
-          # {solr} = @config.ryba ?= {}
-          # solr.cloud_docker ?= {}
-          # solr.cloud_docker.clusters ?= {}
-          # cluster_config = options.cluster_config = solr.cloud_docker.clusters[options.cluster_name] ?= {}
-          # cluster_config.rangerEnabled = false
-          # for solr_ctx in scd_ctxs
-          #   solr = solr_ctx.config.ryba.solr ?= {}
-          #   # By default Ryba search for a solr cloud cluster named ranger_cluster in config
-          #   # Configures one cluster if not in config
-          #   solr.cloud_docker.clusters ?= {}
-          #   cluster_config  = solr.cloud_docker.clusters[options.cluster_name] ?= {}
-          #   cluster_config.rangerEnabled = false
-          #   cluster_config.volumes ?= []
-          #   cluster_config.volumes.push '/tmp/ranger_audits:/ranger_audits'
-          #   cluster_config['containers'] ?= scd_ctxs.length
-          #   cluster_config['master'] ?= scd_ctxs[0].config.host
-          #   cluster_config['heap_size'] ?= '256m'
-          #   cluster_config['port'] ?= 10000
-          #   cluster_config.zk_opts ?= {}
-          #   cluster_config['hosts'] ?= scd_ctxs.map (ctx) -> ctx.config.host
-          #   solr_clusterize solr_ctx , options.cluster_name, cluster_config
-          # # Search for a cloud_docker cluster find in solr.cloud_docker.clusters
-          # options.cluster_config = scd_ctxs.filter( (ctx) -> 
-          #   ctx.config.host is cluster_config['master']
-          # ).pop().config.ryba.solr.cloud_docker.clusters[options.cluster_name]
-          # if @params.command is 'install'
-          #   for ctx in scd_ctxs
-          #     if cluster_config['master'] is ctx.config.host
-          #       ctx
-          #       .after
-          #         type: ['docker','compose','up']
-          #         target: "#{solr.cloud_docker.conf_dir}/clusters/#{options.cluster_name}/docker-compose.yml"
-          #       , -> @call 'ryba/ranger/admin/solr_bootstrap'
-          # options.install['audit_solr_port'] ?= options.cluster_config.port
-          # options.cluster_config['ranger'] ?= {}
-          # if scd_ctxs.length > 0
-          #   options.install['audit_solr_zookeepers'] ?= "#{scd_ctxs[0].config.ryba.solr.cloud_docker.zk_connect}/solr_#{options.cluster_name}"
-          # else
-          #   options.install['audit_solr_zookeepers'] ?= 'NONE'
-          # solrs_urls = options.cluster_config.hosts.map( (host) ->
-          #  "#{if cluster_config.is_ssl_enabled  then 'https://' else 'http://'}#{host}:#{options.cluster_config.port}/solr/ranger_audits").join(',')
-          break;
+        when 'external'
+          options.solr.cluster_config ?= {}
+          options.solr.cluster_config.ranger_collection_dir ?= '/tmp/ranger-infra'
+          throw Error "Missing Solr options.solr.cluster_config.user property example: solr" unless options.solr.cluster_config.user?
+          throw Error "Missing Solr options.solr.cluster_config.ssl_enabled property example: true" unless options.solr.cluster_config.ssl_enabled?
+          throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
+          throw Error "Missing Solr options.solr.cluster_config.zk_urls: master01.metal.ryba:2181" unless options.solr.cluster_config.zk_urls?
+          throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
+          throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
+          throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
+          throw Error "Missing Solr options.solr.cluster_config.authentication: kerberos" unless options.solr.cluster_config.authentication?
+          if options.solr.cluster_config.authentication? is 'kerberos'
+            throw Error "Missing Solr options.solr.cluster_config.admin_principal: " unless options.solr.cluster_config.admin_principal?
+            throw Error "Missing Solr options.solr.cluster_config.admin_password: " unless options.solr.cluster_config.admin_password?
+          options.solr.cluster_config.collection ?=
+            'name': 'ranger_audits'
+            'numShards': options.solr.cluster_config['hosts'].length
+            'replicationFactor': options.solr.cluster_config['hosts'].length-1
+            'maxShardsPerNode': options.solr.cluster_config['hosts'].length
+            'collection.configName': 'ranger_audits'
+          options.install['audit_solr_urls'] ?= options.solr.cluster_config.hosts.map( (host) ->
+              "#{if options.solr.cluster_config.ssl_enabled then 'https://' else 'http://'}#{host}:#{options.solr.cluster_config.port}")
+          options.install['audit_solr_zookeepers'] ?= options.solr.cluster_config.zk_connect
+        # when 'cloud'
+        #   throw Error 'No Solr Cloud Server configured' unless service.deps.solr_cloud.length > 0
+        #     # options.solr_admin_user ?= 'solr'
+        #     # options.solr_admin_password ?= 'SolrRocks' #Default
+        #   options.solr.ssl = service.deps.solr_cloud[0].options.ssl
+        #   options.solr.cluster_config ?=
+        #     user: service.deps.solr_cloud[0].options.user
+        #     atlas_collection_dir: "#{options.user.home}/ranger-infra"
+        #     hosts: service.deps.solr_cloud.map (srv) -> srv.node.fqdn
+        #     zk_urls: service.deps.solr_cloud[0].options.zkhosts
+        #     zk_connect: service.deps.solr_cloud[0].options.zk_connect
+        #     master: service.deps.solr_cloud[0].node.fqdn
+        #     port: service.deps.solr_cloud[0].options.port
+        #     authentication: service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
+        #     ssl_enabled: service.deps.solr_cloud[0].options.ssl.enabled
+        #   if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+        #     options.solr.cluster_config.admin_principal = service.deps.solr_cloud[0].options.admin_principal
+        #     options.solr.cluster_config.admin_password  = service.deps.solr_cloud[0].options.admin_password
+        #   urls = service.deps.solr_cloud[0].options.zk_connect.split(',').map( (host) -> "#{host}/#{service.deps.solr_cloud[0].options.zk_node}").join(',')
+        #   options.install['audit_solr_urls'] ?= options.solr.cluster_config.hosts.map( (host) ->
+        #       "#{if options.solr.cluster_config.ssl_enabled then 'https://' else 'http://'}#{host}:#{options.solr.cluster_config.port}")
+        #   options.install['audit_solr_zookeepers'] = 'NONE'
+          # break;
 
 ## Solr Audit Database Bootstrap
 
@@ -468,7 +424,7 @@ only users created within the webui are allowed.
 
 ## Ranger Environment
 
-      options.heap_size ?= '256m'
+      options.heap_size ?= '1024m'
       options.opts ?= {}
       # options.opts['javax.net.ssl.trustStore'] ?= '/etc/hadoop/conf/truststore'
       # options.opts['javax.net.ssl.trustStorePassword'] ?= 'ryba123'
@@ -494,6 +450,9 @@ Ryba injects function to the different contexts.
 
 ## Wait
 
+      options.wait_solr ?= switch options.solr_type
+        when 'external' then  options.solr.cluster_config['hosts'].map (host) ->
+          host: host, port: options.solr.cluster_config['port']
       options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait = {}
       options.wait.http = {}
