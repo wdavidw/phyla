@@ -59,7 +59,7 @@ ryba:
       options.user.limits ?= {}
       options.user.limits.nofile ?= 64000
       options.user.limits.nproc ?= true
-      options.hadoop_group = merge {}, service.use.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
 
 
 ## Environment
@@ -84,7 +84,7 @@ ryba:
 ## Docker Daemon
 
       options.docker ?= {}
-      options.docker[opt] ?= service.use.docker.options[opt] for opt in [
+      options.docker[opt] ?= service.deps.docker.options[opt] for opt in [
         'host'
         'default_port'
         'tlscacert'
@@ -99,7 +99,7 @@ ryba:
       # Layout
       options.log_dir ?= '/var/log/solr'
       options.pid_dir ?= '/var/run/solr'
-      zk_hosts = service.use.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
+      zk_hosts = service.deps.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
       options.zk_connect = zk_hosts.map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
       options.zkhosts = "#{options.zk_connect}/solr"
       options.zk_node = "/solr"
@@ -107,7 +107,7 @@ ryba:
       options.lock_type = 'native'
       # Misc
       options.clean_logs ?= false
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.fqdn ?= service.node.fqdn
       options.jaas_path ?= "#{options.conf_dir}/solr-server.jaas"
 
@@ -122,27 +122,27 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## Security
 
       options.krb5 ?= {}
-      options.krb5.realm ?= service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.use.krb5_client.options.admin[options.krb5.realm]
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       options.security ?= {}
       options.security["authentication"] ?= {}
-      options.security["authentication"]['class'] ?= if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.security["authentication"]['class'] ?= if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
       then 'org.apache.solr.security.KerberosPlugin'
       else 'solr.BasicAuthPlugin'
-      if service.use.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
         # Kerberos
         options.admin_principal ?= "#{options.user.name}@#{options.krb5.realm}"
         throw Error 'Missing Keberos Admin Principal Password (solr.cloud_docker.admin_password)' unless options.admin_password?
         options.admin_principal ?= solr.admin_principal
         options.admin_password ?= solr.admin_password
-        options.principal ?= "#{options.user.name}/#{@config.host}@#{options.krb5.realm}"
+        options.principal ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
         options.keytab ?= '/etc/security/keytabs/solr.service.keytab'
         options.spnego ?= {}
-        options.spnego.principal ?= "HTTP/#{@config.host}@#{options.krb5.realm}"
+        options.spnego.principal ?= "HTTP/#{service.node.fqdn}@#{options.krb5.realm}"
         options.spnego.keytab ?= '/etc/security/keytabs/spnego.service.keytab'
         options.auth_opts ?= {}
-        options.auth_opts['solr.kerberos.cookie.domain'] ?= "#{@config.host}"
+        options.auth_opts['solr.kerberos.cookie.domain'] ?= "#{service.node.fqdn}"
         options.auth_opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/solr-server.jaas"
         options.auth_opts['solr.kerberos.principal'] ?= options.spnego.principal
         options.auth_opts['solr.kerberos.keytab'] ?= options.spnego.keytab
@@ -152,8 +152,8 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## SSL
 
       options.port ?= 8893
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.use.ssl
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       options.keystore ?= {}
       if options.ssl.enabled
@@ -168,9 +168,9 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 
 ## Docker Daemon config
 
-      if service.use.swarm_agent?
+      if service.deps.swarm_agent?
         options.swarm_conf ?=
-          host: "tcp://#{service.use.swarm_agent.options.advertise_host}:#{service.use.swarm_agent.options.advertise_port ? 2376}"
+          host: "tcp://#{service.deps.swarm_agent.options.advertise_host}:#{service.deps.swarm_agent.options.advertise_port ? 2376}"
           tlsverify:" "
           tlscacert: "/etc/docker/certs.d/ca.pem"
           tlscert: "/etc/docker/certs.d/cert.pem"
@@ -178,7 +178,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
       else
         options.swarm_conf = null
       options.docker ?= {}
-      options.docker[opt] ?= service.use.docker.options[opt] for opt in [
+      options.docker[opt] ?= service.deps.docker.options[opt] for opt in [
         'host'
         'default_port'
         'tlscacert'
@@ -192,11 +192,11 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## Environment
 
       options.env ?= {}
-      options.env['SOLR_JAVA_HOME'] ?= service.use.java.options.java_home
+      options.env['SOLR_JAVA_HOME'] ?= service.deps.java.options.java_home
       options.env['SOLR_HOST'] ?= service.node.fqdn
       options.env['SOLR_PID_DIR'] ?= options.pid_dir
       options.env['SOLR_HEAP'] ?= "512m"
-      # options.env['SOLR_AUTH_TYPE'] ?= service.use.hadoop_core.options.core_site['hadoop.security.authentication']
+      # options.env['SOLR_AUTH_TYPE'] ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
       options.env['ENABLE_REMOTE_JMX_OPTS'] ?= 'false'
       if options.ssl.enabled
         options.env['SOLR_SSL_KEY_STORE'] ?= options.keystore.target
@@ -206,7 +206,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
         options.env['SOLR_SSL_NEED_CLIENT_AUTH'] ?= 'false'#require client authentication  by using cert
 
       # configure all cluster present in conf/config.coffee solr configuration
-      options.hosts = service.use.solr_cloud_docker.map (srv) -> srv.node.fqdn
+      options.hosts = service.deps.solr_cloud_docker.map (srv) -> srv.node.fqdn
       #need
       # - options (to have global solr/cloud_docker configuration)
       # - cluster_name ( to name configs respectively to clusters)
@@ -218,8 +218,8 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 
 # Wait
 
-      options.wait_krb5_client = service.use.krb5_client.options.wait
-      options.wait_zookeeper_server = service.use.zookeeper_server[0].options.wait
+      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
 
 ## Dependencies
 

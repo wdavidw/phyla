@@ -71,6 +71,7 @@ Make configuration options more restrictive
         ## allow administrators to disable ssl on solr cloud docker clusters.
         config['env']['SSL_ENABLED'] = "#{config.is_ssl_enabled}"
         config['env']['SOLR_HEAP'] ?= config.heap_size
+        config.volumes ?= []
         volumes = [
             "#{config.conf_dir}/docker_entrypoint.sh:/docker_entrypoint.sh",
             "#{options.conf_dir}/keystore:#{options.conf_dir}/keystore",
