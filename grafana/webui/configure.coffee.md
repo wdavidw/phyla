@@ -49,7 +49,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       # Misc
       options.fqdn ?= service.node.fqdn
 
-# Environment
+## Environment
 
       options.env ?= {}
       options.env['GRAFANA_USER'] ?= options.user.name
@@ -64,7 +64,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       options.env['PLUGINS_DIR'] ?= "#{options.user.home}/plugins"
       options.env['RESTART_ON_UPGRADE'] ?= 'true'
 
-# SSL
+## SSL
 
       options.ssl = merge {}, service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
@@ -72,7 +72,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
         throw Error "Required Option: ssl.key" if not options.ssl.key
 
-# Server Properties
+## Server Properties
 
       options.ini ?= {}
       #webui
@@ -89,6 +89,12 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       options.ini['database']['name'] ?= options.db.database
       options.ini['database']['user'] ?= options.db.username
       options.ini['database']['password'] ?= options.db.password
+      #security
+      options.ini['security'] ?= {}
+      options.ini['security']['admin_user'] ?= 'admin'
+      options.ini['security']['admin_password'] ?= 'admin'
+      throw Error 'Missing Grafana webui password options.ini.security.admin_password' unless options.ini['security']['admin_password']?
+
 
 ## Wait
 
