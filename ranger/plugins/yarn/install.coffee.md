@@ -5,11 +5,15 @@
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
+      @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
+      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
+      
 
 ## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
-      @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      
 
 ## Packages
 
@@ -70,26 +74,26 @@
 Matchs step 1 in [hdfs plugin configuration][yarn-plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
-      @call
-        if: @contexts('ryba/hadoop/yarn_rm')[0].config.host is @config.host
-        header: 'Ranger YARN Repository'
-      , ->
-        @system.execute
-          unless_exec: """
-          curl --fail -H "Content-Type: application/json" -k -X GET  \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.install['REPOSITORY_NAME']}"
-          """
-          cmd: """
-          curl --fail -H "Content-Type: application/json" -k -X POST -d '#{JSON.stringify options.service_repo}' \
-            -u #{options.ranger_admin.username}:#{options.ranger_admin.password} "#{options.install['POLICY_MGR_URL']}/service/public/v2/api/service/"
-          """
-          
-        # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal
-        @krb5.addprinc options.krb5.admin,
-          header: 'Ranger YARN Principal'
-          # if: options.plugins.principal
-          principal: "#{options.service_repo.configs.principal}@#{options.krb5.realm}"
-          password: options.service_repo.configs.password
+      @ranger_service
+        if: options.exec_repo
+        header: 'Yarn Repo'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        service: options.service_repo
+
+Note, by default, we're are using the same Ranger principal for every
+plugin and the principal is created by the Ranger Admin service. Chances
+are that a customer user will need specific ACLs but this hasn't been
+tested.
+
+      # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal
+      @krb5.addprinc
+        header: 'Ranger YARN Principal'
+        # if: options.plugins.principal
+        principal: "#{options.service_repo.configs.username}"
+        password: options.service_repo.configs.password
+      , options.krb5.admin
 
 ## HDFS Audit Layout
 
@@ -100,12 +104,12 @@ we execute this task using the rest api.
         #   hdfs --config #{options.conf_dir} dfs -chown -R #{options.yarn_user.name}:#{options.yarn_user.name} /#{options.user.name}/audit/yarn
         #   hdfs --config #{options.conf_dir} dfs -chmod 750 /#{options.user.name}/audit/yarn
         #   """
-        @hdfs_mkdir
-          target: "/#{options.user.name}/audit/yarn"
-          user: options.yarn_user.name
-          mode: 0o0750
-          conf_dir: options.conf_dir
-          krb5_user: options.hdfs_krb5_user
+      @hdfs_mkdir
+        target: "/#{options.user.name}/audit/yarn"
+        user: options.yarn_user.name
+        mode: 0o0750
+        conf_dir: options.conf_dir
+        krb5_user: options.hdfs_krb5_user
 
 ## Properties
 
@@ -169,5 +173,6 @@ we execute this task using the rest api.
     quote = require 'regexp-quote'
     path = require 'path'
     mkcmd = require '../../../lib/mkcmd'
+    fs = require 'ssh2-fs'
 
 [yarn-plugin]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_yarn_plugin)

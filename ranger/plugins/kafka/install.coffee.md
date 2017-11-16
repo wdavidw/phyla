@@ -71,16 +71,6 @@ such as "%app-type% and %time:yyyyMMdd%".
           mode: 0o0750
         @call header: 'HDFS Paths', ->
           for target in options.policy_hdfs_audit.resources.path.values
-            console.log
-              target: target
-              mode: 0o0750
-              parent:
-                mode: 0o0711
-                user: options.user.name
-                group: options.group.name
-              uid: options.kafka_user.name
-              gid: options.kafka_group.name
-              krb5_user: options.hdfs_krb5_user
             @hdfs_mkdir
               target: target
               mode: 0o0750
@@ -102,7 +92,7 @@ such as "%app-type% and %time:yyyyMMdd%".
 
 ## Service Repository creation
 
-Matchs step 1 in [hive plugin configuration][plugin]. Instead of using the web ui
+Matchs step 1 in [kafka plugin configuration][plugin]. Instead of using the web ui
 we execute this task using the rest api.
 
       @ranger_service
@@ -119,7 +109,7 @@ tested.
 
       @krb5.addprinc options.krb5.admin,
         header: 'Plugin Principal'
-        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        principal: "#{options.service_repo.configs.username}"
         password: options.service_repo.configs.password
 
 ## Properties
@@ -204,5 +194,6 @@ tested.
     quote = require 'regexp-quote'
     path = require 'path'
     mkcmd = require '../../../lib/mkcmd'
+    fs = require 'ssh2-fs'
 
 [plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_kafka_plugin

@@ -13,10 +13,8 @@ variables but also inject some function to be executed.
 
       options.group = merge {}, service.deps.ranger_admin.options.group, options.group or {}
       options.user = merge {}, service.deps.ranger_admin.options.user, options.user or {}
-      options.yarn_user = service.deps.yarn_rm.options.user
-      options.hadoop_group = service.deps.yarn_rm.options.hadoop_group
-
-## Kerberos
+      options.yarn_user = if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.user else service.deps.yarn_nm.options.user
+      options.hadoop_group = if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.hadoop_group else service.deps.yarn_nm.options.hadoop_group## Kerberos
 
       options.krb5 ?= {}
       options.krb5.enabled ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
@@ -45,10 +43,18 @@ REST request.
         'userRoleList': ['ROLE_USER']
         'groups': []
         'status': 1
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.enabled ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin = service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Access`
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin
+      options.exec_repo ?= service.deps.yarn_rm[0].node.fqdn is service.node.fqdn
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
       # options.plugins ?= {}
       # options.plugins.principal ?= service.deps.ranger_admin.options.plugins.principal
@@ -59,8 +65,10 @@ REST request.
       # migration: wdavidw 1708829, where is expected the plugin to be installed ? 
       # for now only on RM but this suggest on NM as well:
       # conf_dir = if @config.ryba.yarn_plugin_is_master then yarn.rm.conf_dir else yarn.nm.conf_dir
-      options.conf_dir ?= service.deps.yarn_rm.options.conf_dir
-      options.log_dir ?= service.deps.yarn_rm.options.log_dir
+      # migration: lucasbak 171010 put back ranger plugin on yarn nodemanager
+      options.conf_dir ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.conf_dir else service.deps.yarn_nm.options.conf_dir
+      options.log_dir ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.log_dir else service.deps.yarn_nm.options.conf_dir
+      options.ssl_server ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.ssl_server else service.deps.yarn_nm.options.ssl_server
       # migration: should we really need this? noone is gonna use it, isnt it?
       # log_dir = if @config.ryba.yarn_plugin_is_master
       # then @config.ryba.yarn.rm.log_dir
@@ -75,18 +83,18 @@ REST request.
 
 The repository name should match the reposity name in web ui.
 
-      yarn_url = if service.deps.yarn_rm.options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-      then "http://#{service.deps.yarn_rm.options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.deps.yarn_rm.node.fqdn}"]}"
-      else "https://#{service.deps.yarn_rm.options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.deps.yarn_rm.node.fqdn}"]}"
+      yarn_url = if service.deps.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+      then "http://#{service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.http.address.#{service.deps.yarn_rm[0].node.fqdn}"]}"
+      else "https://#{service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address.#{service.deps.yarn_rm[0].node.fqdn}"]}"
       options.install['POLICY_MGR_URL'] ?= service.deps.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-yarn'
       options.service_repo ?=
         'configs':
-          'password': 'ranger_plugin_yarn'
-          'username': 'RangerPluginYARN123!'
+          'username': 'ranger_plugin_yarn'
+          'password': 'RangerPluginYARN123!'
           'yarn.url': yarn_url
-          'policy.download.auth.users': "#{service.deps.yarn_rm.options.user.name}" #from ranger 0.6
-          'tag.download.auth.users': "#{service.deps.yarn_rm.options.user.name}"
+          'policy.download.auth.users': "#{options.yarn_user.name}" #from ranger 0.6
+          'tag.download.auth.users': "#{options.yarn_user.name}"
         'description': 'YARN Repo'
         'isEnabled': true
         'name': options.install['REPOSITORY_NAME']
@@ -102,7 +110,7 @@ The repository name should match the reposity name in web ui.
         # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.deps.ranger_admin.options.conf_dir}/%app-type%/archive"
         options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.deps.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
-        options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{service.deps.yarn_rm.options.log_dir}/audit/hdfs/spool"
+        options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
         options.install['XAAUDIT.HDFS.DESTINATION_FILE'] ?= '%hostname%-audit.log'
         options.install['XAAUDIT.HDFS.DESTINATION_FLUSH_INTERVAL_SECONDS'] ?= '900'
         options.install['XAAUDIT.HDFS.DESTINATION_ROLLOVER_INTERVAL_SECONDS'] ?= '86400'
@@ -179,10 +187,10 @@ The repository name should match the reposity name in web ui.
 SSL can be configured to use SSL if ranger admin has SSL enabled.
 
       if service.deps.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.deps.yarn_rm.options.ssl_server['ssl.server.keystore.location']
-        options.install['SSL_KEYSTORE_PASSWORD'] ?= service.deps.yarn_rm.options.ssl_server['ssl.server.keystore.password']
-        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.deps.yarn_rm.options.ssl_server['ssl.server.truststore.location']
-        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= service.deps.yarn_rm.options.ssl_server['ssl.server.truststore.password']
+        options.install['SSL_KEYSTORE_FILE_PATH'] ?= options.ssl_server['ssl.server.keystore.location']
+        options.install['SSL_KEYSTORE_PASSWORD'] ?= options.ssl_server['ssl.server.keystore.password']
+        options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= options.ssl_server['ssl.server.truststore.location']
+        options.install['SSL_TRUSTSTORE_PASSWORD'] ?= options.ssl_server['ssl.server.truststore.password']
 
 ## Merge yarn_plugin conf to ranger admin
 

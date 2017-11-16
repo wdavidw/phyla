@@ -97,7 +97,7 @@ tested.
 
       @krb5.addprinc options.krb5.admin,
         header: 'Plugin Principal'
-        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        principal: "#{options.service_repo.configs.username}"
         password: options.service_repo.configs.password
 
 ## Properties
@@ -155,7 +155,7 @@ tested.
             @each files, (opt, cb) ->
               file = opt.key
               target = "#{options.conf_dir}/#{file}"
-              @fs.exists target, (err, exists) ->
+              fs.exists options.ssh, target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
                 files_exists["#{file}"] = exists
@@ -189,7 +189,7 @@ tested.
           @each files, (opt, cb) ->
             file = opt.key
             target = "#{options.conf_dir}/#{file}"
-            @fs.exists target, (err, exists) ->
+            fs.exists options.ssh, target, (err, exists) ->
               return callback err if err
               properties.read options.ssh, target , (err, props) ->
                 return cb err if err
@@ -214,5 +214,6 @@ tested.
     path = require 'path'
     mkcmd = require '../../../lib/mkcmd'
     properties = require '../../../lib/properties'
+    fs = require 'ssh2-fs'
 
 [plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hive_plugin

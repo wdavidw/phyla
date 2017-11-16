@@ -83,9 +83,10 @@ plugin and the principal is created by the Ranger Admin service. Chances
 are that a customer user will need specific ACLs but this hasn't been
 tested.
 
+      # See [#96](https://github.com/ryba-io/ryba/issues/95): Ranger HDFS: should we use a dedicated principal
       @krb5.addprinc options.krb5.admin,
         header: 'Plugin Principal'
-        principal: "#{options.service_repo.configs.username}@#{options.krb5.realm}"
+        principal: "#{options.service_repo.configs.username}"
         password: options.service_repo.configs.password
 
 ## Properties
@@ -129,7 +130,7 @@ Not documented be taken from [github-source][plugin-source]
           @each files, (file, cb) ->
             file = file.key
             target = "#{options.hdfs_conf_dir}/#{file}"
-            @fs.exists target, (err, exists) ->
+            fs.exists options.ssh, target, (err, exists) ->
               return cb err if err
               return cb() unless exists
               files_exists["#{file}"] = exists
@@ -173,7 +174,7 @@ Not documented be taken from [github-source][plugin-source]
         @each files, (file, cb) ->
           file = file.key
           target = "#{options.hdfs_conf_dir}/#{file}"
-          @fs.exists target, (err, exists) ->
+          fs.exists options.ssh, target, (err, exists) ->
             return callback err if err
             properties.read options.ssh, target , (err, props) ->
               return cb err if err
@@ -196,6 +197,7 @@ Not documented be taken from [github-source][plugin-source]
 
     quote = require 'regexp-quote'
     properties = require '../../../lib/properties'
+    fs = require 'ssh2-fs'
 
 [plugin]: https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/installing_ranger_plugins.html#installing_ranger_hdfs_plugin
 [plugin-source]: https://github.com/apache/incubator-ranger/blob/ranger-0.6/agents-audit/src/main/java/org/apache/ranger/audit/utils/InMemoryJAASConfiguration.java
