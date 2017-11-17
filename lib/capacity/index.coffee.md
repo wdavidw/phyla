@@ -184,7 +184,7 @@ Normalize configuration.
         for service in mapred_client_services
           should_configure_mapred_client = should_configure_mapred_client or node.has_service(service)
         node.should_configure_mapred_client =  should_configure_mapred_client
-        for conf in ['nn_hdfs_site', 'hdfs_site', 'rm_yarn_site', 'yarn_site', 'mapred_site', 'tez_site', 'hive_site', 'capacity_scheduler', 'hbase_site', 'kafka_broker','nifi_properties']
+        for conf in ['nn_hdfs_site', 'hdfs_site' , 'dn_hdfs_site', 'rm_yarn_site', 'yarn_site', 'mapred_site', 'tez_site', 'hive_site', 'capacity_scheduler', 'hbase_site', 'kafka_broker','nifi_properties']
           node.config.capacity[conf] ?= {}
           node.config.capacity.remote[conf] ?= {}
         node.config.capacity.capacity_scheduler['yarn.scheduler.capacity.resource-calculator'] ?= 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
@@ -407,12 +407,12 @@ the application (zombie state).
     exports.hdfs_dn = (nodes) ->
       for node in nodes
         continue unless node.has_service 'ryba/hadoop/hdfs_dn'
-        {disks, hdfs_site} = node.config.capacity
+        {disks, hdfs_site, dn_hdfs_site} = node.config.capacity
         {hdfs_dn_data_dir} = node.params
         if /^\//.test hdfs_dn_data_dir
-          hdfs_site['dfs.datanode.data.dir'] ?= hdfs_dn_data_dir.split ','
+          dn_hdfs_site['dfs.datanode.data.dir'] ?= hdfs_dn_data_dir.split ','
         else
-          hdfs_site['dfs.datanode.data.dir'] ?= disks.map (disk) ->
+          dn_hdfs_site['dfs.datanode.data.dir'] ?= disks.map (disk) ->
             path.resolve disk, hdfs_dn_data_dir or './hdfs/data'
 
 ## HDFS NameNode
@@ -923,7 +923,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           service.hdfs_site ?= capacity.hdfs_site
         if ctx.has_service('ryba/hadoop/hdfs_dn') and print_hdfs
           service = node.services["#{cluster}:ryba/hadoop/hdfs_dn"] ?= {}
-          service.hdfs_site ?= capacity.hdfs_site
+          service.hdfs_site ?= capacity.dn_hdfs_site
         print_yarn_rm = not params.modules or multimatch(params.modules, 'ryba/hadoop/yarn_rm').length
         if ctx.has_service('ryba/hadoop/yarn_rm') and print_yarn_rm
           service = node.services["#{cluster}:ryba/hadoop/yarn_rm"] ?= {}
