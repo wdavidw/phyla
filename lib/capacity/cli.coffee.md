@@ -1,25 +1,6 @@
 
 # Capacity Planning for Hadoop Cluster
 
-## Main Entry Point
-
-    module.exports = ->
-      # Parameters and Help
-      params = parameters(exports.params)
-      if params.parse().help
-        return console.log params.help()
-      # Run
-      params = params.parse()
-      config params.config, (err, config) ->
-        throw err if err
-        capacity params, config, (err) ->
-          if err
-            if err.errors
-              for err of err.errors
-                console.log(err.stack||err.message);
-            else
-              console.log(err.stack)
-
 ## Parameters
 
 *   `config` (array|string)   
@@ -46,28 +27,39 @@ node node_modules/ryba/bin/capacity \
   -o ./conf/capacity.coffee -w
 ```
 
-    exports.params =
+    params =
       name: 'capacity'
-      description: 'Hadoop Tool for Capacity Planning'
+      description: 'Export cluster\' capacity planning in file'
+      load: require 'masson/lib/utils/load'
+      run: 'ryba/lib/capacity'
       options: [
+        name: 'output', shortcut: 'o', type: 'string'
+        description: 'output dir'
+      ,
         name: 'config', shortcut: 'c', type: 'array'
-        description: 'One or multiple configuration files.'
-        required: true
+        description: 'config files'
       ,
-        name: 'hosts', shortcut: 'h', type: 'array'
-        description: 'Limit to a list of server hostnames'
+        name: 'clusters', type: 'boolean'
+        description: 'Print list of cluster names'
       ,
-        name: 'modules', shortcut: 'm', type: 'array'
-        description: 'Limit to a list of modules'
-      ,
-        name: 'output', shortcut: 'o'
-        description: 'Write the configuration to a file, extension is discoverd unless "format" is provided.'
-      ,
-        name: 'format', shortcut: 'f' # default: 'text'
-        description: 'Output format are text (default), xml, json, js and coffee.'
+        name: 'format', shortcut: 'f', type: 'string'
+        description: 'Format of the output files: [json, cson, js, coffee]'
       ,
         name: 'overwrite', shortcut: 'w', type: 'boolean' # default: 'text'
         description: 'Overwrite any existing file.'
+      ,
+        name: 'nodes', shortcut: 'n', type: 'boolean'
+        description: 'Print configuration of nodes'
+      # ,
+      #   name: 'cluster', shortcut: 'c', type: 'string'
+      #   description: 'Print configuration of clusters'
+      # ,
+      ,
+        name: 'service', shortcut: 's', type: 'string'
+        description: 'Print configuration of a services (format cluster:service)'
+      ,
+        name: 'service_names', type: 'boolean'
+        description: 'Print list of service names'
       ,
         name: 'partitions', shortcut: 'p', type: 'array'
         description: 'List of disk partitions unless discovered.'
@@ -88,8 +80,31 @@ node node_modules/ryba/bin/capacity \
         description: 'List of absolute paths or a relative path for Kafka Broker directories.'
       ]
 
+
+## Read configuration
+
+Taken from masson/lib/index.coffee
+
+
+    module.exports = ->
+      orgparams = parameters(params, main: name: 'main').parse()
+      load orgparams.config, (err, config) ->
+        # Normalize coniguration
+        config = normalize config
+        # config.params = parameters(params).parse()
+        capacity orgparams, config, (err) ->
+          if err
+            throw err
+          else
+            process.exit 0
+          
+        
+
 ## Dependencies
 
     parameters = require 'parameters'
-    config = require 'masson/lib/config'
+    load = require 'masson/lib/config/load'
+    normalize = require 'masson/lib/config/normalize'
+    merge = require 'masson/lib/utils/merge'
     capacity = require './'
+    
