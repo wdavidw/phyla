@@ -68,15 +68,15 @@
 ## Elastic config
 
       options.clusters ?= {}
-      options.ssl = merge {}, service.deps.ssl, options.ssl
-      throw Error 'Required property "ryba.ssl.cacert" or "ryba.options.ssl.cacert"' unless options.ssl.cacert?
-      throw Error 'Required property "ryba.ssl.cert"' unless options.ssl.cert?
-      throw Error 'Required property "ryba.ssl.key"' unless options.ssl.key?
+      options.ssl = merge {}, service.deps.ssl.options, options.ssl
+      throw Error 'Required property "ssl.cacert" or "ryba.options.ssl.cacert"' unless options.ssl.cacert?
+      throw Error 'Required property "ssl.cert"' unless options.ssl.cert?
+      throw Error 'Required property "ssl.key"' unless options.ssl.key?
       options.ssl.dest_dir ?= "/etc/docker/certs.d"
       options.ssl.dest_cacert = "#{options.ssl.dest_dir}/ca.pem"
       options.ssl.dest_cert = "#{options.ssl.dest_dir}/cert.pem"
       options.ssl.dest_key = "#{options.ssl.dest_dir}/key.pem"
-      options.fqdn ?= servide.node.fqdn
+      options.fqdn ?= service.node.fqdn
       options.hosts ?= service.deps.esdocker.map (srv) -> srv.node.fqdn
 
 ## Kernerl
@@ -229,3 +229,5 @@
               es.plugins_urls["#{repo}"].push "https://github.com/#{user}/#{repo}/archive/#{version}.zip"
           if user != null
             es.plugins_urls["#{repo}"].push "https://github.com/#{user}/#{repo}/archive/master.zip"
+
+    {merge} = require 'nikita/lib/misc'
