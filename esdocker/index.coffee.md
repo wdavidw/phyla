@@ -17,8 +17,9 @@ Elastic search configuration for hadoop can be found at [Hortonworks Section](ho
       configure:
         'ryba/esdocker/configure'
       commands:
-        'install':
+        'install': [
           'ryba/esdocker/prepare'
           'ryba/esdocker/install'
+        ]
         'prepare':
           'ryba/esdocker/prepare'
