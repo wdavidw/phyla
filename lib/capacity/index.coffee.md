@@ -12,9 +12,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
 ## Source Code
 
     exports = module.exports = (params, config, callback) ->
-      # construct the cluster graph for capacity planning
-      # the output will be a file by cluster
-      orgoutput = "#{params.output}"
+      # construct the clusters' graph for capacity planning
       clusters = []
       for cluster, conf of config.clusters
         nodes = {}
@@ -28,37 +26,49 @@ default setting for Yarn and its client application such as MapReduce or Tez.
         clusters.push
           name: cluster
           nodes: nodes
-      for cluster in clusters
-        config.cluster = cluster.name
-        config.nodes = cluster.nodes
-        params.orgoutput = orgoutput
-        exports.nodes params, config, (err, nodes) ->
-          return callback err if err
-          nikita.each [
-            'configure', 'disks', 'cores', 'memory'
-            'yarn_nm', 'yarn_rm'
-            'hdfs_client', 'hdfs_nn', 'hdfs_dn'
-            'hbase_m', 'hbase_rs',
-            'mapred_client',
-            'nifi','tez_client'
-            'hive_client', 'kafka_broker'
-            'remote' 
-            ]
-          , (opts, cb) ->
-            handler = opts.key
-            console.log "#{handler}: ok"
-            handler = exports[handler]
-            if handler.length is 2
-              handler nodes, cb
-            else
-              handler nodes
-              cb()
-          .then (err) ->
-            # ctx.emit 'end' for ctx in contexts
-            return console.log 'ERROR', err.message, err.stack if err
-            exports.write params, config, nodes, (err) ->
-              return console.log 'ERROR', err if err
-              console.log 'SUCCESS'
+        do_cluster_capacity = (index, callback) ->
+          cluster = clusters[index]
+          config.cluster = cluster.name
+          config.nodes = cluster.nodes
+          exports.nodes params, config, (err, nodes) ->
+            cluster.nodes = nodes
+            return callback err if err
+            # note: lucasbak
+            # note sure to always do remote as the inital cluster may have no file configured
+            nikita.each [
+              'configure', 'disks', 'cores', 'memory'
+              'yarn_nm', 'yarn_rm'
+              'hdfs_client', 'hdfs_nn', 'hdfs_dn'
+              'hbase_m', 'hbase_rs',
+              'mapred_client',
+              'nifi','tez_client'
+              'hive_client', 'kafka_broker'
+              'remote' 
+              ]
+            , (opts, cb) ->
+              handler = opts.key
+              console.log "#{handler}: ok"
+              handler = exports[handler]
+              if handler.length is 2
+                handler nodes, cb
+              else
+                handler nodes
+                cb()
+            .then (err) ->
+              # ctx.emit 'end' for ctx in contexts
+              return console.log 'ERROR', err.message, err.stack if err
+              if index is clusters.length-1
+                callback err
+              else
+                index++
+                do_cluster_capacity index, callback
+        do_cluster_capacity 0, (err) ->
+          # ctx.emit 'end' for ctx in contexts
+          return console.log 'ERROR', err.message, err.stack if err
+          exports.write params, config, clusters, (err) ->
+            return console.log 'ERROR', err if err
+            console.log 'SUCCESS'
+
 
 ## SSH
 
@@ -681,35 +691,28 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
         do_hdfs()
       .next next
 
-    exports.write = (params, config, nodes, next) ->
+    exports.write = (params, config, clusters, next) ->
       # return next() unless params.output
       formats = ['xml', 'json', 'js', 'coffee']
-      params.format ?= 'coffee'
-      nikita.system.mkdir
-        target: path.resolve params.orgoutput
-        ssh: null
-      .then (err) ->
-        return next err if err
-        params.output = path.resolve "#{params.orgoutput}/#{config.cluster}.#{params.format}"
-        if params.format is 'text'
-          # ok, print to stdout
-        else if params.format
-          return next Error "Insupported Extension #{extname}" unless params.format in formats
-          # unless params.output
-          #   # ok, print to stdout
-          # else if (basename = path.basename(params.output, ".#{params.format}")) isnt params.output
-          #   params.output = "#{basename}.#{params.format}" if params.format in ['json', 'js', 'coffee']
-        else if params.output
-          extname = path.extname params.output
-          format = extname.substr 1
-          return next Error "Could not guess format from arguments" unless format in formats
-          params.format = format
-        else
-          params.format = 'text'
-        exports["write_#{params.format}"] params, config, nodes, (err, content) ->
-          next err
+      if params.format is 'text'
+        # ok, print to stdout
+      else if params.format
+        return next Error "Insupported Extension #{extname}" unless params.format in formats
+        # unless params.output
+        #   # ok, print to stdout
+        # else if (basename = path.basename(params.output, ".#{params.format}")) isnt params.output
+        #   params.output = "#{basename}.#{params.format}" if params.format in ['json', 'js', 'coffee']
+      else if params.output
+        extname = path.extname params.output
+        format = extname.substr 1
+        return next Error "Could not guess format from arguments" unless format in formats
+        params.format = format
+      else
+        params.format = 'text'
+      exports["write_#{params.format}"] params, config, clusters, (err, content) ->
+        next err
 
-    exports.write_text = (params, config, nodes, next) ->
+    exports.write_text = (params, config, clusters, next) ->
       do_open = ->
         return do_write process.stdout unless params.output
         return next() unless params.output
@@ -824,7 +827,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
         next()
       do_open()
 
-    exports.write_json = (params, config, nodes, next) ->
+    exports.write_json = (params, config, clusters, next) ->
       do_open = ->
         return do_write process.stdout unless params.output
         return next() unless params.output
@@ -833,14 +836,15 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           return next Error 'File Already Exists, use --overwrite' unless err or params.overwrite
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
-        nodes = exports.capacity_to_ryba params, config, nodes
+        nodes = {}
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
         ws.write JSON.stringify nodes: nodes, null, 2
       do_end = (ws) ->
         ws.end() if params.output
         next()
       do_open()
 
-    exports.write_js = (config, nodes, next) ->
+    exports.write_js = (config, clusters, next) ->
       do_open = ->
         return do_write process.stdout unless params.output
         return next() unless params.output
@@ -849,7 +853,8 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           return next Error 'File Already Exists, use --overwrite' unless err or params.overwrite
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
-        nodes = exports.capacity_to_ryba params, config, nodes
+        nodes = {}
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
         source = JSON.stringify nodes: nodes, null, 2
         source = "module.exports = #{source};"
         ws.write source
@@ -858,7 +863,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
         next()
       do_open()
 
-    exports.write_coffee = (params, config, nodes, next) ->
+    exports.write_coffee = (params, config, clusters, next) ->
       do_open = ->
         return do_write process.stdout unless params.output
         return next() unless params.output
@@ -867,7 +872,8 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           return next Error 'File Already Exists, use --overwrite' unless err or params.overwrite
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
-        nodes = exports.capacity_to_ryba params, config, nodes
+        nodes = {}
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
         source = JSON.stringify nodes: nodes
         source = "module.exports = #{source}"
         argv = process.argv

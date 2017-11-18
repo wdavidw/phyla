@@ -34,7 +34,7 @@ node node_modules/ryba/bin/capacity \
       run: 'ryba/lib/capacity'
       options: [
         name: 'output', shortcut: 'o', type: 'string'
-        description: 'output dir'
+        description: 'output file'
       ,
         name: 'config', shortcut: 'c', type: 'array'
         description: 'config files'
