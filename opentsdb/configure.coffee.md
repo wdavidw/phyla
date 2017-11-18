@@ -23,11 +23,7 @@ Example:
 ```
 
     module.exports = (service) ->
-      rs_ctxs = @contexts 'ryba/hbase/regionserver'
-      radmin_ctxs = @contexts 'ryba/ranger/admin'
       throw Error 'No HBase regionservers configured' unless service.deps.hbase_regionserver.length > 0
-      {hbase} = rs_ctxs[0].config.ryba
-
       {options} = service
 
 ## Identities
@@ -78,7 +74,7 @@ Example:
           continue unless srv.options.config['peerType'] is 'participant'
           "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       ).join ','
-      options.config['tsd.storage.hbase.zk_basedir'] ?= hbase.rs.site['zookeeper.znode.parent']
+      options.config['tsd.storage.hbase.zk_basedir'] ?= service.deps.hbase_regionserver[0].options.hbase_site['zookeeper.znode.parent']
       options.config['tsd.storage.fix_duplicates'] ?= 'true'
       options.config['tsd.storage.repair_appends'] ?= 'true'
       ns = (table) -> if options.hbase.default_namespace? then "#{options.hbase.default_namespace}:#{table}" else table
@@ -87,10 +83,10 @@ Example:
       options.config['tsd.storage.hbase.tree_table'] ?= ns 'tsdb-tree'
       options.config['tsd.storage.hbase.meta_table'] ?= ns 'tsdb-meta'
       options.config['tsd.query.allow_simultaneous_duplicates'] ?= 'true'
-      options.config['hbase.security.authentication'] ?= hbase.rs.site['hbase.security.authentication']
+      options.config['hbase.security.authentication'] ?= service.deps.hbase_regionserver[0].options.hbase_site['hbase.security.authentication']
       if options.config['hbase.security.authentication'] is 'kerberos'
         options.config['hbase.security.auth.enable'] ?= 'true' 
-        options.config['hbase.kerberos.regionserver.principal'] ?= hbase.rs.site['hbase.regionserver.kerberos.principal']
+        options.config['hbase.kerberos.regionserver.principal'] ?= service.deps.hbase_regionserver[0].options.hbase_site['hbase.regionserver.kerberos.principal']
         options.config['java.security.auth.login.config'] ?= '/etc/opentsdb/opentsdb.jaas'
         options.config['hbase.sasl.clientconfig'] ?= 'Client'
       # Env
@@ -101,6 +97,7 @@ Example:
 
 ## Ranger Admin properties
 
+      options.install ?= {}
       options.install['POLICY_MGR_URL'] ?= service.deps.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hbase'
 
