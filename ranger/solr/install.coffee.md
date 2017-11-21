@@ -217,12 +217,12 @@ We manage creating the ranger_audits core/collection in the three modes.
 
       @system.execute
         header: 'Create Core'
-        cmd: """
-        # Check if exists
+        unless_exec: """
         protocol='#{if options.solr.ssl.enabled then 'https' else 'http'}'
         exists_url="$protocol://#{options.fqdn}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json"
-        curl -k --fail '$exists_url' | grep '"schema":"managed-schema"' || exit 3
-        # Run Ranger Script
+        curl -k --fail $exists_url | grep '"schema":"managed-schema"'
+        """
+        cmd: """
         #{options.solr.latest_dir}/bin/solr create_core \
           -c ranger_audits \
           -d #{options.solr.user.home}/ranger_audits
@@ -230,7 +230,7 @@ We manage creating the ranger_audits core/collection in the three modes.
         code_skipped: 3
         retry: 3
         sleep: 3000
-      @call -> process.exitsts
+      @call -> process.exit
 
 ## Dependencies
 
