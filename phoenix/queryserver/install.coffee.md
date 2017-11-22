@@ -25,7 +25,7 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
         header: 'IPTables'
         if: options.iptables
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: options.phoneix_site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.phoenix_site['phoenix.queryserver.http.port'], protocol: 'tcp', state: 'NEW', comment: "Phoenix QueryServer port" }
         ]
 
 ## Packages
