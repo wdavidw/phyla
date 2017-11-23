@@ -95,6 +95,105 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
       options.ini['security']['admin_password'] ?= 'admin'
       throw Error 'Missing Grafana webui password options.ini.security.admin_password' unless options.ini['security']['admin_password']?
 
+## URLs
+
+      options.url ?= "#{options.ini['server']['protocol']}://#{service.node.fqdn}:#{options.ini['server']['http_port']}"
+      if service.deps.hdfs_jn
+        protocol = if service.deps.hdfs_jn[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+        port = service.deps.hdfs_jn[0].options.hdfs_site["dfs.journalnode.#{protocol}-address"].split(':')[1]
+        options.jn_url ?= "#{protocol}://#{service.deps.hdfs_jn[0].node.fqdn}:#{port}"
+
+## Datasources
+
+      options.datasource ?= 'prometheus' if service.deps.prometheus_monitor
+      options.datasources ?= {}
+      if options.datasource is 'prometheus'
+        options.datasources['prometheus'] ?=
+          datasource_url: "http://#{service.deps.prometheus_monitor[0].node.fqdn}:#{service.deps.prometheus_monitor[0].options.port}"
+          name: 'prometheus'
+          datasource: 'prometheus'
+
+## Dashboards
+Load default template for Grafana with prometheus datasource.
+This templates, will work out of the box on every cluster deployed by Ryba.
+Nonetheless you can use it, just besure that in your jMX exporter the property
+toLowerCase is enabled, as metrics are in lowercase in grafana dashboard.
+
+Dashboard and panels are based on prometheus queries and as a consequence,
+do not depend on cluster or host names.
+
+      options.templates ?= {}
+      #needed options when rendering templates
+      options.cluster_name ?= 'ryba-env-metal'
+      if service.deps.zookeeper_server
+        options.templates['zookeeper-server'] ?=
+          source: "#{__dirname}/../resources/prometheus-zookeeper.json.j2"
+          local: true
+          title: 'Zookeeper Server'
+          slug: 'zookeeper-server'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+      if service.deps.hdfs_dn
+        options.templates['hdfs-datanodes'] ?=
+          source: "#{__dirname}/../resources/prometheus-datanodes.json.j2"
+          local: true
+          title: 'HDFS Datanodes'
+          slug: 'hdfs-datanodes'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+          #TODO percentage of disks used
+          # options.templates['hdfs-datadisks'] ?=
+          #   source: "#{__dirname}/../resources/prometheus-hdfs-datadisks.json.j2"
+          #   local: true
+          #   title: 'HDFS Data Disks'
+          #   slug: 'hdfs-datadisks'
+          #   cluster_name: options.cluster_name
+          #   datasource: options.datasource
+      if service.deps.hdfs_jn
+        options.templates['hdfs-journalnodes'] ?=
+          source: "#{__dirname}/../resources/prometheus-journalnodes.json.j2"
+          local: true
+          title: 'HDFS Journalnodes'
+          slug: 'hdfs-journalnodes'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+      if service.deps.hdfs_nn
+        options.templates['hdfs-namenodes'] ?=
+          source: "#{__dirname}/../resources/prometheus-namenodes.json.j2"
+          local: true
+          title: 'HDFS Namenodes'
+          slug: 'hdfs-namenodes'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+      if service.deps.yarn_nm
+        options.templates['yarn-nodemanagers'] ?=
+          source: "#{__dirname}/../resources/prometheus-nodemanagers.json.j2"
+          local: true
+          title: 'YARN NodeManagers'
+          slug: 'yarn-nodemanagers'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+      if service.deps.yarn_rm
+        options.templates['yarn-resourcemanagers'] ?=
+          source: "#{__dirname}/../resources/prometheus-resourcemanagers.json.j2"
+          local: true
+          title: 'YARN ResourceManagers'
+          slug: 'yarn-resourcemanagers'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+        options.templates['yarn-queues'] ?=
+          source: "#{__dirname}/../resources/prometheus-queues.json.j2"
+          local: true
+          title: 'YARN Queues'
+          slug: 'yarn-queues'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+      if service.deps.collectd_exporter
+        options.templates['system-activity'] ?=
+          source: "#{__dirname}/../resources/prometheus-system-activity.json.j2"
+          local: true
+          title: 'System Activity'
+          slug: 'system-activity'
 
 ## Wait
 

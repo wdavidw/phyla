@@ -25,6 +25,7 @@ to create dashboard and organize collected metrics.
           'ryba/grafana/webui/install'
           'ryba/grafana/webui/start'
           'ryba/grafana/webui/check'
+          'ryba/grafana/webui/setup'
         ]
         prepare:
           'ryba/grafana/webui/prepare'
