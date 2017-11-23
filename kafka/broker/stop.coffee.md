@@ -3,7 +3,7 @@
 
 Stop the Kafka Broker.
 
-    module.exports = header: 'Kafka Broker Stop', handler: (stop) ->
+    module.exports = header: 'Kafka Broker Stop', handler: (options) ->
 
 ## Service
 
@@ -28,7 +28,7 @@ activated.
 
       @system.execute
         header: 'Clean Logs'
-        unless: @config.ryba.clean_logs
+        unless: options.clean_logs
         cmd: 'rm -f /var/log/kafka/*.log'
         code_skipped: 1
 
