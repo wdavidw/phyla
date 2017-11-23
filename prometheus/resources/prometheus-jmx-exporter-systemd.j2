@@ -1,0 +1,13 @@
+
+[Unit]
+Description=Prometheus JMX Exporter
+
+[Service]
+User={{user.name}}
+Group={{group.name}}
+PIDFile=/var/run/prometheus/prometheus-monitor.pid
+ExecStart={{java_home}}/bin/java -jar {{install_dir}}/jmx_exporter.jar {{port}} {{conf_file}}
+LimitNOFILE={{user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target
