@@ -50,6 +50,7 @@ Make configuration options more restrictive
         config.docker_compose_version ?= options.docker_compose_version ?= '1'
         config.mem_limit ?= '1g'
         config.port ?= '8983'
+        config.depends_on ?= false
         # config.cpu_shares ?= 5
         # config.cpu_quota ?= 50 * 1000
         config.is_ssl_enabled ?= true
