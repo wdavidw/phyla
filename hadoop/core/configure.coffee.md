@@ -213,7 +213,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       # Validate rack
       if options.topology.some( (node) -> node.rack )
         for node in options.topology
-          throw Error "Required Option: rack required in node #{node.id} because at least one rack is defined"
+          throw Error "Required Option: rack required in node #{node.id} because at least one rack is defined" unless node.rack
 
 Configuration for HTTP
 
