@@ -1,0 +1,5540 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "{{title}}",
+    "originalTitle": "{{title}}",
+    "tags": [],
+    "style": "dark",
+    "timezone": "browser",
+    "editable": true,
+    "hideControls": false,
+    "sharedCrosshair": false,
+    "rows": [
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs60sNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 1,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60snumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs60s50thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 2,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60s50thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs60s75thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 3,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60s75thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs60s90thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 4,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60s90thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs60s95thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 5,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60s95thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs60s99thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 6,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs60s99thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs300sNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 7,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300snumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs300s50thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 8,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300s50thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs300s75thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 9,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300s75thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs300s90thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 10,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300s90thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs300s95thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 11,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300s95thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs300s99thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 12,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs300s99thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs3600sNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 13,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600snumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs3600s50thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 14,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600s50thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs3600s75thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 15,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600s75thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "Syncs3600s90thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 16,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600s90thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs3600s95thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 17,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600s95thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "Syncs3600s99thPercentileLatencyMicros",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 18,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_syncs3600s99thpercentilelatencymicros{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "BatchesWritten",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 19,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_batcheswritten{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "TxnsWritten",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 20,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_txnswritten{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "BytesWritten",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 21,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_byteswritten{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "BatchesWrittenWhileLagging",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 22,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_batcheswrittenwhilelagging{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "LastWrittenTxId",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 23,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_lastwrittentxid{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "LastPromisedEpoch",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 24,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_lastpromisedepoch{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "LastWriterEpoch",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 25,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_lastwriterepoch{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "CurrentLagTxns",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 26,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_currentlagtxns{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "NumActiveSources",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 27,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_numactivesources{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "NumAllSources",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 28,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_numallsources{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "NumActiveSinks",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 29,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_numactivesinks{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "NumAllSinks",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 30,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_numallsinks{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "SnapshotNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 31,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_snapshotnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "SnapshotAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 32,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_snapshotavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "PublishNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 33,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_publishnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "PublishAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 34,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_publishavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "DroppedPubAll",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 35,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_droppedpuball{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "JournalOutOfSyncExceptionNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 36,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_journaloutofsyncexceptionnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "JournalOutOfSyncExceptionAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 37,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_journaloutofsyncexceptionavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "HeartbeatNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 38,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_heartbeatnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "HeartbeatAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 39,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_heartbeatavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "StartLogSegmentNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 40,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_startlogsegmentnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "StartLogSegmentAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 41,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_startlogsegmentavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "GetEditLogManifestNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 42,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_geteditlogmanifestnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "GetEditLogManifestAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 43,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_geteditlogmanifestavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "JournalNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 44,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_journalnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "JournalAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 45,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_journalavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "FinalizeLogSegmentNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 46,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_finalizelogsegmentnumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "FinalizeLogSegmentAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 47,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_finalizelogsegmentavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "ReceivedBytes",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 48,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_receivedbytes{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "SentBytes",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 49,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_sentbytes{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcQueueTimeNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 50,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcqueuetimenumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcQueueTimeAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 51,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcqueuetimeavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "RpcProcessingTimeNumOps",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 52,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcprocessingtimenumops{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcProcessingTimeAvgTime",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 53,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcprocessingtimeavgtime{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcAuthenticationFailures",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 54,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcauthenticationfailures{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "RpcAuthenticationSuccesses",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 55,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcauthenticationsuccesses{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcAuthorizationFailures",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 56,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcauthorizationfailures{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcAuthorizationSuccesses",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 57,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcauthorizationsuccesses{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "RpcClientBackoff",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 58,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcclientbackoff{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "RpcSlowCalls",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 59,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_rpcslowcalls{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "NumOpenConnections",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 60,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_numopenconnections{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "CallQueueLength",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 61,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_callqueuelength{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "MemNonHeapUsedM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 62,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memnonheapusedm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "MemNonHeapCommittedM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 63,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memnonheapcommittedm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "MemNonHeapMaxM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 64,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memnonheapmaxm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "MemHeapUsedM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 65,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memheapusedm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "MemHeapCommittedM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 66,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memheapcommittedm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "MemHeapMaxM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 67,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memheapmaxm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "MemMaxM",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 68,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_memmaxm{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "GcCountCopy",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 69,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gccountcopy{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "GcTimeMillisCopy",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 70,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gctimemilliscopy{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "GcCountMarkSweepCompact",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 71,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gccountmarksweepcompact{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "GcTimeMillisMarkSweepCompact",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 72,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gctimemillismarksweepcompact{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "GcCount",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 73,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gccount{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "GcTimeMillis",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 74,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_gctimemillis{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "ThreadsNew",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 75,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadsnew{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "ThreadsRunnable",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 76,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadsrunnable{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "ThreadsBlocked",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 77,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadsblocked{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "ThreadsWaiting",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 78,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadswaiting{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "ThreadsTimedWaiting",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 79,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadstimedwaiting{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "ThreadsTerminated",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 80,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_threadsterminated{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "LogFatal",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 81,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_logfatal{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      },
+      {
+        "title": "",
+        "height": "150px",
+        "editable": true,
+        "collapse": false,
+        "panels": [
+          {
+            "title": "LogError",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 82,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_logerror{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "LogWarn",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 83,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_logwarn{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          },
+          {
+            "title": "LogInfo",
+            "error": false,
+            "span": 4,
+            "editable": true,
+            "transparent": true,
+            "type": "graph",
+            "id": 84,
+            "datasource": "{{datasource}}",
+            "renderer": "flot",
+            "x-axis": true,
+            "y-axis": true,
+            "y_formats": [
+              "short",
+              "short"
+            ],
+            "grid": {
+              "leftMax": null,
+              "rightMax": null,
+              "leftMin": null,
+              "rightMin": null,
+              "threshold1": null,
+              "threshold2": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "lines": true,
+            "fill": 0,
+            "linewidth": 1,
+            "points": false,
+            "pointradius": 5,
+            "bars": false,
+            "stack": false,
+            "percentage": false,
+            "legend": {
+              "show": true,
+              "values": false,
+              "min": false,
+              "max": false,
+              "current": false,
+              "total": false,
+              "avg": false
+            },
+            "nullPointMode": "connected",
+            "steppedLine": false,
+            "tooltip": {
+              "value_type": "cumulative",
+              "shared": false
+            },
+            "targets": [
+              {
+                "expr": "hadoop_journalnode_loginfo{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "format": "time_series",
+                "intervalFactor": 2,
+                "legendFormat": "{% raw %}{{hostname}}{% endraw %}",
+                "refId": "A"
+              }
+            ],
+            "aliasColors": {},
+            "seriesOverrides": [],
+            "links": []
+          }
+        ]
+      }
+    ],
+    "nav": [
+      {
+        "type": "timepicker",
+        "enable": true,
+        "status": "Stable",
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ],
+        "refresh_intervals": [
+          "5s",
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ],
+        "now": true,
+        "collapse": false,
+        "notice": false
+      }
+    ],
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "templating": {
+      "enable": true,
+      "list": [
+        {
+          "allValue": null,
+          "current": {
+            "selected": true,
+            "tags": [],
+            "text": "{{cluster_name}}",
+            "value": [
+              "{{cluster_name}}"
+            ]
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": null,
+          "multi": true,
+          "name": "cluster",
+          "options": [
+            {
+              "selected": true,
+              "text": "{{cluster_name}}",
+              "value": "{{cluster_name}}"
+            }
+          ],
+          "query": "{{cluster_name}}",
+          "type": "custom"
+        },
+        {
+          "allValue": "",
+          "current": {},
+          "datasource": "{{datasource}}",
+          "hide": 0,
+          "includeAll": true,
+          "label": null,
+          "multi": true,
+          "name": "hostname",
+          "options": [],
+          "query": "label_values({service=\"journalnode\",cluster=\"$cluster\"},hostname)",
+          "refresh": 1,
+          "regex": "",
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": []
+    },
+    "refresh": false,
+    "version": 1,
+    "hideAllLegends": false
+  }
+}
