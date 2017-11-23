@@ -255,7 +255,7 @@ configuration like solr.in.sh or solr.xml.
           gid: options.group.name
           mode: 0o0750
         @call
-          unless: config.docker_compose_version is '1'
+          unless: (config.docker_compose_version is '1') or (not config.depends_on)
           shy: true
         , ->
           for node in [1..config.containers]
