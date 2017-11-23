@@ -22,7 +22,7 @@
         @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         topics = options.protocols.map (prot) =>
           "check-#{options.hostname}-client-#{prot.toLowerCase().split('_').join('-')}-topic"
-        users = ["#{options.test.user.name}"]
+        users = ["#{options.test.user.name}", options.superusers...]
         users.push 'ANONYMOUS' if ('PLAINTEXT' in options.protocols) or ('SSL' in options.protocols)
         @wait.execute
           header: 'Wait Service'
@@ -108,7 +108,7 @@ protocols.
           | grep #{test_topic}
           """
         @system.execute
-          unless: options.env['KAFKA_KERBEROS_PARAMS']?
+          unless: options.env['KAFKA_KERBEROS_PARAMS']? or !!options.ranger_admin
           cmd: """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
@@ -151,7 +151,7 @@ protocols.
           | grep 'User:ANONYMOUS has Allow permission for operations: Write from hosts: *'
           """
         @system.execute
-          unless:  options.env['KAFKA_KERBEROS_PARAMS']?
+          unless:  options.env['KAFKA_KERBEROS_PARAMS']? or !!options.ranger_admin
           cmd: """
           (
             sleep 1
@@ -229,6 +229,7 @@ and password given to line command because if executed before producer install
           | grep #{test_topic}
           """
         @system.execute
+          unless: !!options.ranger_admin
           cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
@@ -309,6 +310,7 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
           | grep #{test_topic}
           """
         @system.execute
+          unless: !!options.ranger_admin
           cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
@@ -386,6 +388,7 @@ Trustore location and password given to line command because if executed before 
           | grep #{test_topic}
           """
         @system.execute
+          unless: !!options.ranger_admin
           cmd: mkcmd.kafka options.admin, """
           (
             sleep 1
