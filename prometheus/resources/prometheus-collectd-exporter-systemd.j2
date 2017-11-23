@@ -1,0 +1,13 @@
+
+[Unit]
+Description=Prometheus Collectd Exporter
+
+[Service]
+User={{user.name}}
+Group={{group.name}}
+PIDFile=/var/run/prometheus/prometheus-collectd-exporter.pid
+ExecStart={{install_dir}}/collectd_exporter --collectd.listen-address=0.0.0.0:{{listen_port}}
+LimitNOFILE={{user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target
