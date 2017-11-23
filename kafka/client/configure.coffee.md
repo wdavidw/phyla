@@ -15,6 +15,7 @@ Merge group and user from the Kafka broker configuration.
       options.admin ?= {}
       options.admin.principal ?= service.deps.kafka_broker[0].options.admin.principal
       options.admin.password ?= service.deps.kafka_broker[0].options.admin.password
+      options.superusers ?= service.deps.kafka_broker[0].options.superusers
       # Ranger
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
 
