@@ -20,6 +20,7 @@ Trigger Phoenix tables creation.
       @system.execute
         header: 'Namespace'
         cmd: mkcmd.hbase options.admin, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
         code=3
         if ! hbase shell 2>/dev/null <<< "list_namespace_tables 'SYSTEM'" | egrep '^CATALOG$'; then
           /usr/hdp/current/phoenix-client/bin/sqlline.py #{zk_path} <<< '!q' # 2>/dev/null
