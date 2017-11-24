@@ -25,9 +25,9 @@
 
 NAME='Spark History Server'
 BIN_PATH=/usr/hdp/current/spark-historyserver/sbin
-USER='{{spark.user.name}}'
-CONF_DIR='{{spark.history.conf_dir}}'
-PID_FILE="{{spark.history.pid_dir}}/spark-$USER-org.apache.spark.deploy.history.HistoryServer-1.pid"
+USER='{{user.name}}'
+CONF_DIR='{{conf_dir}}'
+PID_FILE="{{pid_dir}}/spark-$USER-org.apache.spark.deploy.history.HistoryServer-1.pid"
 KILL_FORCE=0
 KILL_SLEEP=20
 
