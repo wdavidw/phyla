@@ -7,4 +7,4 @@
 
       @connection.wait
         header: 'Web UI'
-        servers: options.wait.webui
+        servers: options.webui

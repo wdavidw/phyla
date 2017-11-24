@@ -25,14 +25,6 @@
 
 ## IPTables
 
-  | Service    | Port  | Proto  | Parameter                                   |
-  |------------|-------|--------|---------------------------------------------|
-  | nifi       | 9750  | tcp    | nifi.web.http.port                          |
-  | nifi       | 9760  | tcp    | nifi.web.https.port                         |
-  | nifi       | 9870  | tcp    | nifi.cluster.node.protocol.port             |
-  | nifi       | 9871  | tcp    | nifi.cluster.manager.protocol.port          |
-
-
       rules = [
         { chain: 'INPUT', jump: 'ACCEPT', dport: options.properties["nifi.web.#{protocol}.port"], protocol: 'tcp', state: 'NEW', comment: "NiFi WebUI port" }
       ]
@@ -234,7 +226,7 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
         header: 'Bootstrap Conf'
         target: "#{options.conf_dir}/bootstrap.conf"
         source: "#{__dirname}/resources/bootstrap.conf.j2"
-        context: nifi
+        context: options
         local: true
         eof: true
         backup: true
