@@ -4,18 +4,6 @@
     module.exports = (service) ->
       {options, deps, nodes} = service
 
-## Validation
-
-If Pheonix is installed on the cluster, all instances of HBase Master and HBase
-RegionServers must be collocated with an instance of Phoenix Client.
-
-      deps.hbase_master.forEach (srv) ->
-        unless srv.node.id in nodes.map( (node) -> node.id )
-          throw Error "Invalid Configuration: HBase Master without a Phoenix Client on node #{srv.node.id}"
-      deps.hbase_regionserver.forEach (srv) ->
-        unless srv.node.id in nodes.map( (node) -> node.id )
-          throw Error "Invalid Configuration: HBase RegionServer without a Phoenix Client on node #{srv.node.id}"
-
 A Phoenix Client must have one of instance HBase Master, HBase RegionServer or
 HBase Client.
 

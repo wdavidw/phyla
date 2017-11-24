@@ -30,6 +30,7 @@ instructions.
       table = "ryba_check_phoenix_#{options.hostname}".toUpperCase()
       @system.execute
         cmd: mkcmd.hbase options.admin, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
         hdfs dfs -rm -skipTrash check-#{options.hostname}-phoenix
         # Drop table if it exists
         # if hbase shell 2>/dev/null <<< "list" | grep '#{table}'; then echo "disable '#{table}'; drop '#{table}'" | hbase shell 2>/dev/null; fi
@@ -77,10 +78,12 @@ instructions.
         interval: 10000
       @wait.execute
         cmd: mkcmd.hbase options.admin, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
         hbase shell 2>/dev/null <<< "list" | grep '#{table}'
         """
       @system.execute
         cmd: mkcmd.test options.test_krb5_user, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
         cd /usr/hdp/current/phoenix-client/bin
         ./sqlline.py #{zk_path} \
           #{options.test.user.home}/check_phoenix/select.sql
