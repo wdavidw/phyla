@@ -20,10 +20,9 @@ which in turns enables them to handle very large data sets.
       configure:
         'ryba/pig/configure'
       commands:
-        'check': ->
-          options = @config.ryba.pig
-          @call 'ryba/pig/check', options
-        'install': ->
-          options = @config.ryba.pig
-          @call 'ryba/pig/install', options
-          @call 'ryba/pig/check', options
+        'check':
+          'ryba/pig/check'
+        'install': [
+          'ryba/pig/install'
+          'ryba/pig/check'
+        ]
