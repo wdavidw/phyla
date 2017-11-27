@@ -50,12 +50,12 @@ database:
         when 'ldap'
           if  !options.install['SYNC_LDAP_URL']?
             throw Error 'No openldap server configured' unless service.deps.openldap_server?
-            options.install['SYNC_LDAP_URL'] ?= "#{service.deps.openldap_server.optionsuri}"
-            options.install['SYNC_LDAP_BIND_DN'] ?= "#{service.deps.openldap_server.optionsroot_dn}"
-            options.install['SYNC_LDAP_BIND_PASSWORD'] ?= "#{service.deps.openldap_server.optionsroot_password}"
+            options.install['SYNC_LDAP_URL'] ?= "#{service.deps.openldap_server[0].options.uri}"
+            options.install['SYNC_LDAP_BIND_DN'] ?= "#{service.deps.openldap_server[0].options.root_dn}"
+            options.install['SYNC_LDAP_BIND_PASSWORD'] ?= "#{service.deps.openldap_server[0].options.root_password}"
             options.install['CRED_KEYSTORE_FILENAME'] ?= "#{options.conf_dir}/rangerusersync.jceks"
-            options.install['SYNC_LDAP_USER_SEARCH_BASE'] ?= "ou=users,#{service.deps.openldap_server.optionssuffix}"
-            options.install['SYNC_LDAP_USER_SEARCH_SCOPE'] ?= "ou=groups,#{service.deps.openldap_server.optionssuffix}"
+            options.install['SYNC_LDAP_USER_SEARCH_BASE'] ?= "ou=users,#{service.deps.openldap_server[0].options.suffix}"
+            options.install['SYNC_LDAP_USER_SEARCH_SCOPE'] ?= "ou=groups,#{service.deps.openldap_server[0].options.suffix}"
             options.install['SYNC_LDAP_USER_OBJECT_CLASS'] ?= 'posixAccount'
             options.install['SYNC_LDAP_USER_SEARCH_FILTER'] ?= 'cn={0}'
             options.install['SYNC_LDAP_USER_NAME_ATTRIBUTE'] ?= 'cn'
@@ -64,7 +64,7 @@ database:
             options.install['SYNC_LDAP_USERNAME_CASE_CONVERSION'] ?= 'none'
             options.install['SYNC_LDAP_GROUPNAME_CASE_CONVERSION'] ?= 'none'
             options.install['SYNC_GROUP_SEARCH_ENABLED'] ?= 'false'
-            options.site['options.ldap.searchBase'] ?= "#{service.deps.openldap_server.optionssuffix}"
+            options.site['options.ldap.searchBase'] ?= "#{service.deps.openldap_server[0].options.suffix}"
           options.install['MIN_UNIX_USER_ID_TO_SYNC'] ?= '500'
         else return throw new Error 'sync source is not legal'
 
