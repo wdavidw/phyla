@@ -34,7 +34,7 @@ directories.
         @hdp_select
           name: 'ranger-usersync'
 
-      @call header: 'Layout', (options)->
+      @call header: 'Layout', ->
         @system.mkdir
           target: options.conf_dir
         @system.mkdir
@@ -43,7 +43,7 @@ directories.
           if_os: name: ['redhat','centos'], version: '7'
           mount: options.pid_dir
           uid: options.user.name
-          gid: options.user.name
+          gid: options.group.name
           perm: '0750'
         @system.mkdir
           target: options.pid_dir
@@ -89,6 +89,7 @@ Update the file "install.properties" with the properties defined by the
         target: "/usr/hdp/current/ranger-usersync/install.properties"
         source: "#{__dirname}/../resources/usersync-install.properties.js2"
         local: true
+        context: options
         write: for k, v of options.install
           match: RegExp "^#{quote k}=.*$", 'mg'
           replace: "#{k}=#{v}"
@@ -121,7 +122,7 @@ Update the file "install.properties" with the properties defined by the
         source: "#{__dirname}/../resources/ranger-usersync"
         local: true
         mode: 0o0755
-        context: @config.ryba
+        context: options
 
       writes = [
         match: RegExp "JAVA_OPTS=.*", 'm'

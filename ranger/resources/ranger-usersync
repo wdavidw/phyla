@@ -26,8 +26,8 @@
 NAME='Ranger Usersync Service'
 BIN_PATH=/usr/bin
 MOD_NAME=ranger-usersync
-USER='{{ranger.user.name}}'
-CONF_DIR='{{ranger.usersync.conf_dir}}'
+USER='{{user.name}}'
+CONF_DIR='{{conf_dir}}'
 PID_FILE='/var/run/ranger/usersync.pid'
 CMD="/bin/su --login  $USER -c \"${BIN_PATH}/${MOD_NAME} start\""
 KILL_FORCE=0
