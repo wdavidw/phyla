@@ -1937,7 +1937,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "expr": "{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
+                "expr": "zookeeper_outstandingrequests{hostname=~\"[[hostname]]\",cluster=~\"[[cluster]]\"}",
                 "format": "time_series",
                 "intervalFactor": 2,
                 "refId": "A",
