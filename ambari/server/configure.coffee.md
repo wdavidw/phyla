@@ -199,12 +199,12 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.wait.rest = for srv in service.deps.ambari_server
         clusters_url: url.format
           protocol: unless srv.options.config['api.ssl'] is 'true'
-          then 'http'
-          else 'https'
+          then 'https'
+          else 'http'
           hostname: srv.options.fqdn
           port: unless srv.options.config['api.ssl'] is 'true'
-          then srv.options.config['client.api.port']
-          else srv.options.config['client.api.ssl.port']
+          then srv.options.config['client.api.ssl.port']
+          else srv.options.config['client.api.port']
           pathname: '/api/v1/clusters'
         oldcred: "admin:#{srv.options.current_admin_password}"
         newcred: "admin:#{srv.options.admin_password}"

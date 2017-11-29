@@ -2,10 +2,7 @@
 # Ambari Repo Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, 'ryba/ambari/repo', ['ryba', 'ambari', 'repo'], require('nikita/lib/misc').merge require('.').use, {}
-      @config.ryba ?= {}
-      @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.repo = service.options
+      options = service.options
       
       options.source ?= null
       options.target ?= 'ambari.repo'
@@ -15,4 +12,3 @@
 ## Dependencies
 
     path = require('path').posix
-    migration = require 'masson/lib/migration'
