@@ -14,8 +14,8 @@ installed before the agent registration.
         'ryba/ambari/agent/configure'
       commands:
         'install': [
-          'ryba/ambari/agent/install', options
-          'ryba/ambari/agent/start', options
+          'ryba/ambari/agent/install'
+          'ryba/ambari/agent/start'
         ]
         'start':
           'ryba/ambari/agent/start'
