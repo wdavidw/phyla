@@ -22,7 +22,7 @@ Wait for the Ambari Server to be ready.
         protocol: unless options.config['api.ssl'] is 'true'
         then 'http'
         else 'https'
-        hostname: @config.host
+        hostname: options.fqdn
         port: unless options.config['api.ssl'] is 'true'
         then options.config['client.api.port']
         else options.config['client.api.ssl.port']
@@ -38,7 +38,7 @@ Wait for the Ambari Server to be ready.
 
       @connection.assert
         header: "REST Access"
-        host: @config.host
+        host: options.fqdn
         port: options.config['server.url_port'] # TODO: detect SSL
 
 ## Dependencies

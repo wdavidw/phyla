@@ -199,8 +199,8 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.wait.rest = for srv in service.deps.ambari_server
         clusters_url: url.format
           protocol: unless srv.options.config['api.ssl'] is 'true'
-          then 'https'
-          else 'http'
+          then 'http'
+          else 'https'
           hostname: srv.options.fqdn
           port: unless srv.options.config['api.ssl'] is 'true'
           then srv.options.config['client.api.ssl.port']
