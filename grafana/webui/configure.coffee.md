@@ -194,6 +194,42 @@ do not depend on cluster or host names.
           local: true
           title: 'System Activity'
           slug: 'system-activity'
+      if service.deps.hbase_master
+        options.templates['hbase-home'] ?= 
+          source: "#{__dirname}/../resources/prometheus-hbase-home.json.j2"
+          local: true
+          title: 'HBase Home'
+          slug: 'hbase-home'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+        options.templates['hbase-misc'] ?= 
+          source: "#{__dirname}/../resources/prometheus-hbase-misc.json.j2"
+          local: true
+          title: 'HBase Misc'
+          slug: 'hbase-misc'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+        options.templates['hbase-regionservers'] ?= 
+          source: "#{__dirname}/../resources/prometheus-hbase-regionservers.json.j2"
+          local: true
+          title: 'HBase RegionServers'
+          slug: 'hbase-regionservers'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+        options.templates['hbase-tables'] ?= 
+          source: "#{__dirname}/../resources/prometheus-hbase-tables.json.j2"
+          local: true
+          title: 'HBase Tables'
+          slug: 'hbase-tables'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
+        options.templates['hbase-users'] ?= 
+          source: "#{__dirname}/../resources/prometheus-hbase-users.json.j2"
+          local: true
+          title: 'HBase Users'
+          slug: 'hbase-users'
+          cluster_name: options.cluster_name
+          datasource: options.datasource
 
 ## Wait
 

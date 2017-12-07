@@ -17,6 +17,7 @@ to create dashboard and organize collected metrics.
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
+        hbase_master: module: 'ryba/hbase/master'
         prometheus_monitor: 'ryba/prometheus/monitor'
       configure:
         'ryba/grafana/webui/configure'
