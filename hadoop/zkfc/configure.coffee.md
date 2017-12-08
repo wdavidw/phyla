@@ -100,8 +100,8 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       options.automatic_failover ?= service.deps.hdfs_nn.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
       options.active_nn_host ?= service.deps.hdfs_nn.options.active_nn_host
       options.standby_nn_host ?= service.deps.hdfs_nn.options.standby_nn_host
-      options.active_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.active_nn_host )[0].hostname
-      options.standby_shortname ?= service.nodes.filter( (node) -> node.fqdn is options.standby_nn_host )[0].hostname
+      options.active_shortname ?= service.instances.filter( (instance) -> instance.node.fqdn is options.active_nn_host )[0].node.hostname
+      options.standby_shortname ?= service.instances.filter( (instance) -> instance.node.fqdn is options.standby_nn_host )[0].node.hostname
       # options.active_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
       # options.standby_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
 

@@ -72,6 +72,7 @@ Example:
 ## Wait
 
       options.wait_yarn_rm = service.deps.yarn_rm[0].options.wait
+      options.wait_hive_hcatalog = service.deps.hive_client.options.wait_hive_hcatalog
 
 ## Dependencies
 

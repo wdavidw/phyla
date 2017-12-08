@@ -188,7 +188,7 @@
             "export DOCKER_HOST=#{options.swarm_manager};export DOCKER_CERT_PATH=#{options.ssl.dest_dir};export DOCKER_TLS_VERIFY=1"
             ]
 
-          for service,node of es.nodes then do (service,node) =>
+          for service, node of es.nodes then do (service, node) =>
             @system.execute
               cmd:"""
               #{export_vars}

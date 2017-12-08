@@ -90,10 +90,10 @@ Example:
       options.config['delete.topic.enable'] ?= 'true'
       options.config['zookeeper.set.acl'] ?= 'true'
       options.config['super.users'] ?= options.superusers.map( (user) -> "User:#{user}").join(',')
-      options.config['num.partitions'] ?= service.nodes.length # Default number of log partitions per topic, default is "2"
+      options.config['num.partitions'] ?= service.instances.length # Default number of log partitions per topic, default is "2"
       options.config['auto.create.topics.enable'] ?= 'false'
-      for node, i in service.nodes
-        options.config['broker.id'] ?= "#{i}" if node.fqdn is service.node.fqdn
+      for instance, i in service.instances
+        options.config['broker.id'] ?= "#{i}" if instance.node.fqdn is service.node.fqdn
 
 ## Metrics
 

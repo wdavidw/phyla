@@ -6,6 +6,7 @@
 ## Wait
 
       @call 'ryba/hadoop/yarn_rm/wait', once: true, options.wait_yarn_rm
+      @call 'ryba/hive/hcatalog/wait', once: true, options.wait_hive_hcatalog
 
 ## Pig Script
 

@@ -127,25 +127,25 @@ SSHes to the target node and uses fuser to kill the process listening on the
 service's TCP port.
 
       # HDFS Single Node configuration
-      if service.nodes.length is 1
+      if service.instances.length is 1
         options.core_site['fs.defaultFS'] ?= "hdfs://#{service.node.fqdn}:8020"
         options.hdfs_site['dfs.ha.automatic-failover.enabled'] ?= 'false'
         options.hdfs_site['dfs.namenode.http-address'] ?= '0.0.0.0:50070'
         options.hdfs_site['dfs.namenode.https-address'] ?= '0.0.0.0:50470'
         options.hdfs_site['dfs.nameservices'] = null
       # HDFS HA configuration
-      else if service.nodes.length is 2
+      else if service.instances.length is 2
         throw Error "Required Option: options.nameservice" unless options.nameservice
         options.hdfs_site['dfs.nameservices'] ?= ''
         options.hdfs_site['dfs.nameservices'] += "#{options.nameservice} " unless options.nameservice in options.hdfs_site['dfs.nameservices'].split ' '
         options.core_site['fs.defaultFS'] ?= "hdfs://#{options.nameservice}"
-        options.active_nn_host ?= service.nodes[0].fqdn
-        options.standby_nn_host = service.nodes.filter( (node) -> node.fqdn isnt options.active_nn_host )[0].fqdn
+        options.active_nn_host ?= service.instances[0].node.fqdn
+        options.standby_nn_host = service.instances.filter( (instance) -> instance.node.fqdn isnt options.active_nn_host )[0].node.fqdn
         for srv in service.deps.hdfs_nn
           srv.options.hostname ?= srv.node.hostname
         for srv in service.deps.hdfs_jn
           options.hdfs_site['dfs.journalnode.kerberos.principal'] ?= srv.options.hdfs_site['dfs.journalnode.kerberos.principal']
-      else throw Error "Invalid number of NanodeNodes, got #{service.nodes.length}, expecting 2"
+      else throw Error "Invalid number of NanodeNodes, got #{service.instances.length}, expecting 2"
 
 Since [HDFS-6376](https://issues.apache.org/jira/browse/HDFS-6376), 
 Nameservice must be explicitely set as internal to provide other nameservices, 

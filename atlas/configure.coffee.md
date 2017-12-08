@@ -225,8 +225,8 @@ for HA configuration, (not available on HDP website).
 Ryba does configure atlas server with the same port for every instance.
 
       options.application.properties['atlas.server.ha.enabled'] ?= if service.deps.atlas.length > 1 then 'true' else 'false'
-      options.application.properties['atlas.server.ids'] ?= service.nodes.map( (node) -> node.hostname ).join ','
-      for node in service.nodes
+      options.application.properties['atlas.server.ids'] ?= service.instances.map( (instance) -> instance.node.hostname ).join ','
+      for node in service.instances.map (instance) -> instance.node
         options.application.properties["atlas.server.address.#{node.hostname}"] ?= "#{node.fqdn}:#{port}"
 
 ## Atlas Ranger User

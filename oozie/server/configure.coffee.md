@@ -158,7 +158,7 @@ Example
       log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
       '''
       # Sharelib add-ons
-      options.upload_share_lib = service.nodes[0].id is service.node.id
+      options.upload_share_lib = service.instances[0].node.id is service.node.id
       options.sharelib ?= {}
       options.sharelib.distcp ?= []
       options.sharelib.hcatalog ?= []
@@ -211,8 +211,8 @@ hdfs_client configuration directory.
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or []
         hosts = hosts.split ',' unless Array.isArray hosts
-        for node in service.nodes
-          hosts.push node.fqdn unless node.fqdn in hosts
+        for instance in service.instances
+          hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
         hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
       enrich_proxy_user srv for srv in service.deps.hdfs_nn

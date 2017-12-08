@@ -130,8 +130,8 @@ Knox reads its own env variable to retrieve configuration.
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or []
         hosts = hosts.split ',' unless Array.isArray hosts
-        for node in service.nodes
-          hosts.push node.fqdn unless node.fqdn in hosts
+        for instance in service.instances
+          hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
         hosts = hosts.join ','
         srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
       enrich_proxy_user srv for srv in service.deps.hdfs_nn
@@ -145,16 +145,16 @@ Knox reads its own env variable to retrieve configuration.
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] or ''
         hosts = hosts.split ','
-        for node in service.nodes
-          hosts.push node.fqdn unless node.fqdn in hosts
+        for instance in service.instances
+          hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
         hosts = hosts.join ' '
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= hosts
       for srv in service.deps.oozie_server
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
         hosts = srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or ''
         hosts = hosts.split ','
-        for node in service.nodes
-          hosts.push node.fqdn unless node.fqdn in hosts
+        for instance in service.instances
+          hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
         hosts = hosts.join ' '
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= hosts
 

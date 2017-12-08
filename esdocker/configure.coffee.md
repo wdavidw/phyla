@@ -149,7 +149,7 @@
         es.master_nodes = 0
         es.data_nodes = 0
         es.master_data_nodes = 0
-        for type,node of es.nodes
+        for type, node of es.nodes
           throw Error 'Please specify number property for each node type under nodes property' unless node.number?
           node.mem_limit ?= es.default_mem
           heap_size =  if node.mem_limit is '1g' then '512mb' else Math.floor(parseInt(node.mem_limit.replace(/(g|mb)/i,'')) / 2 )

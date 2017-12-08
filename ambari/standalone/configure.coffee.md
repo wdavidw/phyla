@@ -330,7 +330,7 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
           srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
           hosts = srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] or []
           hosts = hosts.split ',' unless Array.isArray hosts
-          for fqdn in service.nodes.fqdn
+          for fqdn in service.instances.map (instance) -> instance.node.fqdn
             hosts.push fqdn unless fqdn in hosts
           hosts = hosts.join ' '
           srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= hosts
@@ -346,7 +346,7 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
           srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
           hosts = srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or ''
           hosts = hosts.split ','
-          for fqdn in service.nodes.fqdn
+          for fqdn in service.instances (instance) -> instance.node.fqdn
             hosts.push fqdn unless fqdn in hosts
           hosts = hosts.join ' '
           srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= hosts

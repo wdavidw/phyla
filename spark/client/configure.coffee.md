@@ -176,14 +176,14 @@ and spark.metrics.conf=metrics.properties will tell all executors to load that f
 
         if service.deps.graphite
           options.metrics['*.sink.graphite.class'] = 'org.apache.spark.metrics.sink.GraphiteSink'
-          options.metrics['*.sink.graphite.host'] = service.deps.service.deps.graphite[0].nodes.map( (node) -> node.fqdn ).join ','
+          options.metrics['*.sink.graphite.host'] = service.deps.graphite[0].instances.map( (instance) -> instance.node.fqdn ).join ','
           options.metrics['*.sink.graphite.port'] = graphite_ctxs[0].config.ryba.graphite[0].options.carbon_aggregator_port
           options.metrics['*.sink.graphite.prefix'] = "#{graphite_ctxs[0].config.ryba.graphite[0].options.metrics_prefix}.spark"
 
         # TODO : metrics.MetricsSystem: Sink class org.apache.spark.metrics.sink.GangliaSink cannot be instantialized
         if service.deps.ganglia_collector
           options.metrics['*.sink.ganglia.class'] = 'org.apache.spark.metrics.sink.GangliaSink'
-          options.metrics['*.sink.ganglia.host'] = service.deps.ganglia_collector[0].nodes.map( (node) -> node.fqdn ).join ','
+          options.metrics['*.sink.ganglia.host'] = service.deps.ganglia_collector[0].instances.map( (instance) -> instance.node.fqdn ).join ','
           options.metrics['*.sink.ganglia.port'] = service.deps.ganglia_collector[0].options.spark_port
       options.conf['spark.yarn.dist.files'] ?= options.dist_files.join(',') if options.dist_files.length > 0
 

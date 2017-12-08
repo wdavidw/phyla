@@ -203,13 +203,12 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
 
       # Script imported from http://ofirm.wordpress.com/2014/01/09/exploring-the-hadoop-network-topology/
       options.core_site['net.topology.script.file.name'] ?= "#{options.conf_dir}/rack_topology.sh"
-      options.topology = service.nodes
-      .filter (node) ->
-        node.services.some (service) ->
+      options.topology = service.instances.filter (instance) ->
+        instance.node.services.some (service) ->
           service.module in ['ryba/hadoop/hdfs_dn', 'ryba/hadoop/yarn_nm']
-      .map (node) ->
-        throw Error "Required Node Option: ip for node #{JSON.stringify node.id}" unless node.ip
-        id: node.id, ip: node.ip, rack: node.rack
+      .map (instance) ->
+        throw Error "Required Node Option: ip for node #{JSON.stringify instance.node.id}" unless instance.node.ip
+        id: instance.node.id, ip: instance.node.ip, rack: instance.node.rack
       # Validate rack
       if options.topology.some( (node) -> node.rack )
         for node in options.topology

@@ -111,12 +111,12 @@ about each configuration and where they should apply.
 Unless specified otherwise, the active ResourceManager is the first one defined
 inside the configuration.
 
-      if service.nodes.length is 1
+      if service.instances.length is 1
         options.yarn_site['yarn.resourcemanager.ha.enabled'] = 'false'
-      else if service.nodes.length is 2
+      else if service.instances.length is 2
         options.yarn_site['yarn.resourcemanager.ha.enabled'] = 'true'
         options.yarn_site['yarn.resourcemanager.cluster-id'] ?= 'yarn_cluster_01'
-        options.yarn_site['yarn.resourcemanager.ha.rm-ids'] ?= service.nodes.map( (node) -> node.hostname ).join ','
+        options.yarn_site['yarn.resourcemanager.ha.rm-ids'] ?= service.instances.map( (instance) -> instance.node.hostname ).join ','
         # Flag to enable override of the default kerberos authentication
         # filter with the RM authentication filter to allow authentication using
         # delegation tokens(fallback to kerberos if the tokens are missing)
