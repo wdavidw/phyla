@@ -3,9 +3,7 @@
 
 ## Trunk
 
-* hbase: add quota support
-* hbase: create tmp_dir config key
-* hbase/master: add compression libs
+* package: ignore yarn lock
 * druid: support for non-UTC timezone
 * druid: various fixes
 * oozie/client: added retry in hive check
