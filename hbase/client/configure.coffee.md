@@ -86,11 +86,6 @@
       options.wait_hbase_regionserver = service.deps.hbase_regionserver[0].options.wait
       options.wait_ranger_admin = service.deps.ranger_admin.options.wait if service.deps.ranger_admin
 
-## Configuration Quota
-
-      hbase.site['hbase.quota.enabled'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.enabled']
-      hbase.site['hbase.quota.refresh.period'] ?= hm_ctxs[0].config.ryba.hbase.master.site['hbase.quota.refresh.period']
-
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'

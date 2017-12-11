@@ -29,6 +29,13 @@
       # Misc
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
 
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      # Admin Information
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+
 ## QueryServer Configuration
 
       options.phoenix_site ?= {}
@@ -36,7 +43,7 @@
       options.phoenix_site['phoenix.queryserver.metafactory.class'] ?= 'org.apache.phoenix.queryserver.server.PhoenixMetaFactoryImpl'
       options.phoenix_site['phoenix.queryserver.serialization'] ?= 'PROTOBUF'
       options.phoenix_site['phoenix.queryserver.keytab.file'] ?= '/etc/security/keytabs/spnego.service.keytab'
-      options.phoenix_site['phoenix.queryserver.kerberos.principal'] ?= "HTTP/_HOST@#{service.use.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm}"
+      options.phoenix_site['phoenix.queryserver.kerberos.principal'] ?= "HTTP/_HOST@#{options.krb5.realm}"
       options.phoenix_site['avatica.connectioncache.concurrency'] ?= '10'
       options.phoenix_site['avatica.connectioncache.initialcapacity'] ?= '100'
       options.phoenix_site['avatica.connectioncache.maxcapacity'] ?= '1000'
@@ -47,7 +54,7 @@
       options.phoenix_site['avatica.statementcache.maxcapacity'] ?= '10000'
       options.phoenix_site['avatica.statementcache.expiryduration'] ?= '5'
       options.phoenix_site['avatica.statementcache.expiryunit'] ?= 'MINUTES'
-      options.phoenix_site[k] ?= v for k, v of service.use.hbase_client[0].options.hbase_site
+      options.phoenix_site[k] ?= v for k, v of service.deps.hbase_client[0].options.hbase_site
       
 ## Other Configurations
 

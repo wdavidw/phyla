@@ -60,11 +60,6 @@ hbase:x:492:
           uid: options.user.name
           gid: options.group.name
           mode: 0o0755
-        @system.mkdir
-          target: hbase.rs.tmp_dir
-          uid: hbase.user.name
-          gid: hbase.group.name
-          mode: 0o0755
 
 ## Service
 
