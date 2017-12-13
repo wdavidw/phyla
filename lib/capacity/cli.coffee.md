@@ -3,22 +3,22 @@
 
 ## Parameters
 
-*   `config` (array|string)   
-    One or multiple configuration files and directories.   
-*   `total_memory` (int|string)   
-    Total Memory available on the server.   
-*   `memory_system` (int|string)   
-    Total Memory allocated to the system.   
-*   `memory_hbase` (int|string)   
-    Total Memory allocated to the HBase RegionServers.   
-*   `memory_yarn` (int|string)   
-    Total Memory allocated to the Yarn NodeManagers.   
-*   `cores` (int)   
-    Number of available cores to the Yarn NodeManagers.   
-*   `disks` (array)   
-    List of disk partitions available to the HDFS DataNodes and YARN NodeManagers.   
-*   `module` (String|Array)   
-    List of target services based on ryba available modules   
+*   `config` (array|string)
+    One or multiple configuration files and directories.
+*   `total_memory` (int|string)
+    Total Memory available on the server.
+*   `memory_system` (int|string)
+    Total Memory allocated to the system.
+*   `memory_hbase` (int|string)
+    Total Memory allocated to the HBase RegionServers.
+*   `memory_yarn` (int|string)
+    Total Memory allocated to the Yarn NodeManagers.
+*   `cores` (int)
+    Number of available cores to the Yarn NodeManagers.
+*   `disks` (array)
+    List of disk partitions available to the HDFS DataNodes and YARN NodeManagers.
+*   `module` (String|Array)
+    List of target services based on ryba available modules
 
 ```bash
 node node_modules/ryba/bin/capacity \
@@ -78,8 +78,25 @@ node node_modules/ryba/bin/capacity \
       ,
         name: 'kafka_data_dir' # default: './kafka', eg '/mydata/1/kafka,/mydata/2/kafka'
         description: 'List of absolute paths or a relative path for Kafka Broker directories.'
+      ,
+        name: 'total_memory_gb'
+        description: " the total memory available per server in GB"
+      ,
+        name: 'reserved_memory_gb'
+        description: " the reserved memory for the OS in GB"
+      ,
+        name: 'nodemanager_memory_gb'
+        description: "the memory allocated for yarn nodemanager process"
+      ,
+        name: 'datanode_memory_gb'
+        description: "the memory allocated for hdfs nodemanager process"
+      ,
+        name: 'regionserver_memory_gb'
+        description: "the memory allocated for hbase regionserver process"
+      ,
+        name: 'yarn_memory_gb'
+        description: "the memory dedicated for running containers. Should not be overrided"
       ]
-
 
 ## Read configuration
 
@@ -97,8 +114,6 @@ Taken from masson/lib/index.coffee
             throw err
           else
             process.exit 0
-          
-        
 
 ## Dependencies
 
@@ -107,4 +122,3 @@ Taken from masson/lib/index.coffee
     normalize = require 'masson/lib/config/normalize'
     merge = require 'masson/lib/utils/merge'
     capacity = require './'
-    

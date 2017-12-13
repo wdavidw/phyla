@@ -43,7 +43,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
               'mapred_client',
               'nifi','tez_client'
               'hive_client', 'kafka_broker'
-              'remote' 
+              # 'remote'
               ]
             , (opts, cb) ->
               handler = opts.key
@@ -94,77 +94,28 @@ default setting for Yarn and its client application such as MapReduce or Tez.
           n[prop] = node[prop] for prop in ['cpuinfo', 'meminfo','diskinfo','kernel_name',
           'nodename','kernel_release', 'kernel_version', 'processor', 'operating_system']
           n.services = config.nodes[fqdn].services.map( (srv) -> srv.service )
+          n.config ?= {}
+          n.config.capacity ?= {}
+          # migration: lucasbak
+          # prepare options read from configuration ie
+          # n.config.capacity.memory_datanode should be read from service.instance.hdfs.dn.heapsize
+          # n.config.capacity.memory_nodemanager should be read from service.instance.yarn.nm.heapsize
+          n.config.capacity.total_memory ?=  if params.total_memory_gb? then  params.total_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity.memory_system ?= if params.reserved_memory_gb? then  params.reserved_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity.memory_hbase ?= if params.regionserver_memory_gb? then  params.regionserver_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity.memory_datanode ?= if params.datanode_memory_gb? then  params.datanode_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity.memory_nodemanager ?= if params.nodemanager_memory_gb? then  params.nodemanager_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity.memory_yarn ?= if params.yarn_memory_gb? then  params.yarn_memory_gb * 1024 * 1024 * 1024 else null
+          n.config.capacity ?= {}
+          n.config.capacity.remote ?= {}
           n.has_service = ->
             has = false
             has = has || (n.services.indexOf(arg) isnt -1) for arg in arguments
             return has
           nodes.push n
           cb err
-      .then (err) -> 
+      .then (err) ->
         callback null, nodes
-      
-          
-      # each s.nodes
-      #   .parallel(false)
-      #   .call (node, cb) ->
-      # nikita.each s.nodes, (opts, cb) ->
-      #   
-      #   .then (err)-> console.log err
-        # context.call 'masson/core/info'
-      #   context.then (err) ->
-      #     console.log err
-      #     return callback err if err
-      #     contexts.push context
-      #     cb null
-      # .then (err) ->  callback err, contexts
-      # each s.nodes
-      #   .parallel(false)
-      #   .call (node, cb) ->
-      #     log = {}
-      #     log.basedir ?= './log'
-      #     log.basedir = path.resolve process.cwd(), log.basedir
-      #     config.nikita.no_ssh = true
-      #     node = nikita merge {}, config.nikita, node
-      #     node.kv.engine engine: engine
-      #     context = nikita merge {}, config.nikita
-      #     context.log.cli host: node.fqdn, pad: host: 20, header: 60
-      #     context.ssh.open header: 'SSH Open', host: node.ip or node.fqdn
-      #     context.call 'masson/core/info'
-           #unless params.command is 'prepare'
-                    # node.
-                    # n.log.md basename: node.hostname, basedir: log.basedir, archive: false
-                    # n.ssh.open header: 'SSH Open', host: node.ip or node.fqdn #unless params.command is 'prepare'
-
-          # console.log node.ip
-          # node.log.cli host: node.fqdn, pad: host: 20, header: 60
-          # n.log.md basename: node.hostname, basedir: log.basedir, archive: false
-          # n.ssh.open header: 'SSH Open', host: node.ip or node.fqdn #unless params.command is 'prepare'
-          # node.log.cli host: node.ip, pad: host: 20, header: 60
-          # node.log.md basename: node.hostname, basedir: log.basedir, archive: false
-          # node.ssh.open header: 'SSH Open', host: node.ip
-          # node.call 'masson/core/info'
-          # console.log node
-        # n
-        # opts.value.
-        #     n.kv.engine engine: engine
-        #     n.log.cli host: node.fqdn, pad: host: 20, header: 60
-        #     n.log.md basename: node.hostname, basedir: log.basedir, archive: false
-        #     n.
-        
-        
-        
-        
-      # params.end = false
-      # contexts = run(params, config).contexts
-      # each contexts
-      # .parallel true
-      # .call (context, callback) ->
-      #   context.log.cli host: context.config.host, pad: host: 20, header: 60
-      #   context.ssh.open context.config.ssh, host: context.config.ip or context.config.host
-      #   context.call 'masson/core/info'
-      #   context.then callback
-      # .then (err) ->
-      #   next err, contexts
 
 ## Configuration
 
@@ -172,14 +123,6 @@ Normalize configuration.
 
     exports.configure = (nodes) ->
       for node in nodes
-        node.config ?= {}
-        node.config.capacity ?= {}
-        node.config.capacity.total_memory ?= null
-        node.config.capacity.memory_system ?= null
-        node.config.capacity.memory_hbase ?= null
-        node.config.capacity.memory_yarn ?= null
-        node.config.capacity ?= {}
-        node.config.capacity.remote ?= {}
         mapred_client_services = [
           'ryba/hadoop/mapred_client'
           'ryba/hadoop/yarn_nm'
@@ -251,16 +194,26 @@ Discover the most relevant partitions on each node.
 
 Estimates the memory available to the system, YARN and HBase. The ratio vary
 depending on the total amout of memory.
+December 2017: The memory thw following order:
+- total memory avaible on the host
+- memory reserved for the os
+- memory allocated for hbase regionserver
+- memory allocated for yarn_nodemanager process
+- memory allocated for hdfs_datanode process
+- memory available for yarn running containers
+The calculus are made in this order to guaranty the reserverd memory for the os and for hbase.
+All the different amount can be overrided by parameters.
 
     exports.memory_system_gb = [[1,.2], [2,.2], [4,1], [7,2], [8,2], [16,2], [24,4], [48,6], [64,8], [72,8], [96,12], [128,24], [256,32], [512,64]]
     exports.memory_hbase_gb = [[1,.2], [2,.4], [4,1], [8,1], [16,2], [24,4], [48,8], [64,8], [72,8], [96,16], [128,24], [256,32], [512,64]]
     exports.memory = (nodes) ->
-      
       for node in nodes
+        # Total Memory available
         node.config.capacity.total_memory ?= node.meminfo.MemTotal
         continue unless node.has_service 'ryba/hadoop/yarn_nm'
         {total_memory} = node.config.capacity
         total_memory_gb = total_memory / 1024 / 1024 / 1024
+        # Reserved Memory
         memory_system_gb = 0
         if total_memory_gb < exports.memory_system_gb[0][0] # Memory less than first item (1GB)
           memory_system_gb += exports.memory_system_gb[0][1]
@@ -271,7 +224,9 @@ depending on the total amout of memory.
             [total, reserved] = mem
             break if total_memory_gb < total
             memory_system_gb = reserved
+        node.config.capacity.memory_system ?=  exports.rounded_memory memory_system_gb * 1024 * 1024 * 1024
         memory_hbase_gb = 0
+        # HBase regionserver memory
         if node.has_service 'ryba/hbase/regionserver'
           if total_memory_gb < exports.memory_hbase_gb[0][0]
             memory_hbase_gb += exports.memory_hbase_gb[0][1] # Memory less than minimal expectation
@@ -282,14 +237,22 @@ depending on the total amout of memory.
               [total, reserved] = mem
               break if total_memory_gb < total
               memory_hbase_gb = reserved
-
-        memory_system = exports.rounded_memory memory_system_gb * 1024 * 1024 * 1024
         node.config.capacity.memory_hbase ?= memory_hbase = exports.rounded_memory memory_hbase_gb * 1024 * 1024 * 1024
-        node.config.capacity.memory_yarn ?= memory_yarn = exports.rounded_memory total_memory - memory_system - memory_hbase
-        node.config.capacity.memory_system ?= total_memory - memory_hbase - memory_yarn
+        # Yarn Nodemanager memory
+        node.config.capacity.memory_nodemanager ?= 1 * 1024 * 1024 * 1024 #default to 1Go
+        # HDFS datanode memory
+        node.config.capacity.memory_datanode ?= 1 * 1024 * 1024 * 1024 #default to 1Go
+        # Yarn Containers dedicated memory
+        node.config.capacity.memory_yarn ?= memory_yarn = exports.rounded_memory ( node.config.capacity.total_memory -
+         (node.config.capacity.memory_nodemanager + node.config.capacity.memory_datanode + node.config.capacity.memory_hbase + node.config.capacity.memory_system)
+        )
 
 ## Yarn NodeManager
 
+    # helper function which takes a memory in Bytes and rounded down it to nearest 1024 number
+    exports.round_down_two_power_ten = (memory, power_in_Bytes) ->
+      power_in_Bytes ?= 1024 * (1024 * 1024)
+      return if memory >= 0 then Math.floor(memory / power_in_Bytes) * power_in_Bytes else (Math.floor(memory - power_in_Bytes + 1) / power_in_Bytes) * power_in_Bytes
     exports.yarn_nm = (nodes) ->
       minimum_allocation_mb = null
       maximum_allocation_mb = 0
@@ -311,8 +274,7 @@ depending on the total amout of memory.
         # Amount of RAM per container
         # max(MIN_CONTAINER_SIZE, (Total Available RAM) / containers))
         unless memory_per_container = node.config.capacity.memory_per_container
-          memory_per_container = Math.floor Math.max minimum_container_size, memory_yarn / max_number_of_containers
-
+          memory_per_container = Math.max minimum_container_size, exports.round_down_two_power_ten( ( memory_yarn / max_number_of_containers), minimum_container_size)
         # # Work with small VM
         # if memory_per_container < 512 * 1024 * 1024
         #   unless max_number_of_containers = ctx.config.capacity.max_number_of_containers
@@ -334,7 +296,7 @@ Pourcent of CPU dedicated to yarn
 
 Amount of physical memory, in MB, dedicated by the node and that can be allocated for containers.
 
-        yarn_site['yarn.nodemanager.resource.memory-mb'] ?= Math.round memory_per_container * max_number_of_containers / 1024 / 1024
+        yarn_site['yarn.nodemanager.resource.memory-mb'] ?= Math.max Math.round( memory_per_container * max_number_of_containers / 1024 / 1024),  Math.round( node.config.capacity.memory_yarn / 1024 / 1024)
 
         maximum_allocation_mb = Math.max maximum_allocation_mb, yarn_site['yarn.nodemanager.resource.memory-mb']
 
@@ -370,17 +332,10 @@ Raise the number of vcores later allocated for the ResourceManager.
 
         maximum_allocation_vcores = Math.max maximum_allocation_vcores, yarn_site['yarn.nodemanager.resource.cpu-vcores']
 
-      memory_per_container_mean = for node in nodes
-        continue unless node.has_service 'ryba/hadoop/yarn_nm'
-        node.config.capacity.memory_per_container
-      memory_per_container_mean = Math.round memory_per_container_mean.reduce( (a, b) -> a + b ) / memory_per_container_mean.length
-
       for node in nodes
-        node.config.capacity.memory_per_container_mean = memory_per_container_mean
         node.config.capacity.minimum_allocation_mb = minimum_allocation_mb
         node.config.capacity.maximum_allocation_mb = maximum_allocation_mb
         node.config.capacity.maximum_allocation_vcores = maximum_allocation_vcores
-
 
 ## Yarn ResourceManager
 
@@ -430,7 +385,7 @@ the application (zombie state).
 In HDFS High Availabity (HA) mode, we only set one name directory by default
 located inside "/var/hdfs/name" because the Journal Node are responsible for
 distributing logs into the passive NameNode (please get back to us if this isnt
-safe enough). In non-HA mode, we store as many copies as partitions inside the 
+safe enough). In non-HA mode, we store as many copies as partitions inside the
 partition "./hdfs/name" directory.
 
 This behavior may be altered with the "hdfs_nn_name_dir" parameter.
@@ -485,9 +440,8 @@ This behavior may be altered with the "hdfs_nn_name_dir" parameter.
           continue;
       for node in nodes
         continue unless node.should_configure_mapred_client
-        {memory_per_container_mean, minimum_allocation_mb, maximum_allocation_mb} = nm_capacity
+        {minimum_allocation_mb, maximum_allocation_mb} = nm_capacity
         {mapred_site} = node.config.capacity ?= {}
-        memory_per_container_mean_mb = Math.round memory_per_container_mean / 1024 / 1024
 
 The property "yarn.app.mapreduce.am.resource.mb" defines the amount of memory
 that the Application Master for MR framework would need. This needs to be set
@@ -498,11 +452,11 @@ system. This value also needs to be less than what is defined in
 condition.  Can be set at site level with "mapred-site.xml", or
 can be set at the job level. This change does not require a service restart.
 
-        map_memory_mb = mapred_site['mapreduce.map.memory.mb'] or memory_per_container_mean_mb
+        map_memory_mb = mapred_site['mapreduce.map.memory.mb'] or minimum_allocation_mb
         map_memory_mb = Math.min map_memory_mb, maximum_allocation_mb
         mapred_site['mapreduce.map.memory.mb'] = "#{map_memory_mb}"
 
-        reduce_memory_mb = mapred_site['mapreduce.reduce.memory.mb'] or (if map_memory_mb < 2048 then 2 * memory_per_container_mean_mb else map_memory_mb)
+        reduce_memory_mb = mapred_site['mapreduce.reduce.memory.mb'] or (if map_memory_mb < 2048 then 2 * minimum_allocation_mb else 2 * map_memory_mb)
         reduce_memory_mb = Math.min reduce_memory_mb, maximum_allocation_mb
         mapred_site['mapreduce.reduce.memory.mb'] = "#{reduce_memory_mb}"
 
@@ -522,7 +476,7 @@ options "-Xmx" and "-Xms". The values must be less than their
         mapred_site['mapreduce.map.java.opts'] ?= "-Xmx#{Math.floor .8 * map_memory_mb}m" # 0.8 * RAM-per-container
         mapred_site['mapreduce.reduce.java.opts'] ?= "-Xmx#{Math.floor .8 * reduce_memory_mb}m" # 0.8 * 2 * RAM-per-container
 
-        mapred_site['mapreduce.task.io.sort.mb'] = "#{Math.floor .4 * memory_per_container_mean_mb}"
+        mapred_site['mapreduce.task.io.sort.mb'] = "#{Math.floor .4 * map_memory_mb}"
 
         # The number of virtual CPU cores allocated for each map task of a job
         mapred_site['mapreduce.map.cpu.vcores'] ?= 1
@@ -559,15 +513,14 @@ options "-Xmx" and "-Xms". The values must be less than their
           continue;
       for node in nodes
         continue unless node.has_service 'ryba/hive/client', 'ryba/hive/server2', 'ryba/tez', 'ryba/hive/beeline'
-        {memory_per_container_mean, maximum_allocation_mb} = nm_capacity
+        {minimum_allocation_mb, maximum_allocation_mb} = nm_capacity
         {hive_site} = node.config.capacity ?= {}
-        memory_per_container_mean_mb = Math.round memory_per_container_mean / 1024 / 1024
 
 The memory (in MB) to be used for Tez tasks. If this is not specified (-1), the
 memory settings from the MapReduce configurations (mapreduce.map.memory.mb) will
 be used by default for map tasks.
 
-        tez_memory_mb = hive_site['hive.tez.container.size'] or memory_per_container_mean_mb
+        tez_memory_mb = hive_site['hive.tez.container.size'] or minimum_allocation_mb
         tez_memory_mb = Math.min tez_memory_mb, maximum_allocation_mb
         hive_site['hive.tez.container.size'] = "#{tez_memory_mb}"
 
@@ -721,6 +674,8 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           return next Error 'File Already Exists, use --overwrite' unless err or params.overwrite
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
+        nodes = {}
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         print = (config, properties) ->
           {capacity} = ctx.config
           for property in properties
@@ -837,7 +792,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         ws.write JSON.stringify nodes: nodes, null, 2
       do_end = (ws) ->
         ws.end() if params.output
@@ -854,7 +809,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         source = JSON.stringify nodes: nodes, null, 2
         source = "module.exports = #{source};"
         ws.write source
@@ -873,7 +828,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters 
+        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         source = JSON.stringify nodes: nodes
         source = "module.exports = #{source}"
         argv = process.argv
@@ -940,7 +895,8 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           service = node.services["#{cluster}:ryba/hadoop/yarn_nm"] ?= {}
           service.yarn_site = capacity.yarn_site
         print_mapred_client = not params.modules or multimatch(params.modules, 'ryba/hadoop/mapred_client').length
-        if ctx.should_configure_mapred_client and print_mapred_client
+        if ctx.has_service('ryba/hadoop/mapred_client') and print_mapred_client
+        # if ctx.should_configure_mapred_client and print_mapred_client
           service = node.services["#{cluster}:ryba/hadoop/mapred_client"] ?= {}
           service.mapred_site = capacity.mapred_site
         print_tez_client = not params.modules or multimatch(params.modules, 'ryba/tez').length
