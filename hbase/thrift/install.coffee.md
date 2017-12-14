@@ -5,7 +5,7 @@ for the service princial define by "hbase.thirft.kerberos.principal". For exampl
 run the command `grant '$USER', 'RWCA'`. Ryba isnt doing it because we didn't
 have usecase for it yet.
 
-This installation also found inspiration from the 
+This installation also found inspiration from the
 [cloudera hbase setup in secure mode][hbase-configuration].
 
     module.exports =  header: 'HBase Thrift Install', handler: (options) ->
@@ -97,17 +97,23 @@ restrict it but not the thrift server.
 
 Environment passed to the HBase Rest Server before it starts.
 
-      @file.render
-        header: 'HBase Env'
-        target: "#{options.conf_dir}/hbase-env.sh"
-        source: "#{__dirname}/../resources/hbase-env.sh.j2"
-        local: true
-        context: options: options
-        mode: 0o0755
-        unlink: true
-        write: for k, v of options.env
-          match: RegExp "export #{k}=.*", 'm'
-          replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
+      @call header: 'HBase Env', ->
+        HBASE_THRIFT_OPTS = options.opts.base
+        HBASE_THRIFT_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HBASE_THRIFT_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
+        @file.render
+          header: 'HBase Env'
+          target: "#{options.conf_dir}/hbase-env.sh"
+          source: "#{__dirname}/../resources/hbase-env.sh.j2"
+          local: true
+          context:
+            HBASE_THRIFT_OPTS: HBASE_THRIFT_OPTS
+            JAVA_HOME: options.java_home
+          mode: 0o0755
+          unlink: true
+          write: for k, v of options.env
+            match: RegExp "export #{k}=.*", 'm'
+            replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
 
 # User limits
 

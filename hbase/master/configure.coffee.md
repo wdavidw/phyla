@@ -3,7 +3,7 @@
 
     module.exports = (service) ->
       options = service.options
-      
+
 ## Kerberos
 
       options.krb5 ?= {}
@@ -13,11 +13,11 @@
 
 ## Identities
 
-* `admin` (object|string)   
+* `admin` (object|string)
   The Kerberos HBase principal.
-* `group` (object|string)   
+* `group` (object|string)
   The Unix HBase group name or a group object (see Nikita Group documentation).
-* `user` (object|string)   
+* `user` (object|string)
   The Unix HBase login name or a user object (see Nikita User documentation).
 
 Example
@@ -77,14 +77,13 @@ Example
       options.pid_dir ?= '/var/run/hbase'
       # Env
       options.env ?= {}
-      options.env['JAVA_HOME'] ?= "#{service.deps.java.options.java_home}"
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
-      options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
+      options.env['HBASE_OPTS'] ?= '-XX:+UseConcMarkSweepGC ' # -XX:+CMSIncrementalMode is deprecated
       # Java
       # 'HBASE_MASTER_OPTS' ?= '-Xmx2048m' # Default in HDP companion file
-      options.heapsize ?= "1024m"
-      options.java_opts ?= ""
-      options.opts ?= {}
+      options.java_home ?= "#{service.deps.java.options.java_home}"
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname
@@ -93,6 +92,17 @@ Example
       # HDFS
       options.hdfs_conf_dir ?= service.deps.hadoop_core.options.conf_dir
       options.hdfs_krb5_user ?= service.deps.hadoop_core.options.hdfs.krb5_user
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of hbase master heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of hbase master heapsize
 
 ## RegionServers
 
@@ -164,7 +174,7 @@ job to HBase. Secure bulk loading is implemented by a coprocessor, named
       options.hbase_site['hbase.superuser'] ?= options.admin.name
       options.hbase_site['hbase.bulkload.staging.dir'] ?= '/apps/hbase/staging'
       # Jaas file
-      options.opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-master.jaas"
+      options.opts.java_properties['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-master.jaas"
 
 ## Configuration for Local Access
 
@@ -192,10 +202,10 @@ job to HBase. Secure bulk loading is implemented by a coprocessor, named
 ## Async WAL Replication
 
 WAL Replication is enabled by default but should be discovered based on the
-number of RegionServer (>2). However, this would introduce a circular 
+number of RegionServer (>2). However, this would introduce a circular
 dependency between the Master and the RegionServers.
 
-TODO migration: wdavidw 170829, disable 'hbase.meta.replicas.use' from the 
+TODO migration: wdavidw 170829, disable 'hbase.meta.replicas.use' from the
 RS if RS count < 3.
 
       # enable hbase:meta region replication
@@ -275,9 +285,9 @@ cluster. You can disable any of those sinks by setting its class to "false", her
 how:
 
 ```json
-{ "ryba": { hbase: {"metrics": 
-  "*.sink.file.class": false, 
-  "*.sink.ganglia.class": false, 
+{ "ryba": { hbase: {"metrics":
+  "*.sink.file.class": false,
+  "*.sink.ganglia.class": false,
   "*.sink.graphite.class": false
  } } }
 ```
@@ -288,7 +298,7 @@ the [HBase documentation](http://hbase.apache.org/book.html#_hbase_metrics) for
 additionnal informations.
 
 ```json
-{ "ryba": { hbase: {"metrics": 
+{ "ryba": { hbase: {"metrics":
   "hbase.sink.file-all.filename": "hbase-metrics-all.out",
   "hbase.sink.file-master.filename": "hbase-metrics-master.out",
   "hbase.sink.file-master.context": "mastert",

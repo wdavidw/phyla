@@ -138,15 +138,18 @@ Install compression libs as defined in HDP docs
 Environment passed to the Master before it starts.
 
       @call header: 'HBase Env', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
-        options.java_opts += " -Xms#{options.heapsize} -Xmx#{options.heapsize} "
+        HBASE_MASTER_OPTS = options.opts.base
+        HBASE_MASTER_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HBASE_MASTER_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           target: "#{options.conf_dir}/hbase-env.sh"
           source: "#{__dirname}/../resources/hbase-env.sh.j2"
           backup: true
           local: true
           eof: true
-          context: options: options
+          context:
+            HBASE_MASTER_OPTS: HBASE_MASTER_OPTS
+            JAVA_HOME: options.java_home
           mode: 0o750
           uid: options.user.name
           gid: options.group.name

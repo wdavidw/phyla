@@ -21,13 +21,23 @@
       options.log_dir ?= '/var/log/hbase'
       # Java
       options.env ?=  {}
-      options.env['JAVA_HOME'] ?= "#{service.deps.java.options.java_home}"
       options.env['HBASE_LOG_DIR'] ?= "#{options.log_dir}"
-      options.env['HBASE_OPTS'] ?= '-ea -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode' # Default in HDP companion file
+      options.java_home ?= "#{service.deps.java.options.java_home}"
       # Misc
       options.hostname ?= service.node.hostname
       options.force_check ?= true
       options.is_ha ?= service.deps.hbase_master.length
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of hbase regionserver heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of hbase regionserver heapsize
 
 ## Test
 
@@ -49,6 +59,9 @@
       options.hbase_site['hbase.bulkload.staging.dir'] = service.deps.hbase_master[0].options.hbase_site['hbase.bulkload.staging.dir']
       options.hbase_site['hbase.master.kerberos.principal'] = service.deps.hbase_master[0].options.hbase_site['hbase.master.kerberos.principal']
       options.hbase_site['hbase.regionserver.kerberos.principal'] = service.deps.hbase_master[0].options.hbase_site['hbase.regionserver.kerberos.principal']
+      #add jaas
+      options.opts.java_properties['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-client.jaas"
+
 
 ## HBase Replication
 

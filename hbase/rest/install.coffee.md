@@ -117,19 +117,25 @@ restrict it but not the rest server.
 
 Environment passed to the HBase Rest Server before it starts.
 
-      @file.render
-        header: 'Hbase Env'
-        target: "#{options.conf_dir}/hbase-env.sh"
-        source: "#{__dirname}/../resources/hbase-env.sh.j2"
-        local: true
-        context: options: options
-        mode: 0o0750
-        uid: options.user.name
-        gid: options.group.name
-        unlink: true
-        write: for k, v of options.env
-          match: RegExp "export #{k}=.*", 'm'
-          replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
+      @call header: 'HBase Env', ->
+        HBASE_REST_OPTS = options.opts.base
+        HBASE_REST_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HBASE_REST_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
+        @file.render
+          header: 'Hbase Env'
+          target: "#{options.conf_dir}/hbase-env.sh"
+          source: "#{__dirname}/../resources/hbase-env.sh.j2"
+          local: true
+          context:
+            HBASE_REST_OPTS: HBASE_REST_OPTS
+            JAVA_HOME: options.java_home
+          mode: 0o0750
+          uid: options.user.name
+          gid: options.group.name
+          unlink: true
+          write: for k, v of options.env
+            match: RegExp "export #{k}=.*", 'm'
+            replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
 
 ## Kerberos
 

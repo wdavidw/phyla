@@ -29,20 +29,30 @@
       options.pid_dir ?= '/var/run/hbase'
       # Env & Java
       options.env ?= {}
-      options.env['JAVA_HOME'] ?= service.deps.java.options.java_home
       # http://blog.sematext.com/2012/07/16/hbase-memstore-what-you-should-know/
       # Keep hbase.regionserver.hlog.blocksize * hbase.regionserver.maxlogs just
       # Value is a bit above hbase.regionserver.global.memstore.lowerLimit * HBASE_HEAPSIZE
       # 'HBASE_REGIONSERVER_OPTS ?= '-Xmn200m -Xms4096m -Xmx4096m' # Default in HDP companion file
-      options.heapsize ?= "256m" #i.e. -Xmx256m
-      options.java_opts ?= "" #rs.java_opts is build at runtime from the rs.opts object
-      options.opts ?= {} #represent the java options obect
+      options.java_home ?= "#{service.deps.java.options.java_home}"
+      options.heapsize ?= '1024m'
+      options.newsize ?= '200m'
       # Misc
       options.fqdn = service.node.fqdn
       options.hostname = service.node.hostname
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
-      
+
+## System Options
+
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
+      options.opts.jvm['-Xms'] ?= options.heapsize
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-XX:NewSize='] ?= options.newsize #should be 1/8 of hbase regionserver heapsize
+      options.opts.jvm['-XX:MaxNewSize='] ?= options.newsize #should be 1/8 of hbase regionserver heapsize
+
 ## Registration
 
       for srv in service.deps.hbase_master
@@ -74,7 +84,7 @@
       options.hbase_site['hbase.regionserver.global.memstore.size'] = '0.4' # Default in HDP Companion Files
       options.hbase_site['hbase.coprocessor.region.classes'] =  service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.region.classes']
       # Jaas file
-      options.opts['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-regionserver.jaas"
+      options.opts.java_properties['java.security.auth.login.config'] ?= "#{options.conf_dir}/hbase-regionserver.jaas"
       # Copy the Master keytab if a colocalised Master is found and if their principals are equal.
       local_master = service.deps.hbase_master.filter( (srv) -> srv.node.fqdn is service.node.fqdn)[0]
       are_principal_equal = local_master.options.hbase_site['hbase.master.kerberos.principal'] is options.hbase_site['hbase.regionserver.kerberos.principal'] if local_master

@@ -60,6 +60,11 @@ hbase:x:492:
           uid: options.user.name
           gid: options.group.name
           mode: 0o0755
+        @system.mkdir
+          target: "#{options.log_dir}/local/jars"
+          uid: options.user.name
+          gid: options.group.name
+          mode: 0o0755
 
 ## Service
 
@@ -151,8 +156,9 @@ RegionServer, and HBase client host machines.
 Environment passed to the RegionServer before it starts.
 
       @call header: 'HBase Env', ->
-        options.java_opts += " -D#{k}=#{v}" for k, v of options.opts
-        options.java_opts += " -Xms#{options.heapsize} -Xmx#{options.heapsize}"
+        HBASE_REGIONSERVER_OPTS = options.opts.base
+        HBASE_REGIONSERVER_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HBASE_REGIONSERVER_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           target: "#{options.conf_dir}/hbase-env.sh"
           source: "#{__dirname}/../resources/hbase-env.sh.j2"
@@ -161,7 +167,9 @@ Environment passed to the RegionServer before it starts.
           gid: options.group.name
           mode: 0o750
           local: true
-          context: options: options
+          context:
+            HBASE_REGIONSERVER_OPTS: HBASE_REGIONSERVER_OPTS
+            JAVA_HOME: options.java_home
           write: for k, v of options.env
             match: RegExp "export #{k}=.*", 'm'
             replace: "export #{k}=\"#{v}\" # RYBA, DONT OVERWRITE"
