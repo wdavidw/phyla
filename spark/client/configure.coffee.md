@@ -202,7 +202,7 @@ Spark mecanism to set up resources based on cluster availability
           srv.options.yarn_site['yarn.nodemanager.aux-services'] = aux_services.join ','
           srv.options.yarn_site['yarn.nodemanager.aux-services.spark_shuffle.class'] ?= 'org.apache.spark.network.yarn.YarnShuffleService'
           srv.options.yarn_site['spark.shuffle.service.enabled'] ?= 'true'
-          srv.options.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.conf['spark.shuffle.service.port'], protocol: 'tcp', state: 'NEW', comment: "Spark YARN Shuffle Service" }
+          srv.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.conf['spark.shuffle.service.port'], protocol: 'tcp', state: 'NEW', comment: "Spark YARN Shuffle Service" }
 
 ## Wait
 
