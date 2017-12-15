@@ -26,8 +26,8 @@ variables but also inject some function to be executed.
 
 ## Plugin User
 
-migration: wdavidw 170828, please explain its usage.It is an admin user here 
-for conveniency or an internal application user to communicate with between the 
+migration: wdavidw 170828, please explain its usage.It is an admin user here
+for conveniency or an internal application user to communicate with between the
 plugin and the server ?
 
 migration: wdavidw 170828, access for the user need to be tested through a HTTP
@@ -54,6 +54,7 @@ REST request.
 ## Access`
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin
+      options.hdfs_install ?= service.deps.ranger_hdfs[0].options.install
       options.exec_repo ?= service.deps.yarn_rm[0].node.fqdn is service.node.fqdn
       # Wait for [#95](https://github.com/ryba-io/ryba/issues/95) to be answered
       # options.plugins ?= {}
@@ -62,7 +63,7 @@ REST request.
 
 ## Environment
 
-      # migration: wdavidw 1708829, where is expected the plugin to be installed ? 
+      # migration: wdavidw 1708829, where is expected the plugin to be installed ?
       # for now only on RM but this suggest on NM as well:
       # conf_dir = if @config.ryba.yarn_plugin_is_master then yarn.rm.conf_dir else yarn.nm.conf_dir
       # migration: lucasbak 171010 put back ranger plugin on yarn nodemanager
@@ -108,6 +109,7 @@ The repository name should match the reposity name in web ui.
         # honored but not used by plugin
         # options.install['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] ?= "#{service.deps.ranger_admin.options.conf_dir}/%app-type%/audit"
         # options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] ?= "#{service.deps.ranger_admin.options.conf_dir}/%app-type%/archive"
+        options.install['XAAUDIT.HDFS.HDFS_DIR'] ?= "#{service.deps.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit"
         options.install['XAAUDIT.HDFS.ENABLE'] ?= 'true'
         options.install['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] ?= "#{service.deps.hdfs_client.options.core_site['fs.defaultFS']}/#{options.user.name}/audit/%app-type%/%time:yyyyMMdd%"
         options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR'] ?= "#{options.log_dir}/audit/hdfs/spool"
@@ -121,9 +123,9 @@ The repository name should match the reposity name in web ui.
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
       options.policy_hdfs_audit ?=
         'name': "yarn-ranger-plugin-audit"
-        'service': "#{options.install['REPOSITORY_NAME']}"
+        'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
         'repositoryType':"hdfs"
-        'description': 'Kafka Ranger Plugin audit log policy'
+        'description': 'Yarn Ranger Plugin audit log policy'
         'isEnabled': true
         'isAuditEnabled': true
         'resources':

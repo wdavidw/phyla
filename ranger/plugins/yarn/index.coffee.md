@@ -9,6 +9,7 @@
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_rm_local: module: 'ryba/hadoop/yarn_rm', local: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
+        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
       configure:
         'ryba/ranger/plugins/yarn/configure'
       plugin: (options) ->

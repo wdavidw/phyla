@@ -8,12 +8,12 @@
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
-      
+
 
 ## Wait
 
       @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
-      
+
 
 ## Packages
 
@@ -32,7 +32,7 @@
 
 ## Layout
 
-      
+
       @call
         if: options.install['XAAUDIT.HDFS.IS_ENABLED'] is 'true'
         header: 'HDFS Audit'
@@ -59,8 +59,8 @@
                 mode: 0o0711
                 user: options.user.name
                 group: options.group.name
-                uid: options.yarn_user.name
-                gid: options.hadoop_group.name
+              uid: options.yarn_user.name
+              gid: options.hadoop_group.name
               krb5_user: options.hdfs_krb5_user
       @system.mkdir
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
