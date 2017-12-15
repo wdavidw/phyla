@@ -8,7 +8,7 @@
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         kafka_broker: module: 'ryba/kafka/broker', local: true, required: true
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
-        # ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', local: true, required: true
+        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
         ranger_kafka: module: 'ryba/ranger/plugins/kafka'
       configure:
         'ryba/ranger/plugins/kafka/configure'

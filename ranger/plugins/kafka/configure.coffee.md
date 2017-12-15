@@ -29,6 +29,9 @@
 ## Access
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin
+      # need hdfs plugin to create policy for audit logs (need when the nofallback policy is adopted)
+      options.hdfs_install ?= service.deps.ranger_hdfs[0].options.install
+
 
 ## Register Authentication
 
@@ -124,7 +127,7 @@ from Hadoop Core.
         options.install['XAAUDIT.HDFS.LOCAL_ARCHIVE _MAX_FILE_COUNT'] ?= '5'
         options.policy_hdfs_audit ?=
           'name': "kafka-ranger-plugin-audit"
-          'service': "#{options.install['REPOSITORY_NAME']}"
+          'service': "#{options.hdfs_install['REPOSITORY_NAME']}"
           'repositoryType':"hdfs"
           'description': 'Kafka Ranger Plugin audit log policy'
           'isEnabled': true
