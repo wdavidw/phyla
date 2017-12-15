@@ -204,7 +204,7 @@ Example
 
 ## Proxy Users
 
-Hive Hcatalog, Hive Server2 and HBase retrieve their proxy users from the 
+Hive Hcatalog, Hive Server2 and HBase retrieve their proxy users from the
 hdfs_client configuration directory.
 
       enrich_proxy_user = (srv) ->
@@ -220,6 +220,7 @@ hdfs_client configuration directory.
       enrich_proxy_user srv for srv in service.deps.yarn_rm
       enrich_proxy_user srv for srv in service.deps.yarn_nm
       enrich_proxy_user srv for srv in service.deps.hdfs_client
+      enrich_proxy_user srv for srv in service.deps.mapred_jhs
       # migration: lucasbak 13112017
       # need hdfs_client for proxy_user
       # service.deps.hdfs_client.filter (srv) -> console.log service.node.id

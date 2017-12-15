@@ -207,6 +207,8 @@ Install the ExtJS Javascript library as part of enabling the Oozie Web Console.
 
 Install the HBase Libs as part of enabling the Oozie Unified Credentials with HBase.
 
+      @service
+        name: 'hbase'
       @system.copy
         header: 'HBase Libs'
         source: '/usr/hdp/current/hbase-client/lib/hbase-common.jar'
