@@ -107,7 +107,7 @@ yarn-client mode, not yarn-cluster.
         db = "check_#{options.hostname}_spark_shell_scala"
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
-          echo 'println(\"spark_shell_scala\")' | spark-shell --master yarn-client 2>/dev/null | grep ^spark_shell_scala$
+          echo 'println(\"spark_shell_scala\")' | spark-shell --master yarn-client --driver-memory 512m  --executor-memory 512m 2>/dev/null | grep ^spark_shell_scala$
           """
           unless_exec : unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f #{file_check}"
         , (err, executed, stdout) ->
@@ -215,7 +215,7 @@ Creating database from SparkSql is not supported for now.
             #{beeline} \
               -e "DROP DATABASE IF EXISTS #{db};" \
               -e "CREATE DATABASE #{db} LOCATION '/user/#{options.test.user.name}/#{directory}/my_db/';"
-            spark-shell --master yarn-client 2>/dev/null <<SPARKSHELL
+            spark-shell --master yarn-client --driver-memory 512m --executor-memory 512m 2>/dev/null <<SPARKSHELL
             sqlContext.sql("USE #{db}");
             sqlContext.sql("DROP TABLE IF EXISTS spark_sql_test");
             sqlContext.sql("CREATE TABLE IF NOT EXISTS spark_sql_test (key STRING, value INT)");
