@@ -142,18 +142,25 @@ inside the configuration.
       options.yarn_site['yarn.resourcemanager.ha.automatic-failover.embedded'] ?= 'true'
       options.yarn_site['yarn.resourcemanager.ha.automatic-failover.zk-base-path'] ?= '/yarn-leader-election'
 
+## Logs Aggregation
+
+      options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= '/app-logs'
+      options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= 'logs'
+      options.yarn_site['yarn.log-aggregation-enable'] ?= 'true'
+      options.yarn_site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
+      options.yarn_site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
+      options.yarn_site['yarn.generic-application-history.save-non-am-container-meta-info'] ?= 'true'
+
 ## MapReduce JobHistory Server
 
       if service.deps.mapred_jhs
         options.yarn_site['mapreduce.jobhistory.principal'] ?= service.deps.mapred_jhs.options.mapred_site['mapreduce.jobhistory.principal']
         options.yarn_site['yarn.resourcemanager.bind-host'] ?= '0.0.0.0'
-        service.deps.mapred_jhs.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
         # TODO: detect https and port, see "../mapred_jhs/check"
         jhs_protocol = if service.deps.mapred_jhs.options.mapred_site['mapreduce.jobhistory.address'] is 'HTTP_ONLY' then 'http' else 'https'
         jhs_protocol_key = if jhs_protocol is 'http' then '' else '.https'
         jhs_address = service.deps.mapred_jhs.options.mapred_site["mapreduce.jobhistory.webapp#{jhs_protocol_key}.address"]
         options.yarn_site['yarn.log.server.url'] ?= "#{jhs_protocol}://#{jhs_address}/jobhistory/logs/"
-        service.deps.mapred_jhs.options.yarn_site['yarn.http.policy'] ?= options.yarn_site['yarn.http.policy']
 
 ## Preemption
 
@@ -271,15 +278,6 @@ rmr /rmstore/ZKRMStateRoot
       #Current YARN web UI allows anyone to kill any application as long as the user can login to the web UI.
       options.yarn_site['yarn.resourcemanager.webapp.ui-actions.enabled'] ?= 'false'
 
-## Logs Aggregation
-
-      options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= '/app-logs'
-      options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= 'logs'
-      options.yarn_site['yarn.log-aggregation-enable'] ?= 'true'
-
-      # options.yarn_site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
-      # options.yarn_site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
-
 ## SSL
 
       options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
@@ -361,6 +359,7 @@ rmr /rmstore/ZKRMStateRoot
         'yarn.timeline-service.principal'
         'yarn.timeline-service.http-authentication.type'
         'yarn.timeline-service.http-authentication.kerberos.principal'
+        'yarn.generic-application-history.save-non-am-container-meta-info'
       ]
         options.yarn_site[property] ?= if service.deps.yarn_ts then service.deps.yarn_ts.options.yarn_site[property] else null
       # Export
@@ -392,26 +391,32 @@ rmr /rmstore/ZKRMStateRoot
           "yarn.resourcemanager.resource-tracker.address#{id}"
         ]
           srv.options.yarn_site[property] ?= options.yarn_site[property]
-      for srv in service.deps.mapred_jhs
-        id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-        for property in [
-          'yarn.http.policy'
-          'yarn.log.server.url'
-          'yarn.resourcemanager.principal'
-          'yarn.resourcemanager.cluster-id'
-          'yarn.nodemanager.remote-app-log-dir'
-          'yarn.nodemanager.remote-app-log-dir-suffix'
-          'yarn.resourcemanager.ha.enabled'
-          'yarn.resourcemanager.ha.rm-ids'
-          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
-          "yarn.resourcemanager.address#{id}"
-          "yarn.resourcemanager.scheduler.address#{id}"
-          "yarn.resourcemanager.admin.address#{id}"
-          "yarn.resourcemanager.webapp.address#{id}"
-          "yarn.resourcemanager.webapp.https.address#{id}"
-          "yarn.resourcemanager.resource-tracker.address#{id}"
-        ]
-          srv.options.yarn_site[property] ?= options.yarn_site[property]
+
+## Export to Mapreduce HistoryServer
+
+      id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+      for property in [
+        'yarn.http.policy'
+        'yarn.log.server.url'
+        'yarn.resourcemanager.principal'
+        'yarn.resourcemanager.cluster-id'
+        'yarn.nodemanager.remote-app-log-dir'
+        'yarn.nodemanager.remote-app-log-dir-suffix'
+        'yarn.log-aggregation-enable'
+        'yarn.log-aggregation.retain-seconds'
+        'yarn.log-aggregation.retain-check-interval-seconds'
+        'yarn.generic-application-history.save-non-am-container-meta-info'
+        'yarn.resourcemanager.ha.enabled'
+        'yarn.resourcemanager.ha.rm-ids'
+        'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+        "yarn.resourcemanager.address#{id}"
+        "yarn.resourcemanager.scheduler.address#{id}"
+        "yarn.resourcemanager.admin.address#{id}"
+        "yarn.resourcemanager.webapp.address#{id}"
+        "yarn.resourcemanager.webapp.https.address#{id}"
+        "yarn.resourcemanager.resource-tracker.address#{id}"
+      ]
+        service.deps.mapred_jhs.options.yarn_site[property] ?= options.yarn_site[property]
 
 ## Wait
 
