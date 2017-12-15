@@ -14,6 +14,7 @@
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'ranger_service', 'ryba/ranger/actions/ranger_service'
       @registry.register 'ranger_policy', 'ryba/ranger/actions/ranger_policy'
+      @registry.register 'ranger_user', 'ryba/ranger/actions/ranger_user'
 
 ## HDP version
 
@@ -66,6 +67,16 @@ migration: wdavidw 170918, NameNodes are not yet started.
         gid: options.hadoop_group.name
         mode: 0o0750
 
+
+## Ranger User
+
+      @ranger_user
+        if: options.master_fqdn is options.fqdn
+        header: 'Ranger User'
+        username: options.ranger_admin.username
+        password: options.ranger_admin.password
+        url: options.install['POLICY_MGR_URL']
+        user: options.plugin_user
 
 ## Service Repository
 

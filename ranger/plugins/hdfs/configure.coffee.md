@@ -52,8 +52,21 @@ Repository creating is only executed from one NameNode.
       options.install['POLICY_MGR_URL'] ?= service.deps.ranger_admin.options.install['policymgr_external_url']
       options.install['REPOSITORY_NAME'] ?= 'hadoop-ryba-hdfs'
 
+## Plugin User
+
+      options.plugin_user =
+        "name": options.hdfs_user.name
+        "firstName": ''
+        "lastName": ''
+        "emailAddress": ''
+        "password": ''
+        'userSource': 1
+        'userRoleList': ['ROLE_USER']
+        'groups': []
+        'status': 1
+
 ## Service Definition
-      
+
       options.service_repo ?=
         'name': options.install['REPOSITORY_NAME']
         'description': 'HDFS Repo'
