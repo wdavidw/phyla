@@ -239,9 +239,23 @@ All the different amount can be overrided by parameters.
               memory_hbase_gb = reserved
         node.config.capacity.memory_hbase ?= memory_hbase = exports.rounded_memory memory_hbase_gb * 1024 * 1024 * 1024
         # Yarn Nodemanager memory
-        node.config.capacity.memory_nodemanager ?= 1 * 1024 * 1024 * 1024 #default to 1Go
+        if total_memory_gb < exports.memory_system_gb[4][0]
+          node.config.capacity.memory_nodemanager ?= 256 * 1024 * 1024 #default to 256m if memory less than 8GB
+        else if total_memory_gb < exports.memory_system_gb[8][0] and total_memory_gb >= exports.memory_system_gb[4][0]
+          node.config.capacity.memory_nodemanager ?= 512 * 1024 * 1024 #default to 512m if memory less than 16GB
+        else if total_memory_gb >= exports.memory_system_gb[exports.memory_system_gb.length-1][0]
+          node.config.capacity.memory_nodemanager ?= 8 * 1024 * 1024 * 1024
+        else
+          node.config.capacity.memory_nodemanager ?= 1 * 1024 * 1024 * 1024
         # HDFS datanode memory
-        node.config.capacity.memory_datanode ?= 1 * 1024 * 1024 * 1024 #default to 1Go
+        if total_memory_gb < exports.memory_system_gb[4][0]
+          node.config.capacity.memory_datanode ?= 256 * 1024 * 1024 #default to 256m if memory less than 8GB
+        else if total_memory_gb < exports.memory_system_gb[8][0] and total_memory_gb >= exports.memory_system_gb[4][0]
+          node.config.capacity.memory_datanode ?= 512 * 1024 * 1024 #default to 512m if memory less than 16GB
+        else if total_memory_gb >= exports.memory_system_gb[exports.memory_system_gb.length-1][0]
+          node.config.capacity.memory_datanode ?= 8 * 1024 * 1024 * 1024
+        else
+          node.config.capacity.memory_datanode ?= 1 * 1024 * 1024 * 1024
         # Yarn Containers dedicated memory
         node.config.capacity.memory_yarn ?= memory_yarn = exports.rounded_memory ( node.config.capacity.total_memory -
          (node.config.capacity.memory_nodemanager + node.config.capacity.memory_datanode + node.config.capacity.memory_hbase + node.config.capacity.memory_system)
@@ -836,25 +850,30 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
         ws.write "# #{argv.join(' ')}\n"
         ws.write "\n"
         ws.write js2coffee.build(source).code
-        for ctx in nodes
-          {capacity} = ctx.config
-          ws.write "\n"
-          ws.write "# #{ctx.config.host}\n"
-          ws.write "#   Number of core: #{capacity.cores}\n"
-          ws.write "#   Number of partitions: #{capacity.disks.length}\n"
-          ws.write "#   Memory Total: #{prink.filesize capacity.total_memory, 3}\n"
-          ws.write "#   Memory System: #{prink.filesize capacity.memory_system, 3}\n"
-          print_yarn_nm = not params.modules or multimatch(params.modules, 'ryba/hbase/regionserve').length
-          if ctx.has_service('ryba/hbase/regionserver') and print_yarn_nm
-            ws.write "#   HBase RegionServer\n"
-            ws.write "#     Memory HBase: #{prink.filesize capacity.memory_hbase, 3}\n"
-          print_yarn_nm = not params.modules or multimatch(params.modules, 'ryba/hadoop/yarn_nm').length
-          if ctx.has_service('ryba/hadoop/yarn_nm') and print_yarn_nm
-            ws.write "#   YARN NodeManager\n"
-            ws.write "#     Memory YARN: #{prink.filesize capacity.memory_yarn, 3}\n"
-            ws.write "#     Number of Cores: #{capacity.cores}\n"
-            ws.write "#     Number of Containers: #{capacity.max_number_of_containers}\n"
-            ws.write "#     Memory per Containers: #{prink.filesize capacity.memory_per_container, 3}\n"
+        for cluster in clusters
+          for ctx in cluster.nodes
+            {capacity} = ctx.config
+            ws.write "\n"
+            ws.write "# #{ctx.fqdn}\n"
+            ws.write "#   Number of core: #{capacity.cores}\n"
+            ws.write "#   Number of partitions: #{capacity.disks.length}\n"
+            ws.write "#   Memory Total: #{prink.filesize capacity.total_memory, 3}\n"
+            ws.write "#   Memory System: #{prink.filesize capacity.memory_system, 3}\n"
+            print_yarn_nm = not params.modules or multimatch(params.modules, 'ryba/hbase/regionserve').length
+            if ctx.has_service('ryba/hbase/regionserver') and print_yarn_nm
+              ws.write "#   HBase RegionServer\n"
+              ws.write "#     Memory HBase: #{prink.filesize capacity.memory_hbase, 3}\n"
+            print_yarn_nm = not params.modules or multimatch(params.modules, 'ryba/hadoop/yarn_nm').length
+            if ctx.has_service('ryba/hadoop/yarn_nm') and print_yarn_nm
+              ws.write "#   YARN NodeManager\n"
+              ws.write "#     Memory YARN: #{prink.filesize capacity.memory_yarn, 3}\n"
+              ws.write "#     Number of Cores: #{capacity.cores}\n"
+              ws.write "#     Number of Containers: #{capacity.max_number_of_containers}\n"
+              ws.write "#     Memory per Containers: #{prink.filesize capacity.memory_per_container, 3}\n"
+              ws.write "#   YARN NodeManager Process heapsize: #{prink.filesize capacity.memory_nodemanager, 3}\n"
+            print_hdfs_dn = not params.modules or multimatch(params.modules, 'ryba/hadoop/hdfs_dn').length
+            if ctx.has_service('ryba/hadoop/hdfs_dn') and print_hdfs_dn
+              ws.write "#   HDFS Datanode Process heapsize: #{prink.filesize capacity.memory_datanode, 3}\n"
         do_end ws
       do_end = (ws) ->
         # ws.end() if params.output
