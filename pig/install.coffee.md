@@ -17,6 +17,9 @@ The pig package is install.
       @service
         header: 'Service'
         name: 'pig'
+      @service
+        header: 'HCat'
+        name: 'hive-hcatalog'#install only client jars needed to communicate with hcat
       options.log 'TODO: pig-client not registered in hdp-select'
       # pig-client not registered in hdp-select
       # need to see if hadoop-client will switch pig as well
