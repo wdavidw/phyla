@@ -48,6 +48,12 @@ Example:
       options.hive_site ?= {}
       for property in [
         'hive.server2.authentication'
+        'hive.server2.authentication.kerberos.principal'
+        'hive.server2.authentication'
+        'hive.server2.transport.mode'
+        'hive.server2.use.SSL'
+        'hive.server2.thrift.http.port'
+        'hive.server2.thrift.port'
         # Transaction, read/write locks
         'hive.execution.engine'
         'hive.zookeeper.quorum'
