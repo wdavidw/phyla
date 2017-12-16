@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: rename then to next
 * package: ignore yarn lock
 * druid: support for non-UTC timezone
 * druid: various fixes

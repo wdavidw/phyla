@@ -30,6 +30,6 @@ module.exports = ->
           write "\n"
           callback()
       .ssh.close()
-      .then next
-    .then (err) ->
+      .next next
+    .next (err) ->
       # Done

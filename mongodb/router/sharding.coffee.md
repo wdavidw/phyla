@@ -59,4 +59,4 @@ We must connect to each server of the replica set manually and check if it is th
                   -u #{shard.root_name} --password '#{shard.root_password}' \
                   --eval 'sh.addShard(\"#{name}/#{primary_host}:#{shard.port}\")'
                 """
-          @then next
+          @next next

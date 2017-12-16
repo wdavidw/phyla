@@ -91,7 +91,7 @@
               """
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
-          @then callback
+          @next callback
         @system.remove
           target: "#{shinken.build_dir}/.piplist"
           shy: true

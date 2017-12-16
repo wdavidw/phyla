@@ -25,7 +25,7 @@ describe 'hdfs mkdir', ->
         'ryba;ryba;dir'
         'drwxr-x---'
       ]
-    .then next
+    .next next
 
   it 'detect status', (next) ->
     nikita require './config.coffee'
@@ -43,6 +43,6 @@ describe 'hdfs mkdir', ->
       target: "/user/ryba/nikita/dir"
     , (err, status) ->
       status.should.be.false() unless err
-    .then next
+    .next next
 
 string = require 'nikita/lib/misc/string'

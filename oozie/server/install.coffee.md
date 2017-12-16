@@ -227,7 +227,7 @@ Install the LZO compression library as part of enabling the Oozie Web Console.
             @service.remove
               if: !!err
               name: 'lzo-devel'
-            @then callback
+            @next callback
         @service
           name: 'hadoop-lzo'
         @service

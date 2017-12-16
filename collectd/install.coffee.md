@@ -51,5 +51,5 @@ Writing plugin config tells collectd to use the enabled plugin with given parame
                 target: "#{options.conf_dir}/#{key}.conf"
                 context: value
                 local: true
-          @then cb
+          @next cb
       

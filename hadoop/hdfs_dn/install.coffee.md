@@ -91,7 +91,7 @@ inside "/etc/init.d" and activate it on startup.
             @service.remove
               if: !!err
               name: 'lzo-devel'
-            @then callback
+            @next callback
         @service
           name: 'hadoop-lzo'
         @service

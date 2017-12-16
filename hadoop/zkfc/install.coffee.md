@@ -253,7 +253,7 @@ inserted if ALL users or the HDFS user access is denied.
                 @file
                   target: '/etc/security/access.conf'
                   content: content.join '\n'
-                .then callback
+                .next callback
 
 ## HA Auto Failover
 

@@ -67,8 +67,8 @@ Follow official instruction from [Hortonworks HDP 2.2 Manual Upgrade][upgrade]
                 process.stdout.write " CHANGED"
               process.stdout.write '\n'
               next err
-          .then next
-        .then (err) ->
+          .next next
+        .next (err) ->
           process.stdout.write "Disconnecting: "
           context.emit 'end' for context in contexts
           process.stdout.write if err then " ERROR" else ' OK'

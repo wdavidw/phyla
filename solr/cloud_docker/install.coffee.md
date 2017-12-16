@@ -327,7 +327,7 @@ configuration like solr.in.sh or solr.xml.
           unless: options.swarm_conf?
           services: "node_#{options.hosts.indexOf(options.fqdn)+1}"
           target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
-        @then callback
+        @next callback
 
 ## Dependencies
 

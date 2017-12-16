@@ -21,7 +21,7 @@
           password: options.ini['security']['admin_password']
           url: options.url
         , value
-        @then callback
+        @next callback
 
 ## Dashboards
 
@@ -32,7 +32,7 @@
           password: options.ini['security']['admin_password']
           url: options.url
         , value
-        @then callback
+        @next callback
 
 ## Dependencies
 

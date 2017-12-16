@@ -67,7 +67,7 @@ value is 50475.
       #   @log "Disk total: #{Math.round total}"
       #   percent = (total - remaining)/total * 100;
       #   @log "WARNING: #{Math.round percent}" if percent > 90
-      #  .then next
+      #  .next next
 
       @system.execute
         header: 'Native'

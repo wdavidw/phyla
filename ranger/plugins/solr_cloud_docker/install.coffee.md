@@ -41,7 +41,7 @@
           password: options.ranger_admin.options.admin.password
           url: options.solr_plugins[key].install['POLICY_MGR_URL']
           service: value
-        @then callback
+        @next callback
       
 ## Service Layout
         
@@ -219,7 +219,7 @@ loads the lib directory found in the `SOLR_HOME`.
         @system.copy
           source: '/etc/hadoop/conf/hdfs-site.xml'
           target: "#{options.conf_dir}/clusters/#{key}/server/solr-webapp/webapp/WEB-INF/classes/hdfs-site.xml"
-        @then callback
+        @next callback
 
 
 ## Dependencies

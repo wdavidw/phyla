@@ -442,7 +442,7 @@ credential based on file.
               throw err if err
               [match] = /[a-zA-Z0-9]*/.exec stdout.trim()
               new_lines.push "#{line}::#{match}"
-            @then callback
+            @next callback
           @call ->
             @file
               content: new_lines.join "/n"

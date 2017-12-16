@@ -120,7 +120,7 @@
               shy: true
             es.volumes.push "#{es.plugins_path}/#{es.es_version}/#{options.key}/elasticsearch:/usr/share/elasticsearch/plugins/#{options.key}"
             @system.remove "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip", shy: true
-          @then callback
+          @next callback
 
 
 ## Generate compose file

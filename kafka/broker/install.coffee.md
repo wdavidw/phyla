@@ -115,7 +115,7 @@ Upload *.properties files in /etc/kafka-broker/conf directory.
                 local: true
                 target: "#{options.conf_dir}/#{path.basename file}"
                 binary: true
-            @then callback
+            @next callback
         @file
           source: "#{__dirname}/../resources/connect-console-sink.properties"
           local: true

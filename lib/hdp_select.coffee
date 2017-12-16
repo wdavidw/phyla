@@ -54,5 +54,5 @@ module.exports = (options, callback) ->
       hdp-select set #{options.name} #{version}
       """
       code_skipped: 3
-    @then callback
-  @then callback
+    @next callback
+  @next callback

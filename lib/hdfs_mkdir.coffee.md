@@ -97,7 +97,7 @@ Options include:
         """
         code_skipped: 3
         trap: true
-      .then callback
+      .next callback
 
 ## Dependecies
 

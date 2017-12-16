@@ -45,4 +45,4 @@
         , (err, executed, stdout, stderr) ->
           [result] = JSON.parse stdout
           throw Error "New key 'ryba.test' not found" unless Object.keys(result.dps).length > 0
-        @then callback
+        @next callback

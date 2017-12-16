@@ -55,7 +55,7 @@
             cmd: mkcmd.solr options.solr.cluster_config, """
               curl --fail --negotiate -k -u : "#{protocol}://#{options.solr.cluster_config['master']}:#{options.solr.cluster_config['port']}/solr/#{getPath(value)}"
             """
-        @then callback
+        @next callback
 
     getPath = (opts) ->
       path = "admin/collections?action=CREATE"

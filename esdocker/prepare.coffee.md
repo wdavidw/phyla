@@ -29,6 +29,6 @@ Download Elasticsearch Plugins.
                       clusters["#{es_name}"].downloaded_urls["#{plugins_options.key}"]= plugin_options.key
                       downloaded=true
                     callback null
-            @then (err) ->
+            @next (err) ->
               throw Error "failed to download #{plugins_options.key} out of all possible locations..." unless downloaded is true
               plugins_callback null

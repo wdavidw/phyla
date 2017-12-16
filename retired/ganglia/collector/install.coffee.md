@@ -96,7 +96,7 @@ Copy the object files provided in the HDP companion files into the
             target: "/usr/libexec/hdp/ganglia"
             mode: 0o744
           ) for file in files
-          @then callback
+          @next callback
 
 ## Fix User
 

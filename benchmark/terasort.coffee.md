@@ -88,7 +88,7 @@ These can be used to validate data repartition in the cluster.
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
                   append: true
-              @then cb
+              @next cb
 
 ## TeraGen 
 
@@ -150,7 +150,7 @@ These can be used to validate data repartition in the cluster.
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
                   append: true
-              @then cb
+              @next cb
 
 ## Utils 
 

@@ -54,7 +54,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
               else
                 handler nodes
                 cb()
-            .then (err) ->
+            .next (err) ->
               # ctx.emit 'end' for ctx in contexts
               return console.log 'ERROR', err.message, err.stack if err
               if index is clusters.length-1
@@ -86,7 +86,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
         node.log.cli host: fqdn, pad: host: 20, header: 60
         node.ssh.open header: 'SSH Open', host: opts.value.ip
         node.call 'masson/core/info'
-        .then (err) ->
+        .next (err) ->
           n = {}
           n.ssh = node.options.ssh
           n.fqdn = fqdn
@@ -114,7 +114,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
             return has
           nodes.push n
           cb err
-      .then (err) ->
+      .next (err) ->
         callback null, nodes
 
 ## Configuration

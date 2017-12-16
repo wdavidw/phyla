@@ -48,7 +48,7 @@ Populates the Oozie directory with the Atlas server JAR files.
                   hdfs dfs -chown #{options.oozie_user.name}:#{options.oozie_user.name} #{sharelib}/hive/#{opt.key}
                   hdfs dfs -chmod 755 #{sharelib}/hive/#{opt.key}
                   """
-            @then callback
+            @next callback
 
 ## Kafka Topics ACL
 

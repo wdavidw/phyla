@@ -105,7 +105,7 @@ nagiocmd:x:2419:apache
               gid: group.name
               mode: 0o0775
           )
-          @then callback
+          @next callback
 
 ## WebUI Users & Groups
 
