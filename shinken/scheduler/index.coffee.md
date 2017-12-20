@@ -10,8 +10,11 @@ Updates the retention file (or other retention backends)
 Sends broks (internal events of any kind) to the broker(s)
 
     module.exports =
-      use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
+      deps:
+        ssl : module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        commons: implicit: true, module: 'ryba/shinken/commons', local: true
+        scheduler: module: 'ryba/shinken/scheduler'
       configure:
         'ryba/shinken/scheduler/configure'
       commands:

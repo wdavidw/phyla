@@ -1,11 +1,10 @@
 
 # Shinken Scheduler Configure
 
-    module.exports = ->
-      {shinken} = @config.ryba
-      scheduler = shinken.scheduler ?= {}
+    module.exports = (service) ->
+      options = service.options
       # Additionnal Modules to install
-      scheduler.modules ?= {}
+      options.modules ?= {}
       configmod = (name, mod) =>
         if mod.version?
           mod.type ?= name
@@ -23,7 +22,16 @@
           pymod.archive ?= "#{pyname}-#{pymod.version}"
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
-      for name, mod of scheduler.modules then configmod name, mod
+      for name, mod of options.modules then configmod name, mod
+
+## Identities
+
+      options.user ?= merge {}, service.deps.commons.options.user, options.user
+      options.group ?= merge {}, service.deps.commons.options.group, options.user
+
+## Build Dir
+
+      options.build_dir = service.deps.commons.options.build_dir
 
 ## Config
 
@@ -31,24 +39,51 @@ This configuration is used by arbiter to send the configuration when arbiter
 synchronize configuration through network. The generated file must be on the
 arbiter host.
 
-      scheduler.config ?= {}
-      scheduler.config.host ?= '0.0.0.0'
-      scheduler.config.port ?= 7768
-      scheduler.config.spare ?= '0'
-      scheduler.config.realm ?= 'All'
-      scheduler.config.modules = [scheduler.config.modules] if typeof scheduler.config.modules is 'string'
-      scheduler.config.modules ?= Object.keys scheduler.modules
-      scheduler.config.use_ssl ?= shinken.config.use_ssl
-      scheduler.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+      options.config ?= {}
+      options.config.host ?= '0.0.0.0'
+      options.config.port ?= 7768
+      options.config.spare ?= '0'
+      options.config.realm ?= 'All'
+      options.config.modules = [options.config.modules] if typeof options.config.modules is 'string'
+      options.config.modules ?= Object.keys options.modules
+      #Misc
+      options.iptables ?= !!service.deps.iptables and service.deps.iptables?.options?.action is 'start'
+      options.prepare ?= service.deps.scheduler[0].node.fqdn is service.node.fqdn
+      options.fqdn ?= service.node.fqdn
+
+## SSL
+
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
+      if options.ssl.enabled
+        options.config['use_ssl'] ?= '1'
+        options.config['hard_ssl_name_check'] ?= '1'
+        throw Error 'Missing options.ssl.cacert' unless options.ssl.cacert
+        throw Error 'Missing options.ssl.cert' unless options.ssl.cert
+        throw Error 'Missing options.ssl.key' unless options.ssl.key
+      else
+        options.config['use_ssl'] ?= '0'
+        options.config['hard_ssl_name_check'] ?= '0'
 
 ## Ini
 
 This configuration is used by local service to load preconfiguration that cannot
 be set runtime by arbiter configuration synchronization.
 
-      scheduler.ini ?= {}
-      scheduler.ini[k] ?= v for k, v of shinken.ini
-      scheduler.ini.host = scheduler.config.host
-      scheduler.ini.port = scheduler.config.port
-      scheduler.ini.pidfile = '%(workdir)s/schedulerd.pid'
-      scheduler.ini.local_log = '%(logdir)s/schedulerd.log'
+      options.ini ?= {}
+      options.ini[k] ?= v for k, v of service.deps.commons.options.ini
+      options.ini.host = options.config.host
+      options.ini.port = options.config.port
+      options.ini.pidfile = '%(workdir)s/schedulerd.pid'
+      options.ini.local_log = '%(logdir)s/schedulerd.log'
+
+## Wait
+
+      options.wait ?= {}
+      options.wait.http = for srv in service.deps.scheduler
+        host: srv.node.fqdn
+        port: srv.options.config?.port or options.config.port
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'
