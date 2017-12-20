@@ -15,8 +15,11 @@ Modules for receivers:
 This module is only needed when enabling passive checks
 
     module.exports =
-      use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
+      deps:
+        ssl: module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        commons: module: 'ryba/shinken/commons', local: true
+        receiver: module: 'ryba/shinken/receiver'
       configure:
         'ryba/shinken/receiver/configure'
       commands:

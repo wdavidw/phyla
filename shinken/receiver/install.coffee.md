@@ -1,9 +1,8 @@
 
 # Shinken Receiver Install
 
-    module.exports = header: 'Shinken Receiver Install', handler: ->
-      {shinken} = @config.ryba
-      {receiver} = @config.ryba.shinken
+    module.exports = header: 'Shinken Receiver Install', handler: (options) ->
+
 
 ## IPTables
 
@@ -17,9 +16,9 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: receiver.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Receiver" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Receiver" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptablesf
 
 ## Packages
 
@@ -32,7 +31,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @file.ini
         header: 'Configuration'
         target: '/etc/shinken/daemons/receiverd.ini'
-        content: daemon: receiver.ini
+        content: daemon: options.ini
         backup: true
         eof: true
 
@@ -42,18 +41,18 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         installmod = (name, mod) =>
           @call unless_exec: "shinken inventory | grep #{name}", ->
             @file.download
-              target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+              target: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
               source: mod.source
               cache_file: "#{mod.archive}.#{mod.format}"
               unless_exec: "shinken inventory | grep #{name}"
             @tools.extract
-              source: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+              source: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
             @system.execute
-              cmd: "shinken install --local #{shinken.build_dir}/#{mod.archive}"
-            @system.remove target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
-            @system.remove target: "#{shinken.build_dir}/#{mod.archive}"
+              cmd: "shinken install --local #{options.build_dir}/#{mod.archive}"
+            @system.remove target: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
+            @system.remove target: "#{options.build_dir}/#{mod.archive}"
           for subname, submod of mod.modules then installmod subname, submod
-        for name, mod of receiver.modules then installmod name, mod
+        for name, mod of options.modules then installmod name, mod
 
 ## Python Modules
 
@@ -62,16 +61,16 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           @call unless_exec: "pip list | grep #{k}", ->
             @file.download
               source: v.url
-              target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              target: "#{options.build_dir}/#{v.archive}.#{v.format}"
               cache_file: "#{v.archive}.#{v.format}"
             @tools.extract
-              source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              source: "#{options.build_dir}/#{v.archive}.#{v.format}"
             @system.execute
               cmd:"""
-              cd #{shinken.build_dir}/#{v.archive}
+              cd #{options.build_dir}/#{v.archive}
               python setup.py build
               python setup.py install
               """
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}"
-        for _, mod of receiver.modules then for k,v of mod.python_modules then install_dep k, v
+            @system.remove target: "#{options.build_dir}/#{v.archive}.#{v.format}"
+            @system.remove target: "#{options.build_dir}/#{v.archive}"
+        for _, mod of options.modules then for k,v of mod.python_modules then install_dep k, v
