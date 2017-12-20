@@ -15,11 +15,14 @@ This module consumes proportionally to the cluster size. The limit for one polle
 is approximatively 1000 checks/s
 
     module.exports =
-      use:
-        ssl: implicit: true, module: 'masson/core/ssl'
-        docker: implicit: true, module: 'masson/commons/docker'
-        krb5_client: implicit: true, module: 'masson/core/krb5_client'
-        commons: implicit: true, module: 'ryba/shinken/commons'
+      deps:
+        ssl : module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        docker: module: 'masson/commons/docker', local: true, auto: true
+        krb5_client: module: 'masson/core/krb5_client', local: true
+        commons: implicit: true, module: 'ryba/shinken/commons', local: true
+        monitoring: module: 'ryba/commons/monitoring'
+        poller: module: 'ryba/shinken/poller'
       configure:
         'ryba/shinken/poller/configure'
       commands:

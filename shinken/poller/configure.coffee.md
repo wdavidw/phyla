@@ -1,31 +1,10 @@
 
 # Shinken Poller Configure
 
-    module.exports = ->
-      mon_ctxs = @contexts 'ryba/commons/monitoring'
-      {docker, ssl} = @config
-      {shinken} = @config.ryba
-      # Add shinken to docker group
-      shinken.user.groups ?= []
-      shinken.user.groups.push docker.group.name unless docker.group.name in shinken.user.groups
-      poller = shinken.poller ?= {}
-      # Executor
-      poller.executor ?= {}
-      poller.executor.krb5 ?= {}
-      poller.executor.krb5.principal ?= "#{shinken.user.name}/#{@config.host}@#{@config.ryba.realm}"
-      poller.executor.krb5.keytab ?= "/etc/security/keytabs/shinken.test.keytab"
-      if ssl.cert? and ssl.key?
-        poller.executor.ssl = ssl
-        poller.executor.ssl.cert.target ?= "#{shinken.user.home}/resources/certs/cert.pem"
-        poller.executor.ssl.key.target ?= "#{shinken.user.home}/resources/certs/key.pem"
-        for ctx in mon_ctxs
-          ctx.config.ryba.monitoring ?= {}
-          ctx.config.ryba.monitoring.credentials ?= {}
-          ctx.config.ryba.monitoring.credentials.swarm_user ?= {}
-          ctx.config.ryba.monitoring.credentials.swarm_user.key ?= "/home/#{shinken.user.name}/plugins/certs/key.pem"
-          ctx.config.ryba.monitoring.credentials.swarm_user.cert ?= "/home/#{shinken.user.name}/plugins/certs/cert.pem"
+    module.exports = (service) ->
+      options = service.options
       # Additionnal Modules to install
-      poller.modules ?= {}
+      options.modules ?= {}
       configmod = (name, mod) =>
         if mod.version?
           mod.type ?= name
@@ -43,7 +22,15 @@
           pymod.archive ?= "#{pyname}-#{pymod.version}"
           pymod.url ?= "https://pypi.python.org/simple/#{pyname}/#{pymod.archive}.#{pymod.format}"
         for subname, submod of mod.modules then configmod subname, submod
-      for name, mod of poller.modules then configmod name, mod
+      for name, mod of options.modules then configmod name, mod
+
+## Identities
+
+      options.user ?= merge {}, service.deps.commons.options.user, options.user
+      options.group ?= merge {}, service.deps.commons.options.group, options.user
+      # Add shinken to docker group
+      options.user.groups ?= []
+      options.user.groups.push service.deps.docker.options.group.name unless service.deps.docker.options.group.name in options.user.groups
 
 ## Config
 
@@ -51,26 +38,80 @@ This configuration is used by arbiter to send the configuration when arbiter
 synchronize configuration through network. The generated file must be on the
 arbiter host.
 
-      poller.config ?= {}
-      poller.config.host ?= '0.0.0.0'
-      poller.config.port ?= 7771
-      poller.config.spare ?= '0'
-      poller.config.realm ?= 'All'
-      poller.config.modules = [poller.config.modules] if typeof poller.config.modules is 'string'
-      poller.config.modules ?= Object.keys poller.modules
-      poller.config.tags = [poller.config.tags] if typeof poller.config.tags is 'string'
-      poller.config.tags ?= []
-      poller.config.use_ssl ?= shinken.config.use_ssl
-      poller.config.hard_ssl_name_check ?= shinken.config.hard_ssl_name_check
+      options.config ?= {}
+      options.config.host ?= '0.0.0.0'
+      options.config.port ?= 7771
+      options.config.spare ?= '0'
+      options.config.realm ?= 'All'
+      options.config.modules = [options.config.modules] if typeof options.config.modules is 'string'
+      options.config.modules ?= Object.keys options.modules
+      options.config.tags = [options.config.tags] if typeof options.config.tags is 'string'
+      options.config.tags ?= []
+      #Misc
+      options.iptables ?= !!service.deps.iptables and service.deps.iptables?.options?.action is 'start'
+      options.prepare ?= service.deps.poller[0].node.fqdn is service.node.fqdn
+      options.fqdn ?= service.node.fqdn
+
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      throw Error "Kerberos Realm #{options.krb5.realm} not found in service.deps.krb5_client.options.admin" unless options.krb5.admin?
+      options.krb5_principal ?= "#{options.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
+      options.krb5_keytab ?= "/etc/security/keytabs/shinken.test.keytab"
+
+
+
+## SSL
+
+      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!service.deps.ssl
+      if options.ssl.enabled
+        options.config['use_ssl'] ?= '1'
+        options.config['hard_ssl_name_check'] ?= '1'
+        throw Error 'Missing options.ssl.cacert' unless options.ssl.cacert
+        throw Error 'Missing options.ssl.cert' unless options.ssl.cert
+        throw Error 'Missing options.ssl.key' unless options.ssl.key
+        options.tls_cert_file ?= "#{options.user.home}/resources/certs/cert.pem"
+        options.tls_key_file ?= "#{options.user.home}/resources/certs/key.pem"
+        throw Error 'TLS mode requires "tls_cert_file"' unless options.tls_cert_file
+        throw Error 'TLS mode requires "tls_key_file"' unless options.tls_key_file
+        # configure swarm keys
+        for srv in service.deps.monitoring
+          srv.options ?= {}
+          srv.options.credentials ?= {}
+          srv.options.credentials.swarm_user ?= {}
+          srv.options.credentials.swarm_user.key ?= "/home/#{options.user.name}/plugins/certs/key.pem"
+          srv.options.credentials.swarm_user.cert ?= "/home/#{options.user.name}/plugins/certs/cert.pem"
+        options.credentials ?= {}
+        options.credentials.swarm_user ?= {}
+        options.credentials.swarm_user.key ?= "/home/#{options.user.name}/plugins/certs/key.pem"
+        options.credentials.swarm_user.cert ?= "/home/#{options.user.name}/plugins/certs/cert.pem"
+      else
+        options.config['use_ssl'] ?= '0'
+        options.config['hard_ssl_name_check'] ?= '0'
 
 ## Ini
 
 This configuration is used by local service to load preconfiguration that cannot
 be set runtime by arbiter configuration synchronization.
 
-      poller.ini ?= {}
-      poller.ini[k] ?= v for k, v of shinken.ini
-      poller.ini.host = poller.config.host
-      poller.ini.port = poller.config.port
-      poller.ini.pidfile = '%(workdir)s/pollerd.pid'
-      poller.ini.local_log = '%(logdir)s/pollerd.log'
+      options.ini ?= {}
+      options.ini[k] ?= v for k, v of service.deps.commons.options.ini
+      options.ini.host = options.config.host
+      options.ini.port = options.config.port
+      options.ini.pidfile = '%(workdir)s/pollerd.pid'
+      options.ini.local_log = '%(logdir)s/pollerd.log'
+
+## Wait
+
+      options.wait ?= {}
+      options.wait.tcp ?= for srv in service.deps.poller
+        host: srv.node.fqdn
+        port: srv.options?.config?.port or options.config.port
+
+## Dependencies
+
+    {merge} = require 'nikita/lib/misc'

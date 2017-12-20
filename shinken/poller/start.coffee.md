@@ -3,8 +3,7 @@
 
 Start the Shinken Poller service.
 
-    module.exports = header: 'Shinken Poller Start', handler: ->
-      {shinken} = @config.ryba
+    module.exports = header: 'Shinken Poller Start', handler: (options) ->
       @service.start name: 'shinken-poller'
 
 ## Start Executor
@@ -16,5 +15,5 @@ Start the docker executors (normal and admin)
           container: 'poller-executor'
         @docker.exec
           container: 'poller-executor'
-          cmd: "kinit #{shinken.poller.executor.krb5.principal} -kt #{shinken.poller.executor.krb5.keytab}"
+          cmd: "kinit #{options.krb5_principal} -kt #{options.krb5_keytab}"
           shy: true

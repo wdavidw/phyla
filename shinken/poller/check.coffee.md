@@ -1,21 +1,20 @@
 
 # Shinken Poller Check
 
-    module.exports = header: 'Shinken Poller Check', handler: ->
-      options = @config.ryba.shinken.poller
+    module.exports = header: 'Shinken Poller Check', handler: (options) ->
 
 ## TCP
 
       @system.execute
         header: 'TCP'
-        cmd: "echo > /dev/tcp/#{@config.host}/#{options.config.port}"
+        cmd: "echo > /dev/tcp/#{options.fqdn}/#{options.config.port}"
 
 ## HTTP
 
       if options.ini.use_ssl is '1'
-        cmd = "curl -k https://#{@config.host}:#{options.config.port}"
+        cmd = "curl -k https://#{options.fqdn}:#{options.config.port}"
       else
-        cmd = "curl http://#{@config.host}:#{options.config.port}"
+        cmd = "curl http://#{options.fqdn}:#{options.config.port}"
       @system.execute
         header: 'HTTP'
         cmd: "#{cmd} | grep OK"
