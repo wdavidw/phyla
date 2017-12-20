@@ -19,9 +19,13 @@ To automatically download and install a module, please at least provide a versio
 and a type if different from the name.
 
     module.exports =
-      use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
-        nginx: implicit: true, module: 'masson/commons/nginx'
+      deps:
+        nginx: module: 'masson/commons/nginx', auto: true, required: true, local: true
+        ssl : module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        commons: module: 'ryba/shinken/commons', local: true
+        broker: module: 'ryba/shinken/broker'
+        mongodb_router: module: 'ryba/mongodb/router'
       configure:
         'ryba/shinken/broker/configure'
       commands:

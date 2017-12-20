@@ -3,18 +3,18 @@
 #
 server {
     # IPv4 support
-    listen {{ shinken.broker.modules.webui2.nginx.port }};
+    listen {{ modules.webui2.nginx.port }};
     # IPv6 support
     #listen [::]:443;
 
     server_name shinken;
 
-    access_log           {{ nginx.log_dir }}/shinken_access.log;
-    error_log            {{ nginx.log_dir }}/shinken_error.log;
+    access_log           {{ nginx_log_dir }}/shinken_access.log;
+    error_log            {{ nginx_log_dir }}/shinken_error.log;
 
     ssl on;
-    ssl_certificate      {{ shinken.broker.ini.server_cert }};
-    ssl_certificate_key  {{ shinken.broker.ini.server_key }};
+    ssl_certificate      {{ ini.server_cert }};
+    ssl_certificate_key  {{ ini.server_key }};
 
     # Avoid robots
     location /robots.txt {
@@ -39,9 +39,9 @@ server {
         proxy_set_header   X-Forwarded-Proto $scheme;
 
         # Replace 7767 (default) by the port your shinken WebUI is listening on.
-        proxy_pass http://localhost:{{ shinken.broker.modules.webui2.config.port }};
+        proxy_pass http://localhost:{{ modules.webui2.config.port }};
         proxy_read_timeout  60;
 
-        proxy_redirect http://localhost:{{ shinken.broker.modules.webui2.config.port }} https://{{ host }}:{{ shinken.broker.modules.webui2.nginx.port }};
+        proxy_redirect http://localhost:{{ modules.webui2.config.port }} https://{{ host }}:{{ modules.webui2.nginx.port }};
     }
 }
