@@ -7,14 +7,17 @@ failovers if an error is detected. Can route check result events from a Receiver
 to its associated Scheduler.
 
     module.exports =
-      use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
-        monitoring: implicit: true, module: 'ryba/commons/monitoring'
-        reactionner: 'ryba/shinken/poller'
-        receiver: 'ryba/shinken/poller'
-        scheduler: 'ryba/shinken/poller'
-        broker: 'ryba/shinken/broker'
-        poller: 'ryba/shinken/poller'
+      deps:
+        ssl : module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        commons:  module: 'ryba/shinken/commons', local: true, required: true
+        monitoring: module: 'ryba/commons/monitoring', local: true, required: true
+        arbiter: module: 'ryba/shinken/arbiter'
+        reactionner: module: 'ryba/shinken/reactionner'
+        receiver: module: 'ryba/shinken/receiver'
+        scheduler: module: 'ryba/shinken/scheduler'
+        broker: module: 'ryba/shinken/broker'
+        poller: module: 'ryba/shinken/poller'
       configure:
         'ryba/shinken/arbiter/configure'
       commands:

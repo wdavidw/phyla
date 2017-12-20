@@ -1,10 +1,10 @@
 {% for a in arbiters %}
 define arbiter {
-  arbiter_name        arbiter_{{ a.config.shortname }}
-  host_name           {{ a.config.host }}{# WARNING SHOULD BE SET FOR DISTRIBUTED MODE !!! #}
-  address             {{ a.config.host }}
-  port                {{ a.config.ryba.shinken.arbiter.config.port }}
-  spare               {{ a.config.ryba.shinken.arbiter.config.spare }}
+  arbiter_name        arbiter_{{ a.shortname }}
+  host_name           {{ a.fqdn }}{# WARNING SHOULD BE SET FOR DISTRIBUTED MODE !!! #}
+  address             {{ a.fqdn }}
+  port                {{ a.port }}
+  spare               {{ a.spare }}
   {#Uncomment these lines in a HA architecture so the master and slaves know
   # how long they may wait for each other.#}
   timeout             3{#   Ping timeout#}
@@ -28,9 +28,9 @@ define arbiter {
   # - ip-tag                  = Tag an host based on it's IP range
   # - FileTag                 = Tag an host if it's on a flat file
   # - CSVTag                  = Tag an host from the content of a CSV file
-  #}{% if not a.config.ryba.shinken.arbiter.config.modules | isEmpty %}
-  modules             {{ a.config.ryba.shinken.arbiter.config.modules | join(',') }}{% endif %}
-  use_ssl             {{ a.config.ryba.shinken.arbiter.config.use_ssl }}
-  hard_ssl_name_check {{ a.config.ryba.shinken.arbiter.config.hard_ssl_name_check }}
+  #}{% if not a.modules | isEmpty %}
+  modules             {{ a.modules | join(',') }}{% endif %}
+  use_ssl             {{ a.use_ssl }}
+  hard_ssl_name_check {{ a.hard_ssl_name_check }}
 }
 {% endfor %}

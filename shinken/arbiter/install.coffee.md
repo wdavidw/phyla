@@ -1,27 +1,25 @@
 
 # Shinken Arbiter Install
 
-    module.exports = header: 'Shinken Arbiter Install', handler: ->
-      {shinken, monitoring} = @config.ryba
-      {arbiter} = @config.ryba.shinken
+    module.exports = header: 'Shinken Arbiter Install', handler: (options)->
 
 ## IPTables
 
 | Service          | Port  | Proto | Parameter              |
 |------------------|-------|-------|------------------------|
-| shinken-arbiter  | 7770  |  tcp  |  arbiter.config.port   |
+| shinken-arbiter  | 7770  |  tcp  |  options.config.port   |
 
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: arbiter.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Arbiter" }]
-      for name, mod of arbiter.modules
+      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: options.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Arbiter" }]
+      for name, mod of options.modules
         if mod.config?.port?
           rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: mod.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Arbiter #{name}" }
       @tools.iptables
         header: 'IPTables'
         rules: rules
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
@@ -45,18 +43,18 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         installmod = (name, mod) =>
           @call unless_exec: "shinken inventory | grep #{name}", ->
             @file.download
-              target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+              target: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
               source: mod.source
               cache_file: "#{mod.archive}.#{mod.format}"
               unless_exec: "shinken inventory | grep #{name}"
             @tools.extract
-              source: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
+              source: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
             @system.execute
-              cmd: "shinken install --local #{shinken.build_dir}/#{mod.archive}"
-            @system.remove target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
-            @system.remove target: "#{shinken.build_dir}/#{mod.archive}"
+              cmd: "shinken install --local #{options.build_dir}/#{mod.archive}"
+            @system.remove target: "#{options.build_dir}/#{mod.archive}.#{mod.format}"
+            @system.remove target: "#{options.build_dir}/#{mod.archive}"
           for subname, submod of mod.modules then installmod subname, submod
-        for name, mod of arbiter.modules then installmod name, mod
+        for name, mod of options.modules then installmod name, mod
 
 ## Python Modules
 
@@ -65,19 +63,19 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           @call unless_exec: "pip list | grep #{k}", ->
             @file.download
               source: v.url
-              target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              target: "#{options.build_dir}/#{v.archive}.#{v.format}"
               cache_file: "#{v.archive}.#{v.format}"
             @tools.extract
-              source: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
+              source: "#{options.build_dir}/#{v.archive}.#{v.format}"
             @system.execute
               cmd:"""
-              cd #{shinken.build_dir}/#{v.archive}
+              cd #{options.build_dir}/#{v.archive}
               python setup.py build
               python setup.py install
               """
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}"
-        for _, mod of arbiter.modules then for k,v of mod.python_modules then install_dep k, v
+            @system.remove target: "#{options.build_dir}/#{v.archive}.#{v.format}"
+            @system.remove target: "#{options.build_dir}/#{v.archive}"
+        for _, mod of options.modules then for k,v of mod.python_modules then install_dep k, v
 
 ## Configuration
 
@@ -90,22 +88,30 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             target: "/etc/shinken/#{subsrv}s/#{subsrv}-master.cfg"
             source: "#{__dirname}/resources/#{subsrv}.cfg.j2"
             local: true
-            context: "#{subsrv}s": @contexts "ryba/shinken/#{subsrv}"
+            context: "#{subsrv}s": options["#{subsrv}_daemons"]
             backup: true
         @file.properties
           target: '/etc/shinken/resource.d/resources.cfg'
           content:
-            "$PLUGINSDIR$": shinken.plugin_dir
+            "$PLUGINSDIR$": options.plugin_dir
             "$DOCKER_EXEC$": 'docker exec poller-executor'
           backup: true
-        @file
-          target: '/etc/shinken/shinken.cfg'
-          write: for k, v of shinken.config
+        @call
+          header: 'Shinken CFG'
+        , ->
+          #now shinken throw error if empty configuration
+          for k, v of options.config
+            if Array.isArray v
+              options.config[k] = '0' if v.length is 0
+          writes = for k, v of options.config
             match: ///^#{k}=.*$///mg
             replace: "#{k}=#{v}"
             append: true
-          backup: true
-          eof: true
+          @file
+            target: '/etc/shinken/shinken.cfg'
+            write: writes
+            backup: true
+            eof: true
 
 ### Modules Config
 
@@ -124,8 +130,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             config_mod sub_name, sub_mod for sub_name, sub_mod of mod.modules
         # Loop on all services
         for service in ['arbiter', 'broker', 'poller', 'reactionner', 'receiver', 'scheduler']
-          [ctx] = @contexts "ryba/shinken/#{service}"
-          for name, mod of ctx.config.ryba.shinken[service].modules
+          for name, mod of options["#{service}_modules"]
             config_mod name, mod
 
 ### Objects Config
@@ -135,7 +140,6 @@ Objects config
       @call header: 'Objects', ->
         # Un-templated objects
         ## Some commands need the lists of brokers (for their livestatus module)
-        brokers = @contexts('ryba/shinken/broker').map( (ctx) -> ctx.config.host ).join ','
         #for obj in ['hostgroups', 'servicegroups', 'contactgroups', 'commands', 'realms', 'dependencies', 'escalations', 'timeperiods']
         for obj in ['hostgroups', 'contactgroups', 'commands', 'realms', 'dependencies', 'escalations', 'timeperiods']
           @file.render
@@ -144,15 +148,15 @@ Objects config
             source: "#{__dirname}/../../commons/monitoring/resources/#{obj}.cfg.j2"
             local: true
             context:
-              "#{obj}": monitoring[obj]
-              brokers: brokers
-              credentials: monitoring.credentials
+              "#{obj}": options[obj]
+              brokers: options.broker_hosts.join(',')
+              credentials: options.credentials
             backup: true
         # Templated objects
         for obj in ['hosts', 'services', 'contacts']
           real = {}
           templated = {}
-          for k, v of monitoring[obj]
+          for k, v of options[obj]
             if "#{v.register}" is '0' then templated[k] = v
             else real[k] = v
           @file.render
@@ -169,6 +173,30 @@ Objects config
             local: true
             context: "#{obj}": real
             backup: true
+
+## SSL
+
+
+      @call header: 'SSL', if: options.ssl.enabled
+      , ->
+        @file.download
+          source: options.ssl.cert.source
+          target: options.config['server_cert']
+          local: options.ssl.cert.local
+          uid: options.user.name
+          gid: options.group.name
+        @file.download
+          source: options.ssl.key.source
+          target: options.config['server_key']
+          local: options.ssl.key.local
+          uid: options.user.name
+          gid: options.group.name
+        @file.download
+          source: options.ssl.cacert.source
+          target: options.config['ca_cert']
+          local: options.ssl.cacert.local
+          uid: options.user.name
+          gid: options.group.name
 
 ## Check Config
 
