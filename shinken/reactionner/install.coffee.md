@@ -1,35 +1,33 @@
 
 # Shinken Reactionner Install
 
-    module.exports = header: 'Shinken Reactionner Install', handler: ->
-      {shinken} = @config.ryba
-      {reactionner, user} = @config.ryba.shinken
+    module.exports = header: 'Shinken Reactionner Install', handler: (options) ->
 
 ## SSH
 
       @call
         header: 'SSH'
-        if: -> @config.ryba.shinken.reactionner.ssh?.private_key? and @config.ryba.shinken.reactionner.ssh?.public_key?
+        if: -> options.ssh?.private_key? and options.ssh?.public_key?
       , ->
         @system.mkdir
-          target: "#{user.home}/.ssh"
+          target: "#{options.user.home}/.ssh"
           mode: 0o700
-          uid: user.name
-          gid: user.gid
+          uid: options.user.name
+          gid: options.user.gid
         @file
-          target: "#{user.home}/.ssh/id_rsa"
-          content: reactionner.ssh.private_key
+          target: "#{options.user.home}/.ssh/id_rsa"
+          content: options.ssh.private_key
           eof: true
           mode: 0o600
-          uid: user.name
-          gid: user.gid
+          uid: options.user.name
+          gid: options.user.gid
         @file
-          target: "#{user.home}/.ssh/id_rsa.pub"
-          content: reactionner.ssh.public_key
+          target: "#{options.user.home}/.ssh/id_rsa.pub"
+          content: options.ssh.public_key
           eof: true
           mode: 0o644
-          uid: user.name
-          gid: user.gid
+          uid: options.user.name
+          gid: options.user.gid
 
 ## IPTables
 
@@ -40,14 +38,14 @@
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
 
-      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: reactionner.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Reactionner" }]
-      for name, mod of reactionner.modules
+      rules = [{ chain: 'INPUT', jump: 'ACCEPT', dport: options.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Reactionner" }]
+      for name, mod of options.modules
         if mod.config?.port?
           rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: mod.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Reactionner #{name}" }
       @tools.iptables
         header: 'IPTables'
         rules: rules
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
@@ -60,7 +58,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @file.ini
         header: 'Configuration'
         target: '/etc/shinken/daemons/reactionnerd.ini'
-        content: daemon: reactionner.ini
+        content: daemon: options.ini
         backup: true
         eof: true
 
@@ -81,7 +79,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             @system.remove target: "#{shinken.build_dir}/#{mod.archive}.#{mod.format}"
             @system.remove target: "#{shinken.build_dir}/#{mod.archive}"
           for subname, submod of mod.modules then installmod subname, submod
-        for name, mod of reactionner.modules then installmod name, mod
+        for name, mod of options.modules then installmod name, mod
 
 ## Python Modules
 
@@ -102,4 +100,4 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
               """
             @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
             @system.remove target: "#{shinken.build_dir}/#{v.archive}"
-        for _, mod of reactionner.modules then for k,v of mod.python_modules then install_dep k, v
+        for _, mod of options.modules then for k,v of mod.python_modules then install_dep k, v

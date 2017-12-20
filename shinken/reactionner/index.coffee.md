@@ -5,8 +5,11 @@ Gets notifications and eventhandlers from the scheduler, executes plugins/script
 and sends the results to the scheduler.
 
     module.exports =
-      use:
-        commons: implicit: true, module: 'ryba/shinken/commons'
+      deps:
+        ssl : module: 'masson/core/ssl', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        commons: implicit: true, module: 'ryba/shinken/commons', local: true
+        reactionner: module: 'ryba/shinken/reactionner'
       configure:
         'ryba/shinken/reactionner/configure'
       commands:
