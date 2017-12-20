@@ -1,8 +1,8 @@
 
 # Configure Monitoring Objects
 
-    module.exports = ->
-      options = @config.ryba.monitoring ?= {}
+    module.exports = (service) ->
+      options = service.options
 
 ## Credentials
 
@@ -196,95 +196,26 @@ They must have register set to 0 to not be instanciated
 
 This function creates hostgroups and servicegroups from ryba (sub)modules
 
-      initgroup = (name, parent, alias) ->
-        alias ?= "#{name.charAt(0).toUpperCase()}#{name.slice 1}"
-        options.servicegroups[name] ?= {}
-        options.servicegroups[name].alias ?= "#{alias} Services"
-        options.servicegroups[name].members ?= []
-        options.servicegroups[name].servicegroup_members ?= []
-        options.servicegroups[name].servicegroup_members = [options.servicegroups[name].servicegroup_members] unless Array.isArray options.servicegroups[name].servicegroup_members
-        options.servicegroups[parent].servicegroup_members.push name if parent? and name not in options.servicegroups[parent].servicegroup_members
-        options.hostgroups[name] ?= {}
-        options.hostgroups[name].alias ?= "#{alias} Hosts"
-        options.hostgroups[name].members ?= []
-        options.hostgroups[name].hostgroup_members ?= []
-        parent ?= 'by_roles'
-        options.hostgroups[parent].hostgroup_members.push name unless name in hostgroups[parent].hostgroup_members
-
       create_dependency = (s1, s2, h1, h2) ->
         h2 ?= h1
         dep = options.dependencies["#{s1} / #{s2}"] ?= {}
         dep.service ?= s2
         dep.dependent_service ?= s1
-        dep.hosts ?= [h2]
-        dep.dependent_hosts ?= [h1]
+        if Array.isArray h2
+          dep.hosts ?= []
+          dep.hosts.push h2...
+        else
+          dep.hosts ?= [h2]
+        if Array.isArray h1
+          dep.dependent_hosts ?= []
+          dep.dependent_hosts.push h1...
+        else
+          dep.dependent_hosts ?= [h1] 
         dep.inherits_parent ?= '1'
         dep.execution_failure_criteria ?= 'c,u,p'
         dep.notification_failure_criteria ?= 'c,u,p'
 
-### Declare ALL services
-
-      # initgroup 'mysql'
-      # initgroup 'mysql_server', 'mysql', 'MySQL Server'
-      # initgroup 'zookeeper'
-      # initgroup 'zookeeper_server', 'zookeeper', 'Zookeeper Server'
-      # initgroup 'zookeeper_client', 'zookeeper', 'Zookeeper Client'
-      # initgroup 'hadoop'
-      # initgroup 'hdfs', 'hadoop', 'HDFS'
-      # initgroup 'hdfs_nn', 'hdfs', 'HDFS NameNode'
-      # initgroup 'hdfs_jn', 'hdfs', 'HDFS JournalNode'
-      # initgroup 'zkfc', 'hdfs', 'HDFS ZKFC'
-      # initgroup 'hdfs_dn', 'hdfs', 'HDFS DataNode'
-      # initgroup 'httpfs', 'hdfs', 'HttpFS'
-      # initgroup 'hdfs_client', 'hdfs', 'HDFS Client'
-      # initgroup 'yarn', 'hadoop', 'YARN'
-      # initgroup 'yarn_rm', 'yarn', 'YARN ResourceManager'
-      # initgroup 'yarn_nm', 'yarn', 'YARN NodeManager'
-      # initgroup 'yarn_ts', 'yarn', 'YARN Timeline Server'
-      # initgroup 'yarn_client', 'yarn', 'YARN Client'
-      # initgroup 'mapreduce', 'hadoop', 'MapReduce'
-      # initgroup 'mapred_jhs', 'mapreduce', 'MapReduce JobHistory Server'
-      # initgroup 'mapred_client', 'mapreduce', 'MapReduce Client'
-      # initgroup 'hbase', null, 'HBase'
-      # initgroup 'hbase_master', 'hbase', 'HBase Master'
-      # initgroup 'hbase_regionserver', 'hbase', 'HBase RegionServer'
-      # initgroup 'hbase_rest', 'hbase', 'HBase REST'
-      # initgroup 'hbase_thrift', 'hbase', 'HBase Thrift'
-      # initgroup 'hbase_client', 'hbase', 'HBase Client'
-      # initgroup 'phoenix'
-      # initgroup 'phoenix_master', 'phoenix', 'Phoenix Master'
-      # initgroup 'phoenix_regionserver', 'phoenix', 'Phoenix RegionServer'
-      # initgroup 'phoenix_client', 'phoenix', 'Phoenix Client'
-      # initgroup 'opentsdb', null, 'OpenTSDB'
-      # initgroup 'hive'
-      # initgroup 'hiveserver2', 'hive', 'HiveServer2'
-      # initgroup 'hcatalog', 'hive', 'HCatalog'
-      # initgroup 'webhcat', 'hive', 'WebHCat'
-      # initgroup 'hive_client', 'hive', 'WebHCat'
-      # initgroup 'tez'
-      # initgroup 'oozie'
-      # initgroup 'oozie_server', 'oozie', 'Oozie Server'
-      # initgroup 'oozie_client', 'oozie', 'Oozie Client'
-      # initgroup 'kafka'
-      # initgroup 'kafka_broker', 'kafka', 'Kafka Broker'
-      # initgroup 'kafka_producer', 'kafka', 'Kafka Producer'
-      # initgroup 'kafka_consumer', 'kafka', 'Kafka Consumer'
-      # initgroup 'spark'
-      # initgroup 'spark_hs', 'spark', 'Spark History Server'
-      # initgroup 'spark_client', 'spark', 'Spark Client'
-      # initgroup 'elasticsearch', null, 'ElasticSearch'
-      # initgroup 'solr', null, 'SolR'
-      # initgroup 'titan', null, 'Titan DB'
-      # initgroup 'rexster'
-      # initgroup 'pig'
-      # initgroup 'sqoop'
-      # initgroup 'falcon'
-      # initgroup 'flume'
-      # initgroup 'hue'
-      # initgroup 'knox'
-      # initgroup 'zeppelin'
-
-## Configure from context
+## Configure from service
 
 This function is called with a context, taken from internal context, or imported.
 An external configuration can be obtained with an instance of ryba using
@@ -298,812 +229,949 @@ Theses functions are used to generate business rules
       bp_has_all = (name, g) -> "bp_rule!(100%,1,1 of: #{ if g? then "g:#{g}" else '*'},r:^#{name}?)"
       #bp_has_percent = (name, w, c, g) -> "bp_rule!(100%,#{w}%,#{c}% of: #{ if g? then "g:#{g}" else '*'},r:^#{name}?)"
 
-      from_contexts = (ctxs, clustername) ->
-        clustername ?= ctxs[0].config.ryba.nameservice or 'default'
+
+## Declare Services
+
+      add_hostgroup_to_host = (hostgroup, fqdn) ->
+        
+      
+
+      from_nodes = (nodes, clustername, config) ->
+        
+        # clustername ?= ctxs[0].config.ryba.nameservice or 'default'
         options.clusters[clustername] ?= {}
-        hg = options.hostgroups[clustername] ?= {}
-        hg.members ?= []
-        hg.members = [hg.members] unless Array.isArray hg.members
-        hg.hostgroup_members ?= []
-        hg.hostgroup_members = [hg.hostgroup_members] unless Array.isArray hg.hostgroup_members
+        options.hostgroups[clustername] ?= {}
+        options.hostgroups[clustername].members ?= []
+        options.hostgroups[clustername].members = [options.hostgroups[clustername].members] unless Array.isArray options.hostgroups[clustername].members
+        options.hostgroups[clustername].hostgroup_members ?= []
+        options.hostgroups[clustername].hostgroup_members = [options.hostgroups[clustername].hostgroup_members] unless Array.isArray options.hostgroups[clustername].hostgroup_members
         options.hostgroups.by_topology.hostgroup_members.push clustername unless clustername in options.hostgroups.by_topology.hostgroup_members
         # Watchers -> Special host with name of the cluster, for cluster business rules
-        w = options.hosts[clustername] ?= {}
-        w.ip = '0.0.0.0'
-        w.alias = "#{clustername} Watcher"
-        w.hostgroups = ['watcher']
-        w.use = 'aggregates'
-        w.cluster ?= clustername
-        w.notes ?= clustername
-        w.realm = options.clusters[clustername].realm if options.clusters[clustername].realm?
-        w.modules ?= []
-        w.modules = [w.modules] unless Array.isArray w.modules
+        options.hosts[clustername] ?= {}
+        options.hosts[clustername].ip = '0.0.0.0'
+        options.hosts[clustername].alias = "#{clustername} Watcher"
+        options.hosts[clustername].hostgroups = ['watcher']
+        options.hosts[clustername].use = 'aggregates'
+        options.hosts[clustername].cluster ?= clustername
+        options.hosts[clustername].notes ?= clustername
+        options.hosts[clustername].realm = options.clusters[clustername].realm if options.clusters[clustername].realm?
+        options.hosts[clustername].modules ?= []
+        options.hosts[clustername].modules = [options.hosts[clustername].modules] unless Array.isArray options.hosts[clustername].modules
         options.hostgroups[clustername].members.push clustername
-        # True Servers
-        for ctx in ctxs
-          {host, shortname, ip, ryba} = ctx.config
+        
+### Declare Services
+The service discovery is now update to work with masson2. its based on services oobject
+from normzlized configuration.
+        
+        s = store config
+        # init hostsgroups
+        for fqdn, node of nodes
+          host = fqdn
           options.hostgroups[clustername].members.push host
-          h = options.hosts[host] ?= {}
-          h.ip ?= ip
-          h.hostgroups ?= []
-          h.hostgroups = [h.hostgroups] unless Array.isArray h.hostgroups
-          h.use ?= 'linux-server'
-          #h.config ?= ctx.config
-          h.realm ?= options.clusters[clustername].realm
-          h.cluster ?= clustername
-          h.notes ?= clustername
+          options.hosts[fqdn] ?= {}
+          options.hosts[fqdn].ip ?= node.ip
+          options.hosts[fqdn].hostgroups ?= []
+          options.hosts[fqdn].hostgroups = [options.hosts[fqdn].hostgroups] unless Array.isArray options.hosts[fqdn].hostgroups
+          options.hosts[fqdn].use ?= 'linux-server'
+          #options.hosts[fqdn].config ?= ctx.config
+          options.hosts[fqdn].realm ?= options.clusters[clustername].realm
+          options.hosts[fqdn].cluster ?= clustername
+          options.hosts[fqdn].notes ?= clustername
+        for name, service of config.clusters[clustername].services
+          srv =  s.service(clustername,name)
+        # True Servers
+        # return
 
 ###  Declare services
 
+          add_hosts_to_srv = (srvname, instances) ->
+            options.services[srvname].hosts ?= []
+            for instance in instances
+              options.services[srvname].hosts.push instance.node.fqdn unless instance.node.fqdn in options.services[srvname].hosts
+          add_srv_to_host_hostgroups = (srvname, instances) ->
+            for instance in instances
+              options.hosts[instance.node.fqdn].hostgroups ?= []
+              options.hosts[instance.node.fqdn].hostgroups.push srvname unless srvname in options.hosts[instance.node.fqdn].hostgroups
+          add_srv_to_cluster = (srvname, clustername) ->
+            options.hosts[clustername].modules.push srvname unless srvname in options.hosts[clustername].modules
+          create_service = (opts) ->
+            throw Error "Missing service name" unless opts.name?
+            throw Error "Missing service instances" unless opts.instances?
+            throw Error "Missing service servicegroup" unless opts.servicegroup?
+            throw Error "Missing service use" unless opts.use?
+            throw Error "Missing service process_name" if (opts.use is 'process-service') and (!opts.process_name?)
+            throw Error "Missing service check_command" unless opts.check_command?
+            throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
+            options.services[opts.name] ?= {}
+            options.services[opts.name].hosts ?= []
+            options.services[opts.name].hosts.push opts.instances.map( (instance) -> instance.node.fqdn )...
+            opts.servicegroup = [opts.servicegroup] unless Array.isArray opts.servicegroup
+            options.services[opts.name].servicegroups ?= opts.servicegroup
+            options.services[opts.name].use ?= opts.use
+            options.services[opts.name]['_process_name'] ?= opts.process_name
+            options.services[opts.name].check_command ?= opts.check_command
+
           # TODO: put ryba.db_admin username/password
-          if 'masson/commons/mysql/server' in ctx.services
-            w.modules.push 'mysql_server' unless 'mysql_server' in w.modules
-            h.hostgroups.push 'mysql_server' unless 'mysql_server' in h.hostgroups
-            options.services['MySQL - TCP'] ?= {}
-            options.services['MySQL - TCP'].hosts ?= []
-            options.services['MySQL - TCP'].hosts.push host
-            options.services['MySQL - TCP'].servicegroups ?= ['mysql_server']
-            options.services['MySQL - TCP'].use ?= 'process-service'
-            options.services['MySQL - TCP']['_process_name'] ?= 'mysqld'
-            options.services['MySQL - TCP'].check_command ?= "check_tcp!#{ryba.db_admin.mysql.port}"
+          if 'masson/commons/mysql/server' is srv.module
+            add_srv_to_cluster 'mysql_server', clustername
+            add_srv_to_host_hostgroups  'mysql_server', srv.instances
+            create_service
+              name: 'MySQL - TCP'
+              servicegroup: 'mysql_server'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'mysqld'
+              check_command: "check_tcp!#{srv.instances[0].options.port}"
             if options.credentials.sql_user.enabled
-              options.services['MySQL - Connection time'] ?= {}
-              options.services['MySQL - Connection time'].hosts ?= []
-              options.services['MySQL - Connection time'].hosts.push host
-              options.services['MySQL - Connection time'].servicegroups ?= ['mysql_server']
-              options.services['MySQL - Connection time'].use ?= 'unit-service'
-              options.services['MySQL - Connection time'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!connection-time!3!10"
-              create_dependency 'MySQL - Connection time', 'MySQL - TCP', host
-              options.services['MySQL - Slow queries'] ?= {}
-              options.services['MySQL - Slow queries'].hosts ?= []
-              options.services['MySQL - Slow queries'].hosts.push host
-              options.services['MySQL - Slow queries'].servicegroups ?= ['mysql_server']
-              options.services['MySQL - Slow queries'].use ?= 'functional-service'
-              options.services['MySQL - Slow queries'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slow-queries!0,25!1"
-              create_dependency 'MySQL - Slow queries', 'MySQL - TCP', host
-              options.services['MySQL - Slave lag'] ?= {}
-              options.services['MySQL - Slave lag'].hosts ?= []
-              options.services['MySQL - Slave lag'].hosts.push host
-              options.services['MySQL - Slave lag'].servicegroups ?= ['mysql_server']
-              options.services['MySQL - Slave lag'].use ?= 'unit-service'
-              options.services['MySQL - Slave lag'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-lag!3!10"
-              create_dependency 'MySQL - Slave lag', 'MySQL - TCP', host
-              options.services['MySQL - Slave IO running'] ?= {}
-              options.services['MySQL - Slave IO running'].hosts ?= []
-              options.services['MySQL - Slave IO running'].hosts.push host
-              options.services['MySQL - Slave IO running'].servicegroups ?= ['mysql_server']
-              options.services['MySQL - Slave IO running'].use ?= 'unit-service'
-              options.services['MySQL - Slave IO running'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-io-running!1!1"
-              create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', host
-              options.services['MySQL - Connected Threads'] ?= {}
-              options.services['MySQL - Connected Threads'].hosts ?= []
-              options.services['MySQL - Connected Threads'].hosts.push host
-              options.services['MySQL - Connected Threads'].servicegroups ?= ['mysql_server']
-              options.services['MySQL - Connected Threads'].use ?= 'unit-service'
-              options.services['MySQL - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!100!120"
-              create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', host
+              create_service
+                name: 'MySQL - Connection time'
+                servicegroup: 'mysql_server'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_mysql!#{srv.instances[0].options.port}!connection-time!3!10"
+              #slow queries
+              create_service
+                name: 'MySQL - Slow queries'
+                servicegroup: 'mysql_server'
+                instances: srv.instances
+                use: 'functional-service'
+                check_command: "check_mysql!#{srv.instances[0].options.port}!slow-queries!0,25!1"
+              create_dependency 'MySQL - Slow queries', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              #slave lag
+              if srv.instances.length > 1
+                create_service
+                  name: 'MySQL - Slave lag'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'unit-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-lag!3!10"
+                create_dependency 'MySQL - Slave lag', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                #slave io replication
+                create_service
+                  name: 'MySQL - Slave IO running'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'unit-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-io-running!1!1"
+                create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              # connected threads
+                create_service
+                  name: 'MySQL - Slave lag'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'unit-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!threads-connected!100!120"
+              create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
           # TODO: put db_admin username/password
-          if 'masson/commons/mariadb/server' in ctx.services
-            w.modules.push 'mariadb_server' unless 'mariadb_server' in w.modules
-            h.hostgroups.push 'mariadb_server' unless 'mariadb_server' in h.hostgroups
-            options.services['MariaDB - TCP'] ?= {}
-            options.services['MariaDB - TCP'].hosts ?= []
-            options.services['MariaDB - TCP'].hosts.push host
-            options.services['MariaDB - TCP'].servicegroups ?= ['mysql_server']
-            options.services['MariaDB - TCP'].use ?= 'process-service'
-            options.services['MariaDB - TCP']['_process_name'] ?= 'mariadb'
-            options.services['MariaDB - TCP'].check_command ?= "check_tcp!#{ryba.db_admin.mysql.port}"
+          if 'masson/commons/mariadb/server' is srv.module
+            add_srv_to_cluster 'mariadb_server', clustername
+            add_srv_to_host_hostgroups  'mariadb_server', srv.instances
+            #TCP
+            create_service
+              name: 'MariaDB - TCP'
+              servicegroup: 'mysql_server'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'mariadb'
+              check_command: "check_tcp!#{srv.instances[0].options.port}"
             if options.credentials.sql_user.enabled
-              options.services['MariaDB - Connection time'] ?= {}
-              options.services['MariaDB - Connection time'].hosts ?= []
-              options.services['MariaDB - Connection time'].hosts.push host
-              options.services['MariaDB - Connection time'].servicegroups ?= ['mysql_server']
-              options.services['MariaDB - Connection time'].use ?= 'unit-service'
-              options.services['MariaDB - Connection time'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!connection-time!3!10"
-              create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', host
-              options.services['MariaDB - Slow queries'] ?= {}
-              options.services['MariaDB - Slow queries'].hosts ?= []
-              options.services['MariaDB - Slow queries'].hosts.push host
-              options.services['MariaDB - Slow queries'].servicegroups ?= ['mysql_server']
-              options.services['MariaDB - Slow queries'].use ?= 'functional-service'
-              options.services['MariaDB - Slow queries'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slow-queries!0,25!1"
-              create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', host
-              options.services['MariaDB - Slave lag'] ?= {}
-              options.services['MariaDB - Slave lag'].hosts ?= []
-              options.services['MariaDB - Slave lag'].hosts.push host
-              options.services['MariaDB - Slave lag'].servicegroups ?= ['mysql_server']
-              options.services['MariaDB - Slave lag'].use ?= 'unit-service'
-              options.services['MariaDB - Slave lag'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-lag!3!10"
-              create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', host
-              options.services['MariaDB - Slave IO running'] ?= {}
-              options.services['MariaDB - Slave IO running'].hosts ?= []
-              options.services['MariaDB - Slave IO running'].hosts.push host
-              options.services['MariaDB - Slave IO running'].servicegroups ?= ['mysql_server']
-              options.services['MariaDB - Slave IO running'].use ?= 'unit-service'
-              options.services['MariaDB - Slave IO running'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!slave-io-running!1!1"
-              create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', host
-              options.services['MariaDB - Connected Threads'] ?= {}
-              options.services['MariaDB - Connected Threads'].hosts ?= []
-              options.services['MariaDB - Connected Threads'].hosts.push host
-              options.services['MariaDB - Connected Threads'].servicegroups ?= ['mysql_server']
-              options.services['MariaDB - Connected Threads'].use ?= 'unit-service'
-              options.services['MariaDB - Connected Threads'].check_command ?= "check_mysql!#{ryba.db_admin.mysql.port}!threads-connected!100!120"
-              create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', host
-          if 'ryba/zookeeper/server' in ctx.services
-            w.modules.push 'zookeeper_server' unless 'zookeeper_server' in w.modules
-            h.hostgroups.push 'zookeeper_server' unless 'zookeeper_server' in h.hostgroups
-            options.services['Zookeeper Server - TCP'] ?= {}
-            options.services['Zookeeper Server - TCP'].hosts ?= []
-            options.services['Zookeeper Server - TCP'].hosts.push host
-            options.services['Zookeeper Server - TCP'].servicegroups ?= ['zookeeper_server']
-            options.services['Zookeeper Server - TCP'].use ?= 'process-service'
-            options.services['Zookeeper Server - TCP']['_process_name'] ?= 'zookeeper-server'
-            options.services['Zookeeper Server - TCP'].check_command ?= "check_tcp!#{ryba.zookeeper.port}"
-            options.services['Zookeeper Server - State'] ?= {}
-            options.services['Zookeeper Server - State'].hosts ?= []
-            options.services['Zookeeper Server - State'].hosts.push host
-            options.services['Zookeeper Server - State'].servicegroups ?= ['zookeeper_server']
-            options.services['Zookeeper Server - State'].use ?= 'unit-service'
-            options.services['Zookeeper Server - State'].check_command ?= "check_socket!#{ryba.zookeeper.port}!ruok!imok"
-            create_dependency 'Zookeeper Server - State', 'Zookeeper Server - TCP', host
-            options.services['Zookeeper Server - Connections'] ?= {}
-            options.services['Zookeeper Server - Connections'].hosts ?= []
-            options.services['Zookeeper Server - Connections'].hosts.push host
-            options.services['Zookeeper Server - Connections'].servicegroups ?= ['zookeeper_server']
-            options.services['Zookeeper Server - Connections'].use ?= 'unit-service'
-            options.services['Zookeeper Server - Connections'].check_command ?= "check_zk_stat!#{ryba.zookeeper.port}!connections!300!350"
-            create_dependency 'Zookeeper Server - Connections', 'Zookeeper Server - TCP', host
-          if 'ryba/hadoop/hdfs_nn' in ctx.services
-            w.modules.push 'hdfs_nn' unless 'hdfs_nn' in w.modules
-            h.hostgroups.push 'hdfs_nn' unless 'hdfs_nn' in h.hostgroups
-            options.services['HDFS NN - TCP'] ?= {}
-            options.services['HDFS NN - TCP'].hosts ?= []
-            options.services['HDFS NN - TCP'].hosts.push host
-            options.services['HDFS NN - TCP'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - TCP'].use ?= 'process-service'
-            options.services['HDFS NN - TCP']['_process_name'] ?= 'hadoop-hdfs-namenode'
-            rpc = ryba.hdfs.nn.site["dfs.namenode.rpc-address.#{ryba.nameservice}.#{shortname}"].split(':')[1]
-            options.services['HDFS NN - TCP'].check_command ?= "check_tcp!#{rpc}"
-            options.services['HDFS NN - WebService'] ?= {}
-            options.services['HDFS NN - WebService'].hosts ?= []
-            options.services['HDFS NN - WebService'].hosts.push host
-            options.services['HDFS NN - WebService'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - WebService'].use ?= 'unit-service'
-            https = ryba.hdfs.nn.site["dfs.namenode.https-address.#{ryba.nameservice}.#{shortname}"].split(':')[1]
-            options.services['HDFS NN - WebService'].check_command ?= "check_tcp!#{https}!-S"
-            create_dependency 'HDFS NN - WebService', 'HDFS NN - TCP', host
-            options.services['HDFS NN - Certificate'] ?= {}
-            options.services['HDFS NN - Certificate'].hosts ?= []
-            options.services['HDFS NN - Certificate'].hosts.push host
-            options.services['HDFS NN - Certificate'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - Certificate'].use ?= 'cert-service'
-            options.services['HDFS NN - Certificate'].check_command ?= "check_cert!#{https}!120!60"
-            create_dependency 'HDFS NN - Certificate', 'HDFS NN - WebService', host
-            options.services['HDFS NN - Safe Mode'] ?= {}
-            options.services['HDFS NN - Safe Mode'].hosts ?= []
-            options.services['HDFS NN - Safe Mode'].hosts.push host
-            options.services['HDFS NN - Safe Mode'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - Safe Mode'].use ?= 'unit-service'
-            options.services['HDFS NN - Safe Mode'].check_command ?= "check_hdfs_safemode!#{https}!-S"
-            create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', host
-            options.services['HDFS NN - RPC latency'] ?= {}
-            options.services['HDFS NN - RPC latency'].hosts ?= []
-            options.services['HDFS NN - RPC latency'].hosts.push host
-            options.services['HDFS NN - RPC latency'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - RPC latency'].use ?= 'unit-service'
-            options.services['HDFS NN - RPC latency'].check_command ?= "check_rpc_latency!NameNode!#{https}!3000!5000!-S"
-            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', host
-            options.services['HDFS NN - Last checkpoint'] ?= {}
-            options.services['HDFS NN - Last checkpoint'].hosts ?= []
-            options.services['HDFS NN - Last checkpoint'].hosts.push host
-            options.services['HDFS NN - Last checkpoint'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - Last checkpoint'].use ?= 'unit-service'
-            options.services['HDFS NN - Last checkpoint'].check_command ?= "check_nn_last_checkpoint!#{https}!21600!1000000!120%!200%!-S"
-            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', host
-            options.services['HDFS NN - Name Dir status'] ?= {}
-            options.services['HDFS NN - Name Dir status'].hosts ?= []
-            options.services['HDFS NN - Name Dir status'].hosts.push host
-            options.services['HDFS NN - Name Dir status'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - Name Dir status'].use ?= 'unit-service'
-            options.services['HDFS NN - Name Dir status'].check_command ?= "check_nn_namedirs_status!#{https}!-S"
-            create_dependency 'HDFS NN - Name Dir status', 'HDFS NN - WebService', host
-            options.services['HDFS NN - Utilization'] ?= {}
-            options.services['HDFS NN - Utilization'].hosts ?= []
-            options.services['HDFS NN - Utilization'].hosts.push host
-            options.services['HDFS NN - Utilization'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - Utilization'].use ?= 'unit-service'
-            options.services['HDFS NN - Utilization'].check_command ?= "check_hdfs_capacity!#{https}!80%!90%!-S"
-            create_dependency 'HDFS NN - Utilization', 'HDFS NN - WebService', host
-            options.services['HDFS NN - UnderReplicated blocks'] ?= {}
-            options.services['HDFS NN - UnderReplicated blocks'].hosts ?= []
-            options.services['HDFS NN - UnderReplicated blocks'].hosts.push host
-            options.services['HDFS NN - UnderReplicated blocks'].servicegroups ?= ['hdfs_nn']
-            options.services['HDFS NN - UnderReplicated blocks'].use ?= 'unit-service'
-            options.services['HDFS NN - UnderReplicated blocks'].check_command ?= "check_hdfs_state!#{https}!FSNamesystemState!UnderReplicatedBlocks!1000!2000!-S"
-            create_dependency 'HDFS NN - UnderReplicated blocks', 'HDFS NN - WebService', host
-          if 'ryba/hadoop/hdfs_jn' in ctx.services
-            w.modules.push 'hdfs_jn' unless 'hdfs_jn' in w.modules
-            h.hostgroups.push 'hdfs_jn' unless 'hdfs_jn' in h.hostgroups
-            options.services['HDFS JN - TCP SSL'] ?= {}
-            options.services['HDFS JN - TCP SSL'].hosts ?= []
-            options.services['HDFS JN - TCP SSL'].hosts.push host
-            options.services['HDFS JN - TCP SSL'].servicegroups ?= ['hdfs_jn']
-            options.services['HDFS JN - TCP SSL'].use ?= 'process-service'
-            options.services['HDFS JN - TCP SSL']['_process_name'] ?= 'hadoop-hdfs-journalnode'
-            https = ryba.hdfs.site['dfs.journalnode.https-address'].split(':')[1]
-            options.services['HDFS JN - TCP SSL'].check_command ?= "check_tcp!#{https}!-S"
-            options.services['HDFS JN - Certificate'] ?= {}
-            options.services['HDFS JN - Certificate'].hosts ?= []
-            options.services['HDFS JN - Certificate'].hosts.push host
-            options.services['HDFS JN - Certificate'].servicegroups ?= ['hdfs_jn']
-            options.services['HDFS JN - Certificate'].use ?= 'cert-service'
-            options.services['HDFS JN - Certificate'].check_command ?= "check_cert!#{https}!120!60"
-            create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', host
-          if 'ryba/hadoop/hdfs_dn' in ctx.services
-            w.modules.push 'hdfs_dn' unless 'hdfs_dn' in w.modules
-            h.hostgroups.push 'hdfs_dn' unless 'hdfs_dn' in h.hostgroups
-            options.services['HDFS DN - TCP SSL'] ?= {}
-            options.services['HDFS DN - TCP SSL'].hosts ?= []
-            options.services['HDFS DN - TCP SSL'].hosts.push host
-            options.services['HDFS DN - TCP SSL'].servicegroups ?= ['hdfs_dn']
-            options.services['HDFS DN - TCP SSL'].use ?= 'process-service'
-            options.services['HDFS DN - TCP SSL']['_process_name'] ?= 'hadoop-hdfs-datanode'
-            options.services['HDFS DN - TCP SSL'].check_command ?= "check_tcp!#{ryba.hdfs.site['dfs.datanode.https.address'].split(':')[1]}!-S"
-            options.services['HDFS DN - Certificate'] ?= {}
-            options.services['HDFS DN - Certificate'].hosts ?= []
-            options.services['HDFS DN - Certificate'].hosts.push host
-            options.services['HDFS DN - Certificate'].servicegroups ?= ['hdfs_dn']
-            options.services['HDFS DN - Certificate'].use ?= 'cert-service'
-            options.services['HDFS DN - Certificate'].check_command ?= "check_cert!#{ryba.hdfs.site['dfs.datanode.https.address'].split(':')[1]}!120!60"
-            create_dependency 'HDFS DN - Certificate', 'HDFS DN - TCP SSL', host
-            options.services['HDFS DN - Free space'] ?= {}
-            options.services['HDFS DN - Free space'].hosts ?= []
-            options.services['HDFS DN - Free space'].hosts.push host
-            options.services['HDFS DN - Free space'].servicegroups ?= ['hdfs_dn']
-            options.services['HDFS DN - Free space'].use ?= 'unit-service'
-            options.services['HDFS DN - Free space'].check_command ?= "check_dn_storage!#{ryba.hdfs.site['dfs.datanode.https.address'].split(':')[1]}!75%!90%!-S"
-            create_dependency 'HDFS DN - Free space', 'HDFS DN - TCP SSL', host
-          if 'ryba/hadoop/zkfc' in ctx.services
-            w.modules.push 'hdfs_zkfc' unless 'hdfs_zkfc' in w.modules
-            h.hostgroups.push 'hdfs_zkfc' unless 'hdfs_zkfc' in h.hostgroups
-            options.services['ZKFC - TCP'] ?= {}
-            options.services['ZKFC - TCP'].hosts ?= []
-            options.services['ZKFC - TCP'].hosts.push host
-            options.services['ZKFC - TCP'].servicegroups ?= ['hdfs_zkfc']
-            options.services['ZKFC - TCP'].use ?= 'process-service'
-            options.services['ZKFC - TCP']['_process_name'] ?= 'hadoop-hdfs-zkfc'
-            options.services['ZKFC - TCP'].check_command ?= "check_tcp!#{ryba.hdfs.nn.site['dfs.ha.zkfc.port']}"
-          if 'ryba/hadoop/httpfs' in ctx.services
-            w.modules.push 'httpfs' unless 'httpfs' in w.modules
-            h.hostgroups.push 'httpfs' unless 'httpfs' in h.hostgroups
-            options.services['HttpFS - WebService'] ?= {}
-            options.services['HttpFS - WebService'].hosts ?= []
-            options.services['HttpFS - WebService'].hosts.push host
-            options.services['HttpFS - WebService'].servicegroups ?= ['httpfs']
-            options.services['HttpFS - WebService'].use ?= 'process-service'
-            options.services['HttpFS - WebService']['_process_name'] ?= 'hadoop-httpfs'
-            options.services['HttpFS - WebService'].check_command ?= "check_tcp!#{ryba.httpfs.http_port}"
-            options.services['HttpFS - Certificate'] ?= {}
-            options.services['HttpFS - Certificate'].hosts ?= []
-            options.services['HttpFS - Certificate'].hosts.push host
-            options.services['HttpFS - Certificate'].servicegroups ?= ['httpfs']
-            options.services['HttpFS - Certificate'].use ?= 'cert-service'
-            options.services['HttpFS - Certificate'].check_command ?= "check_cert!#{ryba.httpfs.http_port}!120!60"
-            create_dependency 'HttpFS - Certificate', 'HttpFS - WebService', host
-          if 'ryba/hadoop/yarn_rm' in ctx.services
-            w.modules.push 'yarn_rm' unless 'yarn_rm' in w.modules
-            h.hostgroups.push 'yarn_rm' unless 'yarn_rm' in h.hostgroups
-            options.services['YARN RM - Admin TCP'] ?= {}
-            options.services['YARN RM - Admin TCP'].hosts ?= []
-            options.services['YARN RM - Admin TCP'].hosts.push host
-            options.services['YARN RM - Admin TCP'].servicegroups ?= ['yarn_rm']
-            options.services['YARN RM - Admin TCP'].use ?= 'process-service'
-            options.services['YARN RM - Admin TCP']['_process_name'] ?= 'hadoop-yarn-resourcemanager'
-            options.services['YARN RM - Admin TCP'].check_command ?= "check_tcp!8141"
-            options.services['YARN RM - WebService'] ?= {}
-            options.services['YARN RM - WebService'].hosts ?= []
-            options.services['YARN RM - WebService'].hosts.push host
-            options.services['YARN RM - WebService'].servicegroups ?= ['yarn_rm']
-            options.services['YARN RM - WebService'].use ?= 'unit-service'
-            options.services['YARN RM - WebService'].check_command ?= 'check_tcp!8090!-S'
-            options.services['YARN RM - Certificate'] ?= {}
-            options.services['YARN RM - Certificate'].hosts ?= []
-            options.services['YARN RM - Certificate'].hosts.push host
-            options.services['YARN RM - Certificate'].servicegroups ?= ['yarn_rm']
-            options.services['YARN RM - Certificate'].use ?= 'cert-service'
-            options.services['YARN RM - Certificate'].check_command ?= "check_cert!8090!120!60"
-            create_dependency 'YARN RM - Certificate', 'YARN RM - WebService', host
-          if 'ryba/hadoop/yarn_nm' in ctx.services
-            w.modules.push 'yarn_nm' unless 'yarn_nm' in w.modules
-            h.hostgroups.push 'yarn_nm' unless 'yarn_nm' in h.hostgroups
-            options.services['YARN NM - TCP'] ?= {}
-            options.services['YARN NM - TCP'].hosts ?= []
-            options.services['YARN NM - TCP'].hosts.push host
-            options.services['YARN NM - TCP'].servicegroups ?= ['yarn_nm']
-            options.services['YARN NM - TCP'].use ?= 'process-service'
-            options.services['YARN NM - TCP']['_process_name'] ?= 'hadoop-yarn-nodemanager'
-            options.services['YARN NM - TCP'].check_command ?= "check_tcp!45454"
-            options.services['YARN NM - WebService'] ?= {}
-            options.services['YARN NM - WebService'].hosts ?= []
-            options.services['YARN NM - WebService'].hosts.push host
-            options.services['YARN NM - WebService'].servicegroups ?= ['yarn_nm']
-            options.services['YARN NM - WebService'].use ?= 'unit-service'
-            options.services['YARN NM - WebService'].check_command ?= 'check_tcp!8044!-S'
-            options.services['YARN NM - Certificate'] ?= {}
-            options.services['YARN NM - Certificate'].hosts ?= []
-            options.services['YARN NM - Certificate'].hosts.push host
-            options.services['YARN NM - Certificate'].servicegroups ?= ['yarn_nm']
-            options.services['YARN NM - Certificate'].use ?= 'cert-service'
-            options.services['YARN NM - Certificate'].check_command ?= 'check_cert!8044!120!60'
-            create_dependency 'YARN NM - Certificate', 'YARN NM - WebService', host
-            options.services['YARN NM - Health'] ?= {}
-            options.services['YARN NM - Health'].hosts ?= []
-            options.services['YARN NM - Health'].hosts.push host
-            options.services['YARN NM - Health'].servicegroups ?= ['yarn_nm']
-            options.services['YARN NM - Health'].use ?= 'unit-service'
-            options.services['YARN NM - Health'].check_command ?= 'check_nm_info!8044!nodeHealthy!true!-S'
-            create_dependency 'YARN NM - Health', 'YARN NM - WebService', host
-          if 'ryba/hadoop/mapred_jhs' in ctx.services
-            w.modules.push 'mapred_jhs' unless 'mapred_jhs' in w.modules
-            h.hostgroups.push 'mapred_jhs' unless 'mapred_jhs' in h.hostgroups
-            options.services['MapReduce JHS - TCP'] ?= {}
-            options.services['MapReduce JHS - TCP'].hosts ?= []
-            options.services['MapReduce JHS - TCP'].hosts.push host
-            options.services['MapReduce JHS - TCP'].servicegroups ?= ['mapred_jhs']
-            options.services['MapReduce JHS - TCP'].use ?= 'process-service'
-            options.services['MapReduce JHS - TCP']['_process_name'] ?= 'hadoop-mapreduce-historyserver'
-            options.services['MapReduce JHS - TCP'].check_command ?= "check_tcp!10020"
-            options.services['MapReduce JHS - WebService'] ?= {}
-            options.services['MapReduce JHS - WebService'].hosts ?= []
-            options.services['MapReduce JHS - WebService'].hosts.push host
-            options.services['MapReduce JHS - WebService'].servicegroups ?= ['mapred_jhs']
-            options.services['MapReduce JHS - WebService'].use ?= 'unit-service'
-            options.services['MapReduce JHS - WebService'].check_command ?= 'check_tcp!19889!-S'
-            options.services['MapReduce JHS - Certificate'] ?= {}
-            options.services['MapReduce JHS - Certificate'].hosts ?= []
-            options.services['MapReduce JHS - Certificate'].hosts.push host
-            options.services['MapReduce JHS - Certificate'].servicegroups ?= ['mapred_jhs']
-            options.services['MapReduce JHS - Certificate'].use ?= 'cert-service'
-            options.services['MapReduce JHS - Certificate'].check_command ?= 'check_cert!19889!120!60'
-            create_dependency 'MapReduce JHS - Certificate', 'MapReduce JHS - WebService', host
-          if 'ryba/hadoop/yarn_ts' in ctx.services
-            w.modules.push 'yarn_ts' unless 'yarn_ts' in w.modules
-            h.hostgroups.push 'yarn_ts' unless 'yarn_ts' in h.hostgroups
-            options.services['YARN TS - TCP'] ?= {}
-            options.services['YARN TS - TCP'].hosts ?= []
-            options.services['YARN TS - TCP'].hosts.push host
-            options.services['YARN TS - TCP'].servicegroups ?= ['yarn_ts']
-            options.services['YARN TS - TCP'].use ?= 'process-service'
-            options.services['YARN TS - TCP']['_process_name'] ?= 'hadoop-yarn-timelineserver'
-            options.services['YARN TS - TCP'].check_command ?= "check_tcp!10200"
-            options.services['YARN TS - WebService'] ?= {}
-            options.services['YARN TS - WebService'].hosts ?= []
-            options.services['YARN TS - WebService'].hosts.push host
-            options.services['YARN TS - WebService'].servicegroups ?= ['yarn_ts']
-            options.services['YARN TS - WebService'].use ?= 'unit-service'
-            options.services['YARN TS - WebService'].check_command ?= 'check_tcp!8190!-S'
-            options.services['YARN TS - Certificate'] ?= {}
-            options.services['YARN TS - Certificate'].hosts ?= []
-            options.services['YARN TS - Certificate'].hosts.push host
-            options.services['YARN TS - Certificate'].servicegroups ?= ['yarn_ts']
-            options.services['YARN TS - Certificate'].use ?= 'cert-service'
-            options.services['YARN TS - Certificate'].check_command ?= 'check_cert!8190!120!60'
-            create_dependency 'YARN TS - Certificate', 'YARN TS - WebService', host
-          if 'ryba/hbase/master' in ctx.services
-            w.modules.push 'hbase_master' unless 'hbase_master' in w.modules
-            h.hostgroups.push 'hbase_master' unless 'hbase_master' in h.hostgroups
-            options.services['HBase Master - TCP'] ?= {}
-            options.services['HBase Master - TCP'].hosts ?= []
-            options.services['HBase Master - TCP'].hosts.push host
-            options.services['HBase Master - TCP'].servicegroups ?= ['hbase_master']
-            options.services['HBase Master - TCP'].use ?= 'process-service'
-            options.services['HBase Master - TCP']['_process_name'] ?= 'hbase-master'
-            options.services['HBase Master - TCP'].check_command ?= "check_tcp!#{ryba.hbase.master.site['hbase.master.port']}"
-            options.services['HBase Master - WebUI'] ?= {}
-            options.services['HBase Master - WebUI'].hosts ?= []
-            options.services['HBase Master - WebUI'].hosts.push host
-            options.services['HBase Master - WebUI'].servicegroups ?= ['hbase_master']
-            options.services['HBase Master - WebUI'].use ?= 'unit-service'
-            options.services['HBase Master - WebUI'].check_command ?= "check_tcp!#{ryba.hbase.master.site['hbase.master.info.port']}!-S"
-            create_dependency 'HBase Master - WebUI', 'HBase Master - TCP', host
-            options.services['HBase Master - Certificate'] ?= {}
-            options.services['HBase Master - Certificate'].hosts ?= []
-            options.services['HBase Master - Certificate'].hosts.push host
-            options.services['HBase Master - Certificate'].servicegroups ?= ['hbase_master']
-            options.services['HBase Master - Certificate'].use ?= 'cert-service'
-            options.services['HBase Master - Certificate'].check_command ?= "check_cert!#{ryba.hbase.master.site['hbase.master.info.port']}!120!60"
-            create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', host
-          if 'ryba/hbase/regionserver' in ctx.services
-            w.modules.push 'hbase_regionserver' unless 'hbase_regionserver' in w.modules
-            h.hostgroups.push 'hbase_regionserver' unless 'hbase_regionserver' in h.hostgroups
-            options.services['HBase RegionServer - TCP'] ?= {}
-            options.services['HBase RegionServer - TCP'].hosts ?= []
-            options.services['HBase RegionServer - TCP'].hosts.push host
-            options.services['HBase RegionServer - TCP'].servicegroups ?= ['hbase_regionserver']
-            options.services['HBase RegionServer - TCP'].use ?= 'process-service'
-            options.services['HBase RegionServer - TCP']['_process_name'] ?= 'hbase-regionserver'
-            options.services['HBase RegionServer - TCP'].check_command ?= "check_tcp!#{ryba.hbase.rs.site['hbase.regionserver.port']}"
-            options.services['HBase RegionServer - WebUI'] ?= {}
-            options.services['HBase RegionServer - WebUI'].hosts ?= []
-            options.services['HBase RegionServer - WebUI'].hosts.push host
-            options.services['HBase RegionServer - WebUI'].servicegroups ?= ['hbase_regionserver']
-            options.services['HBase RegionServer - WebUI'].use ?= 'unit-service'
-            options.services['HBase RegionServer - WebUI'].check_command ?= "check_tcp!#{ryba.hbase.rs.site['hbase.regionserver.info.port']}!-S"
-            options.services['HBase RegionServer - Certificate'] ?= {}
-            options.services['HBase RegionServer - Certificate'].hosts ?= []
-            options.services['HBase RegionServer - Certificate'].hosts.push host
-            options.services['HBase RegionServer - Certificate'].servicegroups ?= ['hbase_regionserver']
-            options.services['HBase RegionServer - Certificate'].use ?= 'cert-service'
-            options.services['HBase RegionServer - Certificate'].check_command ?= "check_cert!#{ryba.hbase.rs.site['hbase.regionserver.info.port']}!120!60"
-            create_dependency 'HBase RegionServer - Certificate', 'HBase RegionServer - WebUI', host
-          if 'ryba/hbase/rest' in ctx.services
-            w.modules.push 'hbase_rest' unless 'hbase_rest' in w.modules
-            h.hostgroups.push 'hbase_rest' unless 'hbase_rest' in h.hostgroups
-            options.services['HBase REST - WebService'] ?= {}
-            options.services['HBase REST - WebService'].hosts ?= []
-            options.services['HBase REST - WebService'].hosts.push host
-            options.services['HBase REST - WebService'].servicegroups ?= ['hbase_rest']
-            options.services['HBase REST - WebService'].use ?= 'process-service'
-            options.services['HBase REST - WebService']['_process_name'] ?= 'hbase-rest'
-            options.services['HBase REST - WebService'].check_command ?= "check_tcp!#{ryba.hbase.rest.site['hbase.rest.port']}!-S"
-            options.services['HBase REST - Certificate'] ?= {}
-            options.services['HBase REST - Certificate'].hosts ?= []
-            options.services['HBase REST - Certificate'].hosts.push host
-            options.services['HBase REST - Certificate'].servicegroups ?= ['hbase_rest']
-            options.services['HBase REST - Certificate'].use ?= 'cert-service'
-            options.services['HBase REST - Certificate'].check_command ?= "check_cert!#{ryba.hbase.rest.site['hbase.rest.port']}!120!60"
+              create_service
+                name: 'MariaDB - Connection time'
+                servicegroup: 'mysql_server'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_mysql!#{srv.instances[0].options.port}!connection-time!3!10"
+              create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              # mariadb replication slow queries lag
+              if srv.instances.length > 1
+                create_service
+                  name: 'MariaDB - Slow queries'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'functional-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!slow-queries!0,25!1"
+                create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                # mariadb replication slave lag
+                create_service
+                  name: 'MariaDB - Slave lag'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'unit-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-lag!3!10"
+                create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                #Slave io
+                create_service
+                  name: 'MariaDB - Slave IO running'
+                  servicegroup: 'mysql_server'
+                  instances: srv.instances
+                  use: 'unit-service'
+                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-io-running!1!1"
+                create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              #Connected Threads
+              create_service
+                name: 'MariaDB - Connected Threads'
+                servicegroup: 'mysql_server'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_mysql!#{srv.instances[0].options.port}!threads-connected!100!120"
+              create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/zookeeper/server' is srv.module
+            add_srv_to_cluster 'zookeeper_server', clustername
+            add_srv_to_host_hostgroups  'zookeeper_server', srv.instances
+            create_service
+              name: 'Zookeeper Server - TCP'
+              servicegroup: 'zookeeper_server'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'zookeeper-server'
+              check_command: "check_tcp!#{srv.instances[0].options.config.clientPort}"
+            # Zookeeper State
+            create_service
+              name: 'Zookeeper Server - State'
+              servicegroup: 'zookeeper_server'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_socket!#{srv.instances[0].options.config.clientPort}!ruok!imok"
+            create_dependency 'Zookeeper Server - State', 'Zookeeper Server - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Zookeeper connection
+            create_service
+              name: 'Zookeeper Server - Connections'
+              servicegroup: 'zookeeper_server'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_zk_stat!#{srv.instances[0].options.config.clientPort}!connections!300!350"
+            create_dependency 'Zookeeper Server - Connections', 'Zookeeper Server - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/hdfs_nn' is srv.module
+            add_srv_to_cluster 'hdfs_nn', clustername
+            add_srv_to_host_hostgroups  'hdfs_nn', srv.instances
+            # read rpc port for hdfs nn
+            protocol = if srv.instances[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+            nameservice = if srv.instances[0].options.nameservice then ".#{srv.instances[0].options.nameservice}" else ''
+            shortname = if srv.instances[0].options.nameservice then ".#{srv.instances[0].options.hostname}" else ''
+            address_rpc = srv.instances[0].options.hdfs_site["dfs.namenode.rpc-address#{nameservice}#{shortname}"]
+            [_, rpc_port] = address_rpc.split ':'
+            address = srv.instances[0].options.hdfs_site["dfs.namenode.#{protocol}-address#{nameservice}#{shortname}"]
+            [_, port] = address.split ':'
+            # TCP Port
+            create_service
+              name: 'HDFS NN - TCP'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-hdfs-namenode'
+              check_command:  "check_tcp!#{rpc_port}"
+            create_service
+              name: 'HDFS NN - WebService'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command:  "check_tcp!#{port}!-S"
+            create_dependency 'HDFS NN - WebService', 'HDFS NN - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            # certificate
+            create_service
+              name: 'HDFS NN - Certificate'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{port}!120!60"
+            create_dependency 'HDFS NN - Certificate', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Safe Mode
+            create_service
+              name: 'HDFS NN - Safe Mode'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_hdfs_safemode!#{port}!-S"
+            create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Latency
+            create_service
+              name: 'HDFS NN - RPC latency'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_rpc_latency!NameNode!#{port}!3000!5000!-S"
+            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Last Checkpoint
+            create_service
+              name: 'HDFS NN - Last checkpoint'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_nn_last_checkpoint!#{port}!21600!1000000!120%!200%!-S"
+            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Name dir status
+            create_service
+              name: 'HDFS NN - Name Dir status'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command:"check_nn_namedirs_status!#{port}!-S"
+            create_dependency 'HDFS NN - Name Dir status', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Utilization
+            create_service
+              name: 'HDFS NN - Utilization'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_hdfs_capacity!#{port}!80%!90%!-S"
+            create_dependency 'HDFS NN - Utilization', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Under replicated block
+            create_service
+              name: 'HDFS NN - UnderReplicated blocks'
+              servicegroup: 'hdfs_nn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_hdfs_state!#{port}!FSNamesystemState!UnderReplicatedBlocks!1000!2000!-S"
+            create_dependency 'HDFS NN - UnderReplicated blocks', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          # HDFS JN
+          if 'ryba/hadoop/hdfs_jn' is srv.module
+            add_srv_to_cluster 'hdfs_jn', clustername
+            add_srv_to_host_hostgroups  'hdfs_jn', srv.instances
+            # TCP Port
+            protocol = if srv.instances[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+            port = srv.instances[0].options.hdfs_site["dfs.journalnode.#{protocol}-address"].split(':')[1]
+            create_service
+              name: 'HDFS JN - TCP SSL'
+              servicegroup: 'hdfs_jn'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-hdfs-journalnode'
+              check_command: "check_tcp!#{port}!-S"
+            # Certificate
+            create_service
+              name: 'HDFS JN - Certificate'
+              servicegroup: 'hdfs_jn'
+              instances: srv.instances
+              use: 'cert-service'
+              process_name: 'hadoop-hdfs-journalnode'
+              check_command: "check_cert!#{port}!120!60"
+            create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/hdfs_dn' is srv.module
+            add_srv_to_cluster 'hdfs_dn', clustername
+            add_srv_to_host_hostgroups  'hdfs_dn', srv.instances
+            # TCP Port
+            protocol = if srv.instances[0].options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+            port = srv.instances[0].options.hdfs_site["dfs.datanode.#{protocol}.address"].split(':')[1]
+            create_service
+              name: 'HDFS DN - TCP SSL'
+              servicegroup: 'hdfs_dn'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-hdfs-datanode'
+              check_command: "check_tcp!#{port}!-S"
+            # Certificate
+            create_service
+              name: 'HDFS DN - Certificate'
+              servicegroup: 'hdfs_dn'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{port}!120!60"
+            create_dependency 'HDFS DN - Certificate', 'HDFS DN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            #Free space
+            create_service
+              name: 'HDFS DN - Free space'
+              servicegroup: 'hdfs_dn'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_dn_storage!#{port}!75%!90%!-S"
+            create_dependency 'HDFS DN - Free space', 'HDFS DN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/zkfc' is srv.module
+            add_srv_to_cluster 'hdfs_zkfc', clustername
+            add_srv_to_host_hostgroups  'hdfs_zkfc', srv.instances
+            # TCP Port
+            create_service
+              name: 'ZKFC - TCP'
+              servicegroup: 'hdfs_zkfc'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-hdfs-zkfc'
+              check_command: "check_tcp!#{srv.instances[0].options.hdfs_site['dfs.ha.zkfc.port']}"
+          if 'ryba/hadoop/httpfs' is srv.module
+            add_srv_to_cluster 'httpfs', clustername
+            add_srv_to_host_hostgroups  'httpfs', srv.instances
+            # Webservice
+            create_service
+              name: 'HttpFS - WebService'
+              servicegroup: 'httpfs'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-httpfs'
+              check_command: "check_tcp!#{srv.instances[0].options.http_port}"
+            # Certificate
+            create_service
+              name: 'HttpFS - Certificate'
+              servicegroup: 'httpfs'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.http_port}!120!60"
+            create_dependency 'HttpFS - Certificate', 'HttpFS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/yarn_rm' is srv.module
+            add_srv_to_cluster 'yarn_rm', clustername
+            add_srv_to_host_hostgroups  'yarn_rm', srv.instances
+            # Admin TCP
+            create_service
+              name: 'YARN RM - Admin TCP'
+              servicegroup: 'yarn_rm'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-yarn-resourcemanager'
+              check_command: "check_tcp!8141"
+            # WebService
+            create_service
+              name: 'YARN RM - WebService'
+              servicegroup: 'yarn_rm'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: 'check_tcp!8090!-S'
+            # Certificate
+            create_service
+              name: 'YARN RM - Certificate'
+              servicegroup: 'yarn_rm'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_cert!8090!120!60"
+            create_dependency 'YARN RM - Certificate', 'YARN RM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/yarn_nm' is srv.module
+            add_srv_to_cluster 'yarn_nm', clustername
+            add_srv_to_host_hostgroups  'yarn_nm', srv.instances
+            # TCP Port
+            create_service
+              name: 'YARN NM - TCP'
+              servicegroup: 'yarn_nm'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-yarn-nodemanager'
+              check_command: "check_tcp!45454"
+            # WebService
+            create_service
+              name: 'YARN NM - WebService'
+              servicegroup: 'yarn_nm'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: 'check_tcp!8044!-S'
+            # Certificate
+            create_service
+              name: 'YARN NM - Certificate'
+              servicegroup: 'yarn_nm'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: 'check_cert!8044!120!60'
+            create_dependency 'YARN NM - Certificate', 'YARN NM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Health
+            create_service
+              name: 'YARN NM - Health'
+              servicegroup: 'yarn_nm'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: 'check_nm_info!8044!nodeHealthy!true!-S'
+            create_dependency 'YARN NM - Health', 'YARN NM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/mapred_jhs' is srv.module
+            add_srv_to_cluster 'mapred_jhs', clustername
+            add_srv_to_host_hostgroups  'mapred_jhs', srv.instances
+            # TCP Port
+            create_service
+              name: 'MapReduce JHS - TCP'
+              servicegroup: 'mapred_jhs'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-mapreduce-historyserver'
+              check_command: "check_tcp!10020"
+            # webservice
+            create_service
+              name: 'MapReduce JHS - WebService'
+              servicegroup: 'mapred_jhs'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: 'check_tcp!19889!-S'
+            # Certificate
+            create_service
+              name: 'MapReduce JHS - WebService'
+              servicegroup: 'mapred_jhs'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: 'check_cert!19889!120!60'
+            create_dependency 'MapReduce JHS - Certificate', 'MapReduce JHS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hadoop/yarn_ts' is srv.module
+            add_srv_to_cluster 'yarn_ts', clustername
+            add_srv_to_host_hostgroups  'yarn_ts', srv.instances
+            # Port TCP
+            create_service
+              name: 'YARN TS - TCP'
+              servicegroup: 'yarn_ts'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hadoop-yarn-timelineserver'
+              check_command: "check_tcp!10200"
+            # Webservice
+            create_service
+              name: 'YARN TS - WebService'
+              servicegroup: 'yarn_ts'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: 'check_tcp!8190!-S'
+            # Certificate
+            create_service
+              name: 'YARN TS - Certificate'
+              servicegroup: 'yarn_ts'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: 'check_cert!8190!120!60'
+            create_dependency 'YARN TS - Certificate', 'YARN TS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hbase/master' is srv.module
+            add_srv_to_cluster 'hbase_master', clustername
+            add_srv_to_host_hostgroups  'hbase_master', srv.instances
+            # HBase Master
+            create_service
+              name: 'HBase Master - TCP'
+              servicegroup: 'hbase_master'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hbase-master'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.master.port']}"
+            # WebUI
+            create_service
+              name: 'HBase Master - WebUI'
+              servicegroup: 'hbase_master'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!-S"
+            create_dependency 'HBase Master - WebUI', 'HBase Master - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            # Certificate
+            create_service
+              name: 'HBase Master - Certificate'
+              servicegroup: 'hbase_master'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!120!60"
+            create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hbase/regionserver' is srv.module
+            add_srv_to_cluster 'hbase_regionserver', clustername
+            add_srv_to_host_hostgroups  'hbase_regionserver', srv.instances
+            # TCP Port
+            create_service
+              name: 'HBase RegionServer - TCP'
+              servicegroup: 'hbase_regionserver'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hbase-regionserver'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.regionserver.port']}"
+            # WebUI
+            create_service
+              name: 'HBase RegionServer - WebUI'
+              servicegroup: 'hbase_regionserver'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.regionserver.info.port']}!-S"
+            # Certificate
+            create_service
+              name: 'HBase RegionServer - Certificate'
+              servicegroup: 'hbase_regionserver'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.regionserver.info.port']}!120!60"
+            create_dependency 'HBase RegionServer - Certificate', 'HBase RegionServer - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hbase/rest' is srv.module
+            add_srv_to_cluster 'hbase_rest', clustername
+            add_srv_to_host_hostgroups  'hbase_rest', srv.instances
+            # WebService
+            create_service
+              name: 'HBase REST - WebService'
+              servicegroup: 'hbase_rest'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hbase-rest'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.rest.port']}!-S"
+            #WEBUI
+            create_service
+              name: 'HBase REST - WebUI'
+              servicegroup: 'hbase_rest'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.rest.info.port']}"
+            # Certificate
+            create_service
+              name: 'HBase REST - Certificate'
+              servicegroup: 'hbase_rest'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.rest.port']}!120!60"
             create_dependency 'HBase REST - Certificate', 'HBase REST - WebService', host
-            options.services['HBase REST - WebUI'] ?= {}
-            options.services['HBase REST - WebUI'].hosts ?= []
-            options.services['HBase REST - WebUI'].hosts.push host
-            options.services['HBase REST - WebUI'].servicegroups ?= ['hbase_rest']
-            options.services['HBase REST - WebUI'].use ?= 'unit-service'
-            options.services['HBase REST - WebUI'].check_command ?= "check_tcp!#{ryba.hbase.rest.site['hbase.rest.info.port']}"
-          if 'ryba/hbase/thrift' in ctx.services
-            w.modules.push 'hbase_thrift' unless 'hbase_thrift' in w.modules
-            h.hostgroups.push 'hbase_thrift' unless 'hbase_thrift' in h.hostgroups
-            options.services['HBase Thrift - TCP SSL'] ?= {}
-            options.services['HBase Thrift - TCP SSL'].hosts ?= []
-            options.services['HBase Thrift - TCP SSL'].hosts.push host
-            options.services['HBase Thrift - TCP SSL'].servicegroups ?= ['hbase_thrift']
-            options.services['HBase Thrift - TCP SSL'].use ?= 'process-service'
-            options.services['HBase Thrift - TCP SSL']['_process_name'] ?= 'hbase-thrift'
-            options.services['HBase Thrift - TCP SSL'].check_command ?= "check_tcp!#{ryba.hbase.thrift.site['hbase.thrift.port']}!-S"
-            options.services['HBase Thrift - Certificate'] ?= {}
-            options.services['HBase Thrift - Certificate'].hosts ?= []
-            options.services['HBase Thrift - Certificate'].hosts.push host
-            options.services['HBase Thrift - Certificate'].servicegroups ?= ['hbase_thrift']
-            options.services['HBase Thrift - Certificate'].use ?= 'cert-service'
-            options.services['HBase Thrift - Certificate'].check_command ?= "check_cert!#{ryba.hbase.thrift.site['hbase.thrift.port']}!120!60"
-            create_dependency 'HBase Thrift - Certificate', 'HBase Thrift - TCP SSL', host
-          if 'ryba/hive/hcatalog' in ctx.services
-            w.modules.push 'hcatalog' unless 'hcatalog' in w.modules
-            h.hostgroups.push 'hcatalog' unless 'hcatalog' in h.hostgroups
-            options.services['HCatalog - TCP'] ?= {}
-            options.services['HCatalog - TCP'].hosts ?= []
-            options.services['HCatalog - TCP'].hosts.push host
-            options.services['HCatalog - TCP'].servicegroups ?= ['hcatalog']
-            options.services['HCatalog - TCP'].use ?= 'process-service' #'unit-service'
-            options.services['HCatalog - TCP']['_process_name'] ?= 'hive-hcatalog-server'
-            options.services['HCatalog - TCP'].check_command ?= "check_tcp!#{ryba.hive.hcatalog.site['hive.metastore.port']}"
-          if 'ryba/hive/server2' in ctx.services
-            w.modules.push 'hiveserver2' unless 'hiveserver2' in w.modules
-            h.hostgroups.push 'hiveserver2' unless 'hiveserver2' in h.hostgroups
-            options.services['Hiveserver2 - TCP SSL'] ?= {}
-            options.services['Hiveserver2 - TCP SSL'].hosts ?= []
-            options.services['Hiveserver2 - TCP SSL'].hosts.push host
-            options.services['Hiveserver2 - TCP SSL'].servicegroups ?= ['hiveserver2']
-            options.services['Hiveserver2 - TCP SSL'].use ?= 'unit-service' #'process-service'
-            options.services['Hiveserver2 - TCP SSL']['_process_name'] ?= 'hive-server2'
-            options.services['Hiveserver2 - TCP SSL'].check_command ?= "check_tcp!#{ryba.hive.server2.site['hive.server2.thrift.port']}!-S"
-            options.services['Hiveserver2 - Certificate'] ?= {}
-            options.services['Hiveserver2 - Certificate'].hosts ?= []
-            options.services['Hiveserver2 - Certificate'].hosts.push host
-            options.services['Hiveserver2 - Certificate'].servicegroups ?= ['hiveserver2']
-            options.services['Hiveserver2 - Certificate'].use ?= 'cert-service'
-            options.services['Hiveserver2 - Certificate'].check_command ?= "check_cert!#{ryba.hive.server2.site['hive.server2.thrift.port']}!120!60"
-            create_dependency 'Hiveserver2 - Certificate', 'Hiveserver2 - TCP SSL', host
-          if 'ryba/hive/webhcat' in ctx.services
-            w.modules.push 'webhcat' unless 'webhcat' in w.modules
-            h.hostgroups.push 'webhcat' unless 'webhcat' in h.hostgroups
-            options.services['WebHCat - WebService'] ?= {}
-            options.services['WebHCat - WebService'].hosts ?= []
-            options.services['WebHCat - WebService'].hosts.push host
-            options.services['WebHCat - WebService'].servicegroups ?= ['webhcat']
-            options.services['WebHCat - WebService'].use ?= 'process-service'
-            options.services['WebHCat - WebService']['_process_name'] ?= 'hive-webhcat-server'
-            options.services['WebHCat - WebService'].check_command ?= "check_tcp!#{ryba.webhcat.site['templeton.port']}"
-            options.services['WebHCat - Status'] ?= {}
-            options.services['WebHCat - Status'].hosts ?= []
-            options.services['WebHCat - Status'].hosts.push host
-            options.services['WebHCat - Status'].servicegroups ?= ['webhcat']
-            options.services['WebHCat - Status'].use ?= 'unit-service'
-            options.services['WebHCat - Status'].check_command ?= "check_webhcat_status!#{ryba.webhcat.site['templeton.port']}"
-            create_dependency 'WebHCat - Status', 'WebHCat - WebService', host
-            options.services['WebHCat - Database'] ?= {}
-            options.services['WebHCat - Database'].hosts ?= []
-            options.services['WebHCat - Database'].hosts.push host
-            options.services['WebHCat - Database'].servicegroups ?= ['webhcat']
-            options.services['WebHCat - Database'].use ?= 'unit-service'
-            options.services['WebHCat - Database'].check_command ?= "check_webhcat_database!#{ryba.webhcat.site['templeton.port']}!default"
-            create_dependency 'WebHCat - Database', 'WebHCat - WebService', host
-          if 'ryba/oozie/server' in ctx.services
-            w.modules.push 'oozie_server' unless 'oozie_server' in w.modules
-            h.hostgroups.push 'oozie_server' unless 'oozie_server' in h.hostgroups
-            options.services['Oozie Server - WebUI'] ?= {}
-            options.services['Oozie Server - WebUI'].hosts ?= []
-            options.services['Oozie Server - WebUI'].hosts.push host
-            options.services['Oozie Server - WebUI'].servicegroups ?= ['oozie_server']
-            options.services['Oozie Server - WebUI'].use ?= 'process-service'
-            options.services['Oozie Server - WebUI']['_process_name'] ?= 'oozie'
-            options.services['Oozie Server - WebUI'].check_command ?= "check_tcp!#{ryba.oozie.http_port}!-S"
-            options.services['Oozie Server - Certificate'] ?= {}
-            options.services['Oozie Server - Certificate'].hosts ?= []
-            options.services['Oozie Server - Certificate'].hosts.push host
-            options.services['Oozie Server - Certificate'].servicegroups ?= ['oozie_server']
-            options.services['Oozie Server - Certificate'].use ?= 'cert-service'
-            options.services['Oozie Server - Certificate'].check_command ?= "check_cert!#{ryba.oozie.http_port}!120!60"
-            create_dependency 'Oozie Server - Certificate', 'Oozie Server - WebUI', host
-          if 'ryba/kafka/broker' in ctx.services
-            w.modules.push 'kafka_broker' unless 'kafka_broker' in w.modules
-            h.hostgroups.push 'kafka_broker' unless 'kafka_broker' in h.hostgroups
-            for protocol in ryba.kafka.broker.protocols
-              options.services["Kafka Broker - TCP #{protocol}"] ?= {}
-              options.services["Kafka Broker - TCP #{protocol}"].hosts ?= []
-              options.services["Kafka Broker - TCP #{protocol}"].hosts.push host
-              options.services["Kafka Broker - TCP #{protocol}"].servicegroups ?= ['kafka_broker']
-              options.services["Kafka Broker - TCP #{protocol}"].use ?= 'unit-service'
-              options.services["Kafka Broker - TCP #{protocol}"].check_command ?= "check_tcp!#{ryba.kafka.broker.ports[protocol]}"
-            options.services['Kafka Broker - TCPs'] ?= {}
-            options.services['Kafka Broker - TCPs'].hosts ?= []
-            options.services['Kafka Broker - TCPs'].hosts.push host
-            options.services['Kafka Broker - TCPs'].servicegroups ?= ['kafka_broker']
-            options.services['Kafka Broker - TCPs'].use ?= 'process-service'
-            options.services['Kafka Broker - TCPs']['_process_name'] ?= 'kafka-broker'
-            options.services['Kafka Broker - TCPs'].check_command ?= "bp_rule!($HOSTNAME$,r:^Kafka Broker - TCP .*$)"
-          if 'ryba/ranger/admin' in ctx.services
-            w.modules.push 'ranger' unless 'ranger' in w.modules
-            h.hostgroups.push 'ranger' unless 'ranger' in h.hostgroups
-            options.services['Ranger - WebUI'] ?= {}
-            options.services['Ranger - WebUI'].hosts ?= []
-            options.services['Ranger - WebUI'].hosts.push host
-            options.services['Ranger - WebUI'].servicegroups ?= ['ranger']
-            options.services['Ranger - WebUI'].use ?= 'process-service'
-            options.services['Ranger - WebUI']['_process_name'] ?= 'ranger-admin'
-            if ryba.ranger.admin.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-              options.services['Ranger - WebUI'].check_command ?= "check_tcp!#{ryba.ranger.admin.site['ranger.service.https.port']}!-S"
-              options.services['Ranger - Certificate'] ?= {}
-              options.services['Ranger - Certificate'].hosts ?= []
-              options.services['Ranger - Certificate'].hosts.push host
-              options.services['Ranger - Certificate'].servicegroups ?= ['ranger']
-              options.services['Ranger - Certificate'].use ?= 'cert-service'
-              options.services['Ranger - Certificate'].check_command ?= "check_cert!#{ryba.ranger.admin.site['ranger.service.https.port']}!120!60"
-              create_dependency 'Ranger - Certificate', 'Ranger - WebUI', host
+          if 'ryba/hbase/thrift' is srv.module
+            add_srv_to_cluster 'hbase_thrift', clustername
+            add_srv_to_host_hostgroups  'hbase_thrift', srv.instances
+            # TCP SSL
+            create_service
+              name: 'HBase Thrift - TCP SSL'
+              servicegroup: 'hbase_thrift'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hbase-thrift'
+              check_command:"check_tcp!#{srv.instances[0].options.hbase_site['hbase.thrift.port']}!-S"
+            #certificate
+            create_service
+              name: 'HBase Thrift - TCP SSL'
+              servicegroup: 'hbase_thrift'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.thrift.port']}!120!60"
+            create_dependency 'HBase Thrift - Certificate', 'HBase Thrift - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hive/hcatalog' is srv.module
+            add_srv_to_cluster 'hcatalog', clustername
+            add_srv_to_host_hostgroups  'hcatalog', srv.instances
+            # TCP Port
+            create_service
+              name: 'HCatalog - TCP'
+              servicegroup: 'hcatalog'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hive-hcatalog-server'
+              check_command: "check_tcp!#{srv.instances[0].options.hive_site['hive.metastore.port']}"
+          if 'ryba/hive/server2' is srv.module
+            add_srv_to_cluster 'hiveserver2', clustername
+            add_srv_to_host_hostgroups  'hiveserver2', srv.instances
+            # TCP Port
+            create_service
+              name: 'Hiveserver2 - TCP SSL'
+              servicegroup: 'hiveserver2'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hive-server2'
+              check_command: "check_tcp!#{srv.instances[0].options.hive_site['hive.server2.thrift.port']}"
+            # Certificate
+            create_service
+              name: 'Hiveserver2 - Certificate'
+              servicegroup: 'hiveserver2'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.hive_site['hive.server2.thrift.port']}!120!60"
+            create_dependency 'Hiveserver2 - Certificate', 'Hiveserver2 - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/hive/webhcat' is srv.module
+            add_srv_to_cluster 'webhcat', clustername
+            add_srv_to_host_hostgroups  'webhcat', srv.instances
+            # TCP Port
+            create_service
+              name: 'WebHCat - WebService'
+              servicegroup: 'webhcat'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hive-webhcat-server'
+              check_command: "check_tcp!#{srv.instances[0].options.webhcat_site['templeton.port']}"
+            # Status
+            create_service
+              name: 'WebHCat - Status'
+              servicegroup: 'webhcat'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_webhcat_status!#{srv.instances[0].options.webhcat_site['templeton.port']}"
+            create_dependency 'WebHCat - Status', 'WebHCat - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_service
+              name: 'WebHCat - Database'
+              servicegroup: 'webhcat'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_webhcat_database!#{srv.instances[0].options.webhcat_site['templeton.port']}!default"
+            create_dependency 'WebHCat - Database', 'WebHCat - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/oozie/server' is srv.module
+            add_srv_to_cluster 'oozie_server', clustername
+            add_srv_to_host_hostgroups  'oozie_server', srv.instances
+            # TCP Port
+            create_service
+              name: 'Oozie Server - WebUI'
+              servicegroup: 'oozie_server'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'oozie'
+              check_command: "check_tcp!#{srv.instances[0].options.http_port}!-S"
+            # Certificate
+            create_service
+              name: 'Oozie Server - Certificate'
+              servicegroup: 'oozie_server'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.http_port}!120!60"
+            create_dependency 'Oozie Server - Certificate', 'Oozie Server - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/kafka/broker' is srv.module
+            add_srv_to_cluster 'kafka_broker', clustername
+            add_srv_to_host_hostgroups  'kafka_broker', srv.instances
+            for protocol in srv.instances[0].options.protocols
+              create_service
+                name: "Kafka Broker - TCP #{protocol}"
+                servicegroup: 'kafka_broker'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_tcp!#{srv.instances[0].options.ports[protocol]}"
+            # TCP Ports
+            create_service
+              name: 'Kafka Broker - TCPs'
+              servicegroup: 'kafka_broker'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'kafka-broker'
+              check_command: "bp_rule!($HOSTNAME$,r:^Kafka Broker - TCP .*$)"
+          if 'ryba/ranger/admin' is srv.module
+            add_srv_to_cluster 'ranger', clustername
+            add_srv_to_host_hostgroups  'ranger', srv.instances
+            # Ranger - Admin
+            check_command = "check_tcp!#{srv.instances[0].options.site['ranger.service.http.port']}"
+            if srv.instances[0].options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+              check_command = "check_tcp!#{srv.instances[0].options.site['ranger.service.https.port']}!-S"
+              create_service
+                name: 'Ranger - WebUI'
+                servicegroup: 'ranger'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'ranger-admin'
+                check_command: check_command
+              create_service
+                name: 'Ranger - Certificate'
+                servicegroup: 'ranger'
+                instances: srv.instances
+                use: 'cert-service'
+                check_command: "check_cert!#{srv.instances[0].options.site['ranger.service.https.port']}!120!60"
+              create_dependency 'Ranger - Certificate', 'Ranger - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
             else
-              options.services['Ranger - WebUI'].check_command ?= "check_tcp!#{ryba.ranger.admin.site['ranger.service.http.port']}"
-          if 'ryba/opentsdb' in ctx.services
-            w.modules.push 'opentsdb' unless 'opentsdb' in w.modules
-            h.hostgroups.push 'opentsdb' unless 'opentsdb' in h.hostgroups
-            options.services['OpenTSDB - WebService'] ?= {}
-            options.services['OpenTSDB - WebService'].hosts ?= []
-            options.services['OpenTSDB - WebService'].hosts.push host
-            options.services['OpenTSDB - WebService'].servicegroups ?= ['opentsdb']
-            options.services['OpenTSDB - WebService'].use ?= 'process-service'
-            options.services['OpenTSDB - WebService']['_process_name'] ?= 'opentsdb'
-            options.services['OpenTSDB - WebService'].check_command ?= "check_tcp!#{ryba.opentsdb.config['tsd.network.port']}"
-          if 'ryba/phoenix/queryserver' in ctx.services
-            w.modules.push 'phoenix_qs' unless 'phoenix_qs' in w.modules
-            h.hostgroups.push 'phoenix_qs' unless 'phoenix_qs' in h.hostgroups
-            options.services['Phoenix QueryServer - TCP'] ?= {}
-            options.services['Phoenix QueryServer - TCP'].hosts ?= []
-            options.services['Phoenix QueryServer - TCP'].hosts.push host
-            options.services['Phoenix QueryServer - TCP'].servicegroups ?= ['phoenix_qs']
-            options.services['Phoenix QueryServer - TCP'].use ?= 'process-service'
-            options.services['Phoenix QueryServer - TCP']['_process_name'] ?= 'phoenix-queryserver'
-            options.services['Phoenix QueryServer - TCP'].check_command ?= "check_tcp!#{ryba.phoenix.queryserver.site['phoenix.queryserver.http.port']}"
-          if 'ryba/spark/history_server' in ctx.services
-            w.modules.push 'spark_hs' unless 'spark_hs' in w.modules
-            h.hostgroups.push 'spark_hs' unless 'spark_hs' in h.hostgroups
-            options.services['Spark HistoryServer - WebUI'] ?= {}
-            options.services['Spark HistoryServer - WebUI'].hosts ?= []
-            options.services['Spark HistoryServer - WebUI'].hosts.push host
-            options.services['Spark HistoryServer - WebUI'].servicegroups ?= ['spark_hs']
-            options.services['Spark HistoryServer - WebUI'].use ?= 'process-service'
-            options.services['Spark HistoryServer - WebUI']['_process_name'] ?= 'spark-history-server'
-            options.services['Spark HistoryServer - WebUI'].check_command ?= "check_tcp!#{ryba.spark.history.conf['spark.history.ui.port']}"
-          if 'ryba/spark/livy_server' in ctx.services
-            w.modules.push 'spark_ls' unless 'spark_ls' in w.modules
-            h.hostgroups.push 'spark_ls' unless 'spark_ls' in h.hostgroups
-            options.services['Spark LivyServer - WebService'] ?= {}
-            options.services['Spark LivyServer - WebService'].hosts ?= []
-            options.services['Spark LivyServer - WebService'].hosts.push host
-            options.services['Spark LivyServer - WebService'].servicegroups ?= ['spark_ls']
-            options.services['Spark LivyServer - WebService'].use ?= 'process-service'
-            options.services['Spark LivyServer - WebService']['_process_name'] ?= 'spark-livy-server'
-            options.services['Spark LivyServer - WebService'].check_command ?= "check_tcp!#{ryba.spark.livy.port}"
-          if 'ryba/elasticsearch' in ctx.services
-            w.modules.push 'elasticsearch' unless 'elasticsearch' in w.modules
-            h.hostgroups.push 'elasticsearch' unless 'elasticsearch' in h.hostgroups
-            options.services['ElasticSearch - WebService'] ?= {}
-            options.services['ElasticSearch - WebService'].hosts ?= []
-            options.services['ElasticSearch - WebService'].hosts.push host
-            options.services['ElasticSearch - WebService'].servicegroups ?= ['elasticsearch']
-            options.services['ElasticSearch - WebService'].use ?= 'process-service'
-            options.services['ElasticSearch - WebService']['_process_name'] ?= 'elasticsearch'
-            options.services['ElasticSearch - WebService'].check_command ?= 'check_tcp!9200'
-            options.services['ElasticSearch - TCP'] ?= {}
-            options.services['ElasticSearch - TCP'].hosts ?= []
-            options.services['ElasticSearch - TCP'].hosts.push host
-            options.services['ElasticSearch - TCP'].servicegroups ?= ['elasticsearch']
-            options.services['ElasticSearch - TCP'].use ?= 'unit-service'
-            options.services['ElasticSearch - TCP'].check_command ?= 'check_tcp!9300'
-          if 'ryba/swarm/manager' in ctx.services
-            w.modules.push 'swarm_manager' unless 'swarm_manager' in w.modules
-            h.hostgroups.push 'swarm_manager' unless 'swarm_manager' in h.hostgroups
-            options.services['Swarm Manager - TCP'] ?= {}
-            options.services['Swarm Manager - TCP'].hosts ?= []
-            options.services['Swarm Manager - TCP'].hosts.push host
-            options.services['Swarm Manager - TCP'].servicegroups ?= ['elasticsearch']
-            options.services['Swarm Manager - TCP'].use ?= 'unit-service'
-            options.services['Swarm Manager - TCP'].check_command ?= "check_tcp!#{ryba.swarm.manager.listen_port}"
+              create_service
+                name: 'Ranger - WebUI'
+                servicegroup: 'ranger'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'ranger-admin'
+                check_command: check_command
+          if 'ryba/opentsdb' is srv.module
+            add_srv_to_cluster 'opentsdb', clustername
+            add_srv_to_host_hostgroups  'opentsdb', srv.instances
+            create_service
+              name: 'OpenTSDB - WebService'
+              servicegroup: 'opentsdb'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'opentsdb'
+              check_command: "check_tcp!#{srv.instances[0].options.config['tsd.network.port']}"
+          if 'ryba/phoenix/queryserver' is srv.module
+            add_srv_to_cluster 'phoenix_qs', clustername
+            add_srv_to_host_hostgroups  'phoenix_qs', srv.instances
+            # TCP Port
+            create_service
+              name: 'Phoenix QueryServer - TCP'
+              servicegroup: 'phoenix_qs'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'phoenix-queryserver'
+              check_command: "check_tcp!#{srv.instances[0].options.phoenix_site['phoenix.queryserver.http.port']}"
+          if 'ryba/spark/history_server' is srv.module
+            add_srv_to_cluster 'spark_hs', clustername
+            add_srv_to_host_hostgroups  'spark_hs', srv.instances
+            create_service
+              name: 'Spark HistoryServer - WebUI'
+              servicegroup: 'spark_hs'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'spark-history-server'
+              check_command: "check_tcp!#{srv.instances[0].options.conf['spark.history.ui.port']}"
+          if 'ryba/spark/livy_server' is srv.module
+            add_srv_to_cluster 'spark_ls', clustername
+            add_srv_to_host_hostgroups  'spark_ls', srv.instances
+            create_service
+              name: 'Spark LivyServer - WebService'
+              servicegroup: 'spark_ls'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'spark-livy-server'
+              check_command: "check_tcp!#{srv.instances[0].options.port}"
+          # if 'ryba/elasticsearch' is srv.module
+          #   options.hosts[clustername].modules.push 'elasticsearch' unless 'elasticsearch' in options.hosts[clustername].modules
+          #   options.hosts[fqdn].hostgroups.push 'elasticsearch' unless 'elasticsearch' in options.hosts[fqdn].hostgroups
+          #   options.services['ElasticSearch - WebService'] ?= {}
+          #   options.services['ElasticSearch - WebService'].hosts ?= []
+          #   options.services['ElasticSearch - WebService'].hosts.push host
+          #   options.services['ElasticSearch - WebService'].servicegroups ?= ['elasticsearch']
+          #   options.services['ElasticSearch - WebService'].use ?= 'process-service'
+          #   options.services['ElasticSearch - WebService']['_process_name'] ?= 'elasticsearch'
+          #   options.services['ElasticSearch - WebService'].check_command ?= 'check_tcp!9200'
+          #   options.services['ElasticSearch - TCP'] ?= {}
+          #   options.services['ElasticSearch - TCP'].hosts ?= []
+          #   options.services['ElasticSearch - TCP'].hosts.push host
+          #   options.services['ElasticSearch - TCP'].servicegroups ?= ['elasticsearch']
+          #   options.services['ElasticSearch - TCP'].use ?= 'unit-service'
+          #   options.services['ElasticSearch - TCP'].check_command ?= 'check_tcp!9300'
+          if 'ryba/swarm/manager' is srv.module
+            add_srv_to_cluster 'swarm_manager', clustername
+            add_srv_to_host_hostgroups  'swarm_manager', srv.instances
+            create_service
+              name: 'Swarm Manager - TCP'
+              servicegroup: 'elasticsearch'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_tcp!#{srv.instances[0].options.listen_port}"
             if options.credentials.swarm_user.enabled
-              options.services['ES Containers - TCPs'] ?= {}
-              options.services['ES Containers - TCPs'].hosts ?= []
-              options.services['ES Containers - TCPs'].hosts.push host
-              options.services['ES Containers - TCPs'].servicegroups ?= ['elasticsearch']
-              options.services['ES Containers - TCPs'].use ?= 'unit-service'
-              options.services['ES Containers - TCPs'].check_command ?= "check_es_containers_tcps!#{ryba.swarm.manager.listen_port}!-S"
-              create_dependency 'ES Containers - TCPs', 'Swarm Manager - TCP', host
-              options.services['ES Containers - Status'] ?= {}
-              options.services['ES Containers - Status'].hosts ?= []
-              options.services['ES Containers - Status'].hosts.push host
-              options.services['ES Containers - Status'].servicegroups ?= ['elasticsearch']
-              options.services['ES Containers - Status'].use ?= 'unit-service'
-              options.services['ES Containers - Status'].check_command ?= "check_es_containers_status!#{ryba.swarm.manager.listen_port}!-S"
-              create_dependency 'ES Containers - Status', 'ES Containers - TCPs', host
-          if 'ryba/rexster' in ctx.services
-            w.modules.push 'rexster' unless 'rexster' in w.modules
-            h.hostgroups.push 'rexster' unless 'rexster' in h.hostgroups
-            options.services['Rexster - WebUI'] ?= {}
-            options.services['Rexster - WebUI'].hosts ?= []
-            options.services['Rexster - WebUI'].hosts.push host
-            options.services['Rexster - WebUI'].servicegroups ?= ['rexster']
-            options.services['Rexster - WebUI'].use ?= 'process-service'
-            options.services['Rexster - WebUI']['_process_name'] ?= 'rexster'
-            options.services['Rexster - WebUI'].check_command ?= "check_tcp!#{ryba.rexster.config.http['server-port']}"
-          if 'ryba/atlas' in ctx.services
-            w.modules.push 'atlas' unless 'atlas' in w.modules
-            h.hostgroups.push 'atlas' unless 'atlas' in h.hostgroups
-            options.services['Atlas - WebUI'] ?= {}
-            options.services['Atlas - WebUI'].hosts ?= []
-            options.services['Atlas - WebUI'].hosts.push host
-            options.services['Atlas - WebUI'].servicegroups ?= ['atlas']
-            options.services['Atlas - WebUI'].use ?= 'process-service'
-            options.services['Atlas - WebUI']['_process_name'] ?= 'atlas-metadata-server'
-            if ryba.atlas.application.properties['atlas.enableTLS'] is 'true'
-              options.services['Atlas - WebUI'].check_command ?= "check_tcp!#{ryba.atlas.application.properties['atlas.server.https.port']}"
-              options.services['Atlas - Certificate'] ?= {}
-              options.services['Atlas - Certificate'].hosts ?= []
-              options.services['Atlas - Certificate'].hosts.push host
-              options.services['Atlas - Certificate'].servicegroups ?= ['atlas']
-              options.services['Atlas - Certificate'].use ?= 'cert-service'
-              options.services['Atlas - Certificate'].check_command ?= "check_cert!#{ryba.atlas.application.properties['atlas.server.https.port']}!120!60"
-              create_dependency 'Atlas - Certificate', 'Atlas - WebUI', host
+              create_service
+                name: 'ES Containers - TCPs'
+                servicegroup: 'elasticsearch'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_es_containers_tcps!#{srv.instances[0].options.listen_port}!-S"
+              create_dependency 'ES Containers - TCPs', 'Swarm Manager - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_service
+                name: 'ES Containers - Status'
+                servicegroup: 'elasticsearch'
+                instances: srv.instances
+                use: 'unit-service'
+                check_command: "check_es_containers_status!#{srv.instances[0].options.listen_port}!-S"
+              create_dependency 'ES Containers - Status', 'ES Containers - TCPs', srv.instances.map( (instance) -> instance.node.fqdn )
+          # if 'ryba/rexster' is srv.module
+          #   options.hosts[clustername].modules.push 'rexster' unless 'rexster' in options.hosts[clustername].modules
+          #   options.hosts[fqdn].hostgroups.push 'rexster' unless 'rexster' in options.hosts[fqdn].hostgroups
+          #   options.services['Rexster - WebUI'] ?= {}
+          #   options.services['Rexster - WebUI'].hosts ?= []
+          #   options.services['Rexster - WebUI'].hosts.push host
+          #   options.services['Rexster - WebUI'].servicegroups ?= ['rexster']
+          #   options.services['Rexster - WebUI'].use ?= 'process-service'
+          #   options.services['Rexster - WebUI']['_process_name'] ?= 'rexster'
+          #   options.services['Rexster - WebUI'].check_command ?= "check_tcp!#{ryba.rexster.config.http['server-port']}"
+          if 'ryba/atlas' is srv.module
+            add_srv_to_cluster 'atlas', clustername
+            add_srv_to_host_hostgroups  'atlas', srv.instances
+            if srv.instances[0].options.application.properties['atlas.enableTLS'] is 'true'
+              create_service
+                name: 'Atlas - WebUI'
+                servicegroup: 'atlas'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'atlas-metadata-server'
+                check_command: "check_tcp!#{srv.instances[0].options.application.properties['atlas.server.https.port']}"
+              create_service
+                name: 'Atlas - Certificate'
+                servicegroup: 'atlas'
+                instances: srv.instances
+                use: 'cert-service'
+                check_command: "check_cert!#{srv.instances[0].options.application.properties['atlas.server.https.port']}!120!60"
+              create_dependency 'Atlas - Certificate', 'Atlas - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
             else
-              options.services['Atlas - WebUI'].check_command ?= "check_tcp!#{ryba.atlas.application.properties['atlas.server.http.port']}"
-          if 'ryba/huedocker' in ctx.services
-            w.modules.push 'hue' unless 'hue' in w.modules
-            h.hostgroups.push 'hue' unless 'hue' in h.hostgroups
-            options.services['Hue - WebUI'] ?= {}
-            options.services['Hue - WebUI'].hosts ?= []
-            options.services['Hue - WebUI'].hosts.push host
-            options.services['Hue - WebUI'].servicegroups ?= ['hue']
-            options.services['Hue - WebUI'].use ?= 'process-service'
-            options.services['Hue - WebUI']['_process_name'] ?= 'hue-server-docker'
-            if ryba.hue_docker.ssl
-              options.services['Hue - WebUI'].check_command ?= "check_tcp!#{ryba.hue_docker.ini.desktop.http_port}!-S"
-              options.services['Hue - Certificate'] ?= {}
-              options.services['Hue - Certificate'].hosts ?= []
-              options.services['Hue - Certificate'].hosts.push host
-              options.services['Hue - Certificate'].servicegroups ?= ['hue']
-              options.services['Hue - Certificate'].use ?= 'cert-service'
-              options.services['Hue - Certificate'].check_command ?= "check_cert!#{ryba.hue_docker.ini.desktop.http_port}!120!60"
-              create_dependency 'Hue - Certificate', 'Hue - WebUI', host
-            else
-              options.services['Hue - WebUI'].check_command ?= "check_tcp!#{ryba.hue_docker.ini.desktop.http_port}"
-          if 'ryba/knox/server' in ctx.services
-            w.modules.push 'knox' unless 'knox' in w.modules
-            h.hostgroups.push 'knox' unless 'knox' in h.hostgroups
-            options.services['Knox - WebService'] ?= {}
-            options.services['Knox - WebService'].hosts ?= []
-            options.services['Knox - WebService'].hosts.push host
-            options.services['Knox - WebService'].servicegroups ?= ['knox']
-            options.services['Knox - WebService'].use ?= 'process-service'
-            options.services['Knox - WebService']['_process_name'] ?= 'knox-server'
-            options.services['Knox - WebService'].check_command ?= "check_tcp!#{ryba.knox.site['gateway.port']}!-S"
-            options.services['Knox - Certificate'] ?= {}
-            options.services['Knox - Certificate'].hosts ?= []
-            options.services['Knox - Certificate'].hosts.push host
-            options.services['Knox - Certificate'].servicegroups ?= ['knox']
-            options.services['Knox - Certificate'].use ?= 'cert-service'
-            options.services['Knox - Certificate'].check_command ?= "check_cert!#{ryba.knox.site['gateway.port']}!120!60"
-            create_dependency 'Knox - Certificate', 'Knox - WebService', host
+              create_service
+                name: 'Atlas - WebUI'
+                servicegroup: 'atlas'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'atlas-metadata-server'
+                check_command: "check_tcp!#{srv.instances[0].options.application.properties['atlas.server.http.port']}"
+          if 'ryba/huedocker' is srv.module
+            add_srv_to_cluster 'hue', clustername
+            add_srv_to_host_hostgroups  'hue', srv.instances
+            create_service
+              name: 'Hue - WebUI'
+              servicegroup: 'hue'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'hue-server-docker'
+              check_command: "check_cert!#{srv.instances[0].options.ini.desktop.http_port}!120!60"
+            if srv.instances[0].options.ssl.enabled
+              create_service
+                name: 'Hue - Certificate'
+                servicegroup: 'hue'
+                instances: srv.instances
+                use: 'cert-service'
+                check_command:"check_cert!#{srv.instances[0].options.ini.desktop.http_port}!120!60"
+              create_dependency 'Hue - Certificate', 'Hue - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/knox/server' is srv.module
+            add_srv_to_cluster 'knox', clustername
+            add_srv_to_host_hostgroups  'knox', srv.instances
+            #TCP Port
+            create_service
+              name: 'Knox - WebService'
+              servicegroup: 'knox'
+              instances: srv.instances
+              use: 'process-service'
+              process_name: 'knox-server'
+              check_command: "check_tcp!#{srv.instances[0].options.gateway_site['gateway.port']}!-S"
+            # Certificate
+            create_service
+              name: 'Knox - Certificate'
+              servicegroup: 'knox'
+              instances: srv.instances
+              use: 'cert-service'
+              check_command: "check_cert!#{srv.instances[0].options.gateway_site['gateway.port']}!120!60"
+            create_dependency 'Knox - Certificate', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
             if options.credentials.knox_user.enabled
-              options.services['Knox - HBase Scan'] ?= {}
-              options.services['Knox - HBase Scan'].hosts ?= []
-              options.services['Knox - HBase Scan'].hosts.push host
-              options.services['Knox - HBase Scan'].servicegroups ?= ['knox', 'hbase']
-              options.services['Knox - HBase Scan'].use ?= 'functional-service'
-              options.services['Knox - HBase Scan'].check_command ?= "check_hbase_scan!#{ryba.knox.site['gateway.port']}!hbase:meta!-S"
-              create_dependency 'Knox - HBase Scan', 'Knox - WebService', host
-              options.services['Knox - HBase Write'] ?= {}
-              options.services['Knox - HBase Write'].hosts ?= []
-              options.services['Knox - HBase Write'].hosts.push host
-              options.services['Knox - HBase Write'].servicegroups ?= ['knox', 'hbase']
-              options.services['Knox - HBase Write'].use ?= 'functional-service'
-              options.services['Knox - HBase Write'].check_command ?= "check_hbase_write!#{ryba.knox.site['gateway.port']}!#{ryba.hbase.client.test.namespace}:monitoring!cf1!-S"
-              create_dependency 'Knox - HBase Write', 'Knox - WebService', host
-              options.services['Knox - HDFS Write'] ?= {}
-              options.services['Knox - HDFS Write'].hosts ?= []
-              options.services['Knox - HDFS Write'].hosts.push host
-              options.services['Knox - HDFS Write'].servicegroups ?= ['knox', 'hdfs']
-              options.services['Knox - HDFS Write'].use ?= 'functional-service'
-              options.services['Knox - HDFS Write'].check_command ?= "check_hdfs_write!#{ryba.knox.site['gateway.port']}!-S"
-              create_dependency 'Knox - HDFS Write', 'Knox - WebService', host
-          if 'ryba/nifi' in ctx.services
-            {properties} = ryba.nifi.config
-            w.modules.push 'nifi' unless 'nifi' in w.modules
-            h.hostgroups.push 'nifi' unless 'nifi' in h.hostgroups
-            # get nifi port
-            options.services['NiFi - WebUI'] ?= {}
-            options.services['NiFi - WebUI'].hosts ?= []
-            options.services['NiFi - WebUI'].hosts.push host
-            options.services['NiFi - WebUI'].servicegroups ?= ['nifi']
-            options.services['NiFi - WebUI'].use ?= 'process-service'
-            options.services['NiFi - WebUI']['_process_name'] ?= 'nifi'
-            if properties['nifi.cluster.protocol.is.secure'] is 'true'
-              options.services['NiFi - WebUI'].check_command ?= "check_tcp!#{properties['nifi.web.https.port']}!-S"
-              options.services['NiFi - Certificate'] ?= {}
-              options.services['NiFi - Certificate'].hosts ?= []
-              options.services['NiFi - Certificate'].hosts.push host
-              options.services['NiFi - Certificate'].servicegroups ?= ['nifi']
-              options.services['NiFi - Certificate'].use ?= 'cert-service'
-              options.services['NiFi - Certificate'].check_command ?= "check_cert!#{properties['nifi.web.https.port']}!120!60"
-              create_dependency 'NiFi - Certificate', 'NiFi - WebUI', host
+              create_service
+                name: 'Knox - HBase Scan'
+                servicegroup: ['knox', 'hbase']
+                instances: srv.instances
+                use: 'functional-service'
+                check_command: "check_cert!#{srv.instances[0].options.gateway_site['gateway.port']}!120!60"
+              create_dependency 'Knox - HBase Scan', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_service
+                name: 'Knox - HBase Write'
+                servicegroup: ['knox', 'hbase']
+                instances: srv.instances
+                use: 'functional-service'
+                check_command: "check_hbase_write!#{srv.instances[0].options.gateway_site['gateway.port']}!#{srv.instances[0].options.hbase_client_test_namespace}:monitoring!cf1!-S"
+              create_dependency 'Knox - HBase Write', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_service
+                name: 'Knox - HDFS Write'
+                servicegroup: ['knox', 'hdfs']
+                instances: srv.instances
+                use: 'functional-service'
+                check_command: "check_hdfs_write!#{srv.instances[0].options.gateway_site['gateway.port']}!-S"
+              create_dependency 'Knox - HDFS Write', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+          if 'ryba/nifi' is srv.module
+            add_srv_to_cluster 'nifi', clustername
+            add_srv_to_host_hostgroups  'nifi', srv.instances
+            #TCP Port
+            if srv.instances[0].options.properties['nifi.cluster.protocol.is.secure'] is 'true'
+              create_service
+                name: 'NiFi - WebUI'
+                servicegroup: 'nifi'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'nifi'
+                check_command: "check_tcp!#{srv.instances[0].options.properties['nifi.web.https.port']}!-S"
+              create_service
+                name: 'NiFi - Certificate'
+                servicegroup: 'nifi'
+                instances: srv.instances
+                use: 'cert-service'
+                check_command: "check_cert!#{srv.instances[0].options.properties['nifi.web.https.port']}!120!60"
+              create_dependency 'NiFi - Certificate', 'NiFi - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
             else
-              options.services['NiFi - WebUI'].check_command ?= "check_tcp!#{properties['nifi.web.http.port']}"
-            options.services['NiFi - TCP'] ?= {}
-            options.services['NiFi - TCP'].hosts ?= []
-            options.services['NiFi - TCP'].hosts.push host
-            options.services['NiFi - TCP'].servicegroups ?= ['nifi']
-            options.services['NiFi - TCP'].use ?= 'unit-service'
-            options.services['NiFi - TCP'].check_command ?= "check_tcp!#{properties['nifi.cluster.node.protocol.port']}"
-            create_dependency 'NiFi - TCP', 'NiFi - WebUI', host
+              create_service
+                name: 'NiFi - WebUI'
+                servicegroup: 'nifi'
+                instances: srv.instances
+                use: 'process-service'
+                process_name: 'nifi'
+                check_command: "check_tcp!#{srv.instances[0].options.properties['nifi.web.http.port']}!-S"
+            create_service
+              name: 'NiFi - TCP'
+              servicegroup: 'nifi'
+              instances: srv.instances
+              use: 'unit-service'
+              check_command: "check_tcp!#{srv.instances[0].options.properties['nifi.cluster.node.protocol.port']}"
+            create_dependency 'NiFi - TCP', 'NiFi - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
 
 ### Watcher services
 
-        if 'mysql_server' in w.modules
+        if 'mysql_server' in options.hosts[clustername].modules
           options.services['MySQL - Available'] ?= {}
           options.services['MySQL - Available'].hosts ?= []
           options.services['MySQL - Available'].hosts.push clustername
           options.services['MySQL - Available'].servicegroups ?= ['mysql_server']
           options.services['MySQL - Available'].use ?= 'bp-service'
           options.services['MySQL - Available'].check_command ?= bp_has_one 'MySQL - TCP', '$HOSTNAME$'
-        if 'mariadb_server' in w.modules
+        if 'mariadb_server' in options.hosts[clustername].modules
           options.services['MariaDB - Available'] ?= {}
           options.services['MariaDB - Available'].hosts ?= []
           options.services['MariaDB - Available'].hosts.push clustername
           options.services['MariaDB - Available'].servicegroups ?= ['mysql_server']
           options.services['MariaDB - Available'].use ?= 'bp-service'
           options.services['MariaDB - Available'].check_command ?= bp_has_one 'MariaDB - TCP', '$HOSTNAME$'
-        if 'zookeeper_server' in w.modules
+        if 'zookeeper_server' in options.hosts[clustername].modules
           options.services['Zookeeper Server - Available'] ?= {}
           options.services['Zookeeper Server - Available'].hosts ?= []
           options.services['Zookeeper Server - Available'].hosts.push clustername
           options.services['Zookeeper Server - Available'].servicegroups ?= ['zookeeper_server']
           options.services['Zookeeper Server - Available'].use ?= 'bp-service'
           options.services['Zookeeper Server - Available'].check_command ?= bp_has_quorum 'Zookeeper Server - TCP', '$HOSTNAME$'
-        if 'hdfs_nn' in w.modules
+        if 'hdfs_nn' in options.hosts[clustername].modules
           options.services['HDFS NN - Available'] ?= {}
           options.services['HDFS NN - Available'].hosts ?= []
           options.services['HDFS NN - Available'].hosts.push clustername
@@ -1124,7 +1192,7 @@ Theses functions are used to generate business rules
           options.services['HDFS NN - Live DNs'].use ?= 'unit-service'
           options.services['HDFS NN - Live DNs'].check_command ?= 'check_live_dn!50470!-S'
           create_dependency 'HDFS NN - Live DNs', 'HDFS NN - Active Node', clustername
-        if 'hdfs_zkfc' in w.modules
+        if 'hdfs_zkfc' in options.hosts[clustername].modules
           options.services['ZKFC - Available'] ?= {}
           options.services['ZKFC - Available'].hosts ?= []
           options.services['ZKFC - Available'].hosts.push clustername
@@ -1132,14 +1200,14 @@ Theses functions are used to generate business rules
           options.services['ZKFC - Available'].use ?= 'bp-service'
           options.services['ZKFC - Available'].check_command ?= bp_has_all 'ZKFC - TCP', '$HOSTNAME$'
           create_dependency 'ZKFC - Available', 'Zookeeper Server - Available', clustername
-        if 'hdfs_jn' in w.modules
+        if 'hdfs_jn' in options.hosts[clustername].modules
           options.services['HDFS JN - Available'] ?= {}
           options.services['HDFS JN - Available'].hosts ?= []
           options.services['HDFS JN - Available'].hosts.push clustername
           options.services['HDFS JN - Available'].servicegroups ?= ['hdfs_jn']
           options.services['HDFS JN - Available'].use ?= 'bp-service'
           options.services['HDFS JN - Available'].check_command ?= bp_has_quorum 'HDFS JN - TCP SSL', '$HOSTNAME$'
-        if 'hdfs_dn' in w.modules
+        if 'hdfs_dn' in options.hosts[clustername].modules
           options.services['HDFS DN - Available'] ?= {}
           options.services['HDFS DN - Available'].hosts ?= []
           options.services['HDFS DN - Available'].hosts.push clustername
@@ -1152,14 +1220,14 @@ Theses functions are used to generate business rules
           options.services['HDFS DN - Nodes w/ Free space'].servicegroups ?= ['hdfs_dn']
           options.services['HDFS DN - Nodes w/ Free space'].use ?= 'bp-service'
           options.services['HDFS DN - Nodes w/ Free space'].check_command ?= bp_has_one 'HDFS DN - Free space', '$HOSTNAME$'
-        if 'httpfs' in w.modules
+        if 'httpfs' in options.hosts[clustername].modules
           options.services['HttpFS - Available'] ?= {}
           options.services['HttpFS - Available'].hosts ?= []
           options.services['HttpFS - Available'].hosts.push clustername
           options.services['HttpFS - Available'].servicegroups ?= ['httpfs']
           options.services['HttpFS - Available'].use ?= 'bp-service'
           options.services['HttpFS - Available'].check_command ?= bp_has_one 'HttpFS - WebService', '$HOSTNAME$'
-        if 'yarn_rm' in w.modules
+        if 'yarn_rm' in options.hosts[clustername].modules
           options.services['YARN RM - Available'] ?= {}
           options.services['YARN RM - Available'].hosts ?= []
           options.services['YARN RM - Available'].hosts.push clustername
@@ -1202,28 +1270,28 @@ Theses functions are used to generate business rules
           options.services['YARN RM - RPC latency'].use ?= 'unit-service'
           options.services['YARN RM - RPC latency'].check_command ?= "check_rpc_latency_ha!'YARN RM - Active Node'!ResourceManager!8090!3000!5000!-S"
           create_dependency 'YARN RM - RPC latency', 'YARN RM - Active Node', clustername
-        if 'yarn_nm' in w.modules
+        if 'yarn_nm' in options.hosts[clustername].modules
           options.services['YARN NM - Available'] ?= {}
           options.services['YARN NM - Available'].hosts ?= []
           options.services['YARN NM - Available'].hosts.push clustername
           options.services['YARN NM - Available'].servicegroups ?= ['yarn_nm']
           options.services['YARN NM - Available'].use ?= 'bp-service'
           options.services['YARN NM - Available'].check_command ?= bp_miss 3, 'YARN NM - TCP', '$HOSTNAME$'
-        if 'mapred_jhs' in w.modules
+        if 'mapred_jhs' in options.hosts[clustername].modules
           options.services['MapReduce JHS - Available'] ?= {}
           options.services['MapReduce JHS - Available'].hosts ?= []
           options.services['MapReduce JHS - Available'].hosts.push clustername
           options.services['MapReduce JHS - Available'].servicegroups ?= ['mapred_jhs']
           options.services['MapReduce JHS - Available'].use ?= 'bp-service'
           options.services['MapReduce JHS - Available'].check_command ?= bp_has_one 'MapReduce JHS - TCP', '$HOSTNAME$'
-        if 'yarn_ts' in w.modules
+        if 'yarn_ts' in options.hosts[clustername].modules
           options.services['YARN TS - Available'] ?= {}
           options.services['YARN TS - Available'].hosts ?= []
           options.services['YARN TS - Available'].hosts.push clustername
           options.services['YARN TS - Available'].servicegroups ?= ['yarn_ts']
           options.services['YARN TS - Available'].use ?= 'bp-service'
           options.services['YARN TS - Available'].check_command ?= bp_has_one 'YARN TS - TCP', '$HOSTNAME$'
-        if 'hbase_master' in w.modules
+        if 'hbase_master' in options.hosts[clustername].modules
           options.services['HBase Master - Available'] ?= {}
           options.services['HBase Master - Available'].hosts ?= []
           options.services['HBase Master - Available'].hosts.push clustername
@@ -1253,7 +1321,7 @@ Theses functions are used to generate business rules
           options.services['HBase - Replication logs'].use ?= 'functional-service'
           options.services['HBase - Replication logs'].check_command ?= 'check_hdfs_content_summary!50470!/apps/hbase/data/oldWALs!spaceConsumed!824633720832!1099511627776!-S' # 768GiB | 1TiB
           create_dependency 'HBase - Replication logs', 'HDFS NN - Active Node', clustername
-        if 'hbase_regionserver' in w.modules
+        if 'hbase_regionserver' in options.hosts[clustername].modules
           options.services['HBase RegionServer - Available'] ?= {}
           options.services['HBase RegionServer - Available'].hosts ?= []
           options.services['HBase RegionServer - Available'].hosts.push clustername
@@ -1261,49 +1329,49 @@ Theses functions are used to generate business rules
           options.services['HBase RegionServer - Available'].use ?= 'bp-service'
           options.services['HBase RegionServer - Available'].check_command ?= bp_miss '20%', 'HBase RegionServer - TCP', '$HOSTNAME$'
           create_dependency 'HBase RegionServer - Available', 'Zookeeper Server - Available', clustername
-        if 'hbase_rest' in w.modules
+        if 'hbase_rest' in options.hosts[clustername].modules
           options.services['HBase REST - Available'] ?= {}
           options.services['HBase REST - Available'].hosts ?= []
           options.services['HBase REST - Available'].hosts.push clustername
           options.services['HBase REST - Available'].servicegroups ?= ['hbase_rest']
           options.services['HBase REST - Available'].use ?= 'bp-service'
           options.services['HBase REST - Available'].check_command ?= bp_has_one 'HBase REST - WebService', '$HOSTNAME$'
-        if 'hbase_thrift' in w.modules
+        if 'hbase_thrift' in options.hosts[clustername].modules
           options.services['HBase Thrift - Available'] ?= {}
           options.services['HBase Thrift - Available'].hosts ?= []
           options.services['HBase Thrift - Available'].hosts.push clustername
           options.services['HBase Thrift - Available'].servicegroups ?= ['hbase_thrift']
           options.services['HBase Thrift - Available'].use ?= 'bp-service'
           options.services['HBase Thrift - Available'].check_command ?= bp_has_one 'HBase Thrift - TCP SSL', '$HOSTNAME$'
-        if 'hcatalog' in w.modules
+        if 'hcatalog' in options.hosts[clustername].modules
           options.services['HCatalog - Available'] ?= {}
           options.services['HCatalog - Available'].hosts ?= []
           options.services['HCatalog - Available'].hosts.push clustername
           options.services['HCatalog - Available'].servicegroups ?= ['hcatalog']
           options.services['HCatalog - Available'].use ?= 'bp-service'
           options.services['HCatalog - Available'].check_command ?= bp_has_one 'HCatalog - TCP', '$HOSTNAME$'
-        if 'hiveserver2' in w.modules
+        if 'hiveserver2' in options.hosts[clustername].modules
           options.services['Hiveserver2 - Available'] ?= {}
           options.services['Hiveserver2 - Available'].hosts ?= []
           options.services['Hiveserver2 - Available'].hosts.push clustername
           options.services['Hiveserver2 - Available'].servicegroups ?= ['hiveserver2']
           options.services['Hiveserver2 - Available'].use ?= 'bp-service'
           options.services['Hiveserver2 - Available'].check_command ?= bp_has_one 'Hiveserver2 - TCP SSL', '$HOSTNAME$'
-        if 'webhcat' in w.modules
+        if 'webhcat' in options.hosts[clustername].modules
           options.services['WebHCat - Available'] ?= {}
           options.services['WebHCat - Available'].hosts ?= []
           options.services['WebHCat - Available'].hosts.push clustername
           options.services['WebHCat - Available'].servicegroups ?= ['webhcat']
           options.services['WebHCat - Available'].use ?= 'bp-service'
           options.services['WebHCat - Available'].check_command ?= bp_has_one 'WebHCat - WebService', '$HOSTNAME$'
-        if 'oozie_server' in w.modules
+        if 'oozie_server' in options.hosts[clustername].modules
           options.services['Oozie Server - Available'] ?= {}
           options.services['Oozie Server - Available'].hosts ?= []
           options.services['Oozie Server - Available'].hosts.push clustername
           options.services['Oozie Server - Available'].servicegroups ?= ['oozie_server']
           options.services['Oozie Server - Available'].use ?= 'bp-service'
           options.services['Oozie Server - Available'].check_command ?= bp_has_one 'Oozie Server - WebUI', '$HOSTNAME$'
-        if 'kafka_broker' in w.modules
+        if 'kafka_broker' in options.hosts[clustername].modules
           options.services['Kafka Broker - Available'] ?= {}
           options.services['Kafka Broker - Available'].hosts ?= []
           options.services['Kafka Broker - Available'].hosts.push clustername
@@ -1311,7 +1379,7 @@ Theses functions are used to generate business rules
           options.services['Kafka Broker - Available'].use ?= 'bp-service'
           options.services['Kafka Broker - Available'].check_command ?= bp_has_one 'Kafka Broker - TCPs', '$HOSTNAME$'
           create_dependency 'Kafka Broker - Available', 'Zookeeper Server - Available', clustername
-        if 'opentsdb' in w.modules
+        if 'opentsdb' in options.hosts[clustername].modules
           options.services['OpenTSDB - Available'] ?= {}
           options.services['OpenTSDB - Available'].hosts ?= []
           options.services['OpenTSDB - Available'].hosts.push clustername
@@ -1319,7 +1387,7 @@ Theses functions are used to generate business rules
           options.services['OpenTSDB - Available'].use ?= 'bp-service'
           options.services['OpenTSDB - Available'].check_command ?= bp_has_one 'OpenTSDB - WebService', '$HOSTNAME$'
           create_dependency 'OpenTSDB - Available', 'HBase - Available', clustername
-        if 'phoenix_qs' in w.modules
+        if 'phoenix_qs' in options.hosts[clustername].modules
           options.services['Phoenix QueryServer - Available'] ?= {}
           options.services['Phoenix QueryServer - Available'].hosts ?= []
           options.services['Phoenix QueryServer - Available'].hosts.push clustername
@@ -1327,62 +1395,63 @@ Theses functions are used to generate business rules
           options.services['Phoenix QueryServer - Available'].use ?= 'bp-service'
           options.services['Phoenix QueryServer - Available'].check_command ?= bp_has_one 'Phoenix QueryServer - TCP', '$HOSTNAME$'
           create_dependency 'Phoenix QueryServer - Available', 'HBase - Available', clustername
-        if 'spark_hs' in w.modules
+        if 'spark_hs' in options.hosts[clustername].modules
           options.services['Spark HistoryServer - Available'] ?= {}
           options.services['Spark HistoryServer - Available'].hosts ?= []
           options.services['Spark HistoryServer - Available'].hosts.push clustername
           options.services['Spark HistoryServer - Available'].servicegroups ?= ['spark_qs']
           options.services['Spark HistoryServer - Available'].use ?= 'bp-service'
           options.services['Spark HistoryServer - Available'].check_command ?= bp_has_one 'Spark HistoryServer - WebUI', '$HOSTNAME$'
-        if 'spark_ls' in w.modules
+        if 'spark_ls' in options.hosts[clustername].modules
           options.services['Spark LivyServer - Available'] ?= {}
           options.services['Spark LivyServer - Available'].hosts ?= []
           options.services['Spark LivyServer - Available'].hosts.push clustername
           options.services['Spark LivyServer - Available'].servicegroups ?= ['spark_ls']
           options.services['Spark LivyServer - Available'].use ?= 'bp-service'
           options.services['Spark LivyServer - Available'].check_command ?= bp_has_one 'Spark LivyServer - TCP', '$HOSTNAME$'  
-        if 'elasticsearch' in w.modules
+        if 'elasticsearch' in options.hosts[clustername].modules
           options.services['ElasticSearch - Available'] ?= {}
           options.services['ElasticSearch - Available'].hosts ?= []
           options.services['ElasticSearch - Available'].hosts.push clustername
           options.services['ElasticSearch - Available'].servicegroups ?= ['elasticsearch']
           options.services['ElasticSearch - Available'].use ?= 'bp-service'
           options.services['ElasticSearch - Available'].check_command ?= bp_has_quorum 'ElasticSearch - TCP', '$HOSTNAME$'
-        if 'atlas' in w.modules
+        if 'atlas' in options.hosts[clustername].modules
           options.services['Atlas - Available'] ?= {}
           options.services['Atlas - Available'].hosts ?= []
           options.services['Atlas - Available'].hosts.push clustername
           options.services['Atlas - Available'].servicegroups ?= ['atlas']
           options.services['Atlas - Available'].use ?= 'bp-service'
           options.services['Atlas - Available'].check_command ?= bp_has_one 'Atlas - WebUI', '$HOSTNAME$'
-        if 'ranger' in w.modules
+        if 'ranger' in options.hosts[clustername].modules
           options.services['Ranger - Available'] ?= {}
           options.services['Ranger - Available'].hosts ?= []
           options.services['Ranger - Available'].hosts.push clustername
           options.services['Ranger - Available'].servicegroups ?= ['ranger']
           options.services['Ranger - Available'].use ?= 'bp-service'
           options.services['Ranger - Available'].check_command ?= bp_has_one 'Ranger - WebUI', '$HOSTNAME$'
-        if 'knox' in w.modules
+        if 'knox' in options.hosts[clustername].modules
           options.services['Knox - Available'] ?= {}
           options.services['Knox - Available'].hosts ?= []
           options.services['Knox - Available'].hosts.push clustername
           options.services['Knox - Available'].servicegroups ?= ['knox']
           options.services['Knox - Available'].use ?= 'bp-service'
           options.services['Knox - Available'].check_command ?= bp_has_one 'Knox - WebService', '$HOSTNAME$'
-        if 'hue' in w.modules
+        if 'hue' in options.hosts[clustername].modules
           options.services['Hue - Available'] ?= {}
           options.services['Hue - Available'].hosts ?= []
           options.services['Hue - Available'].hosts.push clustername
           options.services['Hue - Available'].servicegroups ?= ['hue']
           options.services['Hue - Available'].use ?= 'bp-service'
           options.services['Hue - Available'].check_command ?= bp_has_one 'Hue - WebUI', '$HOSTNAME$'
-        if 'nifi' in w.modules
+        if 'nifi' in options.hosts[clustername].modules
           options.services['NiFi - Available'] ?= {}
           options.services['NiFi - Available'].hosts ?= []
           options.services['NiFi - Available'].hosts.push clustername
           options.services['NiFi - Available'].servicegroups ?= ['nifi']
           options.services['NiFi - Available'].use ?= 'bp-service'
           options.services['NiFi - Available'].check_command ?= bp_has_quorum 'NiFi - WebUI', '$HOSTNAME$'
+          
         options.services['Hadoop - CORE'] ?= {}
         options.services['Hadoop - CORE'].hosts ?= []
         options.services['Hadoop - CORE'].hosts.push clustername
@@ -1412,12 +1481,20 @@ Theses functions are used to generate business rules
         options.services['Cluster Availability'].hosts.push clustername
         options.services['Cluster Availability'].use ?= 'bp-service'
         options.services['Cluster Availability'].check_command ?= bp_has_all '.*Available', '$HOSTNAME$'
-
-      if options.contexts?
-        for clustername, ctx_dir of options.contexts
-          from_contexts.call @, glob.sync("#{ctx_dir}/*").map((f) -> require f), clustername
-      else
-        from_contexts.call @, @contexts '**'
+      for  clustername, cluster of options.clusters
+        from_nodes normalize(cluster.config).nodes, clustername, cluster.config
+        # console.log store(cluster.config).nodes()[0]
+      # for clustername, cluster of options.clusters
+      #   from_nodes cluster.config, clustername
+      # lucasbak: 17122017
+      # no require on configure
+      # pass directly as argument config file containing clusters layout
+      # if options.clusters?
+      #   for clustername, config of options.clusters
+      #     from_contexts glob.sync("#{ctx_dir}/*").map((f) -> require f), clustername
+      # else
+      #   from_contexts @contexts '**'
+      # console.log service if service.node.fqdn is 'master01.metal.ryba'
 
 ## Normalize
 
@@ -1503,3 +1580,6 @@ Theses functions are used to generate business rules
     glob = require 'glob'
     {merge} = require 'nikita/lib/misc'
     path = require 'path'
+    normalize = require 'masson/lib/config/normalize'
+    store = require 'masson/lib/config/store'
+    
