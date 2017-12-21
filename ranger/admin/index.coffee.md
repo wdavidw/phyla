@@ -10,6 +10,7 @@ access control over Hadoop data access components like Apache Hive and Apache HB
         krb5_client: module: 'masson/core/krb5_client', local: true
         java: module: 'masson/commons/java', local: true
         mysql_client: module: 'masson/commons/mysql/client', local: true
+        mariadb_client: module: 'masson/commons/mariadb/client', local: true, auto: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         # remove ryba/solr/cloud from logs destination
