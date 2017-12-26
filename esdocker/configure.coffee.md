@@ -81,6 +81,7 @@
 
 ## Kernerl
 
+      options.prepare = service.deps.esdocker[0].node.fqdn is service.node.fqdn
       options.sysctl ?= {}
       options.sysctl["vm.max_map_count"] = 262144
       es_masters = []

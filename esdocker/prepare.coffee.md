@@ -5,10 +5,9 @@ Download Elasticsearch Plugins.
 
     module.exports =
       header: 'Elasticsearch Plugins'
-      if: -> @contexts('ryba/esdocker')[0]?.config.host is @config.host
-      handler: ->
-        clusters = @config.ryba.es_docker.clusters
-        for es_name,es of clusters then do (es_name,es) =>
+      handler: (options) ->
+        return unless options.prepare
+        for es_name,es of options.clusters then do (es_name,es) =>
           @each es.plugins_urls, (plugins_options,plugins_callback) ->
             downloaded = false
             @each plugins_options.value, (plugin_options,callback) ->

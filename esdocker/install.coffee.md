@@ -14,40 +14,23 @@
         user: options.user.name
       , options.user.limits
 
-## Kernel
+# Kernel
 
-      @call header: 'Kernel', (_, next) ->
-        @system.execute
-          if: Object.keys(options.sysctl).length
-          cmd: 'sysctl -a'
-          stdout: null
-          shy: true
-        , (err, _, content) ->
-          throw err if err
-          content = misc.ini.parse content
-          properties = {}
-          for k, v of options.sysctl
-            v = "#{v}"
-            properties[k] = v if content[k] isnt v
-          return next null, false unless Object.keys(properties).length
-          @fs.readFile '/etc/sysctl.conf', 'ascii', (err, config) =>
-            current = misc.ini.parse config
-            #merge properties from current config
-            for k, v of current
-              properties[k] = v if options.sysctl[k] isnt v
-            @file
-              header: 'Write Kernel Parameters'
-              target: '/etc/sysctl.conf'
-              content: misc.ini.stringify_single_key properties
-              backup: true
-              eof: true
-            , (err) ->
-              throw err if err
-              properties = for k, v of properties then "#{k}='#{v}'"
-              properties = properties.join ' '
-              @system.execute
-                cmd: "sysctl #{properties}"
-              , next
+Configure kernel parameters at runtime. There are no properties set by default,
+here's a suggestion:
+
+*    vm.swappiness = 10
+*    vm.overcommit_memory = 1
+*    vm.overcommit_ratio = 100
+*    net.core.somaxconn = 4096 (default socket listen queue size 128)
+
+Note, we might move this middleware to Masson.
+
+      @tools.sysctl
+        header: 'Kernel'
+        properties: options.sysctl
+        merge: true
+        comment: true
 
 ## SSL Certificate
 
@@ -103,24 +86,24 @@
         @system.mkdir directory:"/etc/elasticsearch/#{es_name}/scripts",uid: options.user.name, gid: options.user.name
         @system.mkdir directory:"/etc/elasticsearch/keytabs",uid: options.user.name, gid: options.user.name
 
-        @each es.downloaded_urls,(options,callback) ->
-          extract_target  = if options.value.indexOf("github") != -1  then "#{es.plugins_path}/#{es.es_version}/" else "#{es.plugins_path}/#{es.es_version}/#{options.key}"
-          @call header: "Plugin #{options.key} installation...", ->
+        @each es.downloaded_urls, (opts,callback) ->
+          extract_target  = if opts.value.indexOf("github") != -1  then "#{es.plugins_path}/#{es.es_version}/" else "#{es.plugins_path}/#{es.es_version}/#{opts.key}"
+          @call header: "Plugin #{opts.key} installation...", ->
             @file.download
-              cache_file: "./#{options.key}.zip"
-              source: options.value
-              target: "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip"
+              cache_file: "./#{opts.key}.zip"
+              source: opts.value
+              target: "#{es.plugins_path}/#{es.es_version}/#{opts.key}.zip"
               uid: options.user.name
               gid: options.user.name
               shy: true
             @tools.extract
               format: "zip"
-              source: "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip"
+              source: "#{es.plugins_path}/#{es.es_version}/#{opts.key}.zip"
               target: extract_target
               shy: true
             es.volumes.push "#{es.plugins_path}/#{es.es_version}/#{options.key}/elasticsearch:/usr/share/elasticsearch/plugins/#{options.key}"
             @system.remove "#{es.plugins_path}/#{es.es_version}/#{options.key}.zip", shy: true
-          @next callback
+          @then callback
 
 
 ## Generate compose file
@@ -184,7 +167,7 @@
 ## Run docker compose file
 
           [docker_args,export_vars] = [
-            {host:options.swarm_manager,tlsverify:" ",tlscacert:options.ssl.dest_cacert,tlscert:options.ssl.dest_cert,tlskey:options.ssl.dest_key},
+            {host: if options.swarm_manager then options.swarm_manager else '' ,tlsverify:" ",tlscacert:options.ssl.dest_cacert,tlscert:options.ssl.dest_cert,tlskey:options.ssl.dest_key},
             "export DOCKER_HOST=#{options.swarm_manager};export DOCKER_CERT_PATH=#{options.ssl.dest_dir};export DOCKER_TLS_VERIFY=1"
             ]
 
