@@ -32,7 +32,7 @@
 
 ## Credentials
       
-      options.credentials ?= service.deps.monitoring.options
+      options.credentials ?= service.deps.monitoring.options.credentials
       for key in ['hostgroups', 'contactgroups', 'commands', 'realms', 'dependencies', 
         'escalations', 'timeperiods','hosts', 'services', 'contacts'
       ]
