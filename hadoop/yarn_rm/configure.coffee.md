@@ -365,9 +365,15 @@ rmr /rmstore/ZKRMStateRoot
       # Export
       service.deps.yarn_ts.options.yarn_site ?= {}
       service.deps.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
-      service.deps.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir']
-      service.deps.yarn_ts.options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix'] ?= options.yarn_site['yarn.nodemanager.remote-app-log-dir-suffix']
-      service.deps.yarn_ts.options.yarn_site['yarn.log-aggregation-enable'] ?= options.yarn_site['yarn.log-aggregation-enable']
+      for property in [
+        'yarn.nodemanager.remote-app-log-dir'
+        'yarn.nodemanager.remote-app-log-dir-suffix'
+        'yarn.log-aggregation-enable'
+        'yarn.log-aggregation.retain-seconds'
+        'yarn.log-aggregation.retain-check-interval-seconds'
+        'yarn.generic-application-history.save-non-am-container-meta-info'
+      ]
+        service.deps.yarn_ts.options.yarn_site[property] ?= options.yarn_site[property]
 
 ## Export to Yarn NodeManager
 
@@ -380,6 +386,7 @@ rmr /rmstore/ZKRMStateRoot
           'yarn.resourcemanager.cluster-id'
           'yarn.nodemanager.remote-app-log-dir'
           'yarn.nodemanager.remote-app-log-dir-suffix'
+          'yarn.log-aggregation-enable'
           'yarn.resourcemanager.ha.enabled'
           'yarn.resourcemanager.ha.rm-ids'
           'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
