@@ -1097,7 +1097,7 @@ from normzlized configuration.
                 servicegroup: ['knox', 'hbase']
                 instances: srv.instances
                 use: 'functional-service'
-                check_command: "check_cert!#{srv.instances[0].options.gateway_site['gateway.port']}!120!60"
+                check_command: "check_hbase_scan!#{srv.instances[0].options.gateway_site['gateway.port']}!hbase:meta!-S"
               create_dependency 'Knox - HBase Scan', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
               create_service
                 name: 'Knox - HBase Write'
