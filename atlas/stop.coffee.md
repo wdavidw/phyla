@@ -1,7 +1,7 @@
 
 # Altas Metadata Server Stop
 
-    module.exports = header: 'Atlas Stop', handler: ->
+    module.exports = header: 'Atlas Stop', handler: (options) ->
 
 You can stop the service with the following commands.
 
