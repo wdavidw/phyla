@@ -187,7 +187,7 @@ catalina_opts="${catalina_opts} -Doozie.https.keystore.pass=${OOZIE_HTTPS_KEYSTO
         target: "#{options.conf_dir}/oozie-env.sh"
         source: "#{__dirname}/../resources/oozie-env.sh.j2"
         local: true
-        context: options: options
+        context: options
         write: writes
         uid: options.user.name
         gid: options.group.name

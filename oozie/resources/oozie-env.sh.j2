@@ -2,13 +2,13 @@
 
 if [ -d "/usr/lib/bigtop-tomcat" ]; then
   export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
-  export CATALINA_BASE=${CATALINA_BASE:-{{ryba.oozie.server_dir}}}
+  export CATALINA_BASE=${CATALINA_BASE:-{{server_dir}}}
   export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
 fi
 
 #Set JAVA HOME
-export JAVA_HOME={{options.java_home}}
+export JAVA_HOME={{java_home}}
 
 export JRE_HOME=${JAVA_HOME}
 
@@ -20,7 +20,7 @@ export JRE_HOME=${JAVA_HOME}
 export HDP_VERSION=${HDP_VERSION:-`hdp-select | grep oozie-server | sed 's/^.* - \(.*\)$/\1/'`}
 export CATALINA_OPTS="${CATALINA_OPTS} -Dhdp.version=${HDP_VERSION}"
 #on first install, ssl failed asking for truststore, then latert work
-#export CATALINA_OPTS="-Djavax.net.ssl.trustStore={{options.ssl.truststore.target}} -Djavax.net.ssl.trustStorePassword={{options.ssl.truststore.password}}"
+#export CATALINA_OPTS="-Djavax.net.ssl.trustStore={{ssl.truststore.target}} -Djavax.net.ssl.trustStorePassword={{ssl.truststore.password}}"
 
 # Oozie configuration file to load from Oozie configuration directory
 #
@@ -28,14 +28,14 @@ export CATALINA_OPTS="${CATALINA_OPTS} -Dhdp.version=${HDP_VERSION}"
 
 # Oozie logs directory
 #
-export OOZIE_LOG={{options.log_dir}}
+export OOZIE_LOG={{log_dir}}
 
 # Oozie pid directory
 #
-export CATALINA_PID={{options.pid_dir}}/oozie.pid
+export CATALINA_PID={{pid_dir}}/oozie.pid
 
 #Location of the data for oozie
-export OOZIE_DATA={{options.data_dir}}
+export OOZIE_DATA={{data_dir}}
 
 # Oozie Log4J configuration file to load from Oozie configuration directory
 #
@@ -47,27 +47,27 @@ export OOZIE_DATA={{options.data_dir}}
 
 # Log4J custom options
 #
-export OOZIE_LOG4J_OPTS="{{options.log4j_opts}}"
+export OOZIE_LOG4J_OPTS="{{log4j_opts}}"
 
 export CATALINA_OPTS="${CATALINA_OPTS} ${OOZIE_LOG4J_OPTS} "
 
 # The port Oozie server runs
 #
 # ryba: commented because it throw "java.net.BindException: Address already in use <null>:11443"
-#export OOZIE_HTTP_PORT={{options.http_port}}
+#export OOZIE_HTTP_PORT={{http_port}}
 
 # The admin port Oozie server runs
 #
-export OOZIE_ADMIN_PORT={{options.admin_port}}
+export OOZIE_ADMIN_PORT={{admin_port}}
 
 # The host name Oozie server runs on
 #
 # export OOZIE_HTTP_HOSTNAME=`hostname -f`
 
 # The base URL for callback URLs to Oozie
-export OOZIE_BASE_URL="{{options.oozie_site['oozie.base.url']}}"
+export OOZIE_BASE_URL="{{oozie_site['oozie.base.url']}}"
 
-export JAVA_LIBRARY_PATH={{options.hadoop_lib_home}}/native/Linux-amd64-64
+export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
 
 # At least 1 minute of retry time to account for server downtime during
 # upgrade/downgrade
@@ -78,7 +78,7 @@ export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 
 # workflows/coordinator jobs, the memory settings may need to be revised
 
 if [[ `java -version 2>&1 | head -n 1 | sed 's/.*"1\.\([0-9]*\)\..*/\1/'` < 8 ]]; then
-  export CATALINA_OPTS="${CATALINA_OPTS} -Xmx{{options.heap_size}}  "
+  export CATALINA_OPTS="${CATALINA_OPTS} -Xmx{{heap_size}}  "
 else
-  export CATALINA_OPTS="${CATALINA_OPTS} -Xmx{{options.heap_size}}"
+  export CATALINA_OPTS="${CATALINA_OPTS} -Xmx{{heap_size}}"
 fi
