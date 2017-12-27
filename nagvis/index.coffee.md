@@ -8,11 +8,14 @@ mail system or a network infrastructure.
 
 NagVis is also compliant with shinken.
 
-    module.exports = ->
+    module.exports =
+      deps:
+        yum: module: 'masson/core/yum', local: true
+        iptables: module: 'masson/core/iptables', local: true
+        broker: module: 'ryba/shinken/broker'
+        httpd: module: 'masson/commons/httpd', local: true, required: true
       'configure':
         'ryba/nagvis/configure'
       'install': [
-        'masson/core/yum'
-        'masson/core/iptables'
         'ryba/nagvis/install'
       ]

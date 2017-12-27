@@ -20,29 +20,41 @@ Example
     }
 ```
 
-    module.exports = handler: ->
-      nagvis = @config.ryba.nagvis ?= {}
-      nagvis.install_dir ?= '/usr/local/nagvis'
-      if [ctx] = @contexts 'ryba/shinken/broker', [require('../shinken/lib/configure').handler, require('../shinken/broker/configure').handler]
-        nagvis.base_dir ?= ctx.config.ryba.shinken.user.home
-        nagvis.livestatus_address ?= "#{if ctx.config.host is @config.host then '127.0.0.1' else @config.host}:#{ctx.config.ryba.shinken.broker.modules['livestatus'].config.port}"
-      throw Error 'Must declare shinken broker module, or manually specify nagvis.base_dir and nagvis.livestatus_address' unless nagvis.base_dir? and nagvis.livestatus_address?
-      nagvis.version ?= '1.9-nightly'
-      nagvis.source ?= "https://www.nagvis.org/share/nagvis-#{nagvis.version}.tar.gz"
-      nagvis.shinken_integrate ?= false
-      nagvis.config ?= {}
-      nagvis.config.global ?= {}
-      nagvis.config.global.file_group ?= 'apache'
-      nagvis.config.paths ?= {}
-      nagvis.config.defaults ?= {}
-      nagvis.config.index ?= {}
-      nagvis.config.automap ?= {}
-      nagvis.config.global ?= {}
-      nagvis.config.wui ?= {}
-      nagvis.config.worker ?= {}
-      nagvis.config.backend_live_1 ?= {}
-      nagvis.config.backend_live_1.backendtype ?= "mklivestatus"
-      nagvis.config.backend_live_1.socket ?= "tcp:127.0.0.1:50000"
-      nagvis.config.backend_ndomy_1 ?= {}
-      nagvis.config.backend_ndomy_1.backendtype ?= "ndomy"
-      nagvis.config.states ?= {}
+    module.exports = (service) ->
+      options = service.options
+      options.install_dir ?= '/usr/local/nagvis'
+
+## Shinken
+configure bind address based if shinken broker is available (local) or not
+
+      if service.deps.broker[0]?
+        options.base_dir ?= service.deps.broker[0].options.user.home
+        options.livestatus_address ?= "#{if service.deps.broker[0].node.fqdn is service.node.fqdn then '127.0.0.1' else service.node.fqdn}:#{service.deps.broker[0].options.modules['livestatus'].config.port}"
+      throw Error 'Must declare shinken broker module, or manually specify options.base_dir and options.livestatus_address' unless options.base_dir? and options.livestatus_address?
+
+## HTTPD
+
+      options.httpd_user ?= service.deps.httpd.options.user
+      options.httpd_group ?= service.deps.httpd.options.group
+
+## Configuration
+
+      options.version ?= '1.9-nightly'
+      options.source ?= "https://www.options.org/share/nagvis-#{options.version}.tar.gz"
+      options.shinken_integrate ?= false
+      options.config ?= {}
+      options.config.global ?= {}
+      options.config.global.file_group ?= 'apache'
+      options.config.paths ?= {}
+      options.config.defaults ?= {}
+      options.config.index ?= {}
+      options.config.automap ?= {}
+      options.config.global ?= {}
+      options.config.wui ?= {}
+      options.config.worker ?= {}
+      options.config.backend_live_1 ?= {}
+      options.config.backend_live_1.backendtype ?= "mklivestatus"
+      options.config.backend_live_1.socket ?= "tcp:127.0.0.1:50000"
+      options.config.backend_ndomy_1 ?= {}
+      options.config.backend_ndomy_1.backendtype ?= "ndomy"
+      options.config.states ?= {}

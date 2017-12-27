@@ -1,9 +1,7 @@
 
 # NagVis Install
 
-    module.exports = header: 'NagVis Install', handler: ->
-      {httpd} = @config
-      {nagvis} = @config.ryba
+    module.exports = header: 'NagVis Install', handler: (options) ->
 
 ## IPTables
 
@@ -17,9 +15,9 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @tools.iptables
         header: 'IPTables'
         rules: [
-          chain: 'INPUT', jump: 'ACCEPT', dport: nagvis.port, protocol: 'tcp', state: 'NEW', comment: "NagVis"
+          chain: 'INPUT', jump: 'ACCEPT', dport: options.port, protocol: 'tcp', state: 'NEW', comment: "NagVis"
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Packages
 
@@ -35,37 +33,37 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Install
 
-      @call unless_exec: "[ `cat #{nagvis.install_dir}/version` = #{nagvis.version} ]", header: 'Archive', ->
+      @call unless_exec: "[ `cat #{options.install_dir}/version` = #{options.version} ]", header: 'Archive', ->
         @file.download
-          source: nagvis.source
-          target: "/var/tmp/nagvis-#{nagvis.version}.tar.gz"
+          source: options.source
+          target: "/var/tmp/nagvis-#{options.version}.tar.gz"
         @tools.extract
-          source: "/var/tmp/nagvis-#{nagvis.version}.tar.gz"
+          source: "/var/tmp/nagvis-#{options.version}.tar.gz"
         @system.chmod
-          target: "/var/tmp/nagvis-#{nagvis.version}/install.sh"
+          target: "/var/tmp/nagvis-#{options.version}/install.sh"
           mode: 0o755
         @system.execute
           cmd: """
-          cd /var/tmp/nagvis-#{nagvis.version};
-          ./install.sh -n #{nagvis.base_dir} -p #{nagvis.install_dir} \
-          -l 'tcp:#{nagvis.livestatus_address}' -b mklivestatus -u #{httpd.user.name} -g #{httpd.group.name} -w /etc/httpd/conf.d -a y -q
+          cd /var/tmp/nagvis-#{options.version};
+          ./install.sh -n #{options.base_dir} -p #{options.install_dir} \
+          -l 'tcp:#{options.livestatus_address}' -b mklivestatus -u #{options.httpd_user.name} -g #{options.httpd_group.name} -w /etc/httpd/conf.d -a y -q
           """
         @service.restart
           name: 'httpd'
         @file
-          target: "#{nagvis.install_dir}/version"
-          content: "#{nagvis.version}"
-        @system.remove target: "/var/tmp/nagvis-#{nagvis.version}.tar.gz"
-        @system.remove target: "/var/tmp/nagvis-#{nagvis.version}"
+          target: "#{options.install_dir}/version"
+          content: "#{options.version}"
+        @system.remove target: "/var/tmp/nagvis-#{options.version}.tar.gz"
+        @system.remove target: "/var/tmp/nagvis-#{options.version}"
 
       write = ""
-      for k, v of nagvis.config
+      for k, v of options.config
         write += "[#{k}]\n"
         for sk, sv of v
           write += "#{sk}=" + if typeof sv is 'string' then "\"#{sv}\"\n" else "#{sv}\n"
         write += "\n"
       @file
-        target: "#{nagvis.install_dir}/etc/nagvis.ini.php"
+        target: "#{options.install_dir}/etc/options.ini.php"
         content: write
         backup: true
 
