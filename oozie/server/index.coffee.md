@@ -21,6 +21,7 @@ Please check Oozie page
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        yarn_ts: module: 'ryba/hadoop/yarn_ts'
         mapred_jhs: module: 'ryba/hadoop/mapred_jhs'
         hbase_master: module: 'ryba/hbase/master'
         hive_hcatalog: module: 'ryba/hive/hcatalog'

@@ -20,6 +20,8 @@ with Hadoop clusters.
         httpfs: module: 'ryba/hadoop/httpfs'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        yarn_ts: module: 'ryba/hadoop/yarn_ts'
+        mapred_jhs: module: 'ryba/hadoop/mapred_jhs'
         hive_server2: module: 'ryba/hive/server2'
         hive_webhcat: module: 'ryba/hive/webhcat'
         oozie_server: module: 'ryba/oozie/server'

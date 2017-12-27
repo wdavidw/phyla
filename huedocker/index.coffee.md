@@ -35,6 +35,7 @@ beloaded to the target server
         yarn_rm: 'ryba/hadoop/yarn_rm'
         yarn_nm: 'ryba/hadoop/yarn_nm'
         mapred_jhs: 'ryba/hadoop/mapred_jhs'
+        yarn_ts: 'ryba/hadoop/yarn_ts'
         httpfs: 'ryba/hadoop/httpfs'
         oozie_server: 'ryba/oozie/server'
         hive_server2: 'ryba/hive/server2'

@@ -138,6 +138,8 @@ Knox reads its own env variable to retrieve configuration.
       enrich_proxy_user srv for srv in service.deps.hdfs_dn
       enrich_proxy_user srv for srv in service.deps.yarn_rm
       enrich_proxy_user srv for srv in service.deps.yarn_nm
+      enrich_proxy_user srv for srv in service.deps.yarn_ts
+      enrich_proxy_user srv for srv in service.deps.mapred_jhs
       # Probably hbase rest is reading "core-site.xml" from "/etc/hadoop/conf"
       # enrich_proxy_user srv, 'hbase_rest' for srv in service.deps.hbase_rest
       enrich_proxy_user srv, 'hdfs_client' for srv in service.deps.hdfs_client

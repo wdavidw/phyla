@@ -425,6 +425,8 @@ hdfs_client configuration directory.
       enrich_proxy_user srv for srv in service.deps.yarn_rm
       enrich_proxy_user srv for srv in service.deps.yarn_nm
       enrich_proxy_user srv for srv in service.deps.hdfs_client
+      enrich_proxy_user srv for srv in service.deps.yarn_ts
+      enrich_proxy_user srv for srv in service.deps.mapred_jhs
       # enrich_proxy_user srv for srv in service.deps.hive_server2
       # enrich_proxy_user srv for srv in service.deps.hive_webhcat
 
