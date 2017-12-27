@@ -246,8 +246,7 @@ inserted if ALL users or the HDFS user access is denied.
                   if match = include.exec line
                     included = true # we shall also check if the ip/fqdn match in origin
                   if not included and match = exclude.exec line
-                    nn_hosts = @contexts('ryba/hadoop/hdfs_nn').map (ctx) -> ctx.config.host
-                    content.push "+ : #{options.user.name} : #{nn_hosts.join ','}"
+                    content.push "+ : #{options.user.name} : #{options.nn_hosts}"
                   content.push line
                 return callback null, false if content.length is source.length
                 @file

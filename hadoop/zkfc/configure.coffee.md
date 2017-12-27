@@ -30,7 +30,7 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       options.pid_dir ?= service.deps.hadoop_core.options.hdfs.pid_dir
       options.log_dir ?= service.deps.hadoop_core.options.hdfs.log_dir
       options.conf_dir ?= '/etc/hadoop-hdfs-zkfc/conf'
-      options.nn_conf_dir ?= service.deps.hdfs_nn.options.conf_dir
+      options.nn_conf_dir ?= service.deps.hdfs_nn_local.options.conf_dir
       # Java
       options.java_home ?= service.deps.java.options.java_home
       options.hadoop_heap ?= service.deps.hadoop_core.options.hadoop_heap
@@ -50,10 +50,10 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
       .map (srv)-> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
       .join(',')
       # Validation
-      options.principal ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
-      options.nn_principal ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.kerberos.principal']
-      options.keytab ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
-      options.nn_keytab ?= service.deps.hdfs_nn.options.hdfs_site['dfs.namenode.keytab.file']
+      options.principal ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.nn_principal ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.namenode.kerberos.principal']
+      options.keytab ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.namenode.keytab.file']
+      options.nn_keytab ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.namenode.keytab.file']
       options.jaas_file ?= "#{options.conf_dir}/zkfc.jaas"
       options.digest ?= {}
       options.digest.name ?= 'zkfc'
@@ -78,14 +78,15 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
         'dfs.nameservices'
         'dfs.internal.nameservices'
         'fs.permissions.umask-mode'
-      ] then options.hdfs_site[property] ?= service.deps.hdfs_nn.options.hdfs_site[property]
-      for property, value of service.deps.hdfs_nn.options.hdfs_site
+      ] then options.hdfs_site[property] ?= service.deps.hdfs_nn_local.options.hdfs_site[property]
+      for property, value of service.deps.hdfs_nn_local.options.hdfs_site
         ok = false
         ok = true if /^dfs\.namenode\.\w+-address/.test property
         # ok = true if property.indexOf('dfs.client.failover.proxy.provider.') is 0
         ok = true if property.indexOf('dfs.ha.namenodes.') is 0
         continue unless ok
         options.hdfs_site[property] ?= value
+      options.nn_hosts ?= service.deps.hdfs_nn.map( (srv) -> srv.node.fqdn ).join(',')
 
 ## Kerberos
 
@@ -96,14 +97,14 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ## HA
 
-      options.dfs_nameservices ?= service.deps.hdfs_nn.options.hdfs_site['dfs.nameservices']
-      options.automatic_failover ?= service.deps.hdfs_nn.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
-      options.active_nn_host ?= service.deps.hdfs_nn.options.active_nn_host
-      options.standby_nn_host ?= service.deps.hdfs_nn.options.standby_nn_host
+      options.dfs_nameservices ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.nameservices']
+      options.automatic_failover ?= service.deps.hdfs_nn_local.options.hdfs_site['dfs.ha.automatic-failover.enabled'] is 'true'
+      options.active_nn_host ?= service.deps.hdfs_nn_local.options.active_nn_host
+      options.standby_nn_host ?= service.deps.hdfs_nn_local.options.standby_nn_host
       options.active_shortname ?= service.instances.filter( (instance) -> instance.node.fqdn is options.active_nn_host )[0].node.hostname
       options.standby_shortname ?= service.instances.filter( (instance) -> instance.node.fqdn is options.standby_nn_host )[0].node.hostname
-      # options.active_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
-      # options.standby_shortname = service.deps.hdfs_nn.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
+      # options.active_shortname = service.deps.hdfs_nn_local.filter( (srv) -> srv.node.fqdn is srv.options.active_nn_host )[0].node.hostname
+      # options.standby_shortname = service.deps.hdfs_nn_local.filter( (srv) -> srv.node.fqdn is srv.options.standby_nn_host )[0].node.hostname
 
 ### Fencing
 
@@ -127,7 +128,7 @@ fencing method should be configured to not block failover.
 ## Wait
 
       options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
-      options.wait_hdfs_nn = service.deps.hdfs_nn.options.wait
+      options.wait_hdfs_nn = service.deps.hdfs_nn_local.options.wait
 
 ## Dependencies
 

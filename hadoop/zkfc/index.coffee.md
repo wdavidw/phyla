@@ -12,7 +12,8 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
         java: module: 'masson/commons/java', local: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, auto: true, implicit: true
         zookeeper_server: module: 'ryba/zookeeper/server'
-        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
+        hdfs_nn_local: module: 'ryba/hadoop/hdfs_nn', local: true, required: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
       configure:
         'ryba/hadoop/zkfc/configure'
       plugin: (options) ->
