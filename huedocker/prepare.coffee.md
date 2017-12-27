@@ -39,19 +39,19 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
         @system.mkdir
           target: "#{options.cache_dir}/huedocker"
         @system.mkdir
-          target: "#{path.resole options.cache_dir, options.build.directory}/"
+          target: "#{path.resolve options.cache_dir, options.build.directory}/"
         @system.copy
           unless: options.build.source.indexOf('.git') > 0
           source: options.build.source
-          target: "#{path.resole options.cache_dir, options.build.directory}/hue"
+          target: "#{path.resolve options.cache_dir, options.build.directory}/hue"
         @tools.git
           if: options.build.source.indexOf('.git') > 0
           source: options.build.source
-          target: "#{path.resole options.cache_dir, options.build.directory}/hue"
+          target: "#{path.resolve options.cache_dir, options.build.directory}/hue"
           revision: options.build.revision
         @file.render
           source: options.build.dockerfile
-          target: "#{path.resole options.cache_dir, options.build.directory}/Dockerfile"
+          target: "#{path.resolve options.cache_dir, options.build.directory}/Dockerfile"
           context:
             source: 'hue'
             user: options.user.name
@@ -59,17 +59,17 @@ for hue to be able to communicate with the hadoop cluster in secure mode.
             gid: options.user.uid
         @docker.build
           image: "#{options.build.name}:#{options.build.version}"
-          file: "#{path.resole options.cache_dir, options.build.directory}/Dockerfile"
+          file: "#{path.resolve options.cache_dir, options.build.directory}/Dockerfile"
         @docker.service
           image: "#{options.build.name}:#{options.build.version}"
           name: 'ryba_hue_extractor'
           entrypoint: '/bin/bash'
         @system.mkdir
-          target: "#{path.resole options.cache_dir, options.prod.directory}"
+          target: "#{path.resolve options.cache_dir, options.prod.directory}"
         @docker.cp
           container: 'ryba_hue_extractor'
           source: 'ryba_hue_extractor:/hue-build.tar.gz'
-          target: path.resole options.cache_dir, options.prod.directory
+          target: path.resolve options.cache_dir, options.prod.directory
         @docker.rm
           container: 'ryba_hue_extractor'
           force: true
@@ -81,7 +81,7 @@ This production container running as hue service
       @call header: 'Production Container', ->
         @file.render
           source: options.prod.dockerfile
-          target: "#{path.resole options.cache_dir, options.prod.directory}/Dockerfile"
+          target: "#{path.resolve options.cache_dir, options.prod.directory}/Dockerfile"
           context:
             user: options.user.name
             uid: options.user.uid

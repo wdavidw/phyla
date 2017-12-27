@@ -183,10 +183,13 @@ It uses local checksum if provided to upload or not.
       @call header: 'Upload Container', retry:3,  ->
         tmp = options.image_dir
         md5 = options.md5 ?= true
-        @docker.checksum
-          docker: options.swarm_conf
-          image: options.image
-          tag: options.version
+        @call (_, callback) ->
+          @docker.checksum
+            docker: options.swarm_conf
+            image: options.image
+            tag: options.version
+          , (err, status, checksum) ->
+            return callback err, checksum
         @docker.pull
           header: 'Pull container'
           unless: -> @status(-1)
@@ -195,7 +198,7 @@ It uses local checksum if provided to upload or not.
           code_skipped: 1
         @file.download
           unless: -> @status(-1) or @status(-2)
-          source: "#{path.resole options.cache_dir, options.prod.directory}/#{options.prod.tar}"
+          source: "#{path.resolve options.cache_dir, options.prod.directory}/#{options.prod.tar}"
           target: "#{tmp}/#{options.prod.tar}"
           binary: true
           md5: md5
@@ -280,6 +283,7 @@ Write startup script to /etc/init.d/service-hue-docker
     misc = require 'nikita/lib/misc'
     fs = require 'fs'
     db = require 'nikita/lib/misc/db'
+    path = require 'path'
 
 ## Resources:
 

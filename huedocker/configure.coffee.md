@@ -45,6 +45,7 @@ Example:
 
 ## Environment
 
+      options.cache_dir ?= './cache'
       # Layout
       options.conf_dir ?= '/etc/hue-docker/conf'
       options.log_dir ?= '/var/log/hue-docker'
@@ -60,9 +61,9 @@ Example:
       options.build.name ?= 'ryba/hue-build'
       options.build.version ?= 'latest'
       options.build.dockerfile ?= "#{__dirname}/resources/build/Dockerfile_#{options.version}"
-      options.build.directory ?= "./huedocker/build" # was '/tmp/ryba/hue-build'
+      options.build.directory ?= "#{options.cache_dir}/huedocker/build" # was '/tmp/ryba/hue-build'
       options.prod ?= {}
-      options.prod.directory ?= "#./huedocker/prod"
+      options.prod.directory ?= "#{options.cache_dir}/huedocker/prod"
       options.prod.dockerfile ?= "#{__dirname}/resources/prod/Dockerfile"
       options.prod.tar ?= 'hue_docker.tar'
       options.port ?= '8888'
