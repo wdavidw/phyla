@@ -145,19 +145,19 @@ Knox reads its own env variable to retrieve configuration.
       enrich_proxy_user srv, 'hdfs_client' for srv in service.deps.hdfs_client
       for srv in service.deps.httpfs
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
-        hosts = srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] or ''
-        hosts = hosts.split ','
+        hosts = srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] or []
+        hosts = hosts.split ',' unless Array.isArray hosts
         for instance in service.instances
           hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
-        hosts = hosts.join ' '
+        hosts = hosts.join ','
         srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= hosts
       for srv in service.deps.oozie_server
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.groups"] ?= '*'
-        hosts = srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or ''
-        hosts = hosts.split ','
+        hosts = srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] or []
+        hosts = hosts.split ',' unless Array.isArray hosts
         for instance in service.instances
           hosts.push instance.node.fqdn unless instance.node.fqdn in hosts
-        hosts = hosts.join ' '
+        hosts = hosts.join ','
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= hosts
 
 ## Configure topology
