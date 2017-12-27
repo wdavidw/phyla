@@ -321,21 +321,21 @@ from normzlized configuration.
               instances: srv.instances
               use: 'process-service'
               process_name: 'mysqld'
-              check_command: "check_tcp!#{srv.instances[0].options.port}"
+              check_command: "check_tcp!#{srv.instances[0].options.my_cnf['mysqld']['port']}"
             if options.credentials.sql_user.enabled
               create_service
                 name: 'MySQL - Connection time'
                 servicegroup: 'mysql_server'
                 instances: srv.instances
                 use: 'unit-service'
-                check_command: "check_mysql!#{srv.instances[0].options.port}!connection-time!3!10"
+                check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!connection-time!3!10"
               #slow queries
               create_service
                 name: 'MySQL - Slow queries'
                 servicegroup: 'mysql_server'
                 instances: srv.instances
                 use: 'functional-service'
-                check_command: "check_mysql!#{srv.instances[0].options.port}!slow-queries!0,25!1"
+                check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slow-queries!0,25!1"
               create_dependency 'MySQL - Slow queries', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
               #slave lag
               if srv.instances.length > 1
@@ -344,7 +344,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'unit-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-lag!3!10"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-lag!3!10"
                 create_dependency 'MySQL - Slave lag', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
                 #slave io replication
                 create_service
@@ -352,7 +352,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'unit-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-io-running!1!1"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-io-running!1!1"
                 create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
               # connected threads
                 create_service
@@ -360,7 +360,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'unit-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!threads-connected!100!120"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!threads-connected!100!120"
               create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
           # TODO: put db_admin username/password
           if 'masson/commons/mariadb/server' is srv.module
@@ -373,14 +373,14 @@ from normzlized configuration.
               instances: srv.instances
               use: 'process-service'
               process_name: 'mariadb'
-              check_command: "check_tcp!#{srv.instances[0].options.port}"
+              check_command: "check_tcp!#{srv.instances[0].options.my_cnf['mysqld']['port']}"
             if options.credentials.sql_user.enabled
               create_service
                 name: 'MariaDB - Connection time'
                 servicegroup: 'mysql_server'
                 instances: srv.instances
                 use: 'unit-service'
-                check_command: "check_mysql!#{srv.instances[0].options.port}!connection-time!3!10"
+                check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!connection-time!3!10"
               create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
               # mariadb replication slow queries lag
               if srv.instances.length > 1
@@ -389,7 +389,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'functional-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!slow-queries!0,25!1"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slow-queries!0,25!1"
                 create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
                 # mariadb replication slave lag
                 create_service
@@ -397,7 +397,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'unit-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-lag!3!10"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-lag!3!10"
                 create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
                 #Slave io
                 create_service
@@ -405,7 +405,7 @@ from normzlized configuration.
                   servicegroup: 'mysql_server'
                   instances: srv.instances
                   use: 'unit-service'
-                  check_command: "check_mysql!#{srv.instances[0].options.port}!slave-io-running!1!1"
+                  check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-io-running!1!1"
                 create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
               #Connected Threads
               create_service
@@ -413,7 +413,7 @@ from normzlized configuration.
                 servicegroup: 'mysql_server'
                 instances: srv.instances
                 use: 'unit-service'
-                check_command: "check_mysql!#{srv.instances[0].options.port}!threads-connected!100!120"
+                check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!threads-connected!100!120"
               create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
           if 'ryba/zookeeper/server' is srv.module
             add_srv_to_cluster 'zookeeper_server', clustername
