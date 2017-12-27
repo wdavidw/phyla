@@ -139,6 +139,7 @@ TODO: remove CA from JAVA_HOME cacerts in a future version.
 Activate the plugin.
 
       @call header: 'Enable', ->
+        diff = false
         @each options.conf_dir, (opt, cb) ->
           conf_dir = opt.key
           files = ['ranger-hbase-audit.xml','ranger-hbase-security.xml','ranger-policymgr-ssl.xml']
@@ -190,6 +191,7 @@ Activate the plugin.
             header: 'Security Fix'
             target: "#{conf_dir}/ranger-hbase-security.xml"
             merge: true
+            
             properties:
               'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
           @each files, (opt, cb) ->
@@ -204,15 +206,17 @@ Activate the plugin.
           @call
             header: 'Diff'
             shy: true
-          , ->
+          , (_, callback) ->
             for file in files
               #do not need to go further if the file did not exist
-              return cb null, true unless sources_props["#{file}"]?
+              diff = true unless sources_props["#{file}"]?
               for prop, value of current_props["#{file}"]
-                return cb null, true unless value is sources_props["#{file}"][prop]
+                diff = true unless value is sources_props["#{file}"][prop]
               for prop, value of sources_props["#{file}"]
-                return cb null, true unless value is current_props["#{file}"][prop]
-              return cb null, false
+                diff =  true unless value is current_props["#{file}"][prop]
+            callback null, diff
+          @next cb
+
 
 ## Dependencies
 
