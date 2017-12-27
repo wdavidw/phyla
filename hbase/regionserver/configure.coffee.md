@@ -141,7 +141,7 @@ Metrics information are entirely derived from the Master.
 
       options.log4j = merge {}, service.deps.log4j?.options, options.log4j
 
-      options.opts['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
+      options.opts.java_properties['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
       #HBase bin script use directly environment bariables
       options.env['HBASE_ROOT_LOGGER'] ?= 'INFO,RFA'
       options.env['HBASE_SECURITY_LOGGER'] ?= 'INFO,RFAS'
@@ -155,9 +155,9 @@ Metrics information are entirely derived from the Master.
         if options.env['HBASE_SECURITY_LOGGER'].indexOf(options.log4j.socket_client) is -1
         then options.env['HBASE_SECURITY_LOGGER']+= ",#{options.log4j.socket_client}"
 
-        options.opts['hbase.log.application'] = 'hbase-regionserver'
-        options.opts['hbase.log.remote_host'] = options.log4j.remote_host
-        options.opts['hbase.log.remote_port'] = options.log4j.remote_port
+        options.opts.java_properties['hbase.log.application'] = 'hbase-regionserver'
+        options.opts.java_properties['hbase.log.remote_host'] = options.log4j.remote_host
+        options.opts.java_properties['hbase.log.remote_port'] = options.log4j.remote_port
 
         options.log4j.socket_opts ?=
           Application: '${hbase.log.application}'

@@ -244,7 +244,7 @@ RS if RS count < 3.
 
       options.log4j = merge {}, service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
-      options.opts['hbase.security.log.file'] ?= 'SecurityAuth-master.audit'
+      options.opts.java_properties['hbase.security.log.file'] ?= 'SecurityAuth-master.audit'
       #HBase bin script use directly environment bariables
       options.env['HBASE_ROOT_LOGGER'] ?= 'INFO,RFA'
       options.env['HBASE_SECURITY_LOGGER'] ?= 'INFO,RFAS'
@@ -258,9 +258,9 @@ RS if RS count < 3.
         if options.env['HBASE_SECURITY_LOGGER'].indexOf(options.log4j.socket_client) is -1
         then options.env['HBASE_SECURITY_LOGGER']+= ",#{options.log4j.socket_client}"
 
-        options.opts['hbase.log.application'] = 'hbase-master'
-        options.opts['hbase.log.remote_host'] = options.log4j.remote_host
-        options.opts['hbase.log.remote_port'] = options.log4j.remote_port
+        options.opts.java_properties['hbase.log.application'] = 'hbase-master'
+        options.opts.java_properties['hbase.log.remote_host'] = options.log4j.remote_host
+        options.opts.java_properties['hbase.log.remote_port'] = options.log4j.remote_port
 
         options.log4j.socket_opts ?=
           Application: '${hbase.log.application}'
