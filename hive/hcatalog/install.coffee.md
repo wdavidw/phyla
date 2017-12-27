@@ -114,7 +114,6 @@ isnt yet started.
         header: 'Directory Permission'
         cmd: """
         chown -R #{options.user.name}:#{options.group.name} #{options.conf_dir}/
-        chmod -R 755 #{options.conf_dir}
         """
         shy: true # TODO: idempotence by detecting ownerships and permissions
 
