@@ -68,6 +68,24 @@ REST request.
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       options.install['CUSTOM_USER'] ?= "#{options.hbase_user.name}"
 
+## RAnger Coprocessor
+
+      # Master Hbase site
+      index = service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.master.classes'].indexOf('org.apache.hadoop.hbase.security.access.AccessController')
+      if index >= 0
+        service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.master.classes'].splice(index, 1)
+      index = service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.region.classes'].indexOf 'org.apache.hadoop.hbase.security.access.AccessController'
+      if index >= 0
+        service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.region.classes'].splice(index, 1)
+      service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.master.classes'].push 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor' unless 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor' in   service.deps.hbase_master[0].options.hbase_site['hbase.coprocessor.master.classes']
+
+      # RS Hbase site
+      if service.deps.hbase_regionserver
+        index = service.deps.hbase_regionserver.options.hbase_site['hbase.coprocessor.region.classes'].indexOf 'org.apache.hadoop.hbase.security.access.AccessController'
+        if index >= 0
+          service.deps.hbase_regionserver.options.hbase_site['hbase.coprocessor.region.classes'].splice(index, 1)
+        service.deps.hbase_regionserver.options.hbase_site['hbase.coprocessor.region.classes'].push 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor' unless 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor' in   service.deps.hbase_regionserver.options.hbase_site['hbase.coprocessor.region.classes']
+
 ## HBase regionserver env
 
 Some ranger plugins needs to have the configuration file on their classpath to 
