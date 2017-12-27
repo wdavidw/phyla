@@ -139,7 +139,6 @@ Import database information from the Hive Metastore
         -Dcom.sun.management.jmxremote.port=#{options.env["JMXPORT"]} \
         -Dcom.sun.management.jmxremote.rmi.port=#{options.env["JMXPORT"]} \
         """
-      aux_jars = service.deps.hive_hcatalog[0].options.aux_jars
       # fix bug where phoenix-server and phoenix-client do not contain same
       # version of class used.
       paths = []
@@ -151,6 +150,7 @@ Import database information from the Hive Metastore
         paths.push '/usr/hdp/current/phoenix-client/phoenix-hive.jar'
       options.aux_jars_paths ?= []
       options.aux_jars_paths.push p if options.aux_jars_paths.indexOf(p) is -1 for p in paths
+      options.aux_jars_paths.push p if options.aux_jars_paths.indexOf(p) is -1 for p in service.deps.hive_hcatalog[0].options.aux_jars.split(':')
       options.aux_jars ?= "#{options.aux_jars_paths.join ':'}"
 
 ## Kerberos
