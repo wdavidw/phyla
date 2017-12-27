@@ -1,7 +1,7 @@
 
 # Shinken Commons Install
 
-    module.exports = header: 'Shinken Install', handler: (options) ->
+    module.exports = header: 'Shinken Commons Install', handler: (options) ->
 
 ## Identities
 
@@ -87,8 +87,8 @@
               python setup.py build
               python setup.py install
               """
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}.#{v.format}"
-            @system.remove target: "#{shinken.build_dir}/#{v.archive}"
+            @system.remove target: "#{options.build_dir}/#{v.archive}.#{v.format}"
+            @system.remove target: "#{options.build_dir}/#{v.archive}"
           @next callback
         @system.remove
           target: "#{options.build_dir}/.piplist"
