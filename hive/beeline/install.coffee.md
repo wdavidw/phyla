@@ -25,13 +25,7 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
         properties: options.hive_site
         merge: true
         backup: true
-      @system.execute
-        header: 'Permissions'
-        cmd: """
-        chown -R #{options.user.name}:#{options.hadoop_group.name} #{options.conf_dir}
-        chmod -R 755 #{options.conf_dir}
-        """
-        shy: true # TODO: indempotence by detecting ownerships and permissions
+        mode: 0o644
 
 ## Env
 

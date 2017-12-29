@@ -52,15 +52,7 @@ See [Hive/HCatalog Configuration Files](http://docs.hortonworks.com/HDPDocuments
         properties: options.hive_site
         merge: true
         backup: true
-      # migration: wdavidw 170907, i dont see the interest of changing the 
-      # ownerships and permissions on /etc/hive/conf
-      # @system.execute
-      #   header: 'Permissions'
-      #   cmd: """
-      #   chown -R #{options.user.name}:#{hadoop_group.name} #{options.conf_dir}
-      #   chmod -R 755 #{options.conf_dir}
-      #   """
-      #   shy: true # TODO: indempotence by detecting ownerships and permissions
+        mode: 0o644
 
 ## Env
 
