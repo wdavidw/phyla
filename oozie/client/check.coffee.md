@@ -418,7 +418,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
       @call header: 'Check Hive2 Workflow (No ZK)', ->
         # Constructs Hiveserver2 jdbc url
         for hive_server2 in options.hive_server2
-          db = "check_#{options.fqdn}_oozie_hs2_nozk_#{hive_server2.hostname}"
+          db = "check_#{options.hostname}_oozie_hs2_nozk_#{hive_server2.hostname}"
           port = if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
           then hive_server2.hive_site['hive.server2.thrift.http.port']
           else hive_server2.hive_site['hive.server2.thrift.port']
