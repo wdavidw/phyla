@@ -64,10 +64,9 @@ Example :
 ## Environment
 
       # Layout
-      options.conf_dir ?= '/etc/zookeeper/conf'
+      options.conf_dir ?= '/etc/zookeeper-server/conf'
       options.log_dir ?= '/var/log/zookeeper'
       options.pid_dir ?= '/var/run/zookeeper'
-      options.conf_dir ?= '/etc/zookeeper/conf'
       # Env
       options.env ?= {}
       options.env['ZOOKEEPER_HOME'] ?= "/usr/hdp/current/zookeeper-client"

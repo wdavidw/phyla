@@ -5,6 +5,7 @@ Description=Zookeeper Server
 User={{user.name}}
 Group={{group.name}}
 PIDFile={{pid_dir}}/zookeeper_server.pid
+Environment=ZOOCFGDIR={{conf_dir}}
 Environment=ZOOCFG=zoo.cfg
 Environment=JMXPORT={{env.JMXPORT}}
 ExecStart=/usr/hdp/current/zookeeper-server/bin/zkServer.sh start

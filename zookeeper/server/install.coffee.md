@@ -101,17 +101,12 @@ which has no dependency.
           uid: options.user.name
           gid: options.hadoop_group.name
         @file.jaas
-          target: '/etc/zookeeper/conf/zookeeper-server.jaas'
+          target: "#{options.conf_dir}/zookeeper-server.jaas"
           content: Server:
             principal: options.krb5.principal
             keyTab: options.krb5.keytab
           uid: options.user.name
           gid: options.hadoop_group.name
-        @file.jaas
-          target: "#{options.conf_dir}/zookeeper-client.jaas"
-          content: Client:
-            useTicketCache: true
-          mode: 0o0644
 
 ## Layout
 
