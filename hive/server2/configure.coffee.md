@@ -141,17 +141,17 @@ Import database information from the Hive Metastore
         """
       # fix bug where phoenix-server and phoenix-client do not contain same
       # version of class used.
-      paths = []
+      options.aux_jars_paths ?= {}
       if service.deps.hbase_client
-        paths.push '/usr/hdp/current/hbase-client/lib/hbase-server.jar'
-        paths.push '/usr/hdp/current/hbase-client/lib/hbase-client.jar'
-        paths.push '/usr/hdp/current/hbase-client/lib/hbase-common.jar'
+        options.aux_jars_paths['/usr/hdp/current/hbase-client/lib/hbase-server.jar'] ?= true
+        options.aux_jars_paths['/usr/hdp/current/hbase-client/lib/hbase-client.jar'] ?= true
+        options.aux_jars_paths['/usr/hdp/current/hbase-client/lib/hbase-common.jar'] ?= true
       if service.deps.phoenix_client
-        paths.push '/usr/hdp/current/phoenix-client/phoenix-hive.jar'
-      options.aux_jars_paths ?= []
-      options.aux_jars_paths.push p if options.aux_jars_paths.indexOf(p) is -1 for p in paths
-      options.aux_jars_paths.push p if options.aux_jars_paths.indexOf(p) is -1 for p in service.deps.hive_hcatalog[0].options.aux_jars.split(':')
-      options.aux_jars ?= "#{options.aux_jars_paths.join ':'}"
+        options.aux_jars_paths['/usr/hdp/current/phoenix-client/phoenix-hive.jar'] ?= true
+      for path, val of service.deps.hive_hcatalog[0].options.aux_jars_paths
+        options.aux_jars_paths[path] ?= val
+      #aux_jars forced by ryba to guaranty consistency
+      options.aux_jars = "#{Object.keys(options.aux_jars_paths).join ':'}"
 
 ## Kerberos
 

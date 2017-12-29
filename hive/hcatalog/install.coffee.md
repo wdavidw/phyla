@@ -110,12 +110,6 @@ isnt yet started.
         source: "#{__dirname}/../resources/hive-exec-log4j.properties"
         local: true
         context: options: options
-      @system.execute
-        header: 'Directory Permission'
-        cmd: """
-        chown -R #{options.user.name}:#{options.group.name} #{options.conf_dir}/
-        """
-        shy: true # TODO: idempotence by detecting ownerships and permissions
 
 ## Env
 

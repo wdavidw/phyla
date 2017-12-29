@@ -96,14 +96,10 @@ Example:
         -Dcom.sun.management.jmxremote.port=#{options.env["JMXPORT"]} \
         -Dcom.sun.management.jmxremote.rmi.port=#{options.env["JMXPORT"]} \
         """
-      # migration: wdavidw 170904, this is really dirty, we should have only one property,
-      # usually, we should have an object type where the value is a boolean to 
-      # activate/disactivate the key
-      options.aux_jars_paths ?= []
-      #adding defaults jars
-      jars = ['/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar']
-      options.aux_jars_paths.push p unless jar in options.aux_jars_paths for jar in jars
-      options.aux_jars ?= "#{options.aux_jars_paths.join ':'}"
+      options.aux_jars_paths ?= {}
+      options.aux_jars_paths['/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar'] ?= true
+      #aux_jars forced by ryba to guaranty consistency
+      options.aux_jars = "#{Object.keys(options.aux_jars_paths).join ':'}"
 
 ## Warehouse directory
 

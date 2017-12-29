@@ -49,7 +49,7 @@ export JAVA_HOME={{options.java_home}}
    else
      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
    fi
-   export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH:-{{options.client.aux_jars}}} # RYBA FIX
+   export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH:-{{options.aux_jars}}} # RYBA FIX
  fi
 # RYBA HIVE CLIENT END
 

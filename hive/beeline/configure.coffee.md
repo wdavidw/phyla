@@ -38,7 +38,11 @@ Example:
       options.java_home ?= service.deps.java.options.java_home
       options.opts = ""
       options.heapsize = 1024
-      options.aux_jars ?= service.deps.hive_hcatalog[0].options.aux_jars
+      options.aux_jars_paths ?= {}
+      for path, val of service.deps.hive_hcatalog[0].options.aux_jars_paths
+        options.aux_jars_paths[path] ?= val
+      #aux_jars forced by ryba to guaranty consistency
+      options.aux_jars = "#{Object.keys(options.aux_jars_paths).join ':'}"
       # Misc
       options.hostname ?= service.node.hostname
       options.force_check ?= false
