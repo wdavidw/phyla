@@ -7,7 +7,7 @@
 
 ## Environment
 
-      options.conf_dir ?= zookeeper_server_options.conf_dir
+      options.conf_dir ?= '/etc/zookeeper/conf'
 
 ## Identities
 
