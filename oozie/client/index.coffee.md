@@ -20,6 +20,8 @@ be installed in remote machines only.
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         yarn_client: module: 'ryba/hadoop/yarn_client', local: true, auto: true, implicit: true
         mapred_client: module: 'ryba/hadoop/mapred_client', local: true, auto: true, implicit: true
+        hive_client: module: 'ryba/hive/client', local: true
+        hive_hcatalog: module: 'ryba/hive/hcatalog'
         hive_server2: module: 'ryba/hive/server2'
         oozie_server: module: 'ryba/oozie/server'
       configure: 'ryba/oozie/client/configure'

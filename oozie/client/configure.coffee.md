@@ -23,6 +23,7 @@
       options.jre_home ?= service.deps.java.options.jre_home
       # Misc
       options.hostname = service.node.hostname
+      options.fqdn = service.node.fqdn
       options.force_check ?= false
       options.hdfs_defaultfs ?= service.deps.hdfs_client.options.core_site['fs.defaultFS']
 
@@ -42,6 +43,11 @@
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       options.ranger_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
       options.test = merge {}, service.deps.test_user.options, options.test
+      #hive client properties for hcat check
+      if service.deps.hive_hcatalog?.length > 0 and service.deps.hive_client?
+        options.test.hive_hcat ?= true
+        options.hive_hcat_principal ?= service.deps.hive_hcatalog[0].options.hive_site['hive.metastore.kerberos.principal']
+        options.hive_hcat_uris ?= service.deps.hive_hcatalog[0].options.hive_site['hive.metastore.uris']
       # Hive Server2
       if service.deps.hive_server2
         options.hive_server2 = for srv in service.deps.hive_server2
