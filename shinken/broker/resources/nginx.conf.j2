@@ -26,7 +26,7 @@ server {
         try_files htdocs/$uri plugins/$1/htdocs/$uri @webui;
     }
     location @webui {
-        root {{ shinken.user.home }}/modules/webui2/;
+        root {{ user.home }}/modules/webui2/;
     }
 
     # Redirection
