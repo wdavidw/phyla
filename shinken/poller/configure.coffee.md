@@ -79,12 +79,6 @@ arbiter host.
         throw Error 'TLS mode requires "tls_cert_file"' unless options.tls_cert_file
         throw Error 'TLS mode requires "tls_key_file"' unless options.tls_key_file
         # configure swarm keys
-        for srv in service.deps.monitoring
-          srv.options ?= {}
-          srv.options.credentials ?= {}
-          srv.options.credentials.swarm_user ?= {}
-          srv.options.credentials.swarm_user.key ?= "/home/#{options.user.name}/plugins/certs/key.pem"
-          srv.options.credentials.swarm_user.cert ?= "/home/#{options.user.name}/plugins/certs/cert.pem"
         options.credentials ?= {}
         options.credentials.swarm_user ?= {}
         options.credentials.swarm_user.key ?= "/home/#{options.user.name}/plugins/certs/key.pem"
