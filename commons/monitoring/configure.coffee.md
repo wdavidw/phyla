@@ -685,7 +685,7 @@ from normzlized configuration.
               check_command: 'check_tcp!19889!-S'
             # Certificate
             create_service
-              name: 'MapReduce JHS - WebService'
+              name: 'MapReduce JHS - Certificate'
               servicegroup: 'mapred_jhs'
               instances: srv.instances
               use: 'cert-service'
@@ -795,7 +795,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.rest.port']}!120!60"
-            create_dependency 'HBase REST - Certificate', 'HBase REST - WebService', host
+            create_dependency 'HBase REST - Certificate', 'HBase REST - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
           if 'ryba/hbase/thrift' is srv.module
             add_srv_to_cluster 'hbase_thrift', clustername
             add_srv_to_host_hostgroups  'hbase_thrift', srv.instances
@@ -809,7 +809,7 @@ from normzlized configuration.
               check_command:"check_tcp!#{srv.instances[0].options.hbase_site['hbase.thrift.port']}!-S"
             #certificate
             create_service
-              name: 'HBase Thrift - TCP SSL'
+              name: 'HBase Thrift - Certificate'
               servicegroup: 'hbase_thrift'
               instances: srv.instances
               use: 'cert-service'
