@@ -26,4 +26,3 @@ importing user/groups from different sources (LDAP, AD, UNIX).
           'ryba/ranger/usersync/start'
         'stop':
           'ryba/ranger/usersync/stop'
-s
