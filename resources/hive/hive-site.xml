@@ -19,8 +19,6 @@
   <!-- WARNING!!! You must make your changes in hive-site.xml instead.         -->
   <!-- Hive Execution Parameters -->
   
-  
-  
   <property>
     <name>hive.exec.scratchdir</name>
     <value>/tmp/scratch</value>
@@ -56,25 +54,11 @@
     </description>
   </property>
   <property>
-    <name>hive.exec.compress.intermediate</name>
-    <value>false</value>
-    <description>
-      This controls whether intermediate files produced by Hive between multiple map-reduce jobs are compressed. 
-      The compression codec and other options are determined from Hadoop config variables mapred.output.compress*
-    </description>
-  </property>
-  <property>
     <name>hive.intermediate.compression.codec</name>
     <value/>
     <description/>
   </property>
-  
-  <property>
-    <name>hive.exec.reducers.bytes.per.reducer</name>
-    <value>67108864</value>
-    <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
-  </property>
-  <property>
+    <property>
     <name>hive.exec.reducers.max</name>
     <value>1009</value>
     <description>
@@ -132,14 +116,6 @@
     <description>Whether or not to allow dynamic partitions in DML/DDL.</description>
   </property>
   <property>
-    <name>hive.exec.dynamic.partition.mode</name>
-    <value>strict</value>
-    <description>
-      In strict mode, the user must specify at least one static partition 
-      in case the user accidentally overwrites all partitions.
-    </description>
-  </property>
-  <property>
     <name>hive.exec.max.dynamic.partitions</name>
     <value>5000</value>
     <description>Maximum number of dynamic partitions allowed to be created in total.</description>
@@ -160,12 +136,6 @@
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
   </property>
-  <property>
-    <name>hive.metastore.uris</name>
-    <value>thrift://localhost:9083</value>
-    <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
-  </property>
-  
   <property>
     <name>hive.metastore.failure.retries</name>
     <value>5</value>
@@ -227,11 +197,6 @@
     <name>hive.cluster.delegation.token.store.class</name>
     <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
     <description>The delegation token store implementation. Set to org.apache.hadoop.hive.thrift.ZooKeeperTokenStore for load-balanced cluster.</description>
-  </property>
-  <property>
-    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
-    <value>localhost:2181</value>
-    <description>The ZooKeeper token store connect string.</description>
   </property>
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.znode</name>
@@ -604,12 +569,12 @@
     <description>The parent node under which all ZooKeeper nodes are created.</description>
   </property>
   
-  <property>
+  <!-- <property>
     <name>hive.txn.manager</name>
     <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
     <description/>
   </property>
-  
+   -->
   <property>
     <name>hive.txn.max.open.batch</name>
     <value>1000</value>
@@ -679,11 +644,6 @@
   </property>
 
   <property>
-    <name>hive.security.authorization.enabled</name>
-    <value>false</value>
-    <description>enable or disable the Hive client authorization</description>
-  </property>
-  <property>
     <name>hive.security.authorization.manager</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory</value>
     <description>
@@ -699,7 +659,7 @@
       interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.
     </description>
   </property>
-  <property>
+  <!-- <property>
     <name>hive.security.metastore.authorization.manager</name>
  <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly</value>
     <description>
@@ -707,7 +667,7 @@
       The user defined authorization class should implement interface 
       org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider. 
     </description>
-  </property>
+  </property> -->
   <property>
     <name>hive.security.metastore.authorization.auth.reads</name>
     <value>true</value>
@@ -815,7 +775,7 @@
     <description>Maximum number of Thrift worker threads</description>
   </property>
   
-  <property>
+  <!-- <property>
     <name>hive.server2.authentication</name>
     <value>NONE</value>
     <description>
@@ -827,7 +787,7 @@
         CUSTOM: Custom authentication provider
                 (Use with property hive.server2.custom.authentication.class)
     </description>
-  </property>
+  </property> -->
   <property>
     <name>hive.server2.allow.user.substitution</name>
     <value>true</value>
