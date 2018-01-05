@@ -87,6 +87,9 @@
       es_masters = []
 
       for es_name,es of options.clusters
+        delete options.clusters[es_name] unless es.only
+
+      for es_name,es of options.clusters
         es.normalized_name = "#{es_name.replace(/_/g,"")}"
         #Docker:
         es.es_version ?= "5.3.1"
