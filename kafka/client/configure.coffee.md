@@ -42,8 +42,6 @@ Merge group and user from the Kafka broker configuration.
       # Consumer
       options.consumer ?= {}
       options.consumer.config ?= {}
-      options.consumer.config['zookeeper.connect'] ?= service.deps.kafka_broker[0].options.zookeeper_quorum
-      options.consumer.config['group.id'] ?= 'ryba-consumer-group'
       # Producer
       options.producer ?= {}
       options.producer.config ?= {}
@@ -79,6 +77,7 @@ best protocol available and pass needed protocol to command line in the checks.
       options.producer.config['metadata.broker.list'] ?= options.brokers[recommended_protocol].join ','
       options.producer.config['bootstrap.servers'] ?= options.brokers[recommended_protocol].join ','
       # Consumer
+      options.consumer.config['bootstrap.servers'] ?= options.brokers[recommended_protocol].join ','
       options.consumer.config['security.protocol'] ?= recommended_protocol
 
 ## Log4j
