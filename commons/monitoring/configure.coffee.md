@@ -336,7 +336,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'functional-service'
                 check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slow-queries!0,25!1"
-              create_dependency 'MySQL - Slow queries', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'MySQL - Slow queries', 'MySQL - TCP', srv.instances[0].node.fqdn
               #slave lag
               if srv.instances.length > 1
                 create_service
@@ -345,7 +345,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'unit-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-lag!3!10"
-                create_dependency 'MySQL - Slave lag', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                create_dependency 'MySQL - Slave lag', 'MySQL - TCP', srv.instances[0].node.fqdn
                 #slave io replication
                 create_service
                   name: 'MySQL - Slave IO running'
@@ -353,7 +353,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'unit-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-io-running!1!1"
-                create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                create_dependency 'MySQL - Slave IO running', 'MySQL - TCP', srv.instances[0].node.fqdn
               # connected threads
                 create_service
                   name: 'MySQL - Slave lag'
@@ -361,7 +361,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'unit-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!threads-connected!100!120"
-              create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'MySQL - Connected Threads', 'MySQL - TCP', srv.instances[0].node.fqdn
           # TODO: put db_admin username/password
           if 'masson/commons/mariadb/server' is srv.module
             add_srv_to_cluster 'mariadb_server', clustername
@@ -381,7 +381,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'unit-service'
                 check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!connection-time!3!10"
-              create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'MariaDB - Connection time', 'MariaDB - TCP', srv.instances[0].node.fqdn
               # mariadb replication slow queries lag
               if srv.instances.length > 1
                 create_service
@@ -390,7 +390,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'functional-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slow-queries!0,25!1"
-                create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                create_dependency 'MariaDB - Slow queries', 'MariaDB - TCP', srv.instances[0].node.fqdn
                 # mariadb replication slave lag
                 create_service
                   name: 'MariaDB - Slave lag'
@@ -398,7 +398,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'unit-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-lag!3!10"
-                create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                create_dependency 'MariaDB - Slave lag', 'MariaDB - TCP', srv.instances[0].node.fqdn
                 #Slave io
                 create_service
                   name: 'MariaDB - Slave IO running'
@@ -406,7 +406,7 @@ from normzlized configuration.
                   instances: srv.instances
                   use: 'unit-service'
                   check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!slave-io-running!1!1"
-                create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+                create_dependency 'MariaDB - Slave IO running', 'MariaDB - TCP', srv.instances[0].node.fqdn
               #Connected Threads
               create_service
                 name: 'MariaDB - Connected Threads'
@@ -414,7 +414,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'unit-service'
                 check_command: "check_mysql!#{srv.instances[0].options.my_cnf['mysqld']['port']}!threads-connected!100!120"
-              create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'MariaDB - Connected Threads', 'MariaDB - TCP', srv.instances[0].node.fqdn
           if 'ryba/zookeeper/server' is srv.module
             add_srv_to_cluster 'zookeeper_server', clustername
             add_srv_to_host_hostgroups  'zookeeper_server', srv.instances
@@ -432,7 +432,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_socket!#{srv.instances[0].options.config.clientPort}!ruok!imok"
-            create_dependency 'Zookeeper Server - State', 'Zookeeper Server - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'Zookeeper Server - State', 'Zookeeper Server - TCP', srv.instances[0].node.fqdn
             # Zookeeper connection
             create_service
               name: 'Zookeeper Server - Connections'
@@ -440,7 +440,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_zk_stat!#{srv.instances[0].options.config.clientPort}!connections!300!350"
-            create_dependency 'Zookeeper Server - Connections', 'Zookeeper Server - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'Zookeeper Server - Connections', 'Zookeeper Server - TCP', srv.instances[0].node.fqdn
           if 'ryba/hadoop/hdfs_nn' is srv.module
             add_srv_to_cluster 'hdfs_nn', clustername
             add_srv_to_host_hostgroups  'hdfs_nn', srv.instances
@@ -466,7 +466,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command:  "check_tcp!#{port}!-S"
-            create_dependency 'HDFS NN - WebService', 'HDFS NN - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - WebService', 'HDFS NN - TCP', srv.instances[0].node.fqdn
             # certificate
             create_service
               name: 'HDFS NN - Certificate'
@@ -474,7 +474,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{port}!120!60"
-            create_dependency 'HDFS NN - Certificate', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - Certificate', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Safe Mode
             create_service
               name: 'HDFS NN - Safe Mode'
@@ -482,7 +482,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_hdfs_safemode!#{port}!-S"
-            create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - Safe Mode', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Latency
             create_service
               name: 'HDFS NN - RPC latency'
@@ -490,7 +490,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_rpc_latency!NameNode!#{port}!3000!5000!-S"
-            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Last Checkpoint
             create_service
               name: 'HDFS NN - Last checkpoint'
@@ -498,7 +498,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_nn_last_checkpoint!#{port}!21600!1000000!120%!200%!-S"
-            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - RPC latency', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Name dir status
             create_service
               name: 'HDFS NN - Name Dir status'
@@ -506,7 +506,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command:"check_nn_namedirs_status!#{port}!-S"
-            create_dependency 'HDFS NN - Name Dir status', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - Name Dir status', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Utilization
             create_service
               name: 'HDFS NN - Utilization'
@@ -514,7 +514,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_hdfs_capacity!#{port}!80%!90%!-S"
-            create_dependency 'HDFS NN - Utilization', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - Utilization', 'HDFS NN - WebService', srv.instances[0].node.fqdn
             # Under replicated block
             create_service
               name: 'HDFS NN - UnderReplicated blocks'
@@ -522,7 +522,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_hdfs_state!#{port}!FSNamesystemState!UnderReplicatedBlocks!1000!2000!-S"
-            create_dependency 'HDFS NN - UnderReplicated blocks', 'HDFS NN - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS NN - UnderReplicated blocks', 'HDFS NN - WebService', srv.instances[0].node.fqdn
           # HDFS JN
           if 'ryba/hadoop/hdfs_jn' is srv.module
             add_srv_to_cluster 'hdfs_jn', clustername
@@ -545,7 +545,7 @@ from normzlized configuration.
               use: 'cert-service'
               process_name: 'hadoop-hdfs-journalnode'
               check_command: "check_cert!#{port}!120!60"
-            create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS JN - Certificate', 'HDFS JN - TCP SSL', srv.instances[0].node.fqdn
           if 'ryba/hadoop/hdfs_dn' is srv.module
             add_srv_to_cluster 'hdfs_dn', clustername
             add_srv_to_host_hostgroups  'hdfs_dn', srv.instances
@@ -566,7 +566,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{port}!120!60"
-            create_dependency 'HDFS DN - Certificate', 'HDFS DN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS DN - Certificate', 'HDFS DN - TCP SSL', srv.instances[0].node.fqdn
             #Free space
             create_service
               name: 'HDFS DN - Free space'
@@ -574,7 +574,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_dn_storage!#{port}!75%!90%!-S"
-            create_dependency 'HDFS DN - Free space', 'HDFS DN - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HDFS DN - Free space', 'HDFS DN - TCP SSL', srv.instances[0].node.fqdn
           if 'ryba/hadoop/zkfc' is srv.module
             add_srv_to_cluster 'hdfs_zkfc', clustername
             add_srv_to_host_hostgroups  'hdfs_zkfc', srv.instances
@@ -604,7 +604,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.http_port}!120!60"
-            create_dependency 'HttpFS - Certificate', 'HttpFS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HttpFS - Certificate', 'HttpFS - WebService', srv.instances[0].node.fqdn
           if 'ryba/hadoop/yarn_rm' is srv.module
             add_srv_to_cluster 'yarn_rm', clustername
             add_srv_to_host_hostgroups  'yarn_rm', srv.instances
@@ -630,7 +630,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_cert!8090!120!60"
-            create_dependency 'YARN RM - Certificate', 'YARN RM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'YARN RM - Certificate', 'YARN RM - WebService', srv.instances[0].node.fqdn
           if 'ryba/hadoop/yarn_nm' is srv.module
             add_srv_to_cluster 'yarn_nm', clustername
             add_srv_to_host_hostgroups  'yarn_nm', srv.instances
@@ -656,7 +656,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: 'check_cert!8044!120!60'
-            create_dependency 'YARN NM - Certificate', 'YARN NM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'YARN NM - Certificate', 'YARN NM - WebService', srv.instances[0].node.fqdn
             # Health
             create_service
               name: 'YARN NM - Health'
@@ -664,7 +664,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: 'check_nm_info!8044!nodeHealthy!true!-S'
-            create_dependency 'YARN NM - Health', 'YARN NM - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'YARN NM - Health', 'YARN NM - WebService', srv.instances[0].node.fqdn
           if 'ryba/hadoop/mapred_jhs' is srv.module
             add_srv_to_cluster 'mapred_jhs', clustername
             add_srv_to_host_hostgroups  'mapred_jhs', srv.instances
@@ -690,7 +690,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: 'check_cert!19889!120!60'
-            create_dependency 'MapReduce JHS - Certificate', 'MapReduce JHS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'MapReduce JHS - Certificate', 'MapReduce JHS - WebService', srv.instances[0].node.fqdn
           if 'ryba/hadoop/yarn_ts' is srv.module
             add_srv_to_cluster 'yarn_ts', clustername
             add_srv_to_host_hostgroups  'yarn_ts', srv.instances
@@ -716,7 +716,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: 'check_cert!8190!120!60'
-            create_dependency 'YARN TS - Certificate', 'YARN TS - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'YARN TS - Certificate', 'YARN TS - WebService', srv.instances[0].node.fqdn
           if 'ryba/hbase/master' is srv.module
             add_srv_to_cluster 'hbase_master', clustername
             add_srv_to_host_hostgroups  'hbase_master', srv.instances
@@ -735,7 +735,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!-S"
-            create_dependency 'HBase Master - WebUI', 'HBase Master - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HBase Master - WebUI', 'HBase Master - TCP', srv.instances[0].node.fqdn
             # Certificate
             create_service
               name: 'HBase Master - Certificate'
@@ -743,7 +743,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!120!60"
-            create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', srv.instances[0].node.fqdn
           if 'ryba/hbase/regionserver' is srv.module
             add_srv_to_cluster 'hbase_regionserver', clustername
             add_srv_to_host_hostgroups  'hbase_regionserver', srv.instances
@@ -769,7 +769,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.regionserver.info.port']}!120!60"
-            create_dependency 'HBase RegionServer - Certificate', 'HBase RegionServer - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HBase RegionServer - Certificate', 'HBase RegionServer - WebUI', srv.instances[0].node.fqdn
           if 'ryba/hbase/rest' is srv.module
             add_srv_to_cluster 'hbase_rest', clustername
             add_srv_to_host_hostgroups  'hbase_rest', srv.instances
@@ -795,7 +795,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.rest.port']}!120!60"
-            create_dependency 'HBase REST - Certificate', 'HBase REST - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HBase REST - Certificate', 'HBase REST - WebService', srv.instances[0].node.fqdn
           if 'ryba/hbase/thrift' is srv.module
             add_srv_to_cluster 'hbase_thrift', clustername
             add_srv_to_host_hostgroups  'hbase_thrift', srv.instances
@@ -814,7 +814,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.thrift.port']}!120!60"
-            create_dependency 'HBase Thrift - Certificate', 'HBase Thrift - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'HBase Thrift - Certificate', 'HBase Thrift - TCP SSL', srv.instances[0].node.fqdn
           if 'ryba/hive/hcatalog' is srv.module
             add_srv_to_cluster 'hcatalog', clustername
             add_srv_to_host_hostgroups  'hcatalog', srv.instances
@@ -844,7 +844,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hive_site['hive.server2.thrift.port']}!120!60"
-            create_dependency 'Hiveserver2 - Certificate', 'Hiveserver2 - TCP SSL', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'Hiveserver2 - Certificate', 'Hiveserver2 - TCP SSL', srv.instances[0].node.fqdn
           if 'ryba/hive/webhcat' is srv.module
             add_srv_to_cluster 'webhcat', clustername
             add_srv_to_host_hostgroups  'webhcat', srv.instances
@@ -863,14 +863,14 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_webhcat_status!#{srv.instances[0].options.webhcat_site['templeton.port']}"
-            create_dependency 'WebHCat - Status', 'WebHCat - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'WebHCat - Status', 'WebHCat - WebService', srv.instances[0].node.fqdn
             create_service
               name: 'WebHCat - Database'
               servicegroup: 'webhcat'
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_webhcat_database!#{srv.instances[0].options.webhcat_site['templeton.port']}!default"
-            create_dependency 'WebHCat - Database', 'WebHCat - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'WebHCat - Database', 'WebHCat - WebService', srv.instances[0].node.fqdn
           if 'ryba/oozie/server' is srv.module
             add_srv_to_cluster 'oozie_server', clustername
             add_srv_to_host_hostgroups  'oozie_server', srv.instances
@@ -889,7 +889,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.http_port}!120!60"
-            create_dependency 'Oozie Server - Certificate', 'Oozie Server - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'Oozie Server - Certificate', 'Oozie Server - WebUI', srv.instances[0].node.fqdn
           if 'ryba/kafka/broker' is srv.module
             add_srv_to_cluster 'kafka_broker', clustername
             add_srv_to_host_hostgroups  'kafka_broker', srv.instances
@@ -928,7 +928,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'cert-service'
                 check_command: "check_cert!#{srv.instances[0].options.site['ranger.service.https.port']}!120!60"
-              create_dependency 'Ranger - Certificate', 'Ranger - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Ranger - Certificate', 'Ranger - WebUI', srv.instances[0].node.fqdn
             else
               create_service
                 name: 'Ranger - WebUI'
@@ -1010,14 +1010,14 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'unit-service'
                 check_command: "check_es_containers_tcps!#{srv.instances[0].options.listen_port}!-S"
-              create_dependency 'ES Containers - TCPs', 'Swarm Manager - TCP', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'ES Containers - TCPs', 'Swarm Manager - TCP', srv.instances[0].node.fqdn
               create_service
                 name: 'ES Containers - Status'
                 servicegroup: 'elasticsearch'
                 instances: srv.instances
                 use: 'unit-service'
                 check_command: "check_es_containers_status!#{srv.instances[0].options.listen_port}!-S"
-              create_dependency 'ES Containers - Status', 'ES Containers - TCPs', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'ES Containers - Status', 'ES Containers - TCPs', srv.instances[0].node.fqdn
           # if 'ryba/rexster' is srv.module
           #   options.hosts[clustername].modules.push 'rexster' unless 'rexster' in options.hosts[clustername].modules
           #   options.hosts[fqdn].hostgroups.push 'rexster' unless 'rexster' in options.hosts[fqdn].hostgroups
@@ -1045,7 +1045,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'cert-service'
                 check_command: "check_cert!#{srv.instances[0].options.application.properties['atlas.server.https.port']}!120!60"
-              create_dependency 'Atlas - Certificate', 'Atlas - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Atlas - Certificate', 'Atlas - WebUI', srv.instances[0].node.fqdn
             else
               create_service
                 name: 'Atlas - WebUI'
@@ -1071,7 +1071,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'cert-service'
                 check_command:"check_cert!#{srv.instances[0].options.ini.desktop.http_port}!120!60"
-              create_dependency 'Hue - Certificate', 'Hue - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Hue - Certificate', 'Hue - WebUI', srv.instances[0].node.fqdn
           if 'ryba/knox/server' is srv.module
             add_srv_to_cluster 'knox', clustername
             add_srv_to_host_hostgroups  'knox', srv.instances
@@ -1090,7 +1090,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.gateway_site['gateway.port']}!120!60"
-            create_dependency 'Knox - Certificate', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'Knox - Certificate', 'Knox - WebService', srv.instances[0].node.fqdn
             if options.credentials.knox_user.enabled
               create_service
                 name: 'Knox - HBase Scan'
@@ -1098,21 +1098,21 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'functional-service'
                 check_command: "check_hbase_scan!#{srv.instances[0].options.gateway_site['gateway.port']}!hbase:meta!-S"
-              create_dependency 'Knox - HBase Scan', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Knox - HBase Scan', 'Knox - WebService', srv.instances[0].node.fqdn
               create_service
                 name: 'Knox - HBase Write'
                 servicegroup: ['knox', 'hbase']
                 instances: srv.instances
                 use: 'functional-service'
                 check_command: "check_hbase_write!#{srv.instances[0].options.gateway_site['gateway.port']}!#{srv.instances[0].options.hbase_client_test_namespace}:monitoring!cf1!-S"
-              create_dependency 'Knox - HBase Write', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Knox - HBase Write', 'Knox - WebService', srv.instances[0].node.fqdn
               create_service
                 name: 'Knox - HDFS Write'
                 servicegroup: ['knox', 'hdfs']
                 instances: srv.instances
                 use: 'functional-service'
                 check_command: "check_hdfs_write!#{srv.instances[0].options.gateway_site['gateway.port']}!-S"
-              create_dependency 'Knox - HDFS Write', 'Knox - WebService', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'Knox - HDFS Write', 'Knox - WebService', srv.instances[0].node.fqdn
           if 'ryba/nifi' is srv.module
             add_srv_to_cluster 'nifi', clustername
             add_srv_to_host_hostgroups  'nifi', srv.instances
@@ -1131,7 +1131,7 @@ from normzlized configuration.
                 instances: srv.instances
                 use: 'cert-service'
                 check_command: "check_cert!#{srv.instances[0].options.properties['nifi.web.https.port']}!120!60"
-              create_dependency 'NiFi - Certificate', 'NiFi - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+              create_dependency 'NiFi - Certificate', 'NiFi - WebUI', srv.instances[0].node.fqdn
             else
               create_service
                 name: 'NiFi - WebUI'
@@ -1146,7 +1146,7 @@ from normzlized configuration.
               instances: srv.instances
               use: 'unit-service'
               check_command: "check_tcp!#{srv.instances[0].options.properties['nifi.cluster.node.protocol.port']}"
-            create_dependency 'NiFi - TCP', 'NiFi - WebUI', srv.instances.map( (instance) -> instance.node.fqdn )
+            create_dependency 'NiFi - TCP', 'NiFi - WebUI', srv.instances[0].node.fqdn
 
 ### Watcher services
 
