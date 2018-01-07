@@ -5,8 +5,8 @@ Download the Druid package.
 
     module.exports = header: 'Druid Prepare', handler: (options) ->
       @file.cache
-        ssh: null
+        ssh: false
         source: "#{options.source}"
       @file.cache
-        ssh: null
+        ssh: false
         source: "#{options.source_mysql_extension}"

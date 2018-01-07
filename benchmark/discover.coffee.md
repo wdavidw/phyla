@@ -103,7 +103,7 @@ the total of disks. Generated data size are: 1GB, 10GB, 100GB 1TB
 
       @system.mkdir
         header: 'Output Dir'
-        ssh: null
+        ssh: false
         target: benchmark.output
 
 ## Imports

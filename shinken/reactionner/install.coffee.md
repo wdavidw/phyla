@@ -5,9 +5,10 @@
 
 ## SSH
 
+      ssh = @ssh options.ssh
       @call
         header: 'SSH'
-        if: -> options.ssh?.private_key? and options.ssh?.public_key?
+        if: -> ssh?.private_key? and ssh?.public_key?
       , ->
         @system.mkdir
           target: "#{options.user.home}/.ssh"
@@ -16,14 +17,14 @@
           gid: options.user.gid
         @file
           target: "#{options.user.home}/.ssh/id_rsa"
-          content: options.ssh.private_key
+          content: ssh.private_key
           eof: true
           mode: 0o600
           uid: options.user.name
           gid: options.user.gid
         @file
           target: "#{options.user.home}/.ssh/id_rsa.pub"
-          content: options.ssh.public_key
+          content: ssh.public_key
           eof: true
           mode: 0o644
           uid: options.user.name

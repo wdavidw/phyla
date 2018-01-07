@@ -234,7 +234,8 @@ inserted if ALL users or the HDFS user access is denied.
               mode: 0o600
             , (err, written) =>
               return callback err if err
-              fs.readFile options.ssh, '/etc/security/access.conf', 'utf8', (err, source) =>
+              ssh = @ssh options.ssh
+              fs.readFile ssh, '/etc/security/access.conf', 'utf8', (err, source) =>
                 return callback err if err
                 content = []
                 # exclude = ///^\-\s?:\s?(ALL|#{options.user.name})\s?:\s?(.*?)\s*?(#.*)?$///

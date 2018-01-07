@@ -136,7 +136,8 @@ Import certificates, private and public keys of the host.
         if: -> @status(-3) or @status(-2)
         header: 'Generate Credentials SSL provider file'
       , (_, callback) ->
-        options.ssh.shell (err, stream) =>
+        ssh = @ssh options.ssh
+        ssh.shell (err, stream) =>
           stream.write 'if /usr/hdp/current/atlas-client/bin/cputil.py ;then exit 0; else exit 1;fi\n'
           data = ''
           error = exit = null
@@ -418,7 +419,8 @@ credential based on file.
         new_lines = []
         content = ''
         @call header: 'Read Current Credential', (_, callback )  ->
-          fs.readFile options.ssh, options.application.properties['atlas.authentication.method.file.filename'], 'utf8', (err, content) ->
+          ssh = @ssh options.ssh
+          fs.readFile ssh, options.application.properties['atlas.authentication.method.file.filename'], 'utf8', (err, content) ->
             return callback null, true if err and err.code is 'ENOENT'
             return callback err if err
             old_lines = string.lines content

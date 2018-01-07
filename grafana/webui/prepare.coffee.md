@@ -1,15 +1,14 @@
 
 # Grafana Prepare
 
-    module.exports = header: 'Grafana Prepare', handler: (options) ->
+    module.exports = header: 'Grafana Prepare', ssh: false, handler: (options) ->
 
 ## Cache file
 
       @file.cache
         if: options.download
-        header: "Grafana RPM "
+        header: 'RPM'
         location: true
-        ssh: null
         # md5: info.md5
         # sha256: info.jdk_sha256
       , "#{options.source}"

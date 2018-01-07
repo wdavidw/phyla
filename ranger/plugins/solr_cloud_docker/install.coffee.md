@@ -160,11 +160,12 @@ loads the lib directory found in the `SOLR_HOME`.
             @each files, (opts, cb) ->
               file = opts.key
               target = "#{options.conf_dir}/clusters/#{key}/server/solr-webapp/webapp/WEB-INF/classes/#{file}"
-              fs.exists options.ssh, target, (err, exists) ->
+              ssh = @ssh options.ssh
+              fs.exists ssh, target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
                 files_exists["#{file}"] = exists
-                properties.read options.ssh, target , (err, props) ->
+                properties.read ssh, target , (err, props) ->
                   return cb err if err
                   sources_props["#{file}"] = props
                   cb()
@@ -195,9 +196,10 @@ loads the lib directory found in the `SOLR_HOME`.
           @each files, (opts, cb) ->
             file = opts.key
             target = "#{options.conf_dir}/clusters/#{key}/server/solr-webapp/webapp/WEB-INF/classes/#{file}"
-            fs.exists options.ssh, target, (err, exists) ->
+            ssh = @ssh options.ssh
+            fs.exists ssh, target, (err, exists) ->
               return callback err if err
-              properties.read options.ssh, target , (err, props) ->
+              properties.read ssh, target , (err, props) ->
                 return cb err if err
                 current_props["#{file}"] = props
                 cb()

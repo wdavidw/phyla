@@ -5,7 +5,7 @@ Download the hdp.repo file if available
 
     module.exports =
       header: 'HDP Repo Prepare'
-      ssh: null
+      ssh: false
       handler: (options) ->
         if options.download
           @file.cache

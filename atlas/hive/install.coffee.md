@@ -31,7 +31,8 @@ Populates the Oozie directory with the Atlas server JAR files.
           throw Error 'No Oozie Sharelib installed' if (sharelib.length is 0)
           return 
         @call header: 'Upload Atlas Jars to Oozie ShareLib', (_, callback) ->
-          fs.readdir options.ssh, '/usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/', (err, files) =>
+          ssh = @ssh options.ssh
+          fs.readdir ssh, '/usr/hdp/current/atlas-client/hook/hive/atlas-hive-plugin-impl/', (err, files) =>
             throw err if err
             @each files, (opt) =>
               @system.execute

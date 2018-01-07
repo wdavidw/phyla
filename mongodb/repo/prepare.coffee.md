@@ -5,9 +5,9 @@ Download the mongodb.repo file if available
 
     module.exports =
       header: 'MongoDB Repo Prepare'
-      ssh: null
+      ssh: false
       handler: (options) ->
-        if options.download
-          @file.cache
-            location: true
-            source: options.source
+        @file.cache
+          if: options.download
+          location: true
+          source: options.source

@@ -328,7 +328,8 @@ Be carefull, notes from Ambari 2.4.2:
       @call header: 'Setup', ->
         props = {}
         @call (options, callback) ->
-          properties '/etc/ambari-server/conf/ambari.properties', ssh: options.ssh, (err, data) ->
+          ssh = @ssh options.ssh
+          properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
             throw err if err
             for k, v of data
               props[k] ?= {}
@@ -386,8 +387,9 @@ Be carefull, notes from Ambari 2.4.2:
             --jaas-principal="#{options.jaas.principal}" \
             --jaas-keytab="#{options.jaas.keytab}"
           """
-        @call (options, callback) ->
-          properties '/etc/ambari-server/conf/ambari.properties', ssh: options.ssh, (err, data) ->
+        @call (_, callback) ->
+          ssh = @ssh options.ssh
+          properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
             throw err if err
             for k, v of data
               props[k] ?= {}

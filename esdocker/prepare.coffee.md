@@ -14,7 +14,7 @@ Download Elasticsearch Plugins.
               if !downloaded
                 console.log "Trying to download #{plugins_options.key} using #{plugin_options.key}.."
                 @file.cache
-                  ssh: null
+                  ssh: false
                   location: true
                   fail: true
                   header: "Accept: application/zip"

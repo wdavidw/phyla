@@ -21,7 +21,7 @@ eval "$(docker-machine env dev)" && docker build -t "ryba/hue-build" .
 Builds Hue from source
 
 
-    module.exports = header: 'Hue Docker Prepare', ssh: null, handler: (options) ->
+    module.exports = header: 'Hue Docker Prepare', ssh: false, handler: (options) ->
 
 # Hue compiling build from Dockerfile
 

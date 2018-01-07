@@ -23,7 +23,7 @@ PKG_CONFIG_PATH=/usr/lib/openssl-1.0/pkgconfig:/usr/lib/pkgconfig rvm install 2.
     module.exports =
       header: 'OpenNebula Front Prepare'
       if: -> @contexts('./lib/nebula/front')[0]?.config.host is @config.host
-      ssh: null
+      ssh: false
       handler: (options) ->
         @system.execute
           header: 'Ruby'

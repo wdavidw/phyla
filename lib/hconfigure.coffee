@@ -25,7 +25,8 @@ module.exports = (options) ->
   @call (_, callback) ->
     options.log? message: "Read target properties from '#{options.target}'", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate org_props and, if merge, fnl_props
-    properties.read options.ssh, options.target, (err, props) ->
+    ssh = @ssh options.ssh
+    properties.read ssh, options.target, (err, props) ->
       return callback err if err and err.code isnt 'ENOENT'
       org_props = if err then {} else props
       if options.merge
@@ -37,7 +38,7 @@ module.exports = (options) ->
     return callback() unless typeof options.source is 'string'
     options.log? message: "Read source properties from #{options.source}", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate options.source
-    ssh = if options.local then null else options.ssh
+    ssh = @ssh if options.local then false else options.ssh
     properties.read ssh, options.source, (err, dft) ->
       return callback err if err
       options.source = dft

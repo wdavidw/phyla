@@ -10,7 +10,7 @@ Version:
   - Hadoop: 2.7 (HDP 2.3)
 
 
-    module.exports = header: 'Zeppelin Prepare', ssh: null, handler: (options) ->
+    module.exports = header: 'Zeppelin Prepare', ssh: false, handler: (options) ->
 
 ## Prepare Build
 

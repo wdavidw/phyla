@@ -179,7 +179,8 @@ in the gateway.sh service script.
         header: 'Create Keystore'
         unless_exists: '/usr/hdp/current/knox-server/data/security/master'
       , (_, callback) ->
-        options.ssh.shell (err, stream) =>
+        ssh = @ssh options.ssh
+        ssh.shell (err, stream) =>
           stream.write "su -l #{options.user.name} -c '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master'\n"
           stream.on 'data', (data, extended) ->
             if /Enter master secret/.test data then stream.write "#{options.ssl.keystore.password}\n"

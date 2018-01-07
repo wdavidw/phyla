@@ -20,17 +20,17 @@ suite can be used to assess regularity, balance or workload on a cluster.
 
       @call header: 'Preparation', handler: ->
         @file
-          ssh: null
+          ssh: false
           target: teragen_output_file
           content: job_output_header
           unless_exists: true
         @file
-          ssh: null
+          ssh: false
           target: terasort_output_file
           content: job_output_header
           unless_exists: true
         @file (
-          ssh: null
+          ssh: false
           target: "#{benchmark.output}/#{node.name}.csv"
           content: node_output_header
           unless_exists: true
@@ -84,7 +84,7 @@ These can be used to validate data repartition in the cluster.
                 data = JSON.parse stdout
                 throw Error "Invalid Response" unless new RegExp("Hadoop:service=DataNode,name=DataNodeActivity-#{node.name}-1004").test data?.beans[0]?.name
                 @file
-                  ssh: null
+                  ssh: false
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
                   append: true
@@ -105,7 +105,7 @@ These can be used to validate data repartition in the cluster.
             , (err, _, stdout, stderr) ->
               @file
                 unless: !!err
-                ssh: null
+                ssh: false
                 target: teragen_output_file
                 content: parse_metrics stderr, parameters.maps, parameters.rows
                 append: true
@@ -125,7 +125,7 @@ These can be used to validate data repartition in the cluster.
             , (err, _, stdout, stderr) ->
               @file
                 unless: !!err
-                ssh: null
+                ssh: false
                 target: terasort_output_file
                 content: parse_metrics stderr, parameters.maps, parameters.rows
                 append: true
@@ -146,7 +146,7 @@ These can be used to validate data repartition in the cluster.
                 data = JSON.parse stdout
                 throw Error "Invalid Response" unless new RegExp("Hadoop:service=DataNode,name=DataNodeActivity-#{node.name}-1004").test data?.beans[0]?.name
                 @file
-                  ssh: null
+                  ssh: false
                   target: "#{benchmark.output}/#{node.name}.csv"
                   content: "\n#{parameters.maps},#{parameters.rows},#{parse_datanode_jmx data.beans[0]}"
                   append: true

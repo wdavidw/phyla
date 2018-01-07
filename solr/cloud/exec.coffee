@@ -20,7 +20,8 @@ module.exports = ->
       nikita()
       .ssh.open ssh: merge {}, node.config.nikita?.ssh, host: node.config.ip or node.config.host
       .call (options, callback) ->
-        exec options.ssh, params.subcommand, (err, stdout, stderr) ->
+        ssh = @ssh options.ssh
+        exec ssh, params.subcommand, (err, stdout, stderr) ->
           write if err
           then "\x1b[31m#{host} (exit code #{err.code})\x1b[39m\n"
           else "\x1b[32m#{host}\x1b[39m\n"

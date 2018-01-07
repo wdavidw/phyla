@@ -155,11 +155,12 @@ tested.
             @each files, (opt, cb) ->
               file = opt.key
               target = "#{options.conf_dir}/#{file}"
-              fs.exists options.ssh, target, (err, exists) ->
+              ssh = @ssh options.ssh
+              fs.exists ssh, target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
                 files_exists["#{file}"] = exists
-                properties.read options.ssh, target , (err, props) ->
+                properties.read ssh, target , (err, props) ->
                   return cb err if err
                   sources_props["#{file}"] = props
                   cb()
@@ -189,9 +190,10 @@ tested.
           @each files, (opt, cb) ->
             file = opt.key
             target = "#{options.conf_dir}/#{file}"
-            fs.exists options.ssh, target, (err, exists) ->
+            ssh = @ssh options.ssh
+            fs.exists ssh, target, (err, exists) ->
               return callback err if err
-              properties.read options.ssh, target , (err, props) ->
+              properties.read ssh, target , (err, props) ->
                 return cb err if err
                 current_props["#{file}"] = props
                 cb()

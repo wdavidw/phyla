@@ -1,7 +1,7 @@
 
 # Ambari Nifi Prepare
 
-    module.exports = header: 'Ambari Nifi Prepare', ssh: null, handler: (options) ->
+    module.exports = header: 'Ambari Nifi Prepare', ssh: false, handler: (options) ->
       @file.cache
         header: "Toolkit"
         location: true

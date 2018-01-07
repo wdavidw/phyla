@@ -6,7 +6,7 @@ Download the package.
     module.exports =
       header: 'JanusGraph Prepare'
       if: -> @contexts('ryba/janusgraph')[0]?.config.host is @config.host
-      handler: ->
+      ssh: false
+      handler: (options) ->
         @file.cache
-          ssh: null
-          source: "#{@config.ryba.janusgraph.source}"
+          source: "#{options.source}"
