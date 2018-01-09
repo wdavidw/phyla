@@ -33,7 +33,7 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
       options.kafka_admin = service.deps.kafka_broker[0].options.admin
 
 ## Access
-      
+
       options.ranger_kafka_install = service.deps.ranger_kafka[0].options.install if service.deps.ranger_kafka
       options.ranger_hbase_install = service.deps.ranger_hbase[0].options.install if service.deps.ranger_hbase
       # options.ranger_solr_install = service.deps.ranger_solr[0].options.install if service.deps.ranger_solr
@@ -226,7 +226,7 @@ Ryba does configure atlas server with the same port for every instance.
 
       options.application.properties['atlas.server.ha.enabled'] ?= if service.deps.atlas.length > 1 then 'true' else 'false'
       options.application.properties['atlas.server.ids'] ?= service.instances.map( (instance) -> instance.node.hostname ).join ','
-      for node in service.instances.map (instance) -> instance.node
+      for node in service.instances.map( (instance) -> instance.node)
         options.application.properties["atlas.server.address.#{node.hostname}"] ?= "#{node.fqdn}:#{port}"
 
 ## Atlas Ranger User
@@ -342,7 +342,7 @@ Required for Ranger integration or anytime there is a consumer of entity change 
               ]
 
 # ## Ranger Tag Base Policies configuration
-# 
+#
 #       for srv in service.deps.ranger_tagsync
 #         srv.options.atlas_properties ?= {}
 #         for prop in [
@@ -426,7 +426,7 @@ It configures policies in case ranger is enabled on the cluster
             ]
 
 ### Indexing Engine
-Atlas support only solr on cloud mode. Atlas' Ryba installation support solrcoud 
+Atlas support only solr on cloud mode. Atlas' Ryba installation support solrcoud
 in or out of docker.
 
       options.indexing_engine ?= 'solr'
@@ -470,7 +470,6 @@ in or out of docker.
             options.application.properties['atlas.graph.index.search.solr.zookeeper-url'] ?= urls
             options.application.properties['atlas.graph.index.search.solr.mode'] ?= 'cloud'
             options.application.properties['atlas.graph.index.search.backend'] ?= 'solr5'
-              
           #   # register collection creation just once
           #   if @contexts('ryba/atlas').map( (ctx) -> ctx.config.host )[0] is service.node.fqdn
           #     sc_ctxs[0]
@@ -598,7 +597,7 @@ in or out of docker.
             'replicationFactor': options.solr.cluster_config['hosts'].length-1
             'maxShardsPerNode': options.solr.cluster_config['hosts'].length
             'collection.configName': 'fulltext_index'
-        
+
 ## Wait
 
       options.wait ?= {}
@@ -613,7 +612,7 @@ in or out of docker.
       options.wait_hbase = service.deps.hbase_master[0].options.wait
       options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
-      
+
       options.wait ?= {}
       options.wait.http = for srv in service.deps.atlas
         srv.options.application.properties['atlas.enableTLS'] ?= options.application.properties['atlas.enableTLS']
