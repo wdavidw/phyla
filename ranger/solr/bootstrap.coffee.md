@@ -15,18 +15,18 @@
   
       @file.download
         source: "#{__dirname}/../resources/solr/managed-schema"
-        target: "#{options.solr.cluster_config.ranger_collection_dir}/conf/managed-schema"
+        target: "#{options.solr.cluster_config.ranger_collection_dir}/managed-schema"
       @file.render
         source: "#{__dirname}/../resources/solr/solrconfig.xml"
-        target: "#{options.solr.cluster_config.ranger_collection_dir}/conf/solrconfig.xml"
+        target: "#{options.solr.cluster_config.ranger_collection_dir}/solrconfig.xml"
         local: true
         context: retention_period: options.audit_retention_period
       @file.download
         source: "#{__dirname}/../resources/solr/elevate.xml"
-        target: "#{options.solr.cluster_config.ranger_collection_dir}/conf/elevate.xml"
+        target: "#{options.solr.cluster_config.ranger_collection_dir}/elevate.xml"
       @file.download
         source: "#{__dirname}/../resources/solr/elevate.xml"
-        target: "#{options.solr.cluster_config.ranger_collection_dir}/conf/elevate.xml"
+        target: "#{options.solr.cluster_config.ranger_collection_dir}/elevate.xml"
 
 ## Create Atlas Collection in Solr
 
