@@ -49,24 +49,24 @@
 Inherits some of the basic spark yarn-cluster based installation
 
       options.conf ?= {}
-      options.conf['options.provider'] ?= 'org.apache.spark.deploy.history.FsHistoryProvider'
-      options.conf['options.fs.update.interval'] ?= '10s'
-      options.conf['options.retainedApplications'] ?= '50'
-      options.conf['options.ui.port'] ?= '18080'
+      options.conf['spark.history.provider'] ?= 'org.apache.spark.deploy.history.FsHistoryProvider'
+      options.conf['spark.history.fs.update.interval'] ?= '10s'
+      options.conf['spark.history.retainedApplications'] ?= '50'
+      options.conf['spark.history.ui.port'] ?= '18080'
 
-      options.conf['options.kerberos.keytab'] ?= '/etc/security/keytabs/spark.keytab'
-      options.conf['options.ui.acls.enable'] ?= 'true'
-      options.conf['options.fs.cleaner.enabled'] ?= 'false'
-      options.conf['options.retainedApplications'] ?= '50'
+      options.conf['spark.history.kerberos.keytab'] ?= '/etc/security/keytabs/spark.keytab'
+      options.conf['spark.history.ui.acls.enable'] ?= 'true'
+      options.conf['spark.history.fs.cleaner.enabled'] ?= 'false'
+      options.conf['spark.history.retainedApplications'] ?= '50'
 
 ## Configuration Kerberos
 
 Spark History Server server is runned as the spark user.
 
-      options.conf['spark.yarn.historyServer.address'] ?= "#{service.node.fqdn}:#{options.conf['options.ui.port']}"
-      options.conf['options.kerberos.enabled'] ?= if service.deps.hadoop_core.options.core_site['hadoop.http.authentication.type'] is 'kerberos' then 'true' else 'false'
-      options.conf['options.kerberos.principal'] ?= "spark/#{service.node.fqdn}@#{options.krb5.realm}"
-      options.conf['options.kerberos.keytab'] ?= '/etc/security/keytabs/spark.service.keytab'
+      options.conf['spark.yarn.historyServer.address'] ?= "#{service.node.fqdn}:#{options.conf['spark.history.ui.port']}"
+      options.conf['spark.history.kerberos.enabled'] ?= if service.deps.hadoop_core.options.core_site['hadoop.http.authentication.type'] is 'kerberos' then 'true' else 'false'
+      options.conf['spark.history.kerberos.principal'] ?= "spark/#{service.node.fqdn}@#{options.krb5.realm}"
+      options.conf['spark.history.kerberos.keytab'] ?= '/etc/security/keytabs/spark.service.keytab'
 
 ## Configuration SSL
 
@@ -104,8 +104,8 @@ Spark History Server server is runned as the spark user.
 ## Configuration client
 
       for srv in service.deps.spark_client
-        srv.options.conf['options.provider'] = options.conf['options.provider']
-        srv.options.conf['options.ui.port'] = options.conf['options.ui.port']
+        srv.options.conf['spark.history.provider'] = options.conf['spark.history.provider']
+        srv.options.conf['spark.history.ui.port'] = options.conf['spark.history.ui.port']
         srv.options.conf['spark.yarn.historyServer.address'] = options.conf['spark.yarn.historyServer.address']
 
 ## Log4j Properties
