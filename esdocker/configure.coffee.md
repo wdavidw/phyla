@@ -215,7 +215,6 @@
             #plugin form: userName/pluginName/version
             [elements[0],elements[1],elements[2]]
           es.plugins_urls["#{repo}"] = []
-          console.log "user: #{user} repo: #{repo} version: #{version}"
           if version is null && user is null && repo != null
             throw Error " #{repo} is not an official plugin so you should install it using elasticsearch/#{repo}/latest naming form." unless repo in official_plugins
             version = es.es_version
