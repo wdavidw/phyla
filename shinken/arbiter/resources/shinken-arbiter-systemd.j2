@@ -1,0 +1,12 @@
+[Unit]
+Description=Shinken Arbiter
+After=syslog.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/shinken-arbiter -d -r -c /etc/shinken/shinken.cfg
+KillMode=mixed
+TimeoutStopSec=3
+
+[Install]
+WantedBy=multi-user.target
