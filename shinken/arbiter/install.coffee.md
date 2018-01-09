@@ -36,6 +36,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @system.remove target: '/etc/shinken/hosts/localhost.cfg'
         @system.remove target: '/etc/shinken/templates/templates.cfg'
         @system.remove target: '/etc/shinken/resource.d/path.cfg'
+        
+        @service.init
+          header: 'Systemd Script'
+          target: '/usr/lib/systemd/system/shinken-arbiter'
+          source: "#{__dirname}/resources/shinken-arbiter-systemd.j2"
+          local: true
+          mode: 0o0644
 
 ## Modules
 
