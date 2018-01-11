@@ -1,18 +1,17 @@
 
 # OpenTSDB Check
 
-    module.exports = header: 'OpenTSDB Check', handler: ->
-      {opentsdb} = @config.ryba
+    module.exports = header: 'OpenTSDB Check', handler: (options) ->
 
 ## Wait
 
-      @call once: true, 'ryba/opentsdb/wait'
+      @call once: true, 'ryba/opentsdb/wait', options.wait_hbase_master
 
 ## Check HTTP
 
       @system.execute
         header: 'Check HTTP'
-        cmd: "curl http://#{@config.host}:#{opentsdb.config['tsd.network.port']}"
+        cmd: "curl http://#{options.fqdn}:#{options.config['tsd.network.port']}"
 
 ## Check HTTP API
 
@@ -22,7 +21,7 @@
           metric: 'ryba.test'
           timestamp: date
           value: 42
-          tags: api: 'http', host: @config.host
+          tags: api: 'http', host: options.fqdn
         get = JSON.stringify
           start: date-100
           # set end time manually to not have the opentsdb'server default time
@@ -30,17 +29,17 @@
           queries: [
             aggregator: 'count'
             metric: 'ryba.test'
-            tags: api: 'http', host: @config.host
+            tags: api: 'http', host: options.fqdn
           ]
         @system.execute
           cmd: """
-          curl --fail -X POST -d '#{put}' http://#{@config.host}:#{opentsdb.config['tsd.network.port']}/api/put
+          curl --fail -X POST -d '#{put}' http://#{options.fqdn}:#{options.config['tsd.network.port']}/api/put
           """
         @system.execute
           # Waiting 2 secs. Opentsdb is not consistent
           cmd: """
           sleep 2;
-          curl --fail -X POST -d '#{get}' http://#{@config.host}:#{opentsdb.config['tsd.network.port']}/api/query
+          curl --fail -X POST -d '#{get}' http://#{options.fqdn}:#{options.config['tsd.network.port']}/api/query
           """
         , (err, executed, stdout, stderr) ->
           [result] = JSON.parse stdout

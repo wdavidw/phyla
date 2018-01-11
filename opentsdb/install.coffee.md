@@ -1,9 +1,7 @@
 
 # OpenTSDB Install
 
-    module.exports = header: 'OpenTSDB Install', handler: ->
-      {opentsdb, realm} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+    module.exports = header: 'OpenTSDB Install', handler: (options) ->
 
 ## Register
 
@@ -28,7 +26,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: opentsdb.config['tsd.network.port'], protocol: 'tcp', state: 'NEW', comment: "OpenTSDB HTTP GUI" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Install
 
@@ -61,8 +59,8 @@ OpenTSDB archive comes with an RPM
         header: 'Kerberos'
         if: opentsdb.config['hbase.security.authentication'] is 'kerberos'
       , ->
-        @krb5.addprinc krb5,
-          principal: "#{opentsdb.user.name}/#{@config.host}@#{realm}"
+        @krb5.addprinc options.krb5.admin,
+          principal: "#{opentsdb.user.name}/#{options.fqdn}@#{options.krb5.realm}"
           randkey: true
           keytab: '/etc/security/keytabs/opentsdb.service.keytab'
           uid: opentsdb.user.name
@@ -70,12 +68,12 @@ OpenTSDB archive comes with an RPM
         @file.jaas
           target: '/etc/opentsdb/opentsdb.jaas'
           content: "#{opentsdb.config['hbase.sasl.clientconfig']}":
-            principal: "#{opentsdb.user.name}/#{@config.host}@#{realm}"
+            principal: "#{opentsdb.user.name}/#{options.fqdn}@#{options.krb5.realm}"
             useTicketCache: true
           uid: opentsdb.user.name
           gid: opentsdb.group.name
         @cron.add
-          cmd: "/usr/bin/kinit #{opentsdb.user.name}/#{@config.host}@#{realm} -k -t /etc/security/keytabs/opentsdb.service.keytab"
+          cmd: "/usr/bin/kinit #{opentsdb.user.name}/#{options.fqdn}@#{options.krb5.realm} -k -t /etc/security/keytabs/opentsdb.service.keytab"
           when: '0 */9 * * *'
           user: opentsdb.user.name
           exec: true

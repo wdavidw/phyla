@@ -50,8 +50,16 @@ Example:
       options.version ?= '2.3.0'
       options.source ?= "https://github.com/OpenTSDB/opentsdb/releases/download/v#{options.version}/opentsdb-#{options.version}.rpm"
 
+## Kerberos
+
+      options.krb5 ?= {}
+      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+      throw Error 'Required Options: "realm"' unless options.krb5.realm
+      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+
 ## Configuration
 
+      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.fqdn ?= service.node.fqdn
       options.hbase ?= {}
       options.hbase.default_namespace ?= "opentsdb"
