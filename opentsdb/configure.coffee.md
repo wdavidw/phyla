@@ -52,6 +52,7 @@ Example:
 
 ## Configuration
 
+      options.fqdn ?= service.node.fqdn
       options.hbase ?= {}
       options.hbase.default_namespace ?= "opentsdb"
       options.hbase.bloomfilter ?= 'ROW'

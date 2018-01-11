@@ -22,8 +22,8 @@ instructions.
 
 ## Wait
 
-      @call once: true, 'ryba/hbase/master/wait'
-      @call once: true, 'ryba/hbase/regionserver/wait'
+      @call once: true, 'ryba/hbase/master/wait', options.wait_hbase_master
+      @call once: true, 'ryba/hbase/regionserver/wait', options.wait_hbase_regionserver
 
 ## Check SQL Query
 

@@ -3,11 +3,11 @@
 
 Wait for the HTTP port.
 
-    module.exports = header: 'OpenTSDB Wait', handler: ->
+    module.exports = header: 'OpenTSDB Wait', handler: (options) ->
       options = {}
       options.servers =
-        host: @config.host
-        port: @config.ryba.opentsdb.config['tsd.network.port']
+        host: options.fqdn
+        port:options.config['tsd.network.port']
 
 ## HTTP Port
 

@@ -55,6 +55,11 @@ HBase Client.
       options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
       options.test.table ?= 'a_table'
       options.hostname = service.node.hostname
+      
+## Wait
+
+      options.wait_hbase_master = service.deps.hbase_master[0].options.wait
+      options.wait_hbase_regionserver = service.deps.hbase_regionserver[0].options.wait
 
 ## Dependencies
 
