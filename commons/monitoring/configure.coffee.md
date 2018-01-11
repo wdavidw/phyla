@@ -938,6 +938,7 @@ from normzlized configuration.
                 process_name: 'ranger-admin'
                 check_command: check_command
           if 'ryba/opentsdb' is srv.module
+            return unless srv.instances.length > 1
             add_srv_to_cluster 'opentsdb', clustername
             add_srv_to_host_hostgroups  'opentsdb', srv.instances
             create_service
@@ -948,6 +949,7 @@ from normzlized configuration.
               process_name: 'opentsdb'
               check_command: "check_tcp!#{srv.instances[0].options.config['tsd.network.port']}"
           if 'ryba/phoenix/queryserver' is srv.module
+            return unless srv.instances.length > 1
             add_srv_to_cluster 'phoenix_qs', clustername
             add_srv_to_host_hostgroups  'phoenix_qs', srv.instances
             # TCP Port
