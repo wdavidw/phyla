@@ -100,7 +100,7 @@ User can be External and Internal. Only Internal users can be created from the r
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       # Needed starting from 2.5 version to not have problem during setup execution
-      options.install['hadoop_conf'] ?= "#{service.deps.hadoop_core.options.hadoop_conf_dir}"
+      options.install['hadoop_conf'] ?= "#{service.deps.hadoop_core.options.conf_dir}"
       options.install['RANGER_ADMIN_LOG_DIR'] ?= "#{options.log_dir}"
 
 # Kerberos
