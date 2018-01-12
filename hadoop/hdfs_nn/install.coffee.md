@@ -342,6 +342,7 @@ is only executed on the standby NameNode.
         @system.execute
           cmd: "su -l #{options.user.name} -c \"hdfs --config '#{options.conf_dir}' namenode -bootstrapStandby -nonInteractive\""
           code_skipped: 5
+          unless_exists: "#{any_dfs_name_dir}/current/VERSION"
 
 ## Policy
 
