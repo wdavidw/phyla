@@ -373,7 +373,8 @@
          have some sort of hard autoCommit to limit the log size.
       -->
      <autoCommit>
-       <maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+       <maxDocs>25000</maxDocs>
+       <maxTime>${solr.autoCommit.maxTime:300000}</maxTime>
        <openSearcher>false</openSearcher>
      </autoCommit>
 
