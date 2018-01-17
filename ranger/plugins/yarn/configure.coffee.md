@@ -67,6 +67,8 @@ REST request.
       # for now only on RM but this suggest on NM as well:
       # conf_dir = if @config.ryba.yarn_plugin_is_master then yarn.rm.conf_dir else yarn.nm.conf_dir
       # migration: lucasbak 171010 put back ranger plugin on yarn nodemanager
+      service.deps.yarn_rm_local.options.yarn_site['yarn.authorization-provider'] ?= 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer' if service.deps.yarn_rm_local
+      service.deps.yarn_nm.options.yarn_site['yarn.authorization-provider'] ?= 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer' if service.deps.yarn_nm
       options.conf_dir ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.conf_dir else service.deps.yarn_nm.options.conf_dir
       options.log_dir ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.log_dir else service.deps.yarn_nm.options.conf_dir
       options.ssl_server ?= if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.ssl_server else service.deps.yarn_nm.options.ssl_server
