@@ -143,6 +143,10 @@ define command {
   command_line    $DOCKER_EXEC$ elasticsearch/containers_status.py -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG2$
 }
 define command {
+  command_name    monitor_hbase_usage
+  command_line    $DOCKER_EXEC$ hbase/monitor_usage.php -H $ARG1$ -P $ARG2$ -C $ARG3$ -D $ARG4$ -T $ARG5$ -O $ARG6$
+}
+define command {
   command_name    replication_presence_check
   command_line    $DOCKER_EXEC$ hbase/check_replication_presence.php --H1 $HOSTNAME$ --p1 $ARG1$ --H2 $ARG2$ --p2 $ARG3$ $ARG4$ $ARG5$
 } 

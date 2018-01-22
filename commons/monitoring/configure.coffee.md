@@ -744,6 +744,35 @@ from normzlized configuration.
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!120!60"
             create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', srv.instances[0].node.fqdn
+            if options.graphite?.host and options.graphite?.port
+              # Monitor usage GET
+              create_service
+                name: 'HBase Usage - Get Queries'
+                servicegroup: 'hbase_master'
+                instances: [srv.instances[0]]
+                use: 'functional-service'
+                check_command: "monitor_hbase_usage!#{options.graphite.host}!#{options.graphite.port}!#{clustername}!#{options.hbase_usage.period}!#{options.hbase_usage.get}!get"
+              # Monitor usage SCAN
+              create_service
+                name: 'HBase Usage - Scan Queries'
+                servicegroup: 'hbase_master'
+                instances: [srv.instances[0]]
+                use: 'functional-service'
+                check_command: "monitor_hbase_usage!#{options.graphite.host}!#{options.graphite.port}!#{clustername}!#{options.hbase_usage.period}!#{options.hbase_usage.scan}!scanTime"
+              # Monitor usage MUTATE
+              create_service
+                name: 'HBase Usage - Mutate Queries'
+                servicegroup: 'hbase_master'
+                instances: [srv.instances[0]]
+                use: 'functional-service'
+                check_command: "monitor_hbase_usage!#{options.graphite.host}!#{options.graphite.port}!#{clustername}!#{options.hbase_usage.period}!#{options.hbase_usage.scan}!mutate"
+              # Monitor usage DELETE
+              create_service
+                name: 'HBase Usage - Delete Queries'
+                servicegroup: 'hbase_master'
+                instances: [srv.instances[0]]
+                use: 'functional-service'
+                check_command: "monitor_hbase_usage!#{options.graphite.host}!#{options.graphite.port}!#{clustername}!#{options.hbase_usage.period}!#{options.hbase_usage.delete}!delete"
             # Late RegionServers check
             if config.clusters[clustername]?.services['ryba/hadoop/httpfs']
               httpFSHosts = config.clusters[clustername]?.services['ryba/hadoop/httpfs'].instances.map (instance) -> instance.node.fqdn
