@@ -142,6 +142,10 @@ define command {
   command_name    check_es_containers_status
   command_line    $DOCKER_EXEC$ elasticsearch/containers_status.py -H $HOSTNAME$ -p $ARG1$ -u {{ credentials.swarm_user.username }} -P {{ credentials.swarm_user.password }} -c {{ credentials.swarm_user.cert }} -k {{ credentials.swarm_user.key }} $ARG2$
 }
+define command {
+  command_name    check_late_rs
+  command_line    $DOCKER_EXEC$ hbase/check_late_RS.php -H $ARG1$ -p $ARG2$ -M $ARG3$ -P $ARG4$ $ARG5$
+}
 ## User/ryba-defined commands
 {% for name, command in commands %}
 define command{

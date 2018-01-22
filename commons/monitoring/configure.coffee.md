@@ -744,6 +744,15 @@ from normzlized configuration.
               use: 'cert-service'
               check_command: "check_cert!#{srv.instances[0].options.hbase_site['hbase.master.info.port']}!120!60"
             create_dependency 'HBase Master - Certificate', 'HBase Master - WebUI', srv.instances[0].node.fqdn
+            # Late RegionServers check
+            if config.clusters[clustername]?.services['ryba/hadoop/httpfs']
+              httpFSHosts = config.clusters[clustername]?.services['ryba/hadoop/httpfs'].instances.map (instance) -> instance.node.fqdn
+              create_service
+                name: 'HBase Master - Late RegionServers'
+                servicegroup: 'hbase_master'
+                instances: [srv.instances[0]]
+                use: 'functional-service'
+                check_command: "check_late_rs!#{httpFSHosts.toString()}!#{config.clusters[clustername]?.services['ryba/hadoop/httpfs'].instances[0].options.http_port}!15!'/apps/hbase/data/oldWALs'!-S"
           if 'ryba/hbase/regionserver' is srv.module
             add_srv_to_cluster 'hbase_regionserver', clustername
             add_srv_to_host_hostgroups  'hbase_regionserver', srv.instances
