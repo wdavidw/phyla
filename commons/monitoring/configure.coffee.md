@@ -753,6 +753,21 @@ from normzlized configuration.
                 instances: [srv.instances[0]]
                 use: 'functional-service'
                 check_command: "check_late_rs!#{httpFSHosts.toString()}!#{config.clusters[clustername]?.services['ryba/hadoop/httpfs'].instances[0].options.http_port}!15!'/apps/hbase/data/oldWALs'!-S"
+            # Replication table presence check
+            if options.replication_monitoring?.source_realm is clustername
+              throw Error 'Missing replication_monitoring destination realm' unless options.replication_monitoring?.destination_realm
+              throw Error 'HBase REST is required to monitor replication' unless config.clusters[clustername]?.services['ryba/hbase/rest'] and config.clusters[options.replication_monitoring?.destination_realm]?.services['ryba/hbase/rest']
+              source_hbase_rest_hosts = config.clusters[clustername]?.services['ryba/hbase/rest']
+              source_hbase_rest_port = source_hbase_rest_hosts.instances[0].options.hbase_site['hbase.rest.port']
+              destination_hbase_rest_hosts = config.clusters[options.replication_monitoring?.destination_realm]?.services['ryba/hbase/rest'].instances.map (instance) -> instance.node.fqdn
+              destination_hbase_rest_port = config.clusters[options.replication_monitoring?.destination_realm]?.services['ryba/hbase/rest'].instances[0].options.hbase_site['hbase.rest.port']
+              console.log check_command: "replication_presence_check!#{source_hbase_rest_port}!#{destination_hbase_rest_hosts.toString()}!#{destination_hbase_rest_port}!--S1!--S2"
+              create_service
+                name: 'HBase Replication - Table presence'
+                servicegroup: 'hbase_rest'
+                instances: source_hbase_rest_hosts.instances
+                use: 'functional-service'
+                check_command: "replication_presence_check!#{source_hbase_rest_port}!#{destination_hbase_rest_hosts.toString()}!#{destination_hbase_rest_port}!--S1!--S2"
           if 'ryba/hbase/regionserver' is srv.module
             add_srv_to_cluster 'hbase_regionserver', clustername
             add_srv_to_host_hostgroups  'hbase_regionserver', srv.instances
