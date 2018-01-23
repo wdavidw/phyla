@@ -170,7 +170,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             volumes.push "#{options.tls_key_file}:#{options.credentials.swarm_user.key}" if options.credentials.swarm_user.key?
           @docker.service
             name: 'poller-executor'
-            image: 'ryba/shinken-poller-executor'
+            image: "#{options.image}:#{options.version}"
             net: 'host'
             volume: volumes
 
