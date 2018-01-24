@@ -65,6 +65,18 @@
       options.user.limits.nproc ?= 10000
       options.user.gid = options.group.name
 
+## IPTables
+
+      options.iptables ?= !!service.iptables and service.iptables?.action in ['start','START']
+
+## Docker configuration
+configure docker object to communicate with `ryba/swarm/manager` (if configured),
+
+      if service.deps.swarm_manager?.length > 0
+        options.swarm_manager ?= "tcp://#{service.deps.swarm_manager[0].node.fqdn}:#{service.deps.swarm_manager[0].options.listen_port}"
+      else
+        options.swarm_manager ?= "tcp://#{service.deps.docker.node.fqdn}:#{service.deps.docker.port}"
+      
 ## Elastic config
 
       options.clusters ?= {}
@@ -79,17 +91,37 @@
       options.fqdn ?= service.node.fqdn
       options.hosts ?= service.deps.esdocker.map (srv) -> srv.node.fqdn
 
-## Kernerl
+## Kernel
 
       options.prepare = service.deps.esdocker[0].node.fqdn is service.node.fqdn
       options.sysctl ?= {}
       options.sysctl["vm.max_map_count"] = 262144
-      es_masters = []
+
+## Installed Cluster
+Filter cluster which will be set up based on config
+
+Note lucasbak 24012018:
+- migth remove `only` option.
+  But need to find strong way to check if cluster already runing.
+- Setup discovery mode base on cluster configuration
+goes through each type of service and glob pattern on filter and type to build
+the `discovery.zen.ping.unicast.hosts` configuration.
+
 
       for es_name,es of options.clusters
         delete options.clusters[es_name] unless es.only
 
       for es_name,es of options.clusters
+        #ES Config file
+        es.config = {}
+        es.config["network.host"] = "0.0.0.0"
+        es.config["cluster.name"] = "#{es_name}"
+        es.config["path.data"] = "#{es.data_path}"
+        es.config["path.logs"] = "/var/log/elasticsearch"
+        es.config["script.engine.painless.inline"] = true
+        es.config["xpack.security.enabled"] = false
+        es.config["cluster.routing.allocation.node_concurrent_recoveries"] = 8
+        es.config["indices.recovery.max_bytes_per_sec"] = "250mb"
         es.normalized_name = "#{es_name.replace(/_/g,"")}"
         #Docker:
         es.es_version ?= "5.3.1"
@@ -97,7 +129,7 @@
         es.docker_kibana_image ?= "dc-registry-bigdata.noe.edf.fr/kibana:4.5"
         es.docker_logstash_image ?= "logstash"
         #Cluster
-        es.number_of_containers ?= @contexts('ryba/docker-es').length
+        es.number_of_containers ?= options.hosts.length
         es.number_of_shards ?= es.number_of_containers
         es.number_of_replicas ?= 1
         es.data_path ?= ["/data/1","/data/2","/data/3","/data/4","/data/5","/data/6","/data/7","/data/8"]
@@ -127,18 +159,21 @@
         es.cap_add ?= ["IPC_LOCK"]
 
         es.environment = ["affinity:container!=*#{es.normalized_name}_*"]
-        throw Error 'Required property "ports"' unless es.ports?
-        if es.ports instanceof Array
-          port_mapping = port.split(":").length > 1 for port in es.ports
-          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]' unless port_mapping is true
-        else
-          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]'
-        throw Error 'Required property "nodes"' unless es.nodes?
-        throw Error 'Required property "network" and network.external' unless es.network?
+        # check configuration
+        if not es.multiple_node
+          throw Error 'Required property "ports"' unless es.ports?
+          if es.ports instanceof Array
+            port_mapping = port.split(":").length > 1 for port in es.ports
+            throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]' unless port_mapping is true
+          else
+            throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]'
+          throw Error 'Required property "nodes"' unless es.nodes?
+          throw Error 'Required property "network" and network.external' unless es.network?
         if es.kibana?
           throw Error 'Required property "kibana.port"' unless es.kibana.port?
         #TODO create overlay network if the network does not exist
         #For now We assume that the network is already created by docker network create
+        es.network ?= {}
         es.network.external = true
         if es.logstash?
           throw Error 'Required property "logstash.port"' unless es.logstash.port?
@@ -150,37 +185,102 @@
         es.master_nodes = 0
         es.data_nodes = 0
         es.master_data_nodes = 0
-        for type, node of es.nodes
-          throw Error 'Please specify number property for each node type under nodes property' unless node.number?
-          node.mem_limit ?= es.default_mem
-          heap_size =  if node.mem_limit is '1g' then '512mb' else Math.floor(parseInt(node.mem_limit.replace(/(g|mb)/i,'')) / 2 )
-          node.heap_size ?= if node.mem_limit.indexOf('g') > -1 then heap_size+'g' else heap_size+'mb'
-          node.cpu_quota ?= es.default_cpu_quota
-          switch type
-            when "master"
-              es.master_nodes = node.number
-              for number in [1..es.master_nodes] then es_masters.push "#{es.normalized_name}_#{type}_#{number}"
-            when "data" then es.data_nodes =  node.number
-            when "master_data"
-              es.master_data_nodes = node.number
-              for number in [1..es.master_data_nodes] then es_masters.push "#{es.normalized_name}_#{type}_#{number}"
-          node.filter ?= ""
+
+## Network mode
+
+        if options.multiple_node
+          throw Error "cluster #{es.normalized_name} not in host mode (multiple_node)" unless es.net is 'host'
+
+## Discovery configuration
+`discovery.zen.ping.unicast.hosts` configuration should be an array containing
+all master's node_name in network host mode or container's name in network mapped mode.
+
+        es.master_hosts ?= []
+        if es.multiple_node
+          #do dicsover based on filter
+          for type, node of es.nodes
+            switch type
+              when 'master' then es.master_nodes++
+              when 'master_data' then es.master_data_nodes++
+              else  es.data_nodes++
+            if type is 'master' or 'master_data'
+              for host in options.hosts
+                throw Error "filter must be specified to configure `discovery.zen.ping.unicast.hosts` in host mode (multiple_node)" unless node['filter']?
+                if minimatch(host, node['filter'])
+                  es.master_hosts.push host if es.master_hosts.indexOf(host) is -1 
+          es.config["discovery.zen.ping.unicast.hosts"] ?= es.master_hosts if es.master_hosts.length > 0
+        else
+          for type, node of es.nodes
+            node.filter ?= ""
+            throw Error 'Please specify number property for each node type under nodes property' unless node.number?
+            node.mem_limit ?= es.default_mem
+            heap_size =  if node.mem_limit is '1g' then '512mb' else Math.floor(parseInt(node.mem_limit.replace(/(g|mb)/i,'')) / 2 )
+            node.heap_size ?= if node.mem_limit.indexOf('g') > -1 then heap_size+'g' else heap_size+'mb'
+            node.cpu_quota ?= es.default_cpu_quota
+            switch type
+              when "master"
+                es.master_nodes = node.number
+                for number in [1..es.master_nodes] then es.master_hosts.push "#{es.normalized_name}_#{type}_#{number}"
+              when "data" then es.data_nodes =  node.number
+              when "master_data"
+                es.master_data_nodes = node.number
+                for number in [1..es.master_data_nodes] then es.master_hosts.push "#{es.normalized_name}_#{type}_#{number}"
+              else
+                es.data_nodes =  node.number
         es.total_nodes = es.master_nodes + es.data_nodes + es.master_data_nodes
-        #ES Config file
-        es.config = {}
-        es.config["network.host"] = "0.0.0.0"
-        es.config["cluster.name"] = "#{es_name}"
-        es.config["path.data"] = "#{es.data_path}"
-        es.config["path.logs"] = "/var/log/elasticsearch"
-        es.config["script.engine.painless.inline"] = true
-        es.config["discovery.zen.ping.unicast.hosts"] = es_masters.join()
         es.config["discovery.zen.minimum_master_nodes"] = Math.floor((es.master_data_nodes+es.master_nodes) / 2) + 1
         es.config["discovery.zen.master_election.ignore_non_master_pings"] = true
         es.config["gateway.expected_nodes"] = es.total_nodes
-        es.config["gateway.recover_after_nodes"] = es.total_nodes - 1
-        es.config["xpack.security.enabled"] = false
-        es.config["cluster.routing.allocation.node_concurrent_recoveries"] = 8
-        es.config["indices.recovery.max_bytes_per_sec"] = "250mb"
+        es.config["gateway.recover_after_nodes"] = es.total_nodes - 1 
+        es.config["discovery.zen.ping.unicast.hosts"] ?= es.master_hosts.join()
+
+## Node Custom Confguration
+
+## Volumes
+Configure mount points for services
+
+### Data paths
+Configure data diks and mount points where es will write.
+
+        for type, node of es.nodes
+          ## mount points where elasticsearch can write (data paths)
+          node.config ?= es.config
+          node.config.logs_path ?= es.logs_path
+          node.data_path ?= es.data_path
+          node.config['path.data'] = node.data_path
+          node.ports ?= es.ports
+          node.volumes ?= node.data_path.map( (data) -> 
+            if options.multiple_node
+              "#{data}/#{es_name}/#{type}/:#{data}" 
+            else
+              "#{data}/#{es_name}/#{type}/:#{data}" 
+          )
+
+### Config paths
+Configure configuration file es will read to run.
+
+          for file in ['elasticsearch.yml']
+            mount_path = if es.multiple_node
+            then "/etc/elasticsearch/#{es_name}/#{type}/conf/#{file}:/usr/share/elasticsearch/config/#{file}"
+            else "/etc/elasticsearch/#{es_name}/conf/#{file}:/usr/share/elasticsearch/config/#{file}"
+            node.volumes.push mount_path unless node.volumes.indexOf(mount_path) isnt -1
+        
+          for file in ['scripts', 'java.policy', 'log4j2.properties']
+            mount_path = "/etc/elasticsearch/#{es_name}/common/#{file}:/usr/share/elasticsearch/config/#{file}"
+            node.volumes.push mount_path unless node.volumes.indexOf(mount_path) isnt -1
+
+            
+### Logging path         
+
+          mount_path = if es.multiple_node
+          then "#{es.logs_path}/#{es_name}/#{type}:#{es.config['path.logs']}"
+          else "#{es.logs_path}/#{es_name}:#{es.config['path.logs']}"
+          node.volumes.push mount_path unless node.volumes.indexOf(mount_path) isnt -1
+
+## Ports
+        
+        node.config['http.port'] ?= node.http_port
+        node.config['transport.tcp.port'] ?= node.tcp_port
 
 ## Plugins
 
@@ -230,4 +330,7 @@
           if user != null
             es.plugins_urls["#{repo}"].push "https://github.com/#{user}/#{repo}/archive/master.zip"
 
+## Dependencies
+
     {merge} = require 'nikita/lib/misc'
+    minimatch = require("minimatch")

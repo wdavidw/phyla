@@ -8,7 +8,7 @@ Download Elasticsearch Plugins.
       handler: (options) ->
         return unless options.prepare
         for es_name,es of options.clusters then do (es_name,es) =>
-          @each es.plugins_urls, (plugins_options,plugins_callback) ->
+          @each es.plugins_urls, (plugins_options,  plugins_callback) ->
             downloaded = false
             @each plugins_options.value, (plugin_options,callback) ->
               if !downloaded
@@ -19,7 +19,6 @@ Download Elasticsearch Plugins.
                   fail: true
                   header: "Accept: application/zip"
                   source: plugin_options.key
-                  target: "#{plugins_options.key}.zip"
                   ,(err,status) ->
                     if err
                       console.log "error: #{err}"

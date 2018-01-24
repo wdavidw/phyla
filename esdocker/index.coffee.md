@@ -11,9 +11,11 @@ Elastic search configuration for hadoop can be found at [Hortonworks Section](ho
 
     module.exports =
       deps:
+        docker: module: 'masson/commons/docker', local: true
         iptables: module: 'masson/core/iptables', local: true
         ssl: module: 'masson/core/ssl', local: true
         esdocker: module: 'ryba/esdocker'
+        swarm_manager: module: 'ryba/swarm/manager'
       configure:
         'ryba/esdocker/configure'
       commands:
