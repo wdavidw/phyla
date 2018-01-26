@@ -1,5 +1,5 @@
 
-# Prometheus Montior Start
+# Prometheus Monitor Start
 
     module.exports = header: 'Prometheus Monitor Start', handler: (options) ->
 

@@ -25,11 +25,11 @@
       options.user.limits.nproc ?= true
 
 ## Packages
+
 November 2017: lucasbak
 Ryba does only support prometheus 2.0. If admisitrator want to use older version
 the commandline options should be changed (for example -config.file has become --config.file)
 in order for systemd to start correctly the process.
-
 
       options.version ?= '2.0.0-rc.2'
       options.source ?= "https://github.com/prometheus/prometheus/releases/download/v#{options.version}/prometheus-#{options.version}.linux-amd64.tar.gz"
@@ -54,6 +54,7 @@ in order for systemd to start correctly the process.
       options.config['scrape_configs'] ?= []
 
 ## Scrappers
+
 configure by default two new label, one cluster and the other service
 Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 

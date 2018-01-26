@@ -1,5 +1,5 @@
 
-# Prometheus Montior Check
+# Prometheus Monitor Check
 
     module.exports = header: 'Prometheus Monitor Check', handler: (options) ->
 

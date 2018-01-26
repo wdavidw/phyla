@@ -1,5 +1,5 @@
 
-# Prometheus Montior Prepare
+# Prometheus Monitor Prepare
 
     module.exports = header: 'Prometheus Monitor Prepare', handler: (options) ->
 
