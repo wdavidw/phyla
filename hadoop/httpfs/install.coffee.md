@@ -125,7 +125,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             mode: 0o755
         @file.render
           target: "#{options.conf_dir}/httpfs-log4j.properties"
-          source: "#{__dirname}/../resources/httpfs-log4j.properties"
+          source: "#{__dirname}/../resources/httpfs-log4j.properties.j2"
           local: true
           context: options
           backup: true
