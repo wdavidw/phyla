@@ -199,7 +199,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           source: "#{__dirname}/../resources/solr/managed-schema"
           target: "#{options.solr.user.home}/ranger_audits/conf/managed-schema"
         @file.render
-          source: "#{__dirname}/../resources/solr/solrconfig.xml"
+          source: "#{__dirname}/../resources/solr/solrconfig.xml.j2"
           target: "#{options.solr.user.home}/ranger_audits/conf/solrconfig.xml"
           local: true
           context:
@@ -230,7 +230,6 @@ We manage creating the ranger_audits core/collection in the three modes.
         code_skipped: 3
         retry: 3
         sleep: 3000
-      @call -> process.exit
 
 ## Dependencies
 

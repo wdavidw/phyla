@@ -8,16 +8,16 @@
       protocol = if options.solr.cluster_config.ssl_enabled then 'https' else 'http'
 
 ## Wait
-      
+
       @connection.wait options.wait_solr
 
 ## Collection Layout
-  
+
       @file.download
         source: "#{__dirname}/../resources/solr/managed-schema"
         target: "#{options.solr.cluster_config.ranger_collection_dir}/managed-schema"
       @file.render
-        source: "#{__dirname}/../resources/solr/solrconfig.xml"
+        source: "#{__dirname}/../resources/solr/solrconfig.xml.j2"
         target: "#{options.solr.cluster_config.ranger_collection_dir}/solrconfig.xml"
         local: true
         context: retention_period: options.audit_retention_period

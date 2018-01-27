@@ -129,7 +129,7 @@ to allow user to create none-determisitic functions.
       # the convention exit code 3 when service is stopped on the status code
       @service.init
         target: '/etc/init.d/ranger-admin'
-        source: "#{__dirname}/../resources/ranger-admin"
+        source: "#{__dirname}/../resources/ranger-admin.j2"
         local: true
         mode: 0o0755
         context: options
