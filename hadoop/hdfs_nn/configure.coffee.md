@@ -152,7 +152,8 @@ Nameservice must be explicitely set as internal to provide other nameservices,
 for distcp purpose.
 
       options.hdfs_site['dfs.internal.nameservices'] ?= ''
-      options.hdfs_site['dfs.internal.nameservices'] += " #{options.nameservice}" unless options.nameservice in options.hdfs_site['dfs.internal.nameservices'].split ' '
+      if options.nameservice not in options.hdfs_site['dfs.internal.nameservices'].split ','
+        options.hdfs_site['dfs.internal.nameservices'] += "#{if options.hdfs_site['dfs.internal.nameservices'] isnt '' then ',' else ''}#{options.nameservice}" 
       options.hdfs_site["dfs.ha.namenodes.#{options.nameservice}"] = (for srv in service.deps.hdfs_nn then srv.options.hostname).join ','
       for srv in service.deps.hdfs_nn
         options.hdfs_site['dfs.namenode.http-address'] = null
