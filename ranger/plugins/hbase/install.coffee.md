@@ -211,7 +211,7 @@ Activate the plugin.
           , (_, callback) ->
             for file in files
               #do not need to go further if the file did not exist
-              diff = true unless sources_props["#{file}"]?
+              return callback null,true unless sources_props["#{file}"]
               for prop, value of current_props["#{file}"]
                 diff = true unless value is sources_props["#{file}"][prop]
               for prop, value of sources_props["#{file}"]
