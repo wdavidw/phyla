@@ -97,6 +97,7 @@ User can be External and Internal. Only Internal users can be created from the r
       options.site ?= {}
       options.site['ranger.service.http.port'] ?= '6080'
       options.site['ranger.service.https.port'] ?= '6182'
+      options.site['ranger.service.host'] ?= options.fqdn
       options.install ?= {}
       options.install['PYTHON_COMMAND_INVOKER'] ?= 'python'
       # Needed starting from 2.5 version to not have problem during setup execution
@@ -140,6 +141,7 @@ We do not advice to use DB Storage as it is not efficient to query when it grows
 Hortonworks recommandations are to enable SOLR and HDFS Storage.
 
       options.install['audit_store'] ?= 'solr'
+      options.site['ranger.audit.source.type'] ?= options.install['audit_store']
 
 ## Solr Audit Configuration
 
