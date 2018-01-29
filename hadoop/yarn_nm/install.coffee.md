@@ -296,12 +296,11 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
           target: '/etc/cgconfig.d/yarn.cgconfig.conf'
           merge: false
           groups: options.cgroup
-        @service.restart
-          name: 'cgconfig'
-          if: -> @status -1
+        , (err, _, cgroups) ->
+          options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path'] = cgroups.mount
         @call ->
-          options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path'] = options.store['nikita:cgroups:mount']
           # migration: wdavidw 170827, using store is a bad, very bad idea, ensure it works in the mean time
+          # lucasbak 180127 not using store anymore
           throw Error 'YARN NM Cgroup is undefined' unless options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path']
           @hconfigure
             header: 'YARN Site'
@@ -309,6 +308,10 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
             properties: options.yarn_site
             merge: true
             backup: true
+        @service.restart
+          name: 'cgconfig'
+          if: -> @status -2
+
 
 ## SSL
 
