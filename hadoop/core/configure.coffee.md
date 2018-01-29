@@ -344,6 +344,11 @@ the truststore options exported from the SSL service and merged above:
         throw Error "Required Option: ssl_client['ssl.client.truststore.password']" unless options.ssl_client['ssl.client.truststore.password']
         options.ssl_client['ssl.client.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_client['ssl.client.truststore.type'] ?= 'jks'
+        options.ssl_client['ssl.client.keystore.password'] ?= options.ssl.keystore.password
+        throw Error "Required Option: ssl_client['ssl.client.keystore.password']" unless options.ssl_client['ssl.client.keystore.password']
+        options.ssl_client['ssl.client.keystore.location'] ?= "#{options.conf_dir}/keystore"
+        options.ssl_client['ssl.client.keystore.type'] ?= 'jks'
+        options.ssl_client['ssl.client.truststore.reload.interval'] ?= '10000'
 
 ### SSL Server
 
@@ -368,6 +373,7 @@ the keystore options exported from the SSL service and merged above:
         options.ssl_server['ssl.server.truststore.location'] ?= "#{options.conf_dir}/truststore"
         options.ssl_server['ssl.server.truststore.password'] ?= options.ssl_client['ssl.client.truststore.password']
         options.ssl_server['ssl.server.truststore.type'] ?= 'jks'
+        options.ssl_server['ssl.server.truststore.reload.interval'] ?= '10000'
 
 ## Metrics
 

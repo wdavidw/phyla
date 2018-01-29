@@ -27,6 +27,7 @@ Managers, Web HDFS interactions, and others.
         ganglia: module: 'ryba/retired/ganglia/collector', single: true
         graphite: module: 'ryba/graphite', single: true
         metrics: module: 'ryba/metrics', local: true
+        log4j: module: 'ryba/log4j', local: true
         hadoop_core: module: 'ryba/hadoop/core'
       configure:
         'ryba/hadoop/core/configure'

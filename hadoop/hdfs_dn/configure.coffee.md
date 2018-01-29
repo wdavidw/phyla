@@ -75,7 +75,7 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
 
       options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
       # Note: moved during masson migration from nn to dn
-      options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
+      options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec,com.hadoop.compression.lzo.LzoCodec"
       options.hdfs_site ?= {}
       # Comma separated list of paths. Use the list of directories from $DFS_DATA_DIR.
       # For example, /grid/hadoop/hdfs/dn,/grid1/hadoop/hdfs/dn.
