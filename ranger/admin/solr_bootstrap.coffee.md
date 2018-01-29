@@ -1,6 +1,9 @@
 
 # Ranger Admin : SolR Bootstrap
 
+lucasbak 27012018: This module is deprecated and not supported.
+Users should user module inside `ryba/ranger/solr`
+
     module.exports = header: 'Ranger Audit Solr Boostrap', handler: (options) ->
       return unless options.solr_type is 'embedded'
       {solr} = @config.ryba
@@ -52,7 +55,7 @@ solr apache version.
           source: "#{__dirname}/../resources/solr/managed-schema"
           target: "#{tmp_dir}/ranger_audits/conf/managed-schema"
         @file.render
-          source: "#{__dirname}/../resources/solr/solrconfig.xml"
+          source: "#{__dirname}/../resources/solr/solrconfig.xml.j2"
           target: "#{tmp_dir}/ranger_audits/conf/solrconfig.xml"
           local: true
           context:
@@ -73,7 +76,7 @@ solr apache version.
           source: "#{__dirname}/../resources/solr/managed-schema"
           target: "#{tmp_dir}/ranger_audits/conf/managed-schema"
         @file.render
-          source: "#{__dirname}/../resources/solr/solrconfig.xml"
+          source: "#{__dirname}/../resources/solr/solrconfig.xml.j2"
           target: "#{tmp_dir}/ranger_audits/conf/solrconfig.xml"
           local: true
           context: retention_period: ranger.admin.audit_retention_period
