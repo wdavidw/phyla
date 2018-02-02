@@ -65,10 +65,10 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Configuration
       
-      @file.types.redis_conf
+      @file
         header: 'Server properties'
         target: "#{options.conf_dir}/redis.conf"
-        content: options.conf
+        write: options.conf
         backup: true
         eof: true
         mode: 0o0750

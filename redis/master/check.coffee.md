@@ -14,6 +14,6 @@ should respond 'pong'
 
       @system.execute
         cmd: """
-          redis-cli -a #{options.master.conf.requirepass} -h #{options.fqdn} \
+          redis-cli -a #{options.conf.requirepass} -h #{options.fqdn} \
           -p #{options.conf.port} ping | grep PONG
           """

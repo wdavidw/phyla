@@ -41,7 +41,7 @@ The Redis package does create the redis user.
 
       
       options.conf ?= {}
-      options.host ?= @config.host
+      options.host ?= options.fqdn
       options.conf['port'] ?= '6379'
       options.conf['pidfile'] ?= "#{options.pid_dir}/redis.pid"
       options.conf['daemonize'] ?= 'no'
