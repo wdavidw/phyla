@@ -15,6 +15,7 @@ Options include
 module.exports = (options, callback) ->
   options.name = options.argument if options.argument?
   options.version ?= 'latest'
+  options.store ?= {}
   if options.version and options.version not in ['latest', 'current']
     options.store['hdp_select.version.default'] = options.version
   @call (_, callback) ->
