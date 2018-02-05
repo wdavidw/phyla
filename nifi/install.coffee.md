@@ -319,8 +319,8 @@ By default it is a local file, but in cluster mode, it uses zookeeper.
       @system.limits
         header: 'Ulimit'
         user: options.user.name
-      , options.user.limits
-s
+        options.user.limits
+
 # Data Directories
 
       @system.mkdir
