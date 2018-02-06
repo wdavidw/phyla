@@ -60,9 +60,21 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           pipeline = opts.value
           content = """
           input {
-            beats {
-                port => "#{pipeline.port}"
-            }
+            #{ if pipeline.inputs.redis?
+              """
+              redis {
+                  host => "#{pipeline.inputs.redis.host}"
+                  port => "#{pipeline.inputs.redis.port}"
+                  data_type => "list"
+                  key => "#{pipeline.inputs.redis.key}"
+                }
+              """
+            else ''}
+            #{ if pipeline.inputs.filebeat?
+              """
+              beats { port => "#{pipeline.inputs.filebeat.port}" }
+              """
+            else ''}
           }
           filter {
             grok {
