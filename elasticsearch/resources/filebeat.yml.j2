@@ -31,11 +31,15 @@ filebeat.prospectors:
   multiline.pattern: '\d{4}-\d{2}-\d{2}\ \d{2}:\d{2}:\d{2},\d{3}'
   multiline.negate: true
   multiline.match: after
+  reload.enabled: true
+  reload.period: 1m
   processors:
    - drop_event:
       when:
        regexp:
         message: ".*INFO.*"
+  fields: 
+    env: {{ env }}
 
   # Exclude lines. A list of regular expressions to match. It drops the lines that are
   # matching any regular expression from the list.

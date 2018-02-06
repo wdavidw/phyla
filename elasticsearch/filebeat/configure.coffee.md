@@ -11,6 +11,7 @@
       options.logstash_url ?= service.deps.logstash[0].node.fqdn
       options.logstash_port ?= '5043'
       options.paths ?= ''
+      options.env ?= service.cluster
 
 ## Log Paths
 
