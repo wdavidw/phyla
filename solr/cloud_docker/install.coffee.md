@@ -223,7 +223,7 @@ configuration like solr.in.sh or solr.xml.
           uid: options.user.name
           gid: options.group.name
           mode: 0o0750
-        @file.render
+        @file
           source:"#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh"
           target: "#{options.conf_dir}/clusters/#{name}/docker_entrypoint.sh"
           context: options
