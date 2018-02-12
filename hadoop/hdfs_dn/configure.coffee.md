@@ -256,6 +256,20 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
         else options.hdfs_site["dfs.datanode.#{protocol}.address"]
         [_, port] = addr.split ':'
         host: srv.node.fqdn, port: port
+      # current datanode wait (local one)  
+      is_krb5 = options.core_site['hadoop.security.authentication'] is 'kerberos'
+      policy = options.hdfs_site['dfs.http.policy']
+      http_addr = options.hdfs_site["dfs.datanode.#{protocol}.address"]
+      tcp_addr = unless is_krb5 then '0.0.0.0:50010' else  '0.0.0.0:1004'
+      ipc_addr = '0.0.0.0:50020'
+      protocol = if policy is 'HTTP_ONLY' then 'http' else 'https'
+      options.wait.tcp_local =
+        host: tcp_addr.split(':')[0], port: tcp_addr.split(':')[1]
+      options.wait.ipc_local =
+        host: ipc_addr.split(':')[0], port: ipc_addr.split(':')[1]
+      options.wait.http_local =
+        host: http_addr.split(':')[0], port: http_addr.split(':')[1]
+
 
 ## Dependencies
 

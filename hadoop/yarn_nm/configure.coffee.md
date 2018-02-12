@@ -235,6 +235,18 @@ Resources:
         protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
         port = srv.options.yarn_site["yarn.nodemanager.webapp.#{protocol}address"].split(':')[1]
         host: srv.node.fqdn, port: port
+      options.wait.tcp_local =
+        host: options.yarn_site['yarn.nodemanager.address'].split(':')[0]
+        port: options.yarn_site['yarn.nodemanager.address'].split(':')[1]
+      options.wait.tcp_local_localiser =
+        host: options.yarn_site['yarn.nodemanager.localizer.address'].split(':')[0]
+        port: options.yarn_site['yarn.nodemanager.localizer.address'].split(':')[1]
+      protocol = if options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY' then '' else 'https.'
+      options.wait.webapp_local =
+        port: options.yarn_site["yarn.nodemanager.webapp.#{protocol}address"].split(':')[1]
+        host: options.yarn_site["yarn.nodemanager.webapp.#{protocol}address"].split(':')[0]
+      
+        
 
 ## Dependencies
 

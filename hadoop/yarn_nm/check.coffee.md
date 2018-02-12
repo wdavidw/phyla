@@ -8,7 +8,7 @@
       @connection.assert
         header: 'TCP'
         # quorum: 1
-        servers: options.wait.tcp
+        servers: options.wait.tcp_local
         retry: 10
         sleep: 3000
 
@@ -17,7 +17,7 @@
       @connection.assert
         header: 'TCP Localizer'
         # quorum: 1
-        servers: options.wait.tcp_localiser
+        servers: options.wait.tcp_local_localiser
         retry: 3
         sleep: 3000
 
@@ -26,7 +26,7 @@
       @connection.assert
         header: 'HTTP Webapp'
         # quorum: 1
-        servers: options.wait.webapp
+        servers: options.wait.webapp_local
         retry: 3
         sleep: 3000
 

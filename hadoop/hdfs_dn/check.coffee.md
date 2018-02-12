@@ -17,7 +17,7 @@ value is 50020.
 
       @connection.assert
         header: 'TCP'
-        servers: options.wait.tcp
+        servers: options.wait.tcp_local
         retry: 10
         sleep: 5000
 
@@ -30,7 +30,7 @@ Hadoop and Nutch.
 
       @connection.assert
         header: 'IPC'
-        servers: options.wait.ipc
+        servers: options.wait.ipc_local
         retry: 10
         sleep: 5000
 
@@ -41,7 +41,7 @@ value is 50475.
 
       @connection.assert
         header: 'HTTP'
-        servers: options.wait.http
+        servers: options.wait.http_local
         retry: 3
         sleep: 3000
 
