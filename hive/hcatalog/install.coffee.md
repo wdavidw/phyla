@@ -107,7 +107,7 @@ isnt yet started.
       @file.render
         header: 'Exec Log4j'
         target: "#{options.conf_dir}/hive-exec-log4j.properties"
-        source: "#{__dirname}/../resources/hive-exec-log4j.properties"
+        source: "#{__dirname}/../resources/hive-exec-log4j.properties.j2"
         local: true
         context: options: options
 
