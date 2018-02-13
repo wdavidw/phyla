@@ -46,6 +46,9 @@ The default configuration is located inside the source code in the location
       options.user.groups ?= 'hadoop'
       # Kerberos Test Principal
       options.test_krb5_user ?= service.deps.test_user.options.krb5.user
+      options.user.limits ?= {}
+      options.user.limits.nofile ?= 64000
+      options.user.limits.nproc ?= true
 
 ## Kerberos
 
