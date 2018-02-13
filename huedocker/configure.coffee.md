@@ -400,9 +400,9 @@ Example:
 ## Configuration for Proxy Users
 
       for srv in service.deps.httpfs
-        srv.options.site ?= {}
-        srv.options.site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= '*'
-        srv.options.site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
+        srv.options.httpfs_site ?= {}
+        srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.hosts"] ?= '*'
+        srv.options.httpfs_site["httpfs.proxyuser.#{options.user.name}.groups"] ?= '*'
       for srv in service.deps.oozie_server
         srv.options.oozie_site ?= {}
         srv.options.oozie_site["oozie.service.ProxyUserService.proxyuser.#{options.user.name}.hosts"] ?= '*'
