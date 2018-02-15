@@ -92,7 +92,8 @@ The write can be done ne two ways:
             context: {es: logs_path: "#{es.logs_path}/#{es_name}"}
             backup: true
           @file
-            if: "/etc/elasticsearch/#{es_name}/common/log4j2.properties"
+            if: es.multiple_node
+            target: "/etc/elasticsearch/#{es_name}/common/log4j2.properties"
             source: "#{__dirname}/resources/log4j2.properties"
             local: true
             backup: true
