@@ -68,21 +68,34 @@ The write can be done ne two ways:
           @file.yaml
             unless: es.multiple_node
             header: 'elasticsearch config file'
-            target: "/etc/elasticsearch/#{es_name}/common/elasticsearch.yml"
+            target: "/etc/elasticsearch/#{es_name}/conf/elasticsearch.yml"
             content: es.config
             backup: true
           @file.render
+            unless: es.multiple_node
+            target: "/etc/elasticsearch/#{es_name}/conf/java.policy"
+            source: "#{__dirname}/resources/java.policy.j2"
+            local: true
+            context: {es: logs_path: "#{es.logs_path}/#{es_name}"}
+            backup: true
+          @file
+            unless: es.multiple_node
+            target: "/etc/elasticsearch/#{es_name}/conf/log4j2.properties"
+            source: "#{__dirname}/resources/log4j2.properties"
+            local: true
+            backup: true
+          @file.render
+            if: es.multiple_node
             target: "/etc/elasticsearch/#{es_name}/common/java.policy"
             source: "#{__dirname}/resources/java.policy.j2"
             local: true
             context: {es: logs_path: "#{es.logs_path}/#{es_name}"}
             backup: true
           @file
-            target: "/etc/elasticsearch/#{es_name}/common/log4j2.properties"
+            if: "/etc/elasticsearch/#{es_name}/common/log4j2.properties"
             source: "#{__dirname}/resources/log4j2.properties"
             local: true
             backup: true
-
           # multiple_node mode
           @each es.nodes, (opts, cb) ->
             service_name = opts.key
