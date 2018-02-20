@@ -25,9 +25,9 @@
 
 NAME='Spark SQL Thrift Service'
 BIN_PATH=/usr/hdp/current/spark-thriftserver/sbin
-USER='{{spark.thrift.user_name}}'
-CONF_DIR='{{spark.thrift.conf_dir}}'
-PID_FILE="{{spark.thrift.pid_dir}}/spark-$USER-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid"
+USER='{{options.user_name}}'
+CONF_DIR='{{options.conf_dir}}'
+PID_FILE="{{options.pid_dir}}/spark-$USER-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid"
 KILL_FORCE=0
 KILL_SLEEP=20
 

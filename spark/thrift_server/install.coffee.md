@@ -2,8 +2,6 @@
 # Apache Spark SQL Thrift Server
 
     module.exports =  header: 'Spark SQL Thrift Server Install', handler: (options) ->
-      {spark, realm, ssl} = @config.ryba
-      {java_home} = @config.java
 
 ## Register
 
@@ -13,8 +11,8 @@
 
 ## Identities
 
-      @system.group header: 'Group', spark.group
-      @system.user header: 'User', spark.user
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Packages
 
@@ -24,16 +22,16 @@
         name: 'spark-thriftserver'
       @service.init
         target: "/etc/init.d/spark-thrift-server"
-        source: "#{__dirname}/../resources/spark-thrift-server"
+        source: "#{__dirname}/../resources/spark-thrift-server.j2"
         local: true
-        context: @config.ryba
+        context: options: options
         backup: true
         mode: 0o0755
       @system.tmpfs
         if_os: name: ['redhat','centos'], version: '7'
-        mount: spark.thrift.pid_dir
-        uid: spark.user.name
-        gid: @config.ryba.hadoop_group.gid
+        mount: options.pid_dir
+        uid: options.user.name
+        gid: options.hadoop_group.gid
         perm: '0750'
 
 ## IPTables
@@ -48,10 +46,10 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
       @tools.iptables
         header: 'IPTables'
         rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: spark.thrift.hive_site['hive.server2.thrift.port'], protocol: 'tcp', state: 'NEW', comment: "Spark SQL Thrift Server (binary)" }
-          { chain: 'INPUT', jump: 'ACCEPT', dport: spark.thrift.hive_site['hive.server2.thrift.http.port'], protocol: 'tcp', state: 'NEW', comment: "Spark SQL Thrift Server (http)" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hive_site['hive.server2.thrift.port'], protocol: 'tcp', state: 'NEW', comment: "Spark SQL Thrift Server (binary)" }
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.hive_site['hive.server2.thrift.http.port'], protocol: 'tcp', state: 'NEW', comment: "Spark SQL Thrift Server (http)" }
         ]
-        if: @config.iptables.action is 'start'
+        if: options.iptables
 
 ## Layout
 
@@ -59,76 +57,76 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
 
       @call header: 'Layout', ->
         @system.mkdir
-          target: spark.thrift.pid_dir
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          target: options.pid_dir
+          uid: options.user.name
+          gid: options.hadoop_group.gid
           mode: 0o0770
         @system.mkdir
-          target: spark.thrift.log_dir
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          target: options.log_dir
+          uid: options.user.name
+          gid: options.hadoop_group.gid
           mode: 0o0770
         @system.mkdir
-          target: spark.thrift.conf_dir
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          target: options.conf_dir
+          uid: options.user.name
+          gid: options.hadoop_group.gid
         @system.remove
           target: '/usr/hdp/current/spark-thriftserver/conf'
         @system.link
           target: '/usr/hdp/current/spark-thriftserver/conf'
-          source: spark.thrift.conf_dir
+          source: options.conf_dir
 
 ## HDFS Layout
 
       @hdfs_mkdir
-        target: "/user/#{spark.thrift.user_name}"
-        user: spark.thrift.user_name
-        group: spark.thrift.user_name
+        target: "/user/#{options.user_name}"
+        user: options.user_name
+        group: options.user_name
         mode: 0o0775
-        krb5_user: @config.ryba.hdfs.krb5_user
+        krb5_user: options.hdfs_krb5_user
 
 ## Spark Conf
 
       @call header: 'Spark Configuration', ->
         @file.render
-          target: "#{spark.thrift.conf_dir}/spark-env.sh"
+          target: "#{options.conf_dir}/spark-env.sh"
           source: "#{__dirname}/../resources/spark-env.sh.j2"
           local: true
           context: options: options
           backup: true
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          uid: options.user.name
+          gid: options.hadoop_group.gid
           mode: 0o0750
         @file.properties
           header: 'Spark Defaults'
-          target: "#{spark.thrift.conf_dir}/spark-defaults.conf"
-          content: spark.thrift.conf
+          target: "#{options.conf_dir}/spark-defaults.conf"
+          content: options.conf
           backup: true
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          uid: options.user.name
+          gid: options.hadoop_group.gid
           mode: 0o0750
           separator: ' '
         @file
           header: 'Spark env'
-          target: "#{spark.thrift.conf_dir}/spark-env.sh"
+          target: "#{options.conf_dir}/spark-env.sh"
           # See "/usr/hdp/current/spark-historyserver/sbin/spark-daemon.sh" for
           # additionnal environmental variables.
           write: [
             match :/^export SPARK_PID_DIR=.*$/mg
-            replace:"export SPARK_PID_DIR=#{spark.thrift.pid_dir} # RYBA CONF \"ryba.spark.pid_dir\", DONT OVERWRITE"
+            replace:"export SPARK_PID_DIR=#{options.pid_dir} # RYBA CONF \"options.pid_dir\", DONT OVERWRITE"
             append: true
           ,
             match :/^export SPARK_CONF_DIR=.*$/mg
-            # replace:"export SPARK_CONF_DIR=#{spark.conf_dir} # RYBA CONF \"ryba.spark.conf_dir\", DONT OVERWRITE"
-            replace:"export SPARK_CONF_DIR=${SPARK_HOME:-/usr/hdp/current/spark-thriftserver}/conf # RYBA CONF \"ryba.spark.conf_dir\", DONT OVERWRITE"
+            # replace:"export SPARK_CONF_DIR=#{spark.conf_dir} # RYBA CONF \"options.conf_dir\", DONT OVERWRITE"
+            replace:"export SPARK_CONF_DIR=${SPARK_HOME:-/usr/hdp/current/spark-thriftserver}/conf # RYBA CONF \"options.conf_dir\", DONT OVERWRITE"
             append: true
           ,
             match :/^export SPARK_LOG_DIR=.*$/mg
-            replace:"export SPARK_LOG_DIR=#{spark.thrift.log_dir} # RYBA CONF \"ryba.spark.log_dir\", DONT OVERWRITE"
+            replace:"export SPARK_LOG_DIR=#{options.log_dir} # RYBA CONF \"options.log_dir\", DONT OVERWRITE"
             append: true
           ,
             match :/^export JAVA_HOME=.*$/mg
-            replace:"export JAVA_HOME=#{java_home} # RYBA, DONT OVERWRITE"
+            replace:"export JAVA_HOME=#{options.java_home} # RYBA, DONT OVERWRITE"
             append: true
           ]
 
@@ -136,61 +134,64 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
 
       @call header:'Hive Client Conf', ->
         @system.copy
-          target: "#{spark.thrift.conf_dir}/hive-site.xml"
+          target: "#{options.conf_dir}/hive-site.xml"
           source: '/etc/hive/conf/hive-site.xml'
 
         @hconfigure
-          target: "#{spark.thrift.conf_dir}/hive-site.xml"
-          properties: spark.thrift.hive_site
+          target: "#{options.conf_dir}/hive-site.xml"
+          properties: options.hive_site
           merge: true
-          uid: spark.user.name
-          gid: @config.ryba.hadoop_group.gid
+          uid: options.user.name
+          gid: options.hadoop_group.gid
           mode: 0o0750
 
 ## Spark SQL Thrift SSL Conf      
 
       @call
         header: 'SSL'
-        if: -> spark.thrift.hive_site['hive.server2.use.SSL'] is 'true'
+        if: -> options.hive_site['hive.server2.use.SSL'] is 'true'
       , ->
         tmp_location = "/var/tmp/ryba/ssl"
         @file.download
-          source: ssl.cacert
-          target: "#{tmp_location}/#{path.basename ssl.cacert}"
+          source: options.ssl.cacert.source
+          local: options.ssl.cacert.local
+          target: "#{tmp_location}/#{path.basename options.ssl.cacert.source}"
           mode: 0o0600
           shy: true
         @file.download
-          source: ssl.cert
-          target: "#{tmp_location}/#{path.basename ssl.cert}"
+          source: options.ssl.cert.source
+          local: options.ssl.cert.local
+          target: "#{tmp_location}/#{path.basename options.ssl.cert.source}"
           mode: 0o0600
           shy: true
         @file.download
-          source: ssl.key
-          target: "#{tmp_location}/#{path.basename ssl.key}"
+          source: options.ssl.key.source
+          local: options.ssl.key.local
+          target: "#{tmp_location}/#{path.basename options.ssl.key.source}"
           mode: 0o0600
           shy: true
         @java.keystore_add
-          keystore: spark.thrift.hive_site['hive.server2.keystore.path']
-          storepass: spark.thrift.hive_site['hive.server2.keystore.password']
+          keystore: options.hive_site['hive.server2.keystore.path']
+          storepass: options.hive_site['hive.server2.keystore.password']
           caname: "hive_root_ca"
-          cacert: "#{tmp_location}/#{path.basename ssl.cacert}"
-          key: "#{tmp_location}/#{path.basename ssl.key}"
-          cert: "#{tmp_location}/#{path.basename ssl.cert}"
-          keypass: spark.thrift.hive_site['hive.server2.keystore.password']
-          name: @config.shortname
+          cacert: "#{tmp_location}/#{path.basename options.ssl.cacert.source}"
+          key: "#{tmp_location}/#{path.basename options.ssl.key.source}"
+          cert: "#{tmp_location}/#{path.basename options.ssl.cert.source}"
+          keypass: options.hive_site['hive.server2.keystore.password']
+          name: options.hostname
         # @java.keystore_add
         #   keystore: hive.site['hive.server2.keystore.path']
         #   storepass: hive.site['hive.server2.keystore.password']
         #   caname: "hadoop_root_ca"
         #   cacert: "#{tmp_location}/#{path.basename ssl.cacert}"
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.cacert}"
+          target: "#{tmp_location}/#{path.basename options.ssl.cacert.source}"
           shy: true
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.cert}"
+          target: "#{tmp_location}/#{path.basename options.ssl.cert.source}"
           shy: true
         @system.remove
-          target: "#{tmp_location}/#{path.basename ssl.key}"
+          target: "#{tmp_location}/#{path.basename options.ssl.key.source}"
           shy: true
         @service
           srv_name: 'spark-thrift-server'
@@ -201,8 +202,8 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
 
       @file.properties
         header: 'log4j Properties'
-        target: "#{spark.thrift.conf_dir}/log4j.properties"
-        content: spark.thrift.log4j
+        target: "#{options.conf_dir}/log4j.properties"
+        content: options.log4j
         backup: true
 
 ## Dependencies

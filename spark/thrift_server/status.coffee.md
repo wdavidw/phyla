@@ -8,7 +8,6 @@ following command:
 service spark-thrift-server status
 ```
 
-    module.exports = header: 'Spark SQL Thrift Server Status', handler: ->
-      {spark} = @config.ryba
+    module.exports = header: 'Spark SQL Thrift Server Status', handler: (options) ->
       @service.status
         name: 'spark-thrift-server'
