@@ -28,7 +28,7 @@ web interface.
         name: 'spark-historyserver'
       @service.init
         target: "/etc/init.d/spark-history-server"
-        source: "#{__dirname}/../resources/spark-history-server"
+        source: "#{__dirname}/../resources/spark-history-server.j2"
         local: true
         context: options
         backup: true
