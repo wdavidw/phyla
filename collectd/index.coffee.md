@@ -6,18 +6,16 @@
  over the network.
  
     module.exports =
-      use:
+      deps:
         yum: module: 'masson/core/yum'
       configure:
         'ryba/collectd/configure'
       commands:
-        install: ->
-          options  = @config.ryba.collectd
-          @call 'ryba/collectd/install', options
-          @call 'ryba/collectd/start', options
-        start: ->
-          options  = @config.ryba.collectd
-          @call 'ryba/collectd/start', options
-        stop: ->
-          options  = @config.ryba.collectd
-          @call 'ryba/collectd/stop', options
+        'install': [
+          'ryba/collectd/install'
+          'ryba/collectd/start'
+        ]
+        'start':
+          'ryba/collectd/start'
+        'stop':
+          'ryba/collectd/stop'
