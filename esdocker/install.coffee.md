@@ -109,9 +109,23 @@ Note, we might move this middleware to Masson.
             @next callback
 
 
+## IPTables
+  
+          matching_hosts = []
+          matching_hosts.push options.hostname for type,es_node of es.nodes when minimatch(options.hostname, es_node.filter)
+
+          @tools.iptables
+            header: 'IPTables'
+            if: (es.network.mode is 'host') and options.hostname in matching_hosts
+            rules: [
+              { chain: 'INPUT', jump: 'ACCEPT', dport: es.network.http_port, protocol: 'tcp', state: 'NEW', comment: "ES Docker #{es_name}" }
+              { chain: 'INPUT', jump: 'ACCEPT', dport: es.network.tcp_port, protocol: 'tcp', state: 'NEW', comment: "ES Docker #{es_name}" }
+            ]
+
 ## Generate compose file
 
-          if options.fqdn is options.hosts[options.hosts.length-1]
+          #if options.fqdn is options.hosts[options.hosts.length-1]
+          if options.fqdn is "#{if es.docker_compose_host then es.docker_compose_host else options.hosts[options.hosts.length-1]}"
             #TODO create overlay network if the network does not exist
             docker_networks["#{es.network.name}"] = external: es.network.external
             master_node = if es.master_nodes > 0
@@ -140,14 +154,18 @@ Note, we might move this middleware to Masson.
                 image : es.docker_es_image
                 restart: "always"
                 command: command
-                networks: [es.network.name]
+                # networks: [es.network.name]
                 user: "elasticsearch"
                 volumes: es.volumes
                 ports: es.ports
                 mem_limit: if es_node.mem_limit? then es_node.mem_limit else es.default_mem
                 ulimits:  es.ulimits
                 cap_add:  es.cap_add
-
+              
+              if es.network.mode is 'host'
+                service_def["network_mode"] = 'host'
+              else 
+                service_def["networks"] = [es.network.name]
               if es_node.cpuset?
                 service_def["cpuset"] = es_node.cpuset
               else
@@ -160,11 +178,16 @@ Note, we might move this middleware to Masson.
                 environment: ["ELASTICSEARCH_URL=http://#{master_node}_1:9200"]
                 ports: ["#{es.kibana.port}:5601"]
                 networks: [es.network.name]
-
+                
+            docker_compose_content = {}
+            docker_compose_content.version ?= "2"
+            docker_compose_content.services ?= docker_services
+            docker_compose_content.networks ?= docker_networks if docker_networks[0] is not undefined
+            
             @file.yaml
               header: 'docker-compose'
               target: "/etc/elasticsearch/#{es_name}/docker-compose.yml"
-              content: {version:'2',services:docker_services,networks:docker_networks}
+              content: docker_compose_content
               backup: true
 
 ## Run docker compose file
@@ -197,3 +220,4 @@ Note, we might move this middleware to Masson.
 ## Dependencies
 
     misc = require 'nikita/lib/misc'
+    minimatch = require 'minimatch'

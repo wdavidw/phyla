@@ -78,6 +78,7 @@
       options.ssl.dest_key = "#{options.ssl.dest_dir}/key.pem"
       options.fqdn ?= service.node.fqdn
       options.hosts ?= service.deps.esdocker.map (srv) -> srv.node.fqdn
+      options.hostname ?= service.node.hostname
 
 ## Kernerl
 
@@ -127,12 +128,12 @@
         es.cap_add ?= ["IPC_LOCK"]
 
         es.environment = ["affinity:container!=*#{es.normalized_name}_*"]
-        throw Error 'Required property "ports"' unless es.ports?
+        throw Error 'Required property "ports"' unless es.ports? or es.network.mode is 'host'
         if es.ports instanceof Array
           port_mapping = port.split(":").length > 1 for port in es.ports
-          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]' unless port_mapping is true
+          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]' unless port_mapping is true or es.network.mode is 'host'
         else
-          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]'
+          throw Error 'property "ports" must be an array of ports mapping ["9200:port1","9300:port2"]' unless es.network.mode is 'host'
         throw Error 'Required property "nodes"' unless es.nodes?
         throw Error 'Required property "network" and network.external' unless es.network?
         if es.kibana?
@@ -172,8 +173,7 @@
         es.config["cluster.name"] = "#{es_name}"
         es.config["path.data"] = "#{es.data_path}"
         es.config["path.logs"] = "/var/log/elasticsearch"
-        es.config["script.engine.painless.inline"] = true
-        es.config["discovery.zen.ping.unicast.hosts"] = es_masters.join()
+        # es.config["script.engine.painless.inline"] = true
         es.config["discovery.zen.minimum_master_nodes"] = Math.floor((es.master_data_nodes+es.master_nodes) / 2) + 1
         es.config["discovery.zen.master_election.ignore_non_master_pings"] = true
         es.config["gateway.expected_nodes"] = es.total_nodes
@@ -181,6 +181,14 @@
         es.config["xpack.security.enabled"] = false
         es.config["cluster.routing.allocation.node_concurrent_recoveries"] = 8
         es.config["indices.recovery.max_bytes_per_sec"] = "250mb"
+        
+        if es.network.mode is 'host'
+          es.config['http.port'] = es.network.http_port
+          es.config['transport.tcp.port'] = es.network.tcp_port
+          es.config["discovery.zen.ping.unicast.hosts"] = ''
+          es.config["discovery.zen.ping.unicast.hosts"] += "#{host}:#{es.network.tcp_port}," for key, host of options.hosts
+        else
+          es.config["discovery.zen.ping.unicast.hosts"] = es_masters.join()
 
 ## Plugins
 
