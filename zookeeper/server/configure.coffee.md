@@ -48,12 +48,13 @@ Example :
 
 ## System Options
 
+      options.heapsize ?= '1024m'
       options.opts ?= {}
       options.opts.base ?= ''
       options.opts.java_properties ?= {}
       options.opts.jvm ?= {}
-      options.opts.jvm['-Xmx'] ?= '1024m'
-      options.opts.jvm['-Xms'] ?= '1024m'
+      options.opts.jvm['-Xmx'] ?= options.heapsize
+      options.opts.jvm['-Xms'] ?= options.heapsize
       options.opts.java_properties['zookeeper.security.auth_to_local'] ?= '$ZOO_AUTH_TO_LOCAL'
       # if options.env['SERVER_JVMFLAGS'].indexOf('-Dzookeeper.security.auth_to_local') is -1
       #   options.env['SERVER_JVMFLAGS'] = "#{options.env['SERVER_JVMFLAGS']} -Dzookeeper.security.auth_to_local=$ZOO_AUTH_TO_LOCAL"
