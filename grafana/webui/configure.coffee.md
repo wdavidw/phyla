@@ -6,7 +6,7 @@
 
 ## Access
 
-      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.iptables ?= !!service.deps.iptables and service.deps.iptables?.options?.action is 'start'
 
 ## Identities
 

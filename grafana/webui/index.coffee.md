@@ -6,6 +6,7 @@ to create dashboard and organize collected metrics.
 
     module.exports =
       deps:
+        iptables: module: 'masson/core/iptables', local: true
         ssl: module: 'masson/core/ssl', local: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         grafana_repo: module: 'ryba/grafana/repo'

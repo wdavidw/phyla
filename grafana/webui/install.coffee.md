@@ -22,8 +22,9 @@
       @tools.iptables
         header: 'IPTables'
         if: options.iptables
-        rules:
+        rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.ini['server']['http_port'] , protocol: 'tcp', state: 'NEW', comment: "Grafana Port" }
+        ]
 
 ## Packages
 
