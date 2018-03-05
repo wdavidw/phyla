@@ -79,7 +79,7 @@ User can be External and Internal. Only Internal users can be created from the r
         "firstName": 'ryba'
         "lastName": 'hadoop'
         "emailAddress": 'ryba@hadoop.ryba'
-        "password": 'ryba123'
+        "password": 'ryba123-'
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []
@@ -426,7 +426,7 @@ only users created within the webui are allowed.
 
 ## Ranger Environment
 
-      options.heap_size ?= '1024m'
+      options.heap_size ?= options.heapsize ?= '1024m'
       options.opts ?= {}
       # options.opts['javax.net.ssl.trustStore'] ?= '/etc/hadoop/conf/truststore'
       # options.opts['javax.net.ssl.trustStorePassword'] ?= 'ryba123'

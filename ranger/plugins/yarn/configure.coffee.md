@@ -38,7 +38,7 @@ REST request.
         "firstName": 'yarn'
         "lastName": 'hadoop'
         "emailAddress": 'yarn@hadoop.ryba'
-        "password": 'yarn123'
+        "password": 'yarn1234-'
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []

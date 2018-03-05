@@ -59,7 +59,7 @@ Repository creating is only executed from one NameNode.
         "firstName": ''
         "lastName": ''
         "emailAddress": ''
-        "password": ''
+        "password": 'hdfs1234-'
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []

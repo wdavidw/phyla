@@ -49,7 +49,7 @@ REST request.
         "firstName": ''
         "lastName": ''
         "emailAddress": ''
-        "password": ''
+        "password": 'hbase123!-'
         'userSource': 1
         'userRoleList': ['ROLE_USER']
         'groups': []
