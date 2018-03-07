@@ -77,7 +77,7 @@ This starting options should be injected to serivce.use.docker variable. For now
 
       # @config.docker.other_args['cluster-store'] ?= options.cluster.zk_store
       # @config.docker.other_args['cluster-advertise'] ?= "#{options.advertise_host}:#{options.advertise_port}"
-      options.other_args ?= []
+      options.other_args ?= { }
       options.other_args['cluster-store'] ?= options.cluster.zk_store
       options.other_args['cluster-advertise'] ?= "#{options.advertise_host}:#{options.advertise_port}"
       service.deps.docker.options.other_args = merge service.deps.docker.options.other_args, options.other_args if service.deps.docker?
@@ -86,9 +86,10 @@ This starting options should be injected to serivce.use.docker variable. For now
 Inherits properties from local docker daemon
       
       options.ssl ?= merge {}, service.deps.docker.options.ssl
-      options.other_args['tlscacert'] ?= service.deps.docker.options.other_args['tlscacert']
-      options.other_args['tlscert'] ?= service.deps.docker.options.other_args['tlscert']
-      options.other_args['tlskey'] ?= service.deps.docker.options.other_args['tlskey']
+      if options.ssl.enabled
+        options.other_args['tlscacert'] ?= service.deps.docker.options.other_args['tlscacert']
+        options.other_args['tlscert'] ?= service.deps.docker.options.other_args['tlscert']
+        options.other_args['tlskey'] ?= service.deps.docker.options.other_args['tlskey']
 
 
 ### Wait
