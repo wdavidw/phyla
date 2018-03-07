@@ -33,6 +33,7 @@
       options.log_dir ?= '/var/log/hadoop-yarn'
       options.pid_dir ?= '/var/run/hadoop-yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-nodemanager/conf'
+      options.hadoop_conf_dir ?= service.deps.hadoop_core.options.conf_dir
       # Java
       options.java_home ?= service.deps.java.options.java_home
       options.heapsize ?= '1024m'

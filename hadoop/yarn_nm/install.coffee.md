@@ -11,7 +11,7 @@
 ## Wait
 
       @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
-      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.conf_dir
+      @call 'ryba/hadoop/hdfs_nn/wait', once: true, options.wait_hdfs_nn, conf_dir: options.hadoop_conf_dir
 
 ## IPTables
 
