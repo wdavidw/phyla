@@ -29,6 +29,7 @@
       if service.deps.nifi? then options.log_paths.push "#{service.deps.nifi.options.log_dir}/*.log"
       if service.deps.kafka? then options.log_paths.push "#{service.deps.kafka.options.log_dir}/*.log"
       if service.deps.ranger_admin? then options.log_paths.push "#{service.deps.ranger_admin.options.log_dir}/*.log"
+      if service.deps.knox? then options.log_paths.push "#{service.deps.knox.options.log_dir}/*.log"
 
 ## Source
 

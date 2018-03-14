@@ -21,6 +21,7 @@
         nifi: module: 'ryba/nifi', local: true
         kafka: module: 'ryba/kafka/broker', local: true
         ranger_admin: module: 'ryba/ranger/admin', local: true
+        knox: module: 'ryba/knox/server', local: true
       configure:
         'ryba/elasticsearch/filebeat/configure'
       commands:
