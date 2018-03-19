@@ -141,8 +141,8 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
-        principal: options.conf['options.kerberos.principal']
-        keytab: options.conf['options.kerberos.keytab']
+        principal: options.conf['spark.history.kerberos.principal']
+        keytab: options.conf['spark.history.kerberos.keytab']
         randkey: true
         uid: options.user.name
         gid: options.group.name
