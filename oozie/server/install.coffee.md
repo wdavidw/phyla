@@ -76,7 +76,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             name: 'mysql-connector-java'
         @service.init
           header: 'Init Script'
-          source: "#{__dirname}/../resources/oozie"
+          source: "#{__dirname}/../resources/oozie.j2"
           local: true
           target: '/etc/init.d/oozie'
           mode: 0o0755
