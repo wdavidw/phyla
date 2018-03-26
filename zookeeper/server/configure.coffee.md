@@ -135,12 +135,13 @@ Example :
 
 ## Kerberos
 
-      options.krb5 ?= {}
-      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
-      options.krb5.principal ?= "zookeeper/#{service.node.fqdn}@#{options.krb5.realm}"
-      options.krb5.keytab ?= '/etc/security/keytabs/zookeeper.service.keytab'
-      throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      if service.deps.krb5_client?
+        options.krb5 ?= {}
+        options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+        options.krb5.principal ?= "zookeeper/#{service.node.fqdn}@#{options.krb5.realm}"
+        options.krb5.keytab ?= '/etc/security/keytabs/zookeeper.service.keytab'
+        throw Error 'Required Options: "realm"' unless options.krb5.realm
+        options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
 
 ## Log4J
 
@@ -189,7 +190,7 @@ Example :
 
 ## Wait
 
-      options.wait_krb5_client = service.deps.krb5_client.options.wait
+      options.wait_krb5_client = service.deps.krb5_client?.options.wait
       options.wait = {}
       options.wait.tcp = for srv in service.deps.zookeeper_server
         srv.options.config ?= {}
