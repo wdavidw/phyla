@@ -85,8 +85,8 @@ such as "%app-type% and %time:yyyyMMdd%".
         header: 'Solr Spool Dir'
         if: options.install['XAAUDIT.SOLR.IS_ENABLED'] is 'true'
         target: options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
-        uid: options.user.name
-        gid: options.hadoop_group.name
+        uid: options.kafka_user.name
+        gid: options.kafka_group.name
         mode: 0o0750
 
 
