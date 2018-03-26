@@ -441,6 +441,7 @@ in or out of docker.
           when 'external'
             options.solr.cluster_config ?= {}
             options.solr.cluster_config.atlas_collection_dir ?= '/tmp/atlas-infra'
+            options.solr.cluster_config.authentication ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
             throw Error "Missing Solr options.solr.cluster_config.user property example: solr" unless options.solr.cluster_config.user?
             throw Error "Missing Solr options.solr.cluster_config.ssl_enabled property example: true" unless options.solr.cluster_config.ssl_enabled?
             throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
@@ -448,6 +449,12 @@ in or out of docker.
             throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
             throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
             throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
+            throw Error "Missing Solr options.solr.cluster_config.admin_principal: 8983" unless options.solr.cluster_config.admin_principal?
+            throw Error "Missing Solr options.solr.cluster_config.admin_password: 8983" unless options.solr.cluster_config.admin_password?
+            throw Error "Missing Solr options.solr.cluster_config.authentication: kerberos" unless options.solr.cluster_config.authentication?
+            options.application.properties['atlas.graph.index.search.solr.zookeeper-url'] ?= options.solr.cluster_config.zk_urls
+            options.application.properties['atlas.graph.index.search.solr.mode'] ?= 'cloud'
+            options.application.properties['atlas.graph.index.search.backend'] ?= 'solr5'
           when 'cloud'
             throw Error 'No Solr Cloud Server configured' unless service.deps.solr_cloud.length > 0
               # options.solr_admin_user ?= 'solr'

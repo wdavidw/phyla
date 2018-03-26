@@ -2,7 +2,7 @@
 # Atlas Solr Collection Bootstrap
 
     module.exports = headler: 'SolrCloud Atlas Layout', handler: (options) ->
-      protocol = if options.solr.ssl.enabled then 'https' else 'http'
+      protocol = if options.solr.ssl?.enabled or options.solr.cluster_config.is_ssl_enabled then 'https' else 'http'
 
 ## Wait
       

@@ -30,14 +30,14 @@
       @system.user header: 'User', options.user
 
 ## IPTables
-
-  | Service       | Port   | Proto        | Parameter |
-  |---------------|--------|--------------|-----------|
-  | Atlas Server  | 21000  | http         | port      |
-  | Atlas Server  | 21443  | https        | port      |
-
 IPTables rules are only inserted if the parameter "iptables.action" is set to
 "start" (default value).
+
+| Service       | Port   | Proto        | Parameter |
+|---------------|--------|--------------|-----------|
+| Atlas Server  | 21000  | http         | port      |
+| Atlas Server  | 21443  | https        | port      |
+
 
       @tools.iptables
         if: options.iptables
@@ -62,7 +62,7 @@ Install Atlas packages
         source: "#{__dirname}/resources/atlas-metadata-server.j2"
         local: true
         mode: 0o0755
-        context: @config
+        context: options
 
 ## Layout && Directories
 
@@ -166,7 +166,7 @@ Import certificates, private and public keys of the host.
                 data = ''
               when /Please enter the password value for truststore.password again:/.test data
                 options.log "prompt: #{data}"
-                options.log "write: #{optionsssl.ssl.truststore.password}"
+                options.log "write: #{options.ssl.truststore.password}"
                 stream.write "#{options.ssl.truststore.password}\n"
                 data = ''
               when /Please enter the password value for password:/.test data
@@ -305,7 +305,7 @@ Render the Atlas Environment file
           gid: options.group.name
           mode: 0o770
           local: true
-          context: @config
+          context: options
           write: writes
           unlink: true
           eof: true
@@ -326,7 +326,7 @@ set to other than the default
         header: 'HBase Client Site'
         source: "#{options.hbase_conf_dir}/hbase-site.xml"
         target: "#{options.conf_dir}/hbase/hbase-site.xml"
-      @file.render
+      @system.copy
         header: 'HBase Client Env'
         target: "#{options.conf_dir}/hbase/hbase-env.sh"
         source: "#{options.hbase_conf_dir}/hbase-env.sh"
