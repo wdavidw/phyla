@@ -46,7 +46,7 @@ Make configuration options more restrictive
         # Cluster config 
         # Docker-compose config
         config.name ?= name
-        config.hosts = config.hosts.slice(0,config.containers) if config.containers isnt config.hosts.length
+        config.hosts ?= config.hosts.slice(0,config.containers) if config.containers isnt config.hosts.length
         config.docker_compose_version ?= options.docker_compose_version ?= '1'
         config.mem_limit ?= '1g'
         config.port ?= '8983'
