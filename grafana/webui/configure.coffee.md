@@ -125,7 +125,7 @@ do not depend on cluster or host names.
       options.templates ?= {}
       #needed options when rendering templates
       options.cluster_name ?= 'ryba-env-metal'
-      if service.deps.zookeeper_server
+      if service.deps.zookeeper_server and options.datasource?
         options.templates['zookeeper-server'] ?=
           source: "#{__dirname}/../resources/prometheus-zookeeper.json.j2"
           local: true
@@ -133,7 +133,7 @@ do not depend on cluster or host names.
           slug: 'zookeeper-server'
           cluster_name: options.cluster_name
           datasource: options.datasource
-      if service.deps.hdfs_dn
+      if service.deps.hdfs_dn  and options.datasource?
         options.templates['hdfs-datanodes'] ?=
           source: "#{__dirname}/../resources/prometheus-datanodes.json.j2"
           local: true
@@ -149,7 +149,7 @@ do not depend on cluster or host names.
           #   slug: 'hdfs-datadisks'
           #   cluster_name: options.cluster_name
           #   datasource: options.datasource
-      if service.deps.hdfs_jn
+      if service.deps.hdfs_jn  and options.datasource?
         options.templates['hdfs-journalnodes'] ?=
           source: "#{__dirname}/../resources/prometheus-journalnodes.json.j2"
           local: true
@@ -157,7 +157,7 @@ do not depend on cluster or host names.
           slug: 'hdfs-journalnodes'
           cluster_name: options.cluster_name
           datasource: options.datasource
-      if service.deps.hdfs_nn
+      if service.deps.hdfs_nn and options.datasource?
         options.templates['hdfs-namenodes'] ?=
           source: "#{__dirname}/../resources/prometheus-namenodes.json.j2"
           local: true
@@ -165,7 +165,7 @@ do not depend on cluster or host names.
           slug: 'hdfs-namenodes'
           cluster_name: options.cluster_name
           datasource: options.datasource
-      if service.deps.yarn_nm
+      if service.deps.yarn_nm and options.datasource?
         options.templates['yarn-nodemanagers'] ?=
           source: "#{__dirname}/../resources/prometheus-nodemanagers.json.j2"
           local: true
@@ -173,7 +173,7 @@ do not depend on cluster or host names.
           slug: 'yarn-nodemanagers'
           cluster_name: options.cluster_name
           datasource: options.datasource
-      if service.deps.yarn_rm
+      if service.deps.yarn_rm and options.datasource?
         options.templates['yarn-resourcemanagers'] ?=
           source: "#{__dirname}/../resources/prometheus-resourcemanagers.json.j2"
           local: true
@@ -188,13 +188,13 @@ do not depend on cluster or host names.
           slug: 'yarn-queues'
           cluster_name: options.cluster_name
           datasource: options.datasource
-      if service.deps.collectd_exporter
+      if service.deps.collectd_exporter and options.datasource?
         options.templates['system-activity'] ?=
           source: "#{__dirname}/../resources/prometheus-system-activity.json.j2"
           local: true
           title: 'System Activity'
           slug: 'system-activity'
-      if service.deps.hbase_master
+      if service.deps.hbase_master and options.datasource?
         options.templates['hbase-home'] ?= 
           source: "#{__dirname}/../resources/prometheus-hbase-home.json.j2"
           local: true
