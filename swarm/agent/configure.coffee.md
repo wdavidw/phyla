@@ -31,7 +31,7 @@
       #Note for docker to be able to start the ip address must be set (instead of hostname)
       options.advertise_host ?= service.node.fqdn
       options.advertise_port ?= options.docker.default_port
-      options.swarm_manager_host ?= service.deps.swarm_manager[0].options.docker.host
+      options.swarm_manager_host ?= "#{service.deps.swarm_manager[0].node.fqdn}:3376"
 
 ## Docker Deamon Configuration
 

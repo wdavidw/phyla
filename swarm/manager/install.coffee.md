@@ -6,7 +6,7 @@
 
 ## Wait dependencies
 
-      @call 'ryba/zookeeper/server/wait'
+      @call 'ryba/zookeeper/server/wait', options.wait_zookeeper
 
 ## IPTables
 
@@ -56,7 +56,7 @@ Try to pull the image first, or upload from cache if not pull possible.
 Run the swarm manager container. Pass host option to null to run the container
 on the local engine daemon (before configuring swarm).
 
-      @call =>
+      @call ->
         args = []
         if options.ssl.enabled
          args.push [
