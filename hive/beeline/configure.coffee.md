@@ -92,7 +92,7 @@ Example:
 ## Wait
 
       options.wait_hive_server2 = service.deps.hive_server2[0].options.wait
-      options.wait_spark_thrift_server = service.deps.spark_thrift_server.options.wait if service.deps.spark_thrift_server
+      options.wait_spark_thrift_server = service.deps.spark_thrift_server[0].options.wait if service.deps.spark_thrift_server
       options.wait_ranger_admin = service.deps.ranger_admin.options.wait if service.deps.ranger_admin
 
 ## Dependencies
