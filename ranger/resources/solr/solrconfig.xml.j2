@@ -664,7 +664,7 @@
          Recommend values of 1-2 for read-only slaves, higher for
          masters w/o cache warming.
       -->
-    <maxWarmingSearchers>2</maxWarmingSearchers>
+    <maxWarmingSearchers>6</maxWarmingSearchers>
 
   </query>
 
@@ -1133,7 +1133,7 @@
 
        https://wiki.apache.org/solr/SolrCloud/
     -->
-  <requestHandler name="/replication" class="solr.ReplicationHandler" >
+  <!-- <requestHandler name="/replication" class="solr.ReplicationHandler" > -->
     <!--
        To enable simple master/slave replication, uncomment one of the
        sections below, depending on whether this solr instance should be
@@ -1141,11 +1141,11 @@
        also need to fill in the masterUrl to point to a real machine.
     -->
 
-       <lst name="master">
-         <str name="replicateAfter">commit</str>
-         <str name="replicateAfter">startup</str>
+       <!-- <lst name="master"> -->
+         <!-- <str name="replicateAfter">commit</str> -->
+         <!-- <str name="replicateAfter">startup</str> -->
          <!-- <str name="confFiles">schema.xml,stopwords.txt</str> -->
-       </lst>
+       <!-- </lst> -->
 
     <!--
        <lst name="slave">
@@ -1153,7 +1153,7 @@
          <str name="pollInterval">00:00:60</str>
        </lst>
     -->
-  </requestHandler>
+  <!-- </requestHandler> -->
 
   <!-- Search Components
 
