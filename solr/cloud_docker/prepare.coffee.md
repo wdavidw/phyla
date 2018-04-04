@@ -19,6 +19,10 @@ Build container and save it.
           source: "#{__dirname}/../resources/cloud_docker/Dockerfile.j2"
           target: "#{options.build.dir}/build/Dockerfile"
           context: options
+        @file.render
+          source: "#{__dirname}/../resources/cloud_docker/java.sh.j2"
+          target: "#{options.build.dir}/build/java.sh"
+          context: options
         @docker.build
           image: "#{options.build.image}:#{options.version}"
           file: "#{options.build.dir}/build/Dockerfile"

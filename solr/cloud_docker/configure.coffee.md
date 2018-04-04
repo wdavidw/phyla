@@ -59,8 +59,8 @@ ryba:
       options.user.limits ?= {}
       options.user.limits.nofile ?= 64000
       options.user.limits.nproc ?= true
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-
+      options.java_home ?= service.deps.java.options.java_home
+      options.hadoop_group = merge {}, service.deps.hadoop_core?.options.hadoop_group, options.hadoop_group
 
 ## Environment
 
@@ -99,8 +99,13 @@ ryba:
       # Layout
       options.log_dir ?= '/var/log/solr'
       options.pid_dir ?= '/var/run/solr'
-      zk_hosts = service.deps.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant')
-      options.zk_connect = zk_hosts.map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+      options.zk_hosts = if service.deps.zookeeper_server
+      then service.deps.zookeeper_server?.filter( (srv) -> srv.options.config['peerType'] is 'participant')
+      else null
+      options.zk_connect = if service.deps.zookeeper_server
+      then options.zk_hosts.map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+      else options.zk_connect
+      throw Error 'missing options.zk_connect' unless options.zk_connect
       options.zkhosts = "#{options.zk_connect}/solr"
       options.zk_node = "/solr"
       options.dir_factory ?= "${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"
@@ -125,12 +130,15 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
       options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
       throw Error 'Required Options: "realm"' unless options.krb5.realm
       options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      #solr configurations
+      options.authentication_type ?= service.deps.hadoop_core?.options.core_site['hadoop.security.authentication']
       options.security ?= {}
       options.security["authentication"] ?= {}
-      options.security["authentication"]['class'] ?= if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      throw 'Missing authentication type options.authentication_type : simple,kerberos' unless options.authentication_type
+      options.security["authentication"]['class'] ?=  if options.authentication_type is 'kerberos'
       then 'org.apache.solr.security.KerberosPlugin'
       else 'solr.BasicAuthPlugin'
-      if service.deps.hadoop_core.options.core_site['hadoop.security.authentication'] is 'kerberos'
+      if options.authentication_type is 'kerberos'
         # Kerberos
         options.admin_principal ?= "#{options.user.name}@#{options.krb5.realm}"
         throw Error 'Missing Keberos Admin Principal Password (solr.cloud_docker.admin_password)' unless options.admin_password?
@@ -192,7 +200,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## Environment
 
       options.env ?= {}
-      options.env['SOLR_JAVA_HOME'] ?= service.deps.java.options.java_home
+      options.env['SOLR_JAVA_HOME'] ?= options.java_home
       options.env['SOLR_HOST'] ?= service.node.fqdn
       options.env['SOLR_PID_DIR'] ?= options.pid_dir
       options.env['SOLR_HEAP'] ?= "512m"
@@ -219,7 +227,12 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 # Wait
 
       options.wait_krb5_client = service.deps.krb5_client.options.wait
-      options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
+      options.wait_zookeeper_server = if service.deps.zookeeper_server
+      then service.deps.zookeeper_server?[0].options.wait
+      else tcp: options.zk_connect.split(',').map (config) ->
+        [server,port] = config.split(':')
+        host: server
+        port : port or 2181
 
 ## Dependencies
 

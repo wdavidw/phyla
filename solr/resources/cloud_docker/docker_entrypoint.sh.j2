@@ -90,14 +90,23 @@ if [ -L  "{{user.home}}/solr.xml" ] || [ -e "{{user.home}}/default" ] ;
     ln -sf {{conf_dir}}/solr.xml  {{user.home}}/solr.xml;
 fi;
 
-CMD="{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd list"
+CMD="{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE}/overseer -cmd list"
+CMD_WAIT="{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE}/clusterprops.json -cmd list"
 
 
 if $EXEC_BOOTSTRAP;
   then
-    if `$CMD`;
+    if $CMD;
     then 
       echo "Skipping: Zookeeper - Node already exists"
+      if [ "$SSL_ENABLED" == "true" ] ;
+        then 
+          echo "Enable SSL Scheme in Zookeeper";
+          {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val https ;
+        else
+          echo "Disable SSL Scheme in Zookeeper";
+          {{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd clusterprop -name urlScheme -val http ;
+      fi;
     else
       echo "Bootstrap Zookeeper Node ${ZK_NODE}"
       echo "{{latest_dir}}/server/scripts/cloud-scripts/zkcli.sh -zkhost {{zk_connect}}/${ZK_NODE} -cmd bootstrap -solrhome {{user.home}}"
@@ -121,7 +130,7 @@ function printusage() {
 }
 
 function wait_execute() {
-  until $CMD
+  until $CMD_WAIT
 do
   echo "Bootstraping Zookeeper node: $ZK_NODE"
   echo "Waiting 3 seconds...."

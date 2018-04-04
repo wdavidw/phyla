@@ -35,14 +35,14 @@ Create user and groups for solr user.
 
 ## Kerberos
 
-      @krb5.addprinc options.krb5.admin,
-        unless_exists: options.spnego.keytab
-        header: 'Kerberos SPNEGO'
-        principal: options.spnego.principal
-        randkey: true
-        keytab: options.spnego.keytab
-        gid: options.hadoop_group.name
-        mode: 0o660
+      # @krb5.addprinc options.krb5.admin,
+      #   unless_exists: options.spnego.keytab
+      #   header: 'Kerberos SPNEGO'
+      #   principal: options.spnego.principal
+      #   randkey: true
+      #   keytab: options.spnego.keytab
+      #   gid: options.hadoop_group.name
+      #   mode: 0o660
       @system.execute
         header: 'SPNEGO'
         cmd: "su -l #{options.user.name} -c 'test -r #{options.spnego.keytab}'"

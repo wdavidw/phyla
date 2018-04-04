@@ -15,7 +15,7 @@ but does not start the clusters.
         krb5_client: module: 'masson/core/krb5_client', local: true, required: true
         docker: module: 'masson/commons/docker', required: true, local: true, auto: true
         java: module: 'masson/commons/java', local: true
-        zookeeper_server: module: 'ryba/zookeeper/server', required: true
+        zookeeper_server: module: 'ryba/zookeeper/server'
         hadoop_core: module: 'ryba/hadoop/core', local: true
         # hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true
         swarm_agent: module: 'ryba/swarm/agent', local: true
