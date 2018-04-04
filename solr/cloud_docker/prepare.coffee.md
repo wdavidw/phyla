@@ -12,11 +12,11 @@ Build container and save it.
         @system.mkdir
           target: "#{options.build.dir}/build"
         @file.render
-          source: "#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh"
+          source: "#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh.j2"
           target: "#{options.build.dir}/build/docker_entrypoint.sh"
           context: options
         @file.render
-          source: "#{__dirname}/../resources/cloud_docker/Dockerfile"
+          source: "#{__dirname}/../resources/cloud_docker/Dockerfile.j2"
           target: "#{options.build.dir}/build/Dockerfile"
           context: options
         @docker.build
