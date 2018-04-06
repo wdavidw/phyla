@@ -50,9 +50,10 @@ with the swarm manager's docker engine
         #TODO add etcd
         when 'zookeeper'
           options.cluster.zk_node ?= '/swarm-nodes'
-          options.cluster.zk_urls ?= service.deps.zookeeper_server
-            .filter( (srv) -> srv.options.config['peerType'] is 'participant')
-            .map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+          options.cluster.zk_urls ?= if service.deps.zookeeper_server
+          then service.deps.zookeeper_server.filter( (srv) -> srv.options.config['peerType'] is 'participant').map( (srv) -> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}").join ','
+          else options.cluster.zk_urls
+          throw Error 'Missing options.cluster.zk_urls for discovery mode as zookeeper' unless options.cluster.zk_urls
           options.cluster.zk_store ?= "zk://#{options.cluster.zk_urls}#{options.cluster.zk_node}"
         else
           throw Error "Ryba does not support service discovery backend #{options.cluster.discovery} for swarm"
@@ -90,7 +91,9 @@ Inherits properties from local docker daemon
         options.other_args['tlscacert'] ?= service.deps.docker.options.other_args['tlscacert']
         options.other_args['tlscert'] ?= service.deps.docker.options.other_args['tlscert']
         options.other_args['tlskey'] ?= service.deps.docker.options.other_args['tlskey']
-
+      service.deps.docker.options.daemon ?= {}
+      service.deps.docker.options.daemon['cluster-advertise'] ?= options.other_args['cluster-advertise']
+      service.deps.docker.options.daemon['cluster-store'] ?= options.other_args['cluster-store']
 
 ### Wait
 
@@ -98,7 +101,12 @@ Inherits properties from local docker daemon
       options.wait.tcp ?= for srv in service.deps.swarm_manager
         host: srv.node.fqdn
         port: srv.options.advertise_port or options.advertise_port
-      options.wait_zookeeper ?= service.deps.zookeeper_server[0].options.wait
+      options.wait_zookeeper ?=  if service.deps.zookeeper_server
+      then service.deps.zookeeper_server?[0].options.wait
+      else tcp: options.cluster.zk_urls.split(',').map (config) ->
+        [server,port] = config.split(':')
+        host: server
+        port : port or 2181
 
 ## Dependencies
 

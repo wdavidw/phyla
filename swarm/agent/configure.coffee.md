@@ -68,6 +68,9 @@ This starting options should be injected to @config.docker variable. For now
       options.other_args['cluster-store'] ?= options.cluster.zk_store
       options.other_args['cluster-advertise'] ?= "#{service.node.ip}:#{options.advertise_port}"
       service.deps.docker.options.other_args = merge service.deps.docker.options.other_args, options.other_args if service.deps.docker?
+      service.deps.docker.options.daemon ?= {}
+      service.deps.docker.options.daemon['cluster-advertise'] ?= options.other_args['cluster-advertise']
+      service.deps.docker.options.daemon['cluster-store'] ?= options.other_args['cluster-store']
 
 ### Wait
 
