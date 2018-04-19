@@ -271,10 +271,11 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           throw Error "Missing Solr options.solr.cluster_config.ssl_enabled property example: true" unless options.solr.cluster_config.ssl_enabled?
           throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
           throw Error "Missing Solr options.solr.cluster_config.zk_urls: master01.metal.ryba:2181" unless options.solr.cluster_config.zk_urls?
-          throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
+          throw Error "Missing Solr options.solr.cluster_config.zk_node: /solr_infra" unless options.solr.cluster_config.zk_node?
           throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
           throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
           throw Error "Missing Solr options.solr.cluster_config.authentication: kerberos" unless options.solr.cluster_config.authentication?
+          options.solr.cluster_config.zk_connect ?= path.join options.solr.cluster_config.zk_urls , '/', options.solr.cluster_config.zk_node
           if options.solr.cluster_config.authentication? is 'kerberos'
             throw Error "Missing Solr options.solr.cluster_config.admin_principal: " unless options.solr.cluster_config.admin_principal?
             throw Error "Missing Solr options.solr.cluster_config.admin_password: " unless options.solr.cluster_config.admin_password?
@@ -466,6 +467,7 @@ Ryba injects function to the different contexts.
 
     quote = require 'regexp-quote'
     {merge} = require 'nikita/lib/misc'
+    path = require 'path'
 
 [ranger-2.4.0]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/configure-the-ranger-policy-administration-authentication-moades.html)
 [ranger-ssl]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_Security_Guide/content/configure_non_ambari_ranger_ssl.html) 
