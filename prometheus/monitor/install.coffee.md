@@ -9,6 +9,19 @@
       @system.group header: 'Group', options.group
       @system.user header: 'User', options.user
 
+## IPTables
+
+| Service       | Port  | Proto | Parameter   |
+|---------------|-------|-------|-------------|
+| Prometheus UI | 3000  | http  |  9091       |
+
+      @tools.iptables
+        header: 'IPTables'
+        if: options.iptables
+        rules: [
+          { chain: 'INPUT', jump: 'ACCEPT', dport: options.port , protocol: 'tcp', state: 'NEW', comment: "Prometheus UI" }
+        ]
+
 ## Layout
 
       @system.mkdir

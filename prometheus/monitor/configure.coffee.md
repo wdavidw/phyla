@@ -43,6 +43,7 @@ in order for systemd to start correctly the process.
       options.conf_dir ?= '/etc/prometheus-monitor/conf'
       options.log_dir ?= '/var/log/prometheus'
       options.run_dir ?= '/var/run/prometheus'
+      options.iptables ?= !!service.deps.iptables and service.deps.iptables?.options?.action is 'start'
 
 ## Configuration
 
