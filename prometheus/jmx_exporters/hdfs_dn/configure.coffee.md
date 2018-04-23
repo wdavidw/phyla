@@ -73,40 +73,10 @@ com.sun.management.jmxremote.ssl.config.file=<file>.
         options.jmx_config['com.sun.management.jmxremote.authenticate'] ?= 'true'
         throw Error 'Missing options.password' unless options.password
         options.jmx_config['com.sun.management.jmxremote.password.file'] ?= options.jmx_auth_file
-        # user password file for authentication
-
-# ## Enable JMX Server
-# 
-#       service.deps.hdfs_dn.options.opts.java_properties['com.sun.management.config.file'] ?= '/etc/hadoop-hdfs-datanode/conf/management.properties'
-#       options.management ?= {}
-#       options.management['com.sun.management.jmxremote.authenticate'] ?= 'false'
-#       options.management['com.sun.management.jmxremote.ssl'] ?= 'false'
-#       options.management['com.sun.management.jmxremote.port'] ?= '9012'
-#       options.management['com.sun.management.jmxremote.authenticate'] ?= 'false'
-# 
-# ## Enable JMX SSL
-# 
-#       
-#       if !!options.ssl
-#         options.management['com.sun.management.jmxremote.ssl'] = 'true'
-#         options.management['com.sun.management.jmxremote.ssl.need.client.auth'] = 'false'
-# 
-# ## Enable JMX Authentication
-# 
-#       if options.authenticate
-#         options.username ?= 'metro'
-#         throw Error 'Missing options.password' unless options.password
-#         options.target ?=
-#         options.management['com.sun.management.jmxremote.authenticate'] = 'true'
-#         # user password file for authentication
-#         options.management['com.sun.management.jmxremote.password.file'] ?= options.target
 
 ## Configuration
 configure JMX Exporter to scrape HADOOP Datanode metrics.
 
-      options.conf_dir ?= "/etc/prometheus-exporter-jmx/conf"
-      options.java_home ?= service.deps.java.options.java_home
-      options.conf_file ?= "#{options.conf_dir}/hdfs_datanode.yaml"
       # Misc
       options.fqdn ?= service.node.fqdn
       options.hostname = service.node.hostname

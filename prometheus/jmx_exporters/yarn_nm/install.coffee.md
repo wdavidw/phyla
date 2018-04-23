@@ -17,6 +17,10 @@
       @call
         if_os: name: ['redhat','centos'], version: '7'
       , ->
+        java_opts = options.opts.base
+        java_opts += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        java_opts += " #{k}#{v}" for k, v of options.opts.jvm
+        options.java_opts = java_opts
         @service.init
           header: 'Systemd Script'
           target: '/usr/lib/systemd/system/jmx-exporter-yarn-nodemanager.service'

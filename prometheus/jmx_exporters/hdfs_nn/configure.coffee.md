@@ -10,6 +10,14 @@
       # Group
       options.group ?= merge {}, service.deps.prometheus_monitor[0].options.group, options.group
       options.user ?= merge {}, service.deps.prometheus_monitor[0].options.user, options.user
+      options.hdfs_user ?= merge {}, service.deps.hdfs_nn.options.user
+      options.hdfs_group ?= merge {}, service.deps.hdfs_nn.options.group
+
+## Configuration Layout
+
+      options.conf_dir ?= "/etc/prometheus-exporter-jmx/conf"
+      options.java_home ?= service.deps.java.options.java_home
+      options.conf_file ?= "#{options.conf_dir}/hdfs_namenode.yaml"
 
 ## Package
     
@@ -20,13 +28,50 @@
       # options.agent_source ?= "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/#{options.version}/jmx_prometheus_javaagent-#{options.version}.jar"
       options.download = service.deps.jmx_exporter[0].node.fqdn is service.node.fqdn
       options.install_dir ?= "/usr/prometheus/#{options.version}/jmx_exporter"
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
 
 ## Enable JMX Server
+JMX options will be configured using a properties file, more readable for administrators.
+There is a difference between  -Dcom.sun.management.config.file=<file>. and
+com.sun.management.jmxremote.ssl.config.file=<file>.
 
-      # service.deps.hdfs_nn.options.opts.jvm['-javaagent'] ?= ":#{options.install_dir}/jmx_exporter_agent.jar=#{options.port}:#{options.conf_dir}/hdfs_namenode.yaml"
-      service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.authenticate'] ?= 'false'
-      service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'false'
-      service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.port'] ?= '9014'
+      options.jmx_config_file ?= "#{service.deps.hdfs_nn.options.conf_dir}/jmx.properties"
+      service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.config.file'] ?= options.jmx_config_file
+      options.jmx_config ?= {}
+      options.jmx_config['com.sun.management.jmxremote'] ?= 'true'
+      options.jmx_config['com.sun.management.jmxremote.port'] ?= '9014'
+      options.jmx_config['com.sun.management.jmxremote.ssl.config.file'] ?= "#{service.deps.hdfs_nn.options.conf_dir}/jmx-ssl.properties"
+
+## Enable JMX SSL
+
+      options.ssl = merge {}, service.deps.ssl, service.deps.hdfs_nn.options.ssl
+      if !!options.ssl
+        options.jmx_ssl_file ?= options.jmx_config['com.sun.management.jmxremote.ssl.config.file']
+        options.jmx_ssl_config ?= {}
+        service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'true'
+        service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.ssl.need.client.auth'] ?= 'false'
+        options.jmx_ssl_config['javax.net.ssl.keyStore'] ?= "#{service.deps.hdfs_nn.options.conf_dir}/keystore"
+        throw Error 'Missing Datanode Keystore Password' unless options.ssl?.keystore?.password
+        options.jmx_ssl_config['javax.net.ssl.keyStorePassword'] ?= options.ssl.keystore.password
+        #jmx_exporter client truststore
+        options.opts.java_properties['javax.net.ssl.trustStore'] ?= "#{service.deps.hdfs_nn.options.conf_dir}/truststore"
+        throw Error 'Missing Datanode Truststore Password' unless options.ssl?.truststore?.password
+        options.opts.java_properties['javax.net.ssl.trustStorePassword'] ?=  options.ssl.truststore.password
+      else
+        options.jmx_config['com.sun.management.jmxremote.ssl'] ?= 'false'
+
+## Enable JMX Authentication
+
+      options.authenticate ?= 'false'
+      if options.authenticate
+        options.username ?= 'monitorRole'# be careful if changing , should configure access file
+        options.jmx_auth_file ?=  '/etc/security/jmxPasswords/hdfs-namenode.password'
+        options.jmx_config['com.sun.management.jmxremote.authenticate'] ?= 'true'
+        throw Error 'Missing options.password' unless options.password
+        options.jmx_config['com.sun.management.jmxremote.password.file'] ?= options.jmx_auth_file
 
 ## Configuration
 configure JMX Exporter to scrape Zookeeper metrics. [this example][example] is taken from
@@ -44,7 +89,9 @@ configure JMX Exporter to scrape Zookeeper metrics. [this example][example] is t
       options.cluster_name ?= "ryba-env-metal"
       options.config ?= {}
       options.config['startDelaySeconds'] ?= 0
-      options.config['hostPort'] ?= "#{service.deps.hdfs_nn.node.fqdn}:#{service.deps.hdfs_nn.options.opts.java_properties['com.sun.management.jmxremote.port']}"
+      options.config['hostPort'] ?= "#{service.deps.hdfs_nn.node.fqdn}:#{options.jmx_config['com.sun.management.jmxremote.port']}"
+      options.config['username'] ?= options.username
+      options.config['password'] ?= options.password
       options.config['ssl'] ?= false
       options.config['lowercaseOutputName'] ?= true
       options.config['rules'] ?= []

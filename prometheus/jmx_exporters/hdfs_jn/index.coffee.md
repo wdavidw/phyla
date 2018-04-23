@@ -14,6 +14,16 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
         prometheus_monitor: module: 'ryba/prometheus/monitor', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true
       configure: 'ryba/prometheus/jmx_exporters/hdfs_jn/configure'
+      plugin: (options) ->
+        @before
+          type: ['service', 'start']
+          name: 'hadoop-hdfs-journalnode'
+        , ->
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/prometheus/jmx_exporters/hdfs_jn/password.coffee.md', options.original
       commands:
         install: [
           'ryba/prometheus/jmx_exporters/hdfs_jn/install'
