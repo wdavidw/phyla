@@ -23,9 +23,9 @@
 
 ## Enable JMX Server
 
-      service.deps.hbase_master.options.opts['com.sun.management.jmxremote.authenticate'] ?= 'false'
-      service.deps.hbase_master.options.opts['com.sun.management.jmxremote.ssl'] ?= 'false'
-      service.deps.hbase_master.options.opts['com.sun.management.jmxremote.port'] ?= '9016'
+      service.deps.hbase_master.options.opts.java_properties['com.sun.management.jmxremote.authenticate'] ?= 'false'
+      service.deps.hbase_master.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'false'
+      service.deps.hbase_master.options.opts.java_properties['com.sun.management.jmxremote.port'] ?= '9016'
 
 ## Configuration
 configure JMX Exporter to scrape HBase RegionServer metrics.
@@ -43,7 +43,7 @@ configure JMX Exporter to scrape HBase RegionServer metrics.
       options.config ?= {}
       options.config['startDelaySeconds'] ?= 0
       options.config['ssl'] ?= false
-      options.config['hostPort'] ?= "#{service.deps.hbase_master.node.fqdn}:#{service.deps.hbase_master.options.opts['com.sun.management.jmxremote.port']}"
+      options.config['hostPort'] ?= "#{service.deps.hbase_master.node.fqdn}:#{service.deps.hbase_master.options.opts.java_properties['com.sun.management.jmxremote.port']}"
       options.config['lowercaseOutputName'] ?= true
       options.config['rules'] ?= []
       options.config['rules'].push 'pattern': '.*'
