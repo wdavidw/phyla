@@ -10,7 +10,9 @@
       # Group
       options.group ?= merge {}, service.deps.prometheus_monitor[0].options.group, options.group
       options.user ?= merge {}, service.deps.prometheus_monitor[0].options.user, options.user
-
+      options.hbase_user ?= merge {}, service.deps.hbase_rs.options.user
+      options.hbase_group ?= merge {}, service.deps.hbase_rs.options.group
+        
 ## Package
     
       options.version ?= '0.1.0'
@@ -20,17 +22,56 @@
       # options.agent_source ?= "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/#{options.version}/jmx_prometheus_javaagent-#{options.version}.jar"
       options.download = service.deps.jmx_exporter[0].node.fqdn is service.node.fqdn
       options.install_dir ?= "/usr/prometheus/#{options.version}/jmx_exporter"
+      options.opts ?= {}
+      options.opts.base ?= ''
+      options.opts.java_properties ?= {}
+      options.opts.jvm ?= {}
 
 ## Enable JMX Server
+JMX options will be configured using a properties file, more readable for administrators.
+There is a difference between  -Dcom.sun.management.config.file=<file>. and
+com.sun.management.jmxremote.ssl.config.file=<file>.
 
-      service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.authenticate'] ?= 'false'
-      service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'false'
-      service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.port'] ?= '9016'
+      options.jmx_config_file ?= "#{service.deps.hbase_rs.options.conf_dir}/jmx.properties"
+      service.deps.hbase_rs.options.opts.java_properties['com.sun.management.config.file'] ?= options.jmx_config_file
+      options.jmx_config ?= {}
+      options.jmx_config['com.sun.management.jmxremote'] ?= 'true'
+      options.jmx_config['com.sun.management.jmxremote.port'] ?= '9016'
+      options.jmx_config['com.sun.management.jmxremote.ssl.config.file'] ?= "#{service.deps.hbase_rs.options.conf_dir}/jmx-ssl.properties"
+
+## Enable JMX SSL
+
+      options.ssl = merge {}, service.deps.ssl, service.deps.hadoop_core.options.ssl
+      if !!options.ssl
+        options.jmx_ssl_file ?= options.jmx_config['com.sun.management.jmxremote.ssl.config.file']
+        options.jmx_ssl_config ?= {}
+        service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.ssl'] ?= 'true'
+        service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.ssl.need.client.auth'] ?= 'false'
+        options.jmx_ssl_config['javax.net.ssl.keyStore'] ?= options.ssl.keystore.target
+        throw Error 'Missing RS Keystore Password' unless options.ssl?.keystore?.password
+        options.jmx_ssl_config['javax.net.ssl.keyStorePassword'] ?= options.ssl.keystore.password
+        #jmx_exporter client truststore
+        options.conf_dir ?= "/etc/prometheus-exporter-jmx/conf"
+        options.opts.java_properties['javax.net.ssl.trustStore'] ?=  "#{options.conf_dir}/truststore"
+        throw Error 'Missing RS Truststore Password' unless options.ssl?.truststore?.password
+        options.opts.java_properties['javax.net.ssl.trustStorePassword'] ?=  options.ssl.truststore.password
+      else
+        options.jmx_config['com.sun.management.jmxremote.ssl'] ?= 'false'
+
+## Enable JMX Authentication
+
+      options.authenticate ?= 'false'
+      if options.authenticate
+        options.username ?= 'monitorRole'# be careful if changing , should configure access file
+        options.jmx_auth_file ?=  '/etc/security/jmxPasswords/hbase-regionserver.password'
+        options.jmx_config['com.sun.management.jmxremote.authenticate'] ?= 'true'
+        throw Error 'Missing options.password' unless options.password
+        options.jmx_config['com.sun.management.jmxremote.password.file'] ?= options.jmx_auth_file
+        # user password file for authentication
 
 ## Configuration
 configure JMX Exporter to scrape HBase RegionServer metrics.
 
-      options.conf_dir ?= "/etc/prometheus-exporter-jmx/conf"
       options.java_home ?= service.deps.java.options.java_home
       options.conf_file ?= "#{options.conf_dir}/hbase_regionserver.yaml"
       # Misc
@@ -43,10 +84,15 @@ configure JMX Exporter to scrape HBase RegionServer metrics.
       options.config ?= {}
       options.config['startDelaySeconds'] ?= 0
       options.config['ssl'] ?= false
-      options.config['hostPort'] ?= "#{service.deps.hbase_rs.node.fqdn}:#{service.deps.hbase_rs.options.opts.java_properties['com.sun.management.jmxremote.port']}"
+      options.config['hostPort'] ?= "#{service.deps.hbase_rs.node.fqdn}:#{options.jmx_config['com.sun.management.jmxremote.port']}"
       options.config['lowercaseOutputName'] ?= true
       options.config['rules'] ?= []
       options.config['rules'].push 'pattern': '.*'
+      #authentication
+      options.config['username'] ?= options.username
+      options.config['password'] ?= options.password
+      options.config['ssl'] ?= false
+      # options.config['ssl'] ?= service.deps.hadoop_core.options.opts.java_properties['com.sun.management.jmxremote.ssl'] is 'true'
 
 ## Register Prometheus Scrapper
 configure by default two new label, one cluster and the other service

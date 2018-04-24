@@ -7,6 +7,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
 
     module.exports =
       deps:
+        ssl: module: 'masson/core/ssl', local: true
         java: module: 'masson/commons/java', local: true, required: true
         iptables: module: 'masson/core/iptables', local: true
         hbase_rs: module: 'ryba/hbase/regionserver', local: true, required: true
@@ -14,6 +15,16 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
         prometheus_monitor: module: 'ryba/prometheus/monitor', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true
       configure: 'ryba/prometheus/jmx_exporters/hbase_rs/configure'
+      plugin: (options) ->
+        @before
+          type: ['service', 'start']
+          name: 'hbase-regionserver'
+        , ->
+          delete options.original.type
+          delete options.original.handler
+          delete options.original.argument
+          delete options.original.store
+          @call 'ryba/prometheus/jmx_exporters/hbase_rs/password.coffee.md', options.original
       commands:
         install: [
           'ryba/prometheus/jmx_exporters/hbase_rs/install'
