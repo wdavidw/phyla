@@ -30,6 +30,7 @@
       if service.deps.kafka? then options.log_paths.push "#{service.deps.kafka.options.log_dir}/*.log"
       if service.deps.ranger_admin? then options.log_paths.push "#{service.deps.ranger_admin.options.log_dir}/*.log"
       if service.deps.knox? then options.log_paths.push "#{service.deps.knox.options.log_dir}/*.log"
+      if service.deps.zookeeper? then options.log_paths.push "#{service.deps.zookeeper.options.log_dir}/*.log"
 
 ## Properties
 
