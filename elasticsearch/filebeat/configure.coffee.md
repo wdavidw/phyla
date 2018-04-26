@@ -33,9 +33,9 @@
 
 ## Properties
 
-    options.close_inactive ?= '5m'
-    options.scan_frequency ?= '30s'
+      options.close_inactive ?= '5m'
+      options.scan_frequency ?= '30s'
 
 ## Source
 
-    options.source ?= "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-#{options.version}-x86_64.rpm"
+      options.source ?= "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-#{options.version}-x86_64.rpm"
