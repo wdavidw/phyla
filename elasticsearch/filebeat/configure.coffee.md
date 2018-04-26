@@ -31,6 +31,11 @@
       if service.deps.ranger_admin? then options.log_paths.push "#{service.deps.ranger_admin.options.log_dir}/*.log"
       if service.deps.knox? then options.log_paths.push "#{service.deps.knox.options.log_dir}/*.log"
 
+## Properties
+
+    options.close_inactive ?= '5m'
+    options.scan_frequency ?= '30s'
+
 ## Source
 
       options.source ?= "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-#{options.version}-x86_64.rpm"

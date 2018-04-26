@@ -40,6 +40,8 @@ filebeat.prospectors:
         message: ".*INFO.*"
   fields: 
     env: {{ env }}
+  close_inactive: {{ close_inactive }}
+  scan_frequency: {{ scan_frequency }}
 
   # Exclude lines. A list of regular expressions to match. It drops the lines that are
   # matching any regular expression from the list.
