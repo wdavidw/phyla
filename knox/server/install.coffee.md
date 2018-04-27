@@ -166,12 +166,13 @@ in the gateway.sh service script.
             content: doc.end pretty: true
             backup: true
             eof: true
-
           @file.render
+            header: "ehcache #{nameservice}"
             target: "#{options.conf_dir}/#{nameservice}-ehcache.xml"
             source: "#{__dirname}/../resources/ehcache.j2"
             local: true
-            context: nameservice:nameservice
+            context: options:
+              nameservice:nameservice
 
 ## Master Key
 
