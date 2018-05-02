@@ -1,0 +1,12 @@
+[Unit]
+Description=Shinken Poller
+After=syslog.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/shinken-poller -d -c /etc/shinken/daemons/pollerd.ini
+KillMode=mixed
+TimeoutStopSec=3
+
+[Install]
+WantedBy=multi-user.target

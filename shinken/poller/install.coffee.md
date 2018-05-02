@@ -47,6 +47,13 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         backup: true
         eof: true
 
+      @service.init
+        header: 'Systemd Script'
+        target: '/usr/lib/systemd/system/shinken-poller'
+        source: "#{__dirname}/resources/shinken-poller-systemd.j2"
+        local: true
+        mode: 0o0644
+
 ## Modules
 
       @call header: 'Modules', ->
