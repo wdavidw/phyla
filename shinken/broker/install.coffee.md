@@ -36,7 +36,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         
         @service.init
           header: 'Systemd Script'
-          target: '/usr/lib/systemd/system/shinken-broker'
+          target: '/usr/lib/systemd/system/shinken-broker.service'
           source: "#{__dirname}/resources/shinken-broker-systemd.j2"
           local: true
           mode: 0o0644
