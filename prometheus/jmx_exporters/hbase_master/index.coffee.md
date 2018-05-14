@@ -17,7 +17,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
       configure: 'ryba/prometheus/jmx_exporters/hbase_master/configure'
       plugin: (options) ->
         @before
-          type: ['service', 'start']
+          type: ['service']
           name: 'hbase-master'
         , ->
           delete options.original.type

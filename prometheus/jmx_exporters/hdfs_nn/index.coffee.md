@@ -16,7 +16,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
       configure: 'ryba/prometheus/jmx_exporters/hdfs_nn/configure'
       plugin: (options) ->
         @before
-          type: ['service', 'start']
+          type: ['service']
           name: 'hadoop-hdfs-namenode'
         , ->
           delete options.original.type

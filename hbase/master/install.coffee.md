@@ -23,7 +23,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @tools.iptables
         header: 'IPTables'
-        if: options.iptabless
+        if: options.iptables
         rules: [
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.master.port'], protocol: 'tcp', state: 'NEW', comment: "HBase Master" }
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.hbase_site['hbase.master.info.port'], protocol: 'tcp', state: 'NEW', comment: "HMaster Info Web UI" }
