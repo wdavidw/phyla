@@ -124,6 +124,8 @@ RegionServer, and HBase client host machines.
         if: options.copy_master_keytab
         source: options.copy_master_keytab
         target: options.hbase_site['hbase.regionserver.keytab.file']
+        uid: options.user.name
+        gid: options.hadoop_group.name
       @krb5.addprinc options.krb5.admin,
         header: 'Kerberos'
         unless: options.copy_master_keytab
