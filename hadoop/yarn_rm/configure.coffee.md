@@ -359,6 +359,14 @@ rmr /rmstore/ZKRMStateRoot
         'yarn.timeline-service.principal'
         'yarn.timeline-service.http-authentication.type'
         'yarn.timeline-service.http-authentication.kerberos.principal'
+        'yarn.timeline-service.version'
+        'yarn.timeline-service.store-class'
+        'yarn.timeline-service.entity-group-fs-store.active-dir'
+        'yarn.timeline-service.entity-group-fs-store.done-dir'
+        'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes'
+        'yarn.timeline-service.entity-group-fs-store.summary-store'
+        'yarn.timeline-service.ttl-enable'
+        'yarn.timeline-service.ttl-ms'
         'yarn.generic-application-history.save-non-am-container-meta-info'
       ]
         options.yarn_site[property] ?= if service.deps.yarn_ts then service.deps.yarn_ts.options.yarn_site[property] else null

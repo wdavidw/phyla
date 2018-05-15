@@ -204,6 +204,23 @@ Note, this is not documented anywhere and might not be considered as a best prac
           """
           unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{dir} ]]"
 
+      @call header: 'YARN ATS 1.5', ->
+        return unless options.yarn_site['yarn.timeline-service.version'] is "1.5"
+        @system.execute
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
+          hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
+          hdfs --config #{options.conf_dir} dfs -chmod 1777 #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
+          """
+          unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']} ]]"
+        @system.execute
+          cmd: mkcmd.hdfs options.hdfs_krb5_user, """
+          hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
+          hdfs --config #{options.conf_dir} dfs -chmod 0700 #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
+          """
+          unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']} ]]"
+
 ## SSL
 
       @call header: 'SSL', ->
