@@ -209,14 +209,14 @@ Note, this is not documented anywhere and might not be considered as a best prac
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
-          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
+          hdfs --config #{options.conf_dir} dfs -chown #{options.user.name}:#{options.hadoop_group.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
           hdfs --config #{options.conf_dir} dfs -chmod 0777 #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']}
           """
           unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.active-dir']} ]]"
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           hdfs --config #{options.conf_dir} dfs -mkdir -p #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
-          hdfs --config #{options.conf_dir} dfs -chown #{options.ats_user.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
+          hdfs --config #{options.conf_dir} dfs -chown #{options.ats_user.name}:#{options.hadoop_group.name} #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
           hdfs --config #{options.conf_dir} dfs -chmod 0700 #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']}
           """
           unless_exec: "[[ hdfs  --config #{options.conf_dir} dfs -d #{options.yarn_site['yarn.timeline-service.entity-group-fs-store.done-dir']} ]]"
