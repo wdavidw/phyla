@@ -373,6 +373,7 @@ rmr /rmstore/ZKRMStateRoot
       # Export
       service.deps.yarn_ts.options.yarn_site ?= {}
       service.deps.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
+      id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
       for property in [
         'yarn.nodemanager.remote-app-log-dir'
         'yarn.nodemanager.remote-app-log-dir-suffix'
@@ -380,6 +381,22 @@ rmr /rmstore/ZKRMStateRoot
         'yarn.log-aggregation.retain-seconds'
         'yarn.log-aggregation.retain-check-interval-seconds'
         'yarn.generic-application-history.save-non-am-container-meta-info'
+        'yarn.http.policy'
+        'yarn.log.server.url'
+        'yarn.resourcemanager.principal'
+        'yarn.resourcemanager.cluster-id'
+        'yarn.nodemanager.remote-app-log-dir'
+        'yarn.nodemanager.remote-app-log-dir-suffix'
+        'yarn.log-aggregation-enable'
+        'yarn.resourcemanager.ha.enabled'
+        'yarn.resourcemanager.ha.rm-ids'
+        'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+        "yarn.resourcemanager.address#{id}"
+        "yarn.resourcemanager.scheduler.address#{id}"
+        "yarn.resourcemanager.admin.address#{id}"
+        "yarn.resourcemanager.webapp.address#{id}"
+        "yarn.resourcemanager.webapp.https.address#{id}"
+        "yarn.resourcemanager.resource-tracker.address#{id}"
       ]
         service.deps.yarn_ts.options.yarn_site[property] ?= options.yarn_site[property]
 
