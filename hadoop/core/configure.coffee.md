@@ -124,6 +124,10 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.mapred.group = name: options.mapred.group if typeof options.mapred.group is 'string'
       options.mapred.group.name ?= 'mapred'
       options.mapred.group.system ?= true
+      options.ats.group ?= {}
+      options.ats.group = name: options.ats.group if typeof options.ats.group is 'string'
+      options.ats.group.name ?= 'ats'
+      options.ats.group.system ?= true
       # Unix user hdfs
       options.hdfs.user ?= {}
       options.hdfs.user = name: options.hdfs.user if typeof options.hdfs.user is 'string'
@@ -160,6 +164,18 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.mapred.user.limits ?= {}
       options.mapred.user.limits.nofile ?= 64000
       options.mapred.user.limits.nproc ?= true
+      # Unix user for ats
+      options.ats.user ?= {}
+      options.ats.user = name: options.ats.user if typeof options.ats.user is 'string'
+      options.ats.user.name ?= 'ats'
+      options.ats.user.system ?= true
+      options.ats.user.gid = options.ats.group.name
+      options.ats.user.groups ?= 'hadoop'
+      options.ats.user.comment ?= 'YARN ATS User'
+      options.ats.user.home ?= '/var/lib/hadoop-yarn'
+      options.ats.user.limits ?= {}
+      options.ats.user.limits.nofile ?= 64000
+      options.ats.user.limits.nproc ?= true
 
 ## Kerberos
 
