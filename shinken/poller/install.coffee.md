@@ -21,6 +21,11 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           { chain: 'INPUT', jump: 'ACCEPT', dport: options.config.port, protocol: 'tcp', state: 'NEW', comment: "Shinken Poller" }
         ]
         if: options.iptables
+        
+## Identities
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Package
 
