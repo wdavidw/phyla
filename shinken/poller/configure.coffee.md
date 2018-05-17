@@ -27,7 +27,7 @@
 ## Identities
 
       options.user ?= merge {}, service.deps.commons.options.user, options.user
-      options.group ?= merge {}, service.deps.commons.options.group, options.user
+      options.group ?= merge {}, service.deps.commons.options.group, options.group
       # Add shinken to docker group
       options.user.groups ?= []
       options.user.groups.push service.deps.docker.options.group.name unless service.deps.docker.options.group.name in options.user.groups
