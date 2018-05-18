@@ -70,6 +70,7 @@ Default configuration:
       options = service.options
       options.yarn ?= {}
       options.mapred ?= {}
+      options.ats ?= {}
 
 ## Validation
 
