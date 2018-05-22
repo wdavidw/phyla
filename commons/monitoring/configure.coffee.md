@@ -777,7 +777,7 @@ from normzlized configuration.
             if config.clusters[clustername]?.services['ryba/hadoop/httpfs']
               httpFSHosts = config.clusters[clustername]?.services['ryba/hadoop/httpfs'].instances.map (instance) -> instance.node.fqdn
               create_service
-                name: 'HBase Master - Late RegionServers'
+                name: "#{clustername} - Late RegionServers"
                 servicegroup: 'hbase_master'
                 instances: [srv.instances[0]]
                 use: 'functional-service'
