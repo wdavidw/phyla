@@ -2,7 +2,7 @@
 # Atlas Solr Collection Bootstrap
 
     module.exports = headler: 'SolrCloud Atlas Layout', handler: (options) ->
-      protocol = if options.solr.ssl?.enabled or options.solr.cluster_config.is_ssl_enabled then 'https' else 'http'
+      protocol = if options.solr.ssl?.enabled or options.solr.cluster_config.ssl_enabled then 'https' else 'http'
 
 ## Wait
       
@@ -46,7 +46,7 @@
           @system.execute
             cmd: mkcmd.solr options.solr.cluster_config, """
             #{options.solr_client_source}/server/scripts/cloud-scripts/zkcli.sh  \
-            -zkhost #{options.solr.cluster_config.zk_urls} \
+            -zkhost #{options.solr.cluster_config.zk_connect} \
             -cmd upconfig \
             -confdir #{options.solr.cluster_config.atlas_collection_dir} \
             -confname #{key}

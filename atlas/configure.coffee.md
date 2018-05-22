@@ -166,7 +166,7 @@ Atlas server does take care of parallel executions of the setup steps.
 ## SSL
 Atlas SSL Encryption can be enabled by configuring following properties.
 
-      options.ssl = merge {}, service.deps.ssl?.options, ssl:
+      options.ssl = merge {}, service.deps.ssl?.options,
         truststore: target: "#{options.conf_dir}/truststore"
         keystore: target: "#{options.conf_dir}/keystore"
       , options.ssl
@@ -446,13 +446,14 @@ in or out of docker.
             throw Error "Missing Solr options.solr.cluster_config.ssl_enabled property example: true" unless options.solr.cluster_config.ssl_enabled?
             throw Error "Missing Solr options.solr.cluster_config.hosts: ['master01.ryba', 'master02.ryba']" unless options.solr.cluster_config.hosts?
             throw Error "Missing Solr options.solr.cluster_config.zk_urls: master01.metal.ryba:2181" unless options.solr.cluster_config.zk_urls?
-            throw Error "Missing Solr options.solr.cluster_config.zk_connect: master01.metal.ryba:2181/solr_infra" unless options.solr.cluster_config.zk_connect?
+            throw Error "Missing Solr options.solr.cluster_config.zk_node: /solr_infra" unless options.solr.cluster_config.zk_node?
             throw Error "Missing Solr options.solr.cluster_config.master: master01.metal.ryba" unless options.solr.cluster_config.master?
             throw Error "Missing Solr options.solr.cluster_config.port: 8983" unless options.solr.cluster_config.port?
             throw Error "Missing Solr options.solr.cluster_config.admin_principal: 8983" unless options.solr.cluster_config.admin_principal?
             throw Error "Missing Solr options.solr.cluster_config.admin_password: 8983" unless options.solr.cluster_config.admin_password?
             throw Error "Missing Solr options.solr.cluster_config.authentication: kerberos" unless options.solr.cluster_config.authentication?
-            options.application.properties['atlas.graph.index.search.solr.zookeeper-url'] ?= options.solr.cluster_config.zk_urls
+            options.solr.cluster_config.zk_connect ?= path.join options.solr.cluster_config.zk_urls, '/', options.solr.cluster_config.zk_node
+            options.application.properties['atlas.graph.index.search.solr.zookeeper-url'] ?= options.solr.cluster_config.zk_connect
             options.application.properties['atlas.graph.index.search.solr.mode'] ?= 'cloud'
             options.application.properties['atlas.graph.index.search.backend'] ?= 'solr5'
           when 'cloud'
@@ -643,5 +644,6 @@ in or out of docker.
 
     configure_solr_cluster = require '../solr/cloud_docker/clusterize'
     {merge} = require 'nikita/lib/misc'
+    path = require 'path'
 
 [titan]:(http://titan.thinkaurelius.com)
