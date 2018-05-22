@@ -285,7 +285,7 @@ Note, Ambari will change ownership to root.
 
       @krb5.addprinc options.krb5.admin,
         header: 'JAAS'
-        if: options.jaas.enabled
+        if: options.jaas?.enabled
         principal: options.jaas.principal
         keytab: options.jaas.keytab
         randkey: true
@@ -297,6 +297,7 @@ Note, Ambari will change ownership to root.
 
       for name, mpack of options.mpacks
         mpack.target ?= "/var/tmp/#{path.basename mpack.source}"
+        mpack.purge ?= true
         @file.download
           header: "Download #{name}"
           if: mpack.enabled
@@ -309,8 +310,7 @@ Note, Ambari will change ownership to root.
           cmd: """
           yes | ambari-server install-mpack \
             --mpack=#{mpack.target} \
-            --purge \
-            --verbose
+            #{if mpack.purge then '--purge' else ''} --verbose
           """
 
 ## Setup
@@ -327,14 +327,14 @@ Be carefull, notes from Ambari 2.4.2:
 
       @call header: 'Setup', ->
         props = {}
-        @call (options, callback) ->
-          ssh = @ssh options.ssh
-          properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
-            throw err if err
-            for k, v of data
-              props[k] ?= {}
-              props[k].org = v
-            callback()
+        # @call (options, callback) ->
+        #   ssh = @ssh options.ssh
+        #   properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
+        #     throw err if err
+        #     for k, v of data
+        #       props[k] ?= {}
+        #       props[k].org = v
+        #     callback()
         @system.execute
           shy: true
           cmd: """
@@ -346,7 +346,8 @@ Be carefull, notes from Ambari 2.4.2:
             --databaseport=#{options.db.port} \
             --databasename=#{options.db.database} \
             --databaseusername=#{options.db.username} \
-            --databasepassword=#{options.db.password}
+            --databasepassword=#{options.db.password} \
+            --enable-lzo-under-gpl-license
           ambari-server setup \
             --jdbc-db=mysql \
             --jdbc-driver=/usr/share/java/mysql-connector-java.jar
@@ -380,22 +381,22 @@ Be carefull, notes from Ambari 2.4.2:
           """
         @system.execute
           shy: true
-          if: options.jaas.enabled
+          if: options.jaas?.enabled
           cmd: """
           ambari-server setup-security \
             --security-option=setup-kerberos-jaas \
-            --jaas-principal="#{options.jaas.principal}" \
-            --jaas-keytab="#{options.jaas.keytab}"
+            --jaas-principal="#{options.jaas?.principal}" \
+            --jaas-keytab="#{options.jaas?.keytab}"
           """
+        # @call (_, callback) ->
+        #   ssh = @ssh options.ssh
+        #   properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
+        #     throw err if err
+        #     for k, v of data
+        #       props[k] ?= {}
+        #       props[k].new = v
+        #     callback()
         @call (_, callback) ->
-          ssh = @ssh options.ssh
-          properties ssh, '/etc/ambari-server/conf/ambari.properties', {}, (err, data) ->
-            throw err if err
-            for k, v of data
-              props[k] ?= {}
-              props[k].new = v
-            callback()
-        @call (options, callback) ->
           status = false
           for k, v of props
             if v.org isnt v.new
@@ -446,6 +447,6 @@ Start the service or restart it if there were any changes.
     url = require 'url'
     misc = require 'nikita/lib/misc'
     db = require 'nikita/lib/misc/db'
-    {properties} = require 'nikita/lib/file/properties'
+    properties = require 'nikita/lib/file/properties/read'
 
 [sr]: http://docs.hortonworks.com/HDPDocuments/Ambari-2.2.2.0/bk_Installing_HDP_AMB/content/_meet_minimum_system_requirements.html

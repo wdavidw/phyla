@@ -81,6 +81,21 @@ Hadoop group. The default group name is "hadoop".
       options.user.groups ?= ['hadoop']
       options.user.gid = options.group.name
 
+
+      # test User
+      options.test_group = name: options.test_group if typeof options.test_group is 'string'
+      options.test_group ?= {}
+      options.test_group.name ?= 'ambari-qa'
+      options.test_group.system ?= true
+      options.test_user = name: options.test_user if typeof options.v is 'string'
+      options.test_user ?= {}
+      options.test_user.name ?= 'ambari-qa'
+      options.test_user.system ?= true
+      options.test_user.comment ?= 'Ambari Test User'
+      options.test_user.home ?= "/var/lib/#{options.test_user.name}"
+      options.test_user.groups ?= ['hadoop']
+      options.test_user.gid = options.test_group.name
+
 ## Ambari TLS and Truststore
 
       options.ssl = merge {}, service.deps.ssl?.options, options.ssl
@@ -103,21 +118,23 @@ Multiple ambari instance on a same server involve a different principal or the p
 `auth=KERBEROS;proxyuser=ambari`
 
       # Krb5 Import
-      options.krb5 ?= {}
-      options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
-      throw Error 'Required Options: "realm"' unless options.krb5.realm
-      options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
-      # Krb5 Validation
-      throw Error "Require Property: krb5.admin.kadmin_principal" unless options.krb5.admin.kadmin_principal
-      throw Error "Require Property: krb5.admin.kadmin_password" unless options.krb5.admin.kadmin_password
-      throw Error "Require Property: krb5.admin.admin_server" unless options.krb5.admin.admin_server
-      # JAAS
-      options.jaas ?= {}
-      options.jaas.enabled ?= false
-      if options.jaas.enabled
-        options.jaas.keytab ?= '/etc/ambari-server/conf/ambari.service.keytab'
-        options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
-        options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
+      options.krb5_enabled ?= !!service.deps.krb5_client
+      if options.krb5_enabled
+        options.krb5 ?= {}
+        options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+        throw Error 'Required Options: "realm"' unless options.krb5.realm
+        options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+        # Krb5 Validation
+        throw Error "Require Property: krb5.admin.kadmin_principal" unless options.krb5.admin.kadmin_principal
+        throw Error "Require Property: krb5.admin.kadmin_password" unless options.krb5.admin.kadmin_password
+        throw Error "Require Property: krb5.admin.admin_server" unless options.krb5.admin.admin_server
+        # JAAS
+        options.jaas ?= {}
+        options.jaas.enabled ?= false
+        if options.jaas.enabled
+          options.jaas.keytab ?= '/etc/security/keytabs/ambari.service.keytab'
+          options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
+          options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
 
 ## Configuration
 
@@ -192,17 +209,25 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
 
+## Client Rest API Url
+
+      options.ambari_url ?= if options.config['api.ssl'] is 'false'
+      then "http://#{service.node.fqdn}:#{options.config['client.api.port']}"
+      else "https://#{service.node.fqdn}:#{options.config['client.api.ssl.port']}"
+      options.ambari_admin_password ?= options.admin_password
+      #options.cluster_name ?= options.cluster_name
+
 ## Wait
 
       options.wait_db_admin = service.deps.db_admin.options.wait
       options.wait = {}
       options.wait.rest = for srv in service.deps.ambari_server
         clusters_url: url.format
-          protocol: unless srv.options.config['api.ssl'] is 'true'
-          then 'http'
-          else 'https'
+          protocol: if srv.options.config['api.ssl'] is true
+          then 'https'
+          else 'http'
           hostname: srv.options.fqdn
-          port: unless srv.options.config['api.ssl'] is 'true'
+          port: if srv.options.config['api.ssl'] is true
           then srv.options.config['client.api.ssl.port']
           else srv.options.config['client.api.port']
           pathname: '/api/v1/clusters'

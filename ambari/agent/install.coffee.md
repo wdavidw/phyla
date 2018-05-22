@@ -4,6 +4,11 @@ The ambari server must be set in the configuration file.
 
     module.exports = header: 'Ambari Agent Install', handler: (options) ->
 
+## Wait
+
+      @call 'ryba/ambari/server/wait', rest: options.wait_ambari_rest
+
+
 ## Identities
 
 By default, the "ambari-agent" package does not create any identities.
