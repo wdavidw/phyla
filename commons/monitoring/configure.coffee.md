@@ -300,6 +300,7 @@ from normzlized configuration.
             throw Error "Missing service servicegroup" unless opts.servicegroup?
             throw Error "Missing service use" unless opts.use?
             throw Error "Missing service process_name" if (opts.use is 'process-service') and (!opts.process_name?)
+            throw Error "Missing service ambari_component_name" if (opts.use.match('process-service-.*') and (!opts.ambari_component_name?)
             throw Error "Missing service check_command" unless opts.check_command?
             throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
             options.services[opts.name] ?= {}
@@ -309,6 +310,7 @@ from normzlized configuration.
             options.services[opts.name].servicegroups ?= opts.servicegroup
             options.services[opts.name].use ?= opts.use
             options.services[opts.name]['_process_name'] ?= opts.process_name
+            options.services[opts.name]['_ambari_component_name'] ?= opts.ambari_component_name
             options.services[opts.name].check_command ?= opts.check_command
 
           # TODO: put ryba.db_admin username/password
@@ -422,7 +424,8 @@ from normzlized configuration.
               name: 'Zookeeper Server - TCP'
               servicegroup: 'zookeeper_server'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'ZOOKEEPER_SERVER'
               process_name: 'zookeeper-server'
               check_command: "check_tcp!#{srv.instances[0].options.config.clientPort}"
             # Zookeeper State
@@ -457,7 +460,8 @@ from normzlized configuration.
               name: 'HDFS NN - TCP'
               servicegroup: 'hdfs_nn'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'NAMENODE'
               process_name: 'hadoop-hdfs-namenode'
               check_command:  "check_tcp!#{rpc_port}"
             create_service
@@ -534,7 +538,8 @@ from normzlized configuration.
               name: 'HDFS JN - TCP SSL'
               servicegroup: 'hdfs_jn'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'JOURNALNODE'
               process_name: 'hadoop-hdfs-journalnode'
               check_command: "check_tcp!#{port}!-S"
             # Certificate
@@ -556,7 +561,8 @@ from normzlized configuration.
               name: 'HDFS DN - TCP SSL'
               servicegroup: 'hdfs_dn'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'DATANODE'
               process_name: 'hadoop-hdfs-datanode'
               check_command: "check_tcp!#{port}!-S"
             # Certificate
@@ -583,7 +589,8 @@ from normzlized configuration.
               name: 'ZKFC - TCP'
               servicegroup: 'hdfs_zkfc'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'ZKFC'
               process_name: 'hadoop-hdfs-zkfc'
               check_command: "check_tcp!#{srv.instances[0].options.hdfs_site['dfs.ha.zkfc.port']}"
           if 'ryba/hadoop/httpfs' is srv.module
@@ -613,7 +620,8 @@ from normzlized configuration.
               name: 'YARN RM - Admin TCP'
               servicegroup: 'yarn_rm'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'RESOURCEMANAGER'
               process_name: 'hadoop-yarn-resourcemanager'
               check_command: "check_tcp!8141"
             # WebService
@@ -639,7 +647,8 @@ from normzlized configuration.
               name: 'YARN NM - TCP'
               servicegroup: 'yarn_nm'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'NODEMANAGER'
               process_name: 'hadoop-yarn-nodemanager'
               check_command: "check_tcp!45454"
             # WebService
@@ -673,7 +682,8 @@ from normzlized configuration.
               name: 'MapReduce JHS - TCP'
               servicegroup: 'mapred_jhs'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'HISTORYSERVER'
               process_name: 'hadoop-mapreduce-historyserver'
               check_command: "check_tcp!10020"
             # webservice
@@ -699,7 +709,8 @@ from normzlized configuration.
               name: 'YARN TS - TCP'
               servicegroup: 'yarn_ts'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'APP_TIMELINE_SERVER'
               process_name: 'hadoop-yarn-timelineserver'
               check_command: "check_tcp!10200"
             # Webservice
@@ -725,7 +736,8 @@ from normzlized configuration.
               name: 'HBase Master - TCP'
               servicegroup: 'hbase_master'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'HBASE_MASTER'
               process_name: 'hbase-master'
               check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.master.port']}"
             # WebUI
@@ -805,7 +817,8 @@ from normzlized configuration.
               name: 'HBase RegionServer - TCP'
               servicegroup: 'hbase_regionserver'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'HBASE_REGIONSERVER'
               process_name: 'hbase-regionserver'
               check_command: "check_tcp!#{srv.instances[0].options.hbase_site['hbase.regionserver.port']}"
             # WebUI
@@ -876,7 +889,8 @@ from normzlized configuration.
               name: 'HCatalog - TCP'
               servicegroup: 'hcatalog'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'HCAT'
               process_name: 'hive-hcatalog-server'
               check_command: "check_tcp!#{srv.instances[0].options.hive_site['hive.metastore.port']}"
           if 'ryba/hive/server2' is srv.module
@@ -887,7 +901,8 @@ from normzlized configuration.
               name: 'Hiveserver2 - TCP SSL'
               servicegroup: 'hiveserver2'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'HIVE_SERVER'
               process_name: 'hive-server2'
               check_command: "check_tcp!#{srv.instances[0].options.hive_site['hive.server2.thrift.port']}"
             # Certificate
@@ -906,7 +921,8 @@ from normzlized configuration.
               name: 'WebHCat - WebService'
               servicegroup: 'webhcat'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: "WEBHCAT_SERVER"
               process_name: 'hive-webhcat-server'
               check_command: "check_tcp!#{srv.instances[0].options.webhcat_site['templeton.port']}"
             # Status
@@ -932,7 +948,8 @@ from normzlized configuration.
               name: 'Oozie Server - WebUI'
               servicegroup: 'oozie_server'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: "OOZIE_SERVER"
               process_name: 'oozie'
               check_command: "check_tcp!#{srv.instances[0].options.http_port}!-S"
             # Certificate
@@ -972,7 +989,8 @@ from normzlized configuration.
                 name: 'Ranger - WebUI'
                 servicegroup: 'ranger'
                 instances: srv.instances
-                use: 'process-service'
+                use: "process-service-#{clustername}"
+                ambari_component_name: 'RANGER_ADMIN'
                 process_name: 'ranger-admin'
                 check_command: check_command
               create_service
@@ -987,7 +1005,8 @@ from normzlized configuration.
                 name: 'Ranger - WebUI'
                 servicegroup: 'ranger'
                 instances: srv.instances
-                use: 'process-service'
+                use: "process-service-#{clustername}"
+                ambari_component_name: 'RANGER_ADMIN'
                 process_name: 'ranger-admin'
                 check_command: check_command
           if 'ryba/opentsdb' is srv.module and (srv.instances.length > 1)
@@ -1018,7 +1037,8 @@ from normzlized configuration.
               name: 'Spark HistoryServer - WebUI'
               servicegroup: 'spark_hs'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'SPARK_JOBHISTORYSERVER'
               process_name: 'spark-history-server'
               check_command: "check_tcp!#{srv.instances[0].options.conf['spark.history.ui.port']}"
           if 'ryba/spark/livy_server' is srv.module
@@ -1133,7 +1153,8 @@ from normzlized configuration.
               name: 'Knox - WebService'
               servicegroup: 'knox'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: "KNOX_GATEWAY"
               process_name: 'knox-server'
               check_command: "check_tcp!#{srv.instances[0].options.gateway_site['gateway.port']}!-S"
             # Certificate
