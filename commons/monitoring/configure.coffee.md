@@ -300,7 +300,7 @@ from normzlized configuration.
             throw Error "Missing service servicegroup" unless opts.servicegroup?
             throw Error "Missing service use" unless opts.use?
             throw Error "Missing service process_name" if (opts.use is 'process-service') and (!opts.process_name?)
-            throw Error "Missing service ambari_component_name" if (opts.use.match('process-service-.*') and (!opts.ambari_component_name?)
+            throw Error "Missing service ambari_component_name" if (opts.use.match('process-service-.*') and (!opts.ambari_component_name?))
             throw Error "Missing service check_command" unless opts.check_command?
             throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
             options.services[opts.name] ?= {}
