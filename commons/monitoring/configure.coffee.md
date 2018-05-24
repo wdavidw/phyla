@@ -139,6 +139,10 @@ They must have register set to 0 to not be instanciated
       options.services['functional-service'].check_interval = '600'
       options.services['functional-service'].retry_interval = '30'
       options.services['functional-service'].register = '0'
+      for k in Object.keys options.clusters
+        options.services["process-service-#{k}"] ?= {}
+        options.services["process-service-#{k}"].use ?= 'unit-service'
+        options.services["process-service-#{k}"].register ?= '0'
       # ContactGroups
       options.contactgroups['admins'] ?= {}
       options.contactgroups['admins'].alias ?= 'Administrators'
