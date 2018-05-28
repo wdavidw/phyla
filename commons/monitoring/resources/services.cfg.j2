@@ -6,7 +6,7 @@ define service {
   use                   {% if host | isObject %}{{ host.use }}{% else %}{{ svc.use }}{% endif %}{% for s, val in svc %}{% if s == 'hosts' %}{% elif s == 'hostgroups' %}
   hostgroup_name        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'contactgroups' %}
   contact_groups        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'check_command' %}
-  check_command         {{ val | replace('$HOSTNAME$', host.hostname) }}{% else %}
+  check_command         {% if host | isObject %}{{ val | replace('$HOSTNAME$', host.hostname) }}{% else %}{{ val | replace('$HOSTNAME$', host) }}{% else %}
   {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}
 }{% endfor %}{% else %}
 define service {
