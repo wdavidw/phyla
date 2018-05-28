@@ -1,11 +1,12 @@
-{% for name, svc in services %}{% if svc.hosts %}{% for host in svc.hosts %}
+{% for name, svc in services %}{% if svc.hosts %}{% for hostname, hostvalues in svc.hosts %}
 define service {
   name                  {{ name }}
   service_description   {{ name }}
-  host_name             {{ host }}{% for s, val in svc %}{% if s == 'hosts' %}{% elif s == 'hostgroups' %}
+  host_name             {{ hostname }}{% for s, val in svc %}{% if s == 'hosts' %}{% elif s == 'hostgroups' %}
   hostgroup_name        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'contactgroups' %}
   contact_groups        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'check_command' %}
-  check_command         {{ val | replace('$HOSTNAME$', host) }}{% else %}
+  {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}{% for s, val in hostvalues}{% if s == 'check_command' %}
+  check_command         {{ val | replace('$HOSTNAME$', hostname) }}{% else %}
   {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}
 }{% endfor %}{% else %}
 define service {

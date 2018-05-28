@@ -289,9 +289,9 @@ from normzlized configuration.
 ###  Declare services
 
           add_hosts_to_srv = (srvname, instances) ->
-            options.services[srvname].hosts ?= []
+            options.services[srvname].hosts ?= {}
             for instance in instances
-              options.services[srvname].hosts.push instance.node.fqdn unless instance.node.fqdn in options.services[srvname].hosts
+              options.services[srvname].hosts[instance.node.fqdn] unless instance.node.fqdn in Object.keys options.services[srvname].hosts
           add_srv_to_host_hostgroups = (srvname, instances) ->
             for instance in instances
               options.hosts[instance.node.fqdn].hostgroups ?= []
@@ -308,14 +308,15 @@ from normzlized configuration.
             throw Error "Missing service check_command" unless opts.check_command?
             throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
             options.services[opts.name] ?= {}
-            options.services[opts.name].hosts ?= []
-            options.services[opts.name].hosts.push opts.instances.map( (instance) -> instance.node.fqdn )...
+            options.services[opts.name].hosts ?= {}
+            for instance in opts.instances
+              options.services[opts.name].hosts[instance.node.fqdn] ?= {}
+              options.services[opts.name].hosts[instance.node.fqdn].use ?= opts.use
+              options.services[opts.name].hosts[instance.node.fqdn].check_command ?= opts.check_command
             opts.servicegroup = [opts.servicegroup] unless Array.isArray opts.servicegroup
             options.services[opts.name].servicegroups ?= opts.servicegroup
-            options.services[opts.name].use ?= opts.use
             options.services[opts.name]['_process_name'] ?= opts.process_name
             options.services[opts.name]['_ambari_component_name'] ?= opts.ambari_component_name
-            options.services[opts.name].check_command ?= opts.check_command
 
           # TODO: put ryba.db_admin username/password
           if 'masson/commons/mysql/server' is srv.module
