@@ -2,8 +2,8 @@
 define service {
   name                  {{ name }}
   service_description   {{ name }}
-  host_name             {{ host.hostname }}
-  use                   {{ host.use }}{% for s, val in svc %}{% if s == 'hosts' %}{% elif s == 'hostgroups' %}
+  host_name             {% if host | isObject %}{{ host.hostname }}{% else %}{{ host }}{% endif %}
+  use                   {% if host | isObject %}{{ host.use }}{% else %}{{ svc.use }}{% endif %}{% for s, val in svc %}{% if s == 'hosts' %}{% elif s == 'hostgroups' %}
   hostgroup_name        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'contactgroups' %}
   contact_groups        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'check_command' %}
   check_command         {{ val | replace('$HOSTNAME$', host.hostname) }}{% else %}
