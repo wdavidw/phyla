@@ -309,11 +309,10 @@ from normzlized configuration.
             throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
             options.services[opts.name] ?= {}
             options.services[opts.name].hosts ?= []
-            # options.services[opts.name].hosts.push opts.instances.map( (instance) -> instance.node.fqdn )...
-            options.services[opts.name].hosts.push opts.instances.map( (instance) -> hostname: instance.node.fqdn, use: opts.use)...
+            options.services[opts.name].hosts.push opts.instances.map( (instance) -> instance.node.fqdn )...
             opts.servicegroup = [opts.servicegroup] unless Array.isArray opts.servicegroup
             options.services[opts.name].servicegroups ?= opts.servicegroup
-            # options.services[opts.name].use ?= opts.use
+            options.services[opts.name].use ?= opts.use
             options.services[opts.name]['_process_name'] ?= opts.process_name
             options.services[opts.name]['_ambari_component_name'] ?= opts.ambari_component_name
             options.services[opts.name].check_command ?= opts.check_command
