@@ -980,7 +980,8 @@ from normzlized configuration.
               name: 'Kafka Broker - TCPs'
               servicegroup: 'kafka_broker'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: "KAFKA_BROKER"
               process_name: 'kafka-broker'
               check_command: "bp_rule!($HOSTNAME$,r:^Kafka Broker - TCP .*$)"
           if 'ryba/ranger/admin' is srv.module
