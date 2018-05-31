@@ -90,7 +90,7 @@ User can be External and Internal. Only Internal users can be created from the r
       # TODO: wdavidw 10821, rename as admin_password
       options.admin ?= {}
       options.admin.username ?= 'admin'
-      options.admin.password ?= 'rangerAdmin123'
+      throw Error 'Missing Ranger Admin password' unless options.admin.password?
       if not (/^.*[a-zA-Z]/.test(options.admin.password) and /^.*[0-9]/.test(options.admin.password) and options.admin.password.length > 8)
        throw Error "new passord's length must be > 8, must contain one alpha and numerical character at lest"
       options.conf_dir ?= '/etc/ranger/admin'

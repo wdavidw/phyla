@@ -206,4 +206,4 @@ Create HDFS solr user and its home directory
 ## Dependencies
 
     path = require 'path'
-    mkcmd  = require '../../lib/mkcmd'
+    mkcmd  = require 'ryba/lib/mkcmd

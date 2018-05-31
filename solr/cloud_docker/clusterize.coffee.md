@@ -111,10 +111,11 @@ Make configuration options more restrictive
               config.master_container_name = container_name
             #docker-compose.yml container specific properties
             #be careful this property is used in `ryba/ranger/admin/solr_bootstrap` file
+            config.version ?= options.version
             switch config.docker_compose_version
               when '1'
                 config.service_def[container_name]=
-                  'image' : "#{options.build.image}:#{options.version}"
+                  'image' : "#{options.build.image}:#{config.version}"
                   # 'restart': "always"
                   'command': command
                   'volumes': volumes
@@ -126,7 +127,7 @@ Make configuration options more restrictive
                 config.service_def[container_name]['environment'] = environment if  environment.length > 0
               when '2'
                 config.service_def[container_name]=
-                  'image' : "#{options.build.image}:#{options.version}"
+                  'image' : "#{options.build.image}:#{config.version}"
                   # 'restart': "always"
                   'command': command
                   'volumes': volumes
@@ -180,7 +181,8 @@ Make configuration options more restrictive
             config_host.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.DefaultZkACLProvider'
             config_host.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.DefaultZkCredentialsProvider'
             if config_host.security["authentication"]['class'] is 'org.apache.solr.security.KerberosPlugin'
-              config_host['env']['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer' 
+              config_host['env']['SOLR_AUTHENTICATION_CLIENT_CONFIGURER'] ?= 'org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer'  unless parseInt(config.version[0]) >= 7
+              config_host['env']['SOLR_AUTH_TYPE'] ?= 'kerberos'  if parseInt(config.version[0]) >= 7
               # Control ACL with  SASL Authentication
               # config_host.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
               # config_host.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.SaslZkACLProvider'
@@ -190,6 +192,7 @@ Make configuration options more restrictive
                 config_host.security["authorization"]['user-role']["#{options.user.name}/#{host}@#{options.krb5.realm}"] ?= 'manager'
                 config_host.security["authorization"]['user-role']["HTTP/#{host}@#{options.krb5.realm}"] ?= 'manager'
             else
+              config_host['env']['SOLR_AUTH_TYPE'] ?= 'basic'  if parseInt(config.version[0]) >= 7
               # Control ACL with auth/digest
               # config_host.zk_opts['zkCredentialsProvider'] ?= 'org.apache.solr.common.cloud.VMParamsSingleSetCredentialsDigestZkCredentialsProvider'
               # config_host.zk_opts['zkACLProvider'] ?= 'org.apache.solr.common.cloud.VMParamsAllAndReadonlyDigestZkACLProvider'

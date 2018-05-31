@@ -50,19 +50,18 @@
             curl --fail --negotiate -k -u : "#{protocol}://#{options.solr.cluster_config['master']}:#{options.solr.cluster_config['port']}/solr/#{getPath(options.solr.cluster_config.collection)}"
           """
 
-# ## Zookeeper Znode ACL
-# 
-#       @system.execute
-#         unless: mode is 'standalone'
-#         header: 'Zookeeper SolrCloud Znode ACL'
-#         unless_exec: mkcmd.solr @, """
-#         zookeeper-client -server #{zk_connect} \
-#           getAcl /#{zk_node} | grep \"'sasl,'#{solr.user.name}\"
-#         """
-#         cmd: mkcmd.solr @, """
-#         zookeeper-client -server #{zk_connect} \
-#           setAcl /#{zk_node} sasl:#{solr.user.name}:cdrwa
-#         """
+## Zookeeper Znode ACL
+
+      @system.execute
+        header: 'Zookeeper SolrCloud Znode ACL'
+        unless_exec: mkcmd.solr options.solr.cluster_config, """
+        zookeeper-client -server #{options.solr.cluster_config.zk_connect} \
+          getAcl /#{options.solr.cluster_config.zk_node} | grep \"'sasl,'#{options.solr.cluster_config.user.name}\"
+        """
+        cmd: mkcmd.solr options.solr.cluster_config, """
+        zookeeper-client -server #{options.solr.cluster_config.zk_connect} \
+          setAcl /#{options.solr.cluster_config.zk_node} sasl:#{options.solr.cluster_config.user.name}:cdrwa
+        """
 
     getPath = (opts) ->
       path = "admin/collections?action=CREATE"
