@@ -15,7 +15,7 @@ define service {
   host_name             {{ host }}{% for s, val in svc %}{% if s == 'hosts' %} {% elif s == 'check_command' %}
   check_command         {{ val | replace('$HOSTNAME$', host) }}{% else %}
   {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}
-{% endfor %}{% endif %}{% else %}
+}{% endfor %}{% endif %}{% else %}
 define service {
   name                  {{ name }}
   service_description   {{ name }}{% for s, val in svc %}{% if s == 'hostgroups' %}
