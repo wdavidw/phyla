@@ -96,6 +96,34 @@ Hadoop group. The default group name is "hadoop".
       options.test_user.groups ?= ['hadoop']
       options.test_user.gid = options.test_group.name
 
+      # test User
+      options.explorer_group = name: options.explorer_group if typeof options.explorer_group is 'string'
+      options.explorer_group ?= {}
+      options.explorer_group.name ?= 'activity_explorer'
+      options.explorer_group.system ?= true
+      options.explorer_user = name: options.explorer_user if typeof options.v is 'string'
+      options.explorer_user ?= {}
+      options.explorer_user.name ?= 'activity_explorer'
+      options.explorer_user.system ?= true
+      options.explorer_user.comment ?= 'Ambari Activity Explorer User'
+      options.explorer_user.home ?= "/var/lib/#{options.explorer_user.name}"
+      options.explorer_user.groups ?= ['hadoop']
+      options.explorer_user.gid = options.explorer_group.name
+
+      # test User
+      options.analyzer_group = name: options.analyzer_group if typeof options.analyzer_group is 'string'
+      options.analyzer_group ?= {}
+      options.analyzer_group.name ?= 'activity_analyzer'
+      options.analyzer_group.system ?= true
+      options.analyzer_user = name: options.analyzer_user if typeof options.v is 'string'
+      options.analyzer_user ?= {}
+      options.analyzer_user.name ?= 'activity_analyzer'
+      options.analyzer_user.system ?= true
+      options.analyzer_user.comment ?= 'Ambari Activity Analyzer User'
+      options.analyzer_user.home ?= "/var/lib/#{options.analyzer_user.name}"
+      options.analyzer_user.groups ?= ['hadoop']
+      options.analyzer_user.gid = options.analyzer_group.name
+
 ## Ambari TLS and Truststore
 
       options.ssl = merge {}, service.deps.ssl?.options, options.ssl
@@ -135,6 +163,11 @@ Multiple ambari instance on a same server involve a different principal or the p
           options.jaas.keytab ?= '/etc/security/keytabs/ambari.service.keytab'
           options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
           options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
+
+      options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
+      options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
+      options.explorer_user.principal ?= "#{options.explorer_user.name}/_HOST@#{options.krb5.realm}"
+      options.explorer_user.keytab ?=  "/etc/security/keytabs/activity-explorer.headless.keytab"
 
 ## Configuration
 
