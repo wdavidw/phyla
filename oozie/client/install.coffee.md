@@ -16,6 +16,11 @@ environmental variables. For example, HDP declare its version as
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
+      
+## Identities
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
 
 ## Install
 
