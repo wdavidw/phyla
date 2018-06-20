@@ -37,8 +37,8 @@ is installed on the host.
       # @service 'hive'
       # @service 'hive-webhcat' # Install hcat command
       # @hdp_select 'hive-webhcat'
-      # # @service
-      # #   name: 'hive-hcatalog'
+      @service
+        name: 'hive-hcatalog'
 
 ## Configure
 
