@@ -107,7 +107,7 @@ isnt yet started.
         mode: 0o0750
       @file.render
         header: 'Hive Log4j properties'
-        source: "#{__dirname}/../resources/hive-exec-log4j.properties"
+        source: "#{__dirname}/../resources/hive-exec-log4j.properties.j2"
         local: true
         target: "#{options.conf_dir}/hive-exec-log4j.properties"
         context: options
