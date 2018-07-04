@@ -124,7 +124,7 @@ do not depend on cluster or host names.
 
       options.templates ?= {}
       #needed options when rendering templates
-      options.cluster_name ?= 'ryba-env-metal'
+      throw Error 'missing cluster_name' unless options.cluster_name?
       if service.deps.zookeeper_server and options.datasource?
         options.templates['zookeeper-server'] ?=
           source: "#{__dirname}/../resources/prometheus-zookeeper.json.j2"
