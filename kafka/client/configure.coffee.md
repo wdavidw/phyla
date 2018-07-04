@@ -42,6 +42,7 @@ Merge group and user from the Kafka broker configuration.
       # Consumer
       options.consumer ?= {}
       options.consumer.config ?= {}
+      options.consumer.config['zookeeper.connect'] ?= service.deps.kafka_broker[0].options.config['zookeeper.connect']
       # Producer
       options.producer ?= {}
       options.producer.config ?= {}

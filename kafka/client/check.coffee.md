@@ -378,7 +378,7 @@ Trustore location and password given to line command because if executed before 
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --partitions #{options.brokers['SASL_SSL'].length} \
-            --replication-factor #{options.brokers['SASL_SSL'].length} \
+            --replication-factor #{options.brokers['SASL_SSL'].length-1} \
             --topic #{test_topic}
           """
           unless_exec: mkcmd.kafka options.admin, """
