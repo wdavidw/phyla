@@ -41,7 +41,7 @@
           nameNode=#{options.hdfs_defaultfs}
           jobTracker=#{options.jobtracker}
           queueName=default
-          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.fqdn}-oozie-fs
+          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.hostname}-oozie-fs
           oozie.wf.application.path=${basedir}
           """
           target: "#{options.test.user.home}/check_oozie_fs/job.properties"
@@ -71,11 +71,11 @@
           eof: true
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
-          hdfs dfs -rm -r -skipTrash check-#{options.fqdn}-oozie-fs 2>/dev/null
-          hdfs dfs -mkdir -p check-#{options.fqdn}-oozie-fs
-          hdfs dfs -touchz check-#{options.fqdn}-oozie-fs/source
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_fs/job.properties check-#{options.fqdn}-oozie-fs
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_fs/workflow.xml check-#{options.fqdn}-oozie-fs
+          hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-fs 2>/dev/null
+          hdfs dfs -mkdir -p check-#{options.hostname}-oozie-fs
+          hdfs dfs -touchz check-#{options.hostname}-oozie-fs/source
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_fs/job.properties check-#{options.hostname}-oozie-fs
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_fs/workflow.xml check-#{options.hostname}-oozie-fs
           export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
           oozie job -dryrun -config #{options.test.user.home}/check_oozie_fs/job.properties
           jobid=`oozie job -run -config #{options.test.user.home}/check_oozie_fs/job.properties | grep job: | sed 's/job: \\(.*\\)/\\1/'`
@@ -85,7 +85,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           code_skipped: 2
-          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.fqdn}-oozie-fs/target"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-fs/target"
 
 ## Check MapReduce Workflow
 
@@ -96,7 +96,7 @@
           jobTracker=#{options.jobtracker}
           oozie.libpath=/user/#{options.test.user.name}/share/lib
           queueName=default
-          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.fqdn}-oozie-mr
+          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.hostname}-oozie-mr
           oozie.wf.application.path=${basedir}
           oozie.use.system.libpath=true
           """
@@ -106,7 +106,7 @@
           eof: true
         @file
           content: """
-          <workflow-app name='check-#{options.fqdn}-oozie-mr' xmlns='uri:oozie:workflow:0.4'>
+          <workflow-app name='check-#{options.hostname}-oozie-mr' xmlns='uri:oozie:workflow:0.4'>
             <start to='test-mr' />
             <action name='test-mr'>
               <map-reduce>
@@ -131,11 +131,11 @@
                   </property>
                   <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/${wf:user()}/check-#{options.fqdn}-oozie-mr/input</value>
+                    <value>/user/${wf:user()}/check-#{options.hostname}-oozie-mr/input</value>
                   </property>
                   <property>
                     <name>mapred.output.dir</name>
-                    <value>/user/${wf:user()}/check-#{options.fqdn}-oozie-mr/output</value>
+                    <value>/user/${wf:user()}/check-#{options.hostname}-oozie-mr/output</value>
                   </property>
                 </configuration>
               </map-reduce>
@@ -155,16 +155,16 @@
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
           # Prepare HDFS
-          hdfs dfs -rm -r -skipTrash check-#{options.fqdn}-oozie-mr 2>/dev/null
-          hdfs dfs -mkdir -p check-#{options.fqdn}-oozie-mr/input
-          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.fqdn}-oozie-mr/input/data
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_mr/workflow.xml check-#{options.fqdn}-oozie-mr
+          hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-mr 2>/dev/null
+          hdfs dfs -mkdir -p check-#{options.hostname}-oozie-mr/input
+          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-mr/input/data
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_mr/workflow.xml check-#{options.hostname}-oozie-mr
           # Extract Examples
           if [ ! -d /var/tmp/oozie-examples ]; then
             mkdir /var/tmp/oozie-examples
             tar xzf /usr/hdp/current/oozie-client/doc/oozie-examples.tar.gz -C /var/tmp/oozie-examples
           fi
-          hdfs dfs -put /var/tmp/oozie-examples/examples/apps/map-reduce/lib check-#{options.fqdn}-oozie-mr
+          hdfs dfs -put /var/tmp/oozie-examples/examples/apps/map-reduce/lib check-#{options.hostname}-oozie-mr
           # Run Oozie
           export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
           oozie job -dryrun -config #{options.test.user.home}/check_oozie_mr/job.properties
@@ -177,7 +177,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.fqdn}-oozie-mr/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-mr/output/_SUCCESS"
 
 ## Check Pig Workflow
 
@@ -188,7 +188,7 @@
           jobTracker=#{options.jobtracker}
           oozie.libpath=/user/#{options.test.user.name}/share/lib
           queueName=default
-          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.fqdn}-oozie-pig
+          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.hostname}-oozie-pig
           oozie.wf.application.path=${basedir}
           oozie.use.system.libpath=true
           """
@@ -198,7 +198,7 @@
           eof: true
         @file
           content: """
-          <workflow-app name='check-#{options.fqdn}-oozie-pig' xmlns='uri:oozie:workflow:0.4'>
+          <workflow-app name='check-#{options.hostname}-oozie-pig' xmlns='uri:oozie:workflow:0.4'>
             <start to='test-pig' />
             <action name='test-pig'>
               <pig>
@@ -215,8 +215,8 @@
                   </property>
                 </configuration>
                 <script>wordcount.pig</script>
-                <param>INPUT=/user/${wf:user()}/check-#{options.fqdn}-oozie-pig/input</param>
-                <param>OUTPUT=/user/${wf:user()}/check-#{options.fqdn}-oozie-pig/output</param>
+                <param>INPUT=/user/${wf:user()}/check-#{options.hostname}-oozie-pig/input</param>
+                <param>OUTPUT=/user/${wf:user()}/check-#{options.hostname}-oozie-pig/output</param>
               </pig>
               <ok to="end" />
               <error to="fail" />
@@ -245,11 +245,11 @@
           eof: true
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
-          hdfs dfs -rm -r -skipTrash check-#{options.fqdn}-oozie-pig 2>/dev/null
-          hdfs dfs -mkdir -p check-#{options.fqdn}-oozie-pig/input
-          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.fqdn}-oozie-pig/input/data
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_pig/workflow.xml check-#{options.fqdn}-oozie-pig
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_pig/wordcount.pig check-#{options.fqdn}-oozie-pig
+          hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-pig 2>/dev/null
+          hdfs dfs -mkdir -p check-#{options.hostname}-oozie-pig/input
+          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-pig/input/data
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_pig/workflow.xml check-#{options.hostname}-oozie-pig
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_pig/wordcount.pig check-#{options.hostname}-oozie-pig
           export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
           oozie job -dryrun -config #{options.test.user.home}/check_oozie_pig/job.properties
           jobid=`oozie job -run -config #{options.test.user.home}/check_oozie_pig/job.properties | grep job: | sed 's/job: \\(.*\\)/\\1/'`
@@ -260,7 +260,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.fqdn}-oozie-pig/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-pig/output/_SUCCESS"
 
 ## Check HCat Workflow
 
@@ -271,7 +271,7 @@
           jobTracker=#{options.jobtracker}
           oozie.libpath=/user/#{options.test.user.name}/share/lib
           queueName=default
-          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.fqdn}-oozie-pig-hcat
+          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.hostname}-oozie-pig-hcat
           oozie.wf.application.path=${basedir}
           oozie.use.system.libpath=true
           """
@@ -281,7 +281,7 @@
           eof: true
         @file
           content: """
-          <workflow-app name='check-#{options.fqdn}-oozie-pig-hcat' xmlns='uri:oozie:workflow:0.4'>
+          <workflow-app name='check-#{options.hostname}-oozie-pig-hcat' xmlns='uri:oozie:workflow:0.4'>
             <credentials>
               <credential name='hive_credentials' type='hcat'>
                 <property>
@@ -310,8 +310,8 @@
                   </property>
                 </configuration>
                 <script>wordcount.pig</script>
-                <param>INPUT=/user/${wf:user()}/check-#{options.fqdn}-oozie-pig-hcat/input</param>
-                <param>OUTPUT=/user/${wf:user()}/check-#{options.fqdn}-oozie-pig-hcat/output</param>
+                <param>INPUT=/user/${wf:user()}/check-#{options.hostname}-oozie-pig-hcat/input</param>
+                <param>OUTPUT=/user/${wf:user()}/check-#{options.hostname}-oozie-pig-hcat/output</param>
               </pig>
               <ok to="end" />
               <error to="fail" />
@@ -340,11 +340,11 @@
           eof: true
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
-          hdfs dfs -rm -r -skipTrash check-#{options.fqdn}-oozie-pig-hcat 2>/dev/null
-          hdfs dfs -mkdir -p check-#{options.fqdn}-oozie-pig-hcat/input
-          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.fqdn}-oozie-pig-hcat/input/data
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_hcat/workflow.xml check-#{options.fqdn}-oozie-pig-hcat
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_hcat/wordcount.pig check-#{options.fqdn}-oozie-pig-hcat
+          hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-pig-hcat 2>/dev/null
+          hdfs dfs -mkdir -p check-#{options.hostname}-oozie-pig-hcat/input
+          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-pig-hcat/input/data
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_hcat/workflow.xml check-#{options.hostname}-oozie-pig-hcat
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_hcat/wordcount.pig check-#{options.hostname}-oozie-pig-hcat
           export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
           oozie job -dryrun -config #{options.test.user.home}/check_oozie_hcat/job.properties
           jobid=`oozie job -run -config #{options.test.user.home}/check_oozie_hcat/job.properties | grep job: | sed 's/job: \\(.*\\)/\\1/'`
@@ -355,7 +355,7 @@
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d check-#{options.fqdn}-oozie-pig-hcat/output"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d check-#{options.hostname}-oozie-pig-hcat/output"
 
 ## Check Hive2 Workflow
 From HDP 2.5 Hive action becomes deprecated against hive2 actions. As hive2 action use jdbc connection to communicate
@@ -370,8 +370,8 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
         # Prepare the list of databases
         dbs = []
         for hive_server2 in options.hive_server2
-          dbs.push "check_#{options.fqdn}_server2_#{hive_server2.hostname}"
-          dbs.push "check_#{options.fqdn}_oozie_hs2_nozk_#{hive_server2.hostname}"
+          dbs.push "check_#{options.hostname}_server2_#{hive_server2.hostname}"
+          dbs.push "check_#{options.hostname}_oozie_hs2_nozk_#{hive_server2.hostname}"
         @wait.execute
           header: 'Wait Service'
           cmd: """
@@ -386,7 +386,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           password: options.ranger_admin.password
           url: options.ranger_install['POLICY_MGR_URL']
           policy:
-            'name': "ryba-check-oozie-#{options.fqdn}"
+            'name': "ryba-check-oozie-#{options.hostname}"
             'description': 'Ryba policy used to check the Oozie client service'
             'service': options.ranger_install['REPOSITORY_NAME']
             'isEnabled': true
@@ -418,7 +418,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
       @call header: 'Check Hive2 Workflow (No ZK)', ->
         # Constructs Hiveserver2 jdbc url
         for hive_server2 in options.hive_server2
-          db = "check_#{options.fqdn}_oozie_hs2_nozk_#{hive_server2.hostname}"
+          db = "check_#{options.hostname}_oozie_hs2_nozk_#{hive_server2.hostname}"
           port = if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
           then hive_server2.hive_site['hive.server2.thrift.http.port']
           else hive_server2.hive_site['hive.server2.thrift.port']
@@ -431,8 +431,8 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           if hive_server2.hive_site['hive.server2.transport.mode'] is 'http'
             url += ";transportMode=#{hive_server2.hive_site['hive.server2.transport.mode']}"
             url += ";httpPath=#{hive_server2.hive_site['hive.server2.thrift.http.path']}"
-          workflow_dir = "check-#{options.fqdn}-oozie-hive2-#{hive_server2.hostname}"
-          app_name = "check-#{options.fqdn}-oozie-hive2-#{hive_server2.hostname}"
+          workflow_dir = "check-#{options.hostname}-oozie-hive2-#{hive_server2.hostname}"
+          app_name = "check-#{options.hostname}-oozie-hive2-#{hive_server2.hostname}"
           @file
             content: """
             nameNode=#{options.hdfs_defaultfs}
@@ -544,7 +544,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           jobTracker=#{options.jobtracker}
           oozie.libpath=/user/#{options.test.user.name}/share/lib
           queueName=default
-          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.fqdn}-oozie-spark
+          basedir=${nameNode}/user/#{options.test.user.name}/check-#{options.hostname}-oozie-spark
           oozie.wf.application.path=${basedir}
           oozie.use.system.libpath=true
           master=yarn-cluster
@@ -555,23 +555,23 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           eof: true
         @file
           content: """
-          <workflow-app name='check-#{options.fqdn}-oozie-spark' xmlns='uri:oozie:workflow:0.4'>
+          <workflow-app name='check-#{options.hostname}-oozie-spark' xmlns='uri:oozie:workflow:0.4'>
             <start to='test-spark' />
             <action name='test-spark'>
               <spark xmlns="uri:oozie:spark-action:0.1">
                 <job-tracker>${jobTracker}</job-tracker>
                 <name-node>${nameNode}</name-node>
                 <prepare>
-                  <delete path="${nameNode}/user/${wf:user()}/check-#{options.fqdn}-oozie-spark/output"/>
+                  <delete path="${nameNode}/user/${wf:user()}/check-#{options.hostname}-oozie-spark/output"/>
                 </prepare>
                 <master>${master}</master>
                 <mode>cluster</mode>
                 <name>Spark-FileCopy</name>
                 <class>org.apache.oozie.example.SparkFileCopy</class>
-                <jar>${nameNode}/user/${wf:user()}/check-#{options.fqdn}-oozie-spark/lib/oozie-examples.jar</jar>
+                <jar>${nameNode}/user/${wf:user()}/check-#{options.hostname}-oozie-spark/lib/oozie-examples.jar</jar>
                 <spark-opts>--conf spark.ui.view.acls=* --executor-memory 512m --num-executors 1 --executor-cores 1 --driver-memory 512m</spark-opts>
-                <arg>${nameNode}/user/${wf:user()}/check-#{options.fqdn}-oozie-spark/input/data.txt</arg>
-                <arg>${nameNode}/user/${wf:user()}/check-#{options.fqdn}-oozie-spark/output</arg>
+                <arg>${nameNode}/user/${wf:user()}/check-#{options.hostname}-oozie-spark/input/data.txt</arg>
+                <arg>${nameNode}/user/${wf:user()}/check-#{options.hostname}-oozie-spark/output</arg>
               </spark>
               <ok to="end" />
               <error to="fail" />
@@ -589,16 +589,16 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
         @system.execute
           cmd: mkcmd.test options.test_krb5_user, """
           # Prepare HDFS
-          hdfs dfs -rm -r -skipTrash check-#{options.fqdn}-oozie-spark 2>/dev/null
-          hdfs dfs -mkdir -p check-#{options.fqdn}-oozie-spark/input
-          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.fqdn}-oozie-spark/input/data.txt
-          hdfs dfs -put -f #{options.test.user.home}/check_oozie_spark/workflow.xml check-#{options.fqdn}-oozie-spark
+          hdfs dfs -rm -r -skipTrash check-#{options.hostname}-oozie-spark 2>/dev/null
+          hdfs dfs -mkdir -p check-#{options.hostname}-oozie-spark/input
+          echo -e 'a,1\\nb,2\\nc,3' | hdfs dfs -put - check-#{options.hostname}-oozie-spark/input/data.txt
+          hdfs dfs -put -f #{options.test.user.home}/check_oozie_spark/workflow.xml check-#{options.hostname}-oozie-spark
           # Extract Examples
           if [ ! -d /var/tmp/oozie-examples ]; then
             mkdir /var/tmp/oozie-examples
             tar xzf /usr/hdp/current/oozie-client/doc/oozie-examples.tar.gz -C /var/tmp/oozie-examples
           fi
-          hdfs dfs -put /var/tmp/oozie-examples/examples/apps/spark/lib check-#{options.fqdn}-oozie-spark
+          hdfs dfs -put /var/tmp/oozie-examples/examples/apps/spark/lib check-#{options.hostname}-oozie-spark
           # Run Oozie
           export OOZIE_URL=#{options.oozie_site['oozie.base.url']}
           oozie job -dryrun -config #{options.test.user.home}/check_oozie_spark/job.properties
@@ -611,7 +611,7 @@ with hiveserver2. It enables Ranger policies to be applied same way whatever the
           oozie job -info $jobid | grep -e '^Status\\s\\+:\\s\\+SUCCEEDED'
           """
           trap: false # or while loop will exit on first run
-          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.fqdn}-oozie-spark/output/_SUCCESS"
+          unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -f check-#{options.hostname}-oozie-spark/output/_SUCCESS"
 
 # Module Dependencies
 

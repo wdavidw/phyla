@@ -46,6 +46,11 @@ Expose the "OOZIE_URL" environmental variable to every users.
         """
         mode: 0o0755
 
+## User
+
+      @system.group header: 'Group', options.group
+      @system.user header: 'User', options.user
+
 ## Configuration
 
       @hconfigure
