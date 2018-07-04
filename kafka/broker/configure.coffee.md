@@ -172,7 +172,7 @@ Example:
       #options.log4j.properties['log4j.logger.kafka.network.Processor'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
       #options.log4j.properties['log4j.logger.kafka.server.KafkaApis'] ?= 'TRACE, requestAppender' + options.log4j.extra_appender
       #options.log4j.properties['log4j.additivity.kafka.server.KafkaApis'] ?= 'false'
-      options.log4j.properties['log4j.rootLogger'] ?= 'DEBUG, kafkaAppender' + options.log4j.extra_appender
+      options.log4j.properties['log4j.rootLogger'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
       options.log4j.properties['log4j.logger.kafka'] ?= 'INFO, kafkaAppender' + options.log4j.extra_appender
       options.log4j.properties['log4j.additivity.kafka'] ?= 'false'
       options.log4j.properties['log4j.logger.kafka.network.RequestChannel$'] ?= 'WARN, requestAppender' + options.log4j.extra_appender
