@@ -15,6 +15,7 @@
 
 Create user and groups for solr user.
 
+      @system.group header: "Group hadoop_group", options.hadoop_group
       @system.group header: 'Group', options.group
       @system.user header: 'User', options.user
 
@@ -72,24 +73,6 @@ Create user and groups for solr user.
         randkey: true
         uid: options.user.name
         gid: options.group.name
-
-## SSL Certificate
-
-      @file.download
-        source: options.ssl.cacert.source
-        local: options.ssl.cacert.local
-        target: "/etc/docker/certs.d/ca.pem"
-        mode: 0o0640
-      @file.download
-        source: options.ssl.cert.source
-        local: options.ssl.cert.local
-        target: "/etc/docker/certs.d/cert.pem"
-        mode: 0o0640
-      @file.download
-        source: options.ssl.key.source
-        local: options.ssl.key.local
-        target: "/etc/docker/certs.d/key.pem"
-        mode: 0o0640
 
 ## Container
 Ryba support installing solr from apache official release or HDP Search repos.
@@ -154,6 +137,27 @@ be prepared in the nikita cache dir.
         uid: options.user.name
         gid: options.group.name
         mode: 0o0755
+      @call
+        if: options.importCerts?
+      , (_, cb) ->
+        tmp_location = "/tmp/ryba_cacert_#{Date.now()}"
+        @each options.importCerts, (opts, callback) ->
+          {source, local, name} = opts.value
+          @file.download
+            header: 'download cacert'
+            source: source
+            target: "#{tmp_location}/cacert"
+            local: true
+          @java.keystore_add
+            header: "add cacert to #{name}"
+            keystore: options.truststore.target
+            storepass: options.truststore.password
+            caname: name
+            cacert: "#{tmp_location}/cacert"
+          @next callback
+        @system.remove
+          target: tmp_location
+        @next cb
 
 ## Cluster Specific configuration
 Here we loop through the clusters definition to write container specific file
