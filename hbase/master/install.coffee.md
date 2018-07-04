@@ -111,9 +111,9 @@ Install compression libs as defined in HDP docs
 
       @call header: 'Compression libs', ->
         @service
-          name: 'hadooplzo'
+          name: 'hadoop-lzo'
         @service
-          name: 'hadooplzo-native'
+          name: 'hadoop-lzo-native'
 
 ## Configure
 
