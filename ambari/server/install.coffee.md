@@ -286,7 +286,7 @@ Note, Ambari will change ownership to root.
       @krb5.addprinc options.krb5.admin,
         header: 'JAAS'
         if: options.jaas?.enabled
-        principal: options.jaas.principal
+        principal: options.jaas.principal.replace '_HOST', options.fqdn
         keytab: options.jaas.keytab
         randkey: true
         uid: 'root'
