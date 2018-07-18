@@ -15,11 +15,6 @@ Options includes
 module.exports = (options) ->
   fnl_props = {}
   org_props = {}
-  # alias
-  options.local ?= options.local_source
-  # options.source ?= options.target
-  throw Error 'Deprecated option: default' if options.default
-  throw Error 'Deprecated option: local_default' if options.local_default
   options.transform ?= null
   throw Error "Invalid options: \"transform\"" if options.transform and typeof options.transform isnt 'function'
   @call (_, callback) ->
