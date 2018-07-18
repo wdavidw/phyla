@@ -105,6 +105,10 @@ This production container running as hue service
           image: "#{options.image}:#{options.version}"
           output: "#{options.prod.directory}/#{options.prod.tar}"
 
+## Dependencies
+
+    path = require 'path'
+
 ## Instructions
 
 [cloudera-hue]:(https://github.com/cloudera/hue#development-prerequisites)
