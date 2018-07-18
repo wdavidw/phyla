@@ -116,7 +116,7 @@ Namespace is still not working in version 1.0
       #   header: 'Create HBase Namespace'
       #   if: -> @config.ryba.titan.config['storage.backend'] is 'hbase'
       # , (options) ->
-      #   # options.log "Titan: HBase namespace not yet ready"
+      #   # @log "Titan: HBase namespace not yet ready"
       #   @system.execute
       #     cmd: mkcmd.hbase @, """
       #     if hbase shell -n 2>/dev/null <<< "list_namespace 'titan'" | grep '1 row(s)'; then exit 3; fi

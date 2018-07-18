@@ -400,7 +400,7 @@ Be carefull, notes from Ambari 2.4.2:
           status = false
           for k, v of props
             if v.org isnt v.new
-              options.log message: "Option #{k} was #{JSON.stringify v.org} and is now #{JSON.stringify v.new}", level: 'INFO', module: 'ryba/lib/file/properties' unless v.org is v.new
+              @log message: "Option #{k} was #{JSON.stringify v.org} and is now #{JSON.stringify v.new}", level: 'INFO', module: 'ryba/lib/file/properties' unless v.org is v.new
               status = true
           callback null, status
 

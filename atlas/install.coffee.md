@@ -145,38 +145,38 @@ Import certificates, private and public keys of the host.
             data = data.toString()
             switch
               when /Please enter the full path to the credential provider:/.test data
-                options.log "prompt: #{data}"
-                options.log "writing: #{options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
+                @log "prompt: #{data}"
+                @log "writing: #{options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
                 stream.write "#{options.application.properties['cert.stores.credential.provider.path'].split('jceks://file')[1]}\n"
                 data = ''
               when /Please enter the password value for keystore.password:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.keystore.password}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.keystore.password}"
                 stream.write "#{options.ssl.keystore.password}\n"
                 data = ''
               when /Please enter the password value for keystore.password again:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.keystore.password}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.keystore.password}"
                 stream.write "#{options.ssl.keystore.password}\n"
                 data = ''
               when /Please enter the password value for truststore.password:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.truststore.password}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.truststore.password}"
                 stream.write "#{options.ssl.truststore.password}\n"
                 data = ''
               when /Please enter the password value for truststore.password again:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.truststore.password}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.truststore.password}"
                 stream.write "#{options.ssl.truststore.password}\n"
                 data = ''
               when /Please enter the password value for password:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.keystore.keypass}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.keystore.keypass}"
                 stream.write "#{options.ssl.keystore.keypass}\n"
                 data = ''
               when /Please enter the password value for password again:/.test data
-                options.log "prompt: #{data}"
-                options.log "write: #{options.ssl.keystore.keypass}"
+                @log "prompt: #{data}"
+                @log "write: #{options.ssl.keystore.keypass}"
                 stream.write "#{options.ssl.keystore.keypass}\n"
                 data = ''
               when /Entry for keystore.password already exists/.test data

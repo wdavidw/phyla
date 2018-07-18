@@ -47,12 +47,12 @@ COFFEE
           shy: true
         , (_, callback) ->
           baseurl = options[service].baseurl or "https://archive.cloudera.com/#{service}/parcels/"
-          request "#{baseurl}/#{options[service].version}/manifest.json", json: true, (err, req, data) ->
+          request "#{baseurl}/#{options[service].version}/manifest.json", json: true, (err, req, data) =>
             return callback err if err
             filenames = data.parcels.filter (parcel) ->
               parcel.parcelName.endsWith "#{options.distrib}.parcel"
             if filenames.length is 0
-              options.log message: "Invalid distribution", level: 'WARN', module: 'ryba/cloudera-manager/server/prepare'
+              @log message: "Invalid distribution", level: 'WARN', module: 'ryba/cloudera-manager/server/prepare'
               return callback()
             options[service].sources = []
             options[service].sources.push "#{baseurl}/#{options[service].version}/#{filename.parcelName}" for filename in filenames

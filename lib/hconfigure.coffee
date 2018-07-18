@@ -23,7 +23,7 @@ module.exports = (options) ->
   options.transform ?= null
   throw Error "Invalid options: \"transform\"" if options.transform and typeof options.transform isnt 'function'
   @call (_, callback) ->
-    options.log? message: "Read target properties from '#{options.target}'", level: 'DEBUG', module: 'ryba/lib/hconfigure'
+    @log message: "Read target properties from '#{options.target}'", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate org_props and, if merge, fnl_props
     ssh = @ssh options.ssh
     properties.read ssh, options.target, (err, props) ->
@@ -36,7 +36,7 @@ module.exports = (options) ->
   @call (_, callback) ->
     return callback() unless options.source
     return callback() unless typeof options.source is 'string'
-    options.log? message: "Read source properties from #{options.source}", level: 'DEBUG', module: 'ryba/lib/hconfigure'
+    @log message: "Read source properties from #{options.source}", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate options.source
     ssh = @ssh if options.local then false else options.ssh
     properties.read ssh, options.source, (err, dft) ->
@@ -48,12 +48,12 @@ module.exports = (options) ->
     # Note, source properties overwrite current ones by source, not sure
     # if this is the safest approach
     overwrite_curent = true
-    options.log? message: "Merge source properties", level: 'DEBUG', module: 'ryba/lib/hconfigure'
+    @log message: "Merge source properties", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     for k, v of options.source
       v = "#{v}" if typeof v is 'number'
       fnl_props[k] = v if overwrite_curent or typeof fnl_props[k] is 'undefined' or fnl_props[k] is null
   @call ->
-    options.log? message: "Merge user properties", level: 'DEBUG', module: 'ryba/lib/hconfigure'
+    @log message: "Merge user properties", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     for k, v of options.properties
       v = "#{v}" if typeof v is 'number'
       if typeof v is 'undefined' or v is null
@@ -73,7 +73,7 @@ module.exports = (options) ->
     keys = Object.keys keys
     for k in keys
       continue unless org_props[k] isnt fnl_props[k]
-      options.log? message: "Property '#{k}' was '#{org_props[k]}' and is now '#{fnl_props[k]}'", level: 'WARN', module: 'ryba/lib/hconfigure'
+      @log message: "Property '#{k}' was '#{org_props[k]}' and is now '#{fnl_props[k]}'", level: 'WARN', module: 'ryba/lib/hconfigure'
   @call ->
     options.content = properties.stringify fnl_props
     options.source = null

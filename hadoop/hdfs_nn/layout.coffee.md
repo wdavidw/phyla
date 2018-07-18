@@ -43,7 +43,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           """
           code_skipped: 2
         , (err, executed, stdout) ->
-          options.log? 'Directory "/tmp" prepared' if executed
+          @log 'Directory "/tmp" prepared' if executed
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /user; then exit 2; fi
@@ -56,7 +56,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           """
           code_skipped: 2
         , (err, executed, stdout) ->
-          options.log? 'Directory "/user/{test_user}" prepared' if executed
+          @log 'Directory "/user/{test_user}" prepared' if executed
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /apps; then exit 2; fi
@@ -66,7 +66,7 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           """
           code_skipped: 2
         , (err, executed, stdout) ->
-          options.log? 'Directory "/apps" prepared' if executed
+          @log 'Directory "/apps" prepared' if executed
 
 ## HDP Layout
 
