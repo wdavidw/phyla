@@ -16,7 +16,7 @@ running of those scans to produce regular JDBC result sets.
       plugin: (options) ->
         @after
           # TODO: add header support to aspect in nikita
-          type: 'service'
+          action: 'service'
           name: 'hbase-regionserver'
         , ->
           @service.install name: 'phoenix'

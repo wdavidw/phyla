@@ -142,7 +142,7 @@ Spark SQL thrift server is runned in yarn through the hive server user, and must
 # 
 #       for srv in service.deps.yarn_nm
 #         nm_ctx.before
-#           type: 'service'
+#           action: 'service'
 #           name: 'hadoop-yarn-nodemanager'
 #           handler: ->
 #             @system.group header: 'Group', service.deps.hive_server2[0].options.group

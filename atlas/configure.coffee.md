@@ -482,7 +482,7 @@ in or out of docker.
           #   if @contexts('ryba/atlas').map( (ctx) -> ctx.config.host )[0] is service.node.fqdn
           #     sc_ctxs[0]
           #     .after
-          #       type: ['service','start']
+          #       action: ['service','start']
           #       name: 'solr'
           #     , -> @call 'ryba/atlas/solr_layout'
       #   options.solr_type ?= 'cloud_docker'
@@ -500,7 +500,7 @@ in or out of docker.
           #   if @contexts('ryba/atlas').map( (ctx) -> ctx.config.host )[0] is service.node.fqdn
           #     sc_ctxs[0]
           #     .after
-          #       type: ['service','start']
+          #       action: ['service','start']
           #       name: 'solr'
           #     , -> @call 'ryba/atlas/solr_layout'
           # when 'cloud_docker'

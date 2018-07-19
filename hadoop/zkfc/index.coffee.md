@@ -18,10 +18,10 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
         'ryba/hadoop/zkfc/configure'
       plugin: (options) ->
         @after
-          type: ['service', 'start']
+          action: ['service', 'start']
           name: 'hadoop-hdfs-namenode'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

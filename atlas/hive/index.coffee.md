@@ -14,17 +14,17 @@ Atlas server to be active.
       configure:
         'ryba/atlas/hive/configure'
       plugin: (options) ->
-        delete options.original.type
+        delete options.original.action
         delete options.original.handler
         delete options.original.argument
         delete options.original.store
         @before
-          type: ['service','start']
+          action: ['service','start']
           name: 'hive-server2'
         , ->
           @call 'ryba/atlas/hive/install', options.original
         @after
-          type: ['hconfigure']
+          action: ['hconfigure']
           target: "#{options.conf_dir}/hive-site.xml"
         , ->
           @file.properties

@@ -11,10 +11,10 @@
         hdfs_client: module: 'ryba/hadoop/hdfs_client'
       plugin: (options) ->
         @before
-          type: ['service', 'start']
+          action: ['service', 'start']
           name: 'atlas-metadata-server'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

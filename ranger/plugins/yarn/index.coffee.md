@@ -14,19 +14,19 @@
         'ryba/ranger/plugins/yarn/configure'
       plugin: (options) ->
         @before
-          type: ['service', 'start']
+          action: ['service', 'start']
           name: 'hadoop-yarn-resourcemanager'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store
           @call 'ryba/ranger/plugins/yarn/install', options.original
         @before
-          type: ['service', 'start']
+          action: ['service', 'start']
           name: 'hadoop-yarn-nodemanager'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

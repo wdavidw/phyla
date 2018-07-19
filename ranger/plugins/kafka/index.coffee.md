@@ -14,10 +14,10 @@
         'ryba/ranger/plugins/kafka/configure'
       plugin: (options) ->
         @before
-          type: ['service', 'start']
+          action: ['service', 'start']
           name: 'kafka-broker'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

@@ -15,9 +15,9 @@ Install Solr Plugin by default on solr_cloud_docker host.
         'ryba/ranger/plugins/solr_cloud_docker/configure'
       plugin: (options) ->
         @before
-          type: ['docker', 'compose','up']
+          action: ['docker', 'compose','up']
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

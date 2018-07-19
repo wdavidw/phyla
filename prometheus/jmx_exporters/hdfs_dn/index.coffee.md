@@ -17,10 +17,10 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
       configure: 'ryba/prometheus/jmx_exporters/hdfs_dn/configure'
       plugin: (options) ->
         @before
-          type: ['service']
+          action: ['service']
           name: 'hadoop-hdfs-datanode'
         , ->
-          delete options.original.type
+          delete options.original.action
           delete options.original.handler
           delete options.original.argument
           delete options.original.store

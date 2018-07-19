@@ -20,7 +20,7 @@ running of those scans to produce regular JDBC result sets.
         'ryba/phoenix/client/configure'
       plugin: (options) ->
         @after
-          type: ['service', 'install']
+          action: ['service', 'install']
           name: 'hbase-master'
         , ->
           delete options.original.type
@@ -29,7 +29,7 @@ running of those scans to produce regular JDBC result sets.
           delete options.original.store
           @call 'ryba/phoenix/client/install', options.original
         @after
-          type: ['service', 'install']
+          action: ['service', 'install']
           name: 'hbase-regionserver'
         , ->
           delete options.original.type
