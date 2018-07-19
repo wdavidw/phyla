@@ -28,8 +28,6 @@ broker: http://druid.io/docs/latest/design/broker.html
       commands:
         'check':
           'ryba/druid/broker/check'
-        'prepare':
-          'ryba/druid/prepare'
         'install': [
           'ryba/druid/broker/install'
           'ryba/druid/broker/start'

@@ -127,6 +127,11 @@ Example:
       options.common_runtime['druid.emitter.logging.logLevel'] ?= 'info'
       options.common_runtime['druid.extensions.loadList'] = JSON.stringify options.common_runtime['druid.extensions.loadList']
 
+## Command Specific
+
+      # Ensure "prepare" is executed locally only once
+      options.prepare = service.node.id is service.instances[0].node.id
+
 ## Dependencies
 
     {merge} = require 'nikita/lib/misc'

@@ -25,8 +25,6 @@ separate processes and you can run each on a different server.
       configure:
         'ryba/druid/overlord/configure'
       commands:
-        'prepare':
-          'ryba/druid/prepare'
         'install': [
           'ryba/druid/overlord/install'
           'ryba/druid/overlord/start'

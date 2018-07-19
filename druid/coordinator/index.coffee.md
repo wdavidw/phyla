@@ -25,8 +25,6 @@ managing segment replication, and balancing segment load.
       configure:
         'ryba/druid/coordinator/configure'
       commands:
-        'prepare':
-          'ryba/druid/prepare'
         'install': [
           'ryba/druid/coordinator/install'
           'ryba/druid/coordinator/start'

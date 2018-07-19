@@ -22,8 +22,6 @@ The [middle manager] node is a worker node that executes submitted tasks. Middle
       configure:
         'ryba/druid/middlemanager/configure'
       commands:
-        'prepare':
-          'ryba/druid/prepare'
         'install': [
           'ryba/druid/middlemanager/install'
           'ryba/druid/middlemanager/start'

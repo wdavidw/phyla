@@ -22,8 +22,6 @@ data store.
       configure:
         'ryba/druid/historical/configure'
       commands:
-        'prepare':
-          'ryba/druid/prepare'
         'install': [
           'ryba/druid/historical/install'
           'ryba/druid/historical/start'
