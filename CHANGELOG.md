@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Trunk
+## Version 0.1.0
 
 * hconfigure: remove deprecated options
 * nikita: rename then to next
