@@ -18,7 +18,7 @@
       options.user.home ?= "/var/lib/#{options.user.name}"
       options.user.system ?= true
       options.user.comment ?= 'Prometheus User'
-      options.user.groups ?= 'hadoop'
+      # options.user.groups ?= 'hadoop'
       options.user.gid ?= options.group.name
       options.user.limits ?= {}
       options.user.limits.nofile ?= 64000
