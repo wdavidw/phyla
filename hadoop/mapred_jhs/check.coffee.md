@@ -27,9 +27,9 @@ For this reason, the "retry" property is set to the high value of "10".
         curl -s --insecure --negotiate -u : #{protocol}://#{host}:#{port}/ws/v1/history/info
         """
         # code_skipped: 2 # doesnt seems to be used
-      , (err, checked, stdout) ->
+      , (err, obj) ->
         throw err if err
-        JSON.parse(stdout).historyInfo.hadoopVersion
+        JSON.parse(obj.stdout).historyInfo.hadoopVersion
 
 ## Dependencies
 

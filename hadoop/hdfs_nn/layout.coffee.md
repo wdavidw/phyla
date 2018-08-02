@@ -42,8 +42,8 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           hdfs --config '#{options.conf_dir}' dfs -chmod 1777 /tmp
           """
           code_skipped: 2
-        , (err, executed, stdout) ->
-          @log 'Directory "/tmp" prepared' if executed
+        , (err, obj) ->
+          @log 'Directory "/tmp" prepared' if obj.status
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /user; then exit 2; fi
@@ -55,8 +55,8 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           hdfs --config '#{options.conf_dir}' dfs -chmod 755 /user/#{options.user.name}
           """
           code_skipped: 2
-        , (err, executed, stdout) ->
-          @log 'Directory "/user/{test_user}" prepared' if executed
+        , (err, obj) ->
+          @log 'Directory "/user/{test_user}" prepared' if obj.status
         @system.execute
           cmd: mkcmd.hdfs options.hdfs_krb5_user, """
           if hdfs --config '#{options.conf_dir}' dfs -test -d /apps; then exit 2; fi
@@ -65,8 +65,8 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
           hdfs --config '#{options.conf_dir}' dfs -chmod 755 /apps
           """
           code_skipped: 2
-        , (err, executed, stdout) ->
-          @log 'Directory "/apps" prepared' if executed
+        , (err, obj) ->
+          @log 'Directory "/apps" prepared' if obj.status
 
 ## HDP Layout
 
@@ -84,6 +84,25 @@ drwxr-xr-x   - hdfs   hadoop      /user/hdfs
         unless_exec: mkcmd.hdfs options.hdfs_krb5_user, """
         version=`readlink /usr/hdp/current/hadoop-client | sed 's/.*\\/\\(.*\\)\\/hadoop/\\1/'`
         hdfs --config '#{options.conf_dir}' dfs -test -d /hdp/apps/$version
+        """
+
+## Security Layout
+With Hadoop YARN 3, lots of files will have to be shared on a remote/distributed file system.
+HDFS is a good place for this, for keytabs. It prevents to put a lot of keytab on nodes and forget it.
+Create `hdfs://etc/security/keytabs` folder.
+
+      @system.execute
+        header: 'Security Layout'
+        cmd: mkcmd.hdfs options.hdfs_krb5_user, """
+        hdfs --config '#{options.conf_dir}' dfs -mkdir -p /etc/security/keytabs
+        hdfs --config '#{options.conf_dir}' dfs -chown -R  #{options.user.name}:#{options.hadoop_group.name} /etc/security/keytabs
+        hdfs --config '#{options.conf_dir}' dfs -chmod 555 /etc
+        hdfs --config '#{options.conf_dir}' dfs -chmod 555 /etc/security
+        hdfs --config '#{options.conf_dir}' dfs -chmod -R 555 /etc/security/keytabs
+        """
+        trap: true
+        unless_exec: mkcmd.hdfs options.hdfs_krb5_user, """
+        hdfs --config '#{options.conf_dir}' dfs -test -d /etc/security/keytabs
         """
 
 ## Test User

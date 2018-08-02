@@ -28,9 +28,9 @@ Wait for the HDFS NameNode to be started.
         retry: 2
         header: 'HTTP'
         cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
-      , (err, executed, stdout) ->
+      , (err, obj) ->
         throw err if err
-        data = JSON.parse stdout
+        data = JSON.parse obj.stdout
         # After HDP2.2, the response needs some time before returning any beans
         throw Error "Invalid Response" unless Array.isArray data?.beans
         # throw Error "Invalid Response" unless /^Hadoop:service=NameNode,name=NameNodeStatus$/.test data?.beans[0]?.name
@@ -102,10 +102,10 @@ for more information.
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
           kdestroy
           """
-        , (err, executed, stdout) ->
+        , (err, data) ->
           throw err if err
           try
-            valid = JSON.parse(stdout).RemoteException.exception is 'StandbyException'
+            valid = JSON.parse(data.stdout).RemoteException.exception is 'StandbyException'
           catch e then throw Error e
           throw Error "Invalid result" unless valid
       @call
@@ -127,10 +127,10 @@ for more information.
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?op=LISTSTATUS"
           kdestroy
           """
-        , (err, executed, stdout) ->
+        , (err, data) ->
           throw err if err
           try
-            count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
+            count = JSON.parse(data.stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
           catch e then throw Error e
           throw Error "Invalid result" unless count
         @system.execute
@@ -138,19 +138,19 @@ for more information.
           curl -s --negotiate --insecure -u : "#{protocol}://#{address}/webhdfs/v1/?op=GETDELEGATIONTOKEN"
           kdestroy
           """
-        , (err, executed, stdout) ->
+        , (err, data) ->
           throw err if err
-          json = JSON.parse stdout
+          json = JSON.parse data.stdout
           return setTimeout do_tocken, 3000 if json.exception is 'RetriableException'
           token = json.Token.urlString
           @system.execute
             cmd: """
             curl -s --insecure "#{protocol}://#{address}/webhdfs/v1/user/#{options.test.user.name}?delegation=#{token}&op=LISTSTATUS"
             """
-          , (err, executed, stdout) ->
+          , (err, data) ->
             throw err if err
             try
-              count = JSON.parse(stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
+              count = JSON.parse(data.stdout).FileStatuses.FileStatus.filter((e) => e.pathSuffix is "check-#{options.hostname}-webhdfs").length
             catch e then throw Error e
             throw Error "Invalid result" unless count
 

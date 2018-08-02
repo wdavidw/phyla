@@ -47,8 +47,8 @@ the principal name as argument and print the converted user name.
         header: 'Kerberos Mapping'
         cmd: "hadoop org.apache.hadoop.security.HadoopKerberosName #{options.test.krb5.user.principal}"
         if: options.core_site['hadoop.security.authentication'] is 'kerberos'
-      , (err, _, stdout) ->
-        throw Error "Invalid mapping" if not err and stdout.indexOf("#{options.test.krb5.user.principal} to #{options.test.user.name}") is -1
+      , (err, data) ->
+        throw Error "Invalid mapping" if not err and data.stdout.indexOf("#{options.test.krb5.user.principal} to #{options.test.user.name}") is -1
 
 ## Dependencies
 

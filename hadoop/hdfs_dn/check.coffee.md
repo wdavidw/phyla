@@ -51,10 +51,11 @@ value is 50475.
       port = options.hdfs_site["dfs.datanode.#{protocol}.address"].split(':')[1]
       @system.execute
         header: 'SPNEGO'
+        retry: 3
         cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=DataNode,name=DataNodeInfo"
-      , (err, executed, stdout) ->
+      , (err, obj) ->
         throw err if err
-        throw Error "Invalid Response" unless JSON.parse(stdout)?.beans[0]?.name is 'Hadoop:service=DataNode,name=DataNodeInfo'
+        throw Error "Invalid Response" unless JSON.parse(obj.stdout)?.beans[0]?.name is 'Hadoop:service=DataNode,name=DataNodeInfo'
       # @system.execute
       #   cmd: mkcmd.hdfs options.hdfs_krb5_user, "curl --negotiate -k -u : #{protocol}://#{options.fqdn}:#{port}/jmx?qry=Hadoop:service=DataNode,name=FSDatasetState-*"
       # , (err, executed, stdout) ->
