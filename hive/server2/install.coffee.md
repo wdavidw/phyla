@@ -181,7 +181,7 @@ Create the directories to store the logs and pid information. The properties
           local: options.ssl.cacert.local
         @service
           srv_name: 'hive-server2'
-          action: 'restart'
+          state: 'restarted'
           if: -> @status()
 
 ## Kerberos

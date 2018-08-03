@@ -411,7 +411,7 @@ Start the service or restart it if there were any changes.
       @service
         header: 'Start'
         name: 'ambari-server'
-        action: ['start', 'restart']
+        state: ['started', 'restarted']
         if: -> @status()
       @call 'ryba/ambari/server/wait', once: true, options.wait
 

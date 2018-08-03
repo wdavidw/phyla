@@ -52,7 +52,7 @@ The packages "ganglia-gmetad-3.5.0-99" and "ganglia-web-3.5.7-99" are installed.
         @service
           name: 'ganglia-gmetad-3.5.0-99'
           srv_name: 'gmetad'
-          # action: 'stop' # Stoping here invalidate hdp-service HTTPD to restard
+          # state: 'stoped' # Stoping here invalidate hdp-service HTTPD to restard
           startup: false
         @service
           name: 'ganglia-web-3.5.7-99'
@@ -175,7 +175,7 @@ pointing to the Ganglia master hostname.
           code_skipped: 1
         @service
           srv_name: 'httpd'
-          action: ['start', 'restart']
+          state: ['started', 'restarted']
           if: -> @status -1
 
 ## Dependencies

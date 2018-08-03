@@ -195,7 +195,7 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
           shy: true
         @service
           srv_name: 'spark-thrift-server'
-          action: 'restart'
+          state: 'restarted'
           if: -> @status()
 
 ## Log4j 

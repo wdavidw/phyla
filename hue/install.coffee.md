@@ -197,7 +197,7 @@ changes.
           comment: '#'
         @service
           name: 'hue'
-          action: 'restart'
+          state: 'restarted'
           if: -> @status -1
 
 ## Fix Banner
