@@ -23,9 +23,9 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
+         , (err, data) ->
+            return  err if err or not data.status
+            version = data.stdout.trim() if data.status
         @service
           name: "ranger-knox-plugin"
 

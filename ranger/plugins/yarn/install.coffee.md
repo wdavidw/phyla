@@ -24,9 +24,9 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
+         , (err, data) ->
+            throw err if err
+            version = data.data.stdout.trim()
         @service
           name: "ranger-yarn-plugin"
 

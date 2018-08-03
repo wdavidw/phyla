@@ -25,9 +25,10 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, _, stdout) ->
+         , (err, obj) ->
             throw  err if err
-            version = stdout.trim()
+            version = obj.stdout.trim()
+            options.install['COMPONENT_INSTALL_DIR_NAME'] ?= "/usr/hdp/#{version}/hbase"
         @service
           name: "ranger-hbase-plugin"
 

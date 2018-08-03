@@ -24,9 +24,9 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, executed,stdout, stderr) ->
-            return  err if err or not executed
-            version = stdout.trim() if executed
+         , (err, data) ->
+            return  err if err or not data.status
+            version = data.stdout.trim() if data.status
             
         @service
           name: "ranger-solr-plugin"
@@ -90,9 +90,9 @@
       # context.system.execute
       #   cmd:  "hdp-select versions | tail -1"
       #   header: 'configure mounts'
-      # , (err, executed, stdout, stderr) ->
+      # , (err, data) ->
       #   return callback err if err
-      #   solr_plugin.hdp_current_version = stdout.trim() if executed
+      #   solr_plugin.hdp_current_version = data.stdout.trim() if data.status
       # "/usr/hdp/#{solr_plugin.hdp_current_version}/ranger-solr-plugin:/usr/hdp/#{solr_plugin.hdp_current_version}/ranger-solr-plugin"
       # context.call 'ryba/ranger/plugins/solr_cloud_docker/install', solr_cluster: {config: cluster_config, name: name, host_config: host_config}
 

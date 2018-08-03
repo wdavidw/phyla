@@ -24,10 +24,10 @@ directories.
         @call ( options, callback) =>
           @system.execute
             cmd:  "hdp-select versions | tail -1 | tr '.' '_' | tr '-' '_'"
-          , (err, executed, stdout, stderr) =>
+          , (err, data) =>
             return callback err if err
-            hdp_current_version = stdout.trim()
-            return callback null, executed
+            hdp_current_version = data.stdout.trim()
+            return callback null, data.status
         @call ->
           @service
             name: "ranger_#{hdp_current_version}-usersync"
