@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Trunk
+## Version 0.1.1
 
 * nikita: callback 2nd argument is an object
 
