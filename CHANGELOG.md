@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Trunk
+
+* nikita: callback 2nd argument is an object
+
 ## Version 0.1.0
 
 * hconfigure: remove deprecated options
