@@ -41,9 +41,9 @@ module.exports = (options, callback) ->
       """
       unless: options.store['hdp_select.version.default']
       shy: true
-    , (err, executed, stdout, stderr) ->
+    , (err, data) ->
       return callback err if err
-      options.store['hdp_select.version.default'] = stdout.trim() if executed
+      options.store['hdp_select.version.default'] = data.stdout.trim() if data.status
       callback()
   @call (_, callback) ->
     version = options.store['hdp_select.version.default']
