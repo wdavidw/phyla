@@ -144,9 +144,9 @@ Note, we are re-using the namespace created above.
           CMD
           """
           unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}'}\" | egrep '[0-9]+ row'"
-        , (err, executed, stdout) ->
-          isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test stdout
-          throw Error 'Invalid command output' if executed and not isRowCreated
+        , (err, data) ->
+          isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test data.stdout
+          throw Error 'Invalid command output' if data.status and not isRowCreated
 
 ## Check MapReduce
 
@@ -171,10 +171,10 @@ Note, we are re-using the namespace created above.
           echo "scan 'hbase:meta',  {COLUMNS => 'info:regioninfo', FILTER => \\"PrefixFilter ('#{table}')\\"}" | hbase shell 2>/dev/null
           """
           unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"list '#{options.test.namespace}'\" | grep -w 'test_splits'"
-        , (err, executed, stdout) ->
+        , (err, data) ->
           throw err if err
-          return unless executed
-          lines = string.lines stdout
+          return unless data.executed
+          lines = string.lines data.stdout
           count = 0
           pattern = new RegExp "^ #{table},"
           for line in lines
