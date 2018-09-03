@@ -27,7 +27,7 @@ file.jaas
 
 ###
 
-module.exports = (options) ->
+module.exports = ({options}) ->
   # Quick fix
   # waiting for context registration of nikita actions as well as
   # waiting for uid_gid moved from wrap to their expected location

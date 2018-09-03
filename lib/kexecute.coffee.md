@@ -17,7 +17,7 @@ Options include:
 
 ## Source Code
 
-    module.exports = (options, callback) ->
+    module.exports = ({options}, callback) ->
       wrap = (cmd) ->
         return cmd unless options.krb5_user
         "echo '#{options.krb5_user.password}' | kinit #{options.krb5_user.principal} >/dev/null && {\n#{cmd}\n}; kdestroy"

@@ -18,7 +18,7 @@ Options include:
 
 ## Source Code
 
-    module.exports = (options) ->
+    module.exports = ({options}) ->
 
       params = options.config
       throw Error "Required option 'url'" unless params.url

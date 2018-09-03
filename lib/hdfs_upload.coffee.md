@@ -38,7 +38,7 @@ Signature is `hdfs_upload(options)`.
 
 ## Source Code
 
-    module.exports = (options) ->
+    module.exports = ({options}) ->
       throw Error "Required option 'source'" unless options.source
       throw Error "Required option 'target'" unless options.target
       options.lock ?= "/tmp/ryba-#{string.hash options.target}"

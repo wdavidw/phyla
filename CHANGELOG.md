@@ -3,6 +3,8 @@
 
 ## Trunk
 
+* nikita: lib - options as destructuring assignment
+* nikita: hadoop - options as destructuring assignment
 * nikita: atlas - options as destructuring assignment
 * nikita: commons - options as destructuring assignment
 

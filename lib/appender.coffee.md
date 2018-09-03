@@ -15,7 +15,7 @@ Create an appender and add it to a log4j object.
 
 ## Source Code
 
-    module.exports = (options) ->
+    module.exports = ({options}) ->
       throw Error 'Missing type' unless options.type?
       throw Error 'Missing name' unless options.name?
       throw Error 'Missing properties' unless options.properties?

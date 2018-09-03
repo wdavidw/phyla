@@ -12,7 +12,7 @@ Options includes
 *   `properties`
 ###
 
-module.exports = (options) ->
+module.exports = ({options}) ->
   fnl_props = {}
   org_props = {}
   options.transform ?= null
@@ -20,7 +20,7 @@ module.exports = (options) ->
   @call (_, callback) ->
     @log message: "Read target properties from '#{options.target}'", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate org_props and, if merge, fnl_props
-    ssh = @ssh options.ssh
+    ssh = @ssh ssh: options.ssh
     properties.read ssh, options.target, (err, props) ->
       return callback err if err and err.code isnt 'ENOENT'
       org_props = if err then {} else props
@@ -33,7 +33,7 @@ module.exports = (options) ->
     return callback() unless typeof options.source is 'string'
     @log message: "Read source properties from #{options.source}", level: 'DEBUG', module: 'ryba/lib/hconfigure'
     # Populate options.source
-    ssh = @ssh if options.local then false else options.ssh
+    ssh = @ssh if options.local then ssh: false else ssh: options.ssh
     properties.read ssh, options.source, (err, dft) ->
       return callback err if err
       options.source = dft
