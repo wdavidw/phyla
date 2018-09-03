@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Trunk
+
+* nikita: commons - options as destructuring assignment
+
 ## Version 0.1.1
 
 * nikita: callback 2nd argument is an object

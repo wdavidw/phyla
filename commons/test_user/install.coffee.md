@@ -1,7 +1,7 @@
 
 # Test User Install
 
-    module.exports = header: 'Test User Install', handler: (options) ->
+    module.exports = header: 'Test User Install', handler: ({options}) ->
       
 ## Unix Identity
 
