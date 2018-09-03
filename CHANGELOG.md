@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: atlas - options as destructuring assignment
 * nikita: commons - options as destructuring assignment
 
 ## Version 0.1.1

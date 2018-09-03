@@ -13,11 +13,9 @@ Atlas server to be active.
         atlas: module: 'ryba/atlas'
       configure:
         'ryba/atlas/hive/configure'
-      plugin: (options) ->
-        delete options.original.action
-        delete options.original.handler
-        delete options.original.argument
-        delete options.original.store
+      commands:
+        install: 'ryba/atlas/hive/install'
+      plugin: ({options}) ->
         @before
           action: ['service','start']
           name: 'hive-server2'
