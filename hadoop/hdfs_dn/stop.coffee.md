@@ -4,7 +4,7 @@
 Stop the DataNode service. It is recommended to stop a DataNode before its
 associated the NameNodes.
 
-    module.exports = header: 'HDFS DN Stop', handler: (options) ->
+    module.exports = header: 'HDFS DN Stop', handler: ({options}) ->
 
 ## Service
 

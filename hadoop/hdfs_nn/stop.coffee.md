@@ -2,7 +2,7 @@
 # Hadoop HDFS NameNode Stop
 
 
-    module.exports = header: 'HDFS NN Stop', handler: (options) ->
+    module.exports = header: 'HDFS NN Stop', handler: ({options}) ->
 
 ## Stop Service
 

@@ -1,7 +1,7 @@
 
 # HADOOP YARN NodeManager Install
 
-    module.exports = header: 'YARN NM Install', handler: (options) ->
+    module.exports = header: 'YARN NM Install', handler: ({options}) ->
 
 ## Register
 

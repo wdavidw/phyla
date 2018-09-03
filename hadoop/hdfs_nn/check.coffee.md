@@ -7,7 +7,7 @@ In HA mode, we need to ensure both NameNodes are installed before testing SSH
 Fencing. Otherwise, a race condition may occur if a host attempt to connect
 through SSH over another one where the public key isn't yet deployed.
 
-    module.exports = header: 'HDFS NN Check', handler: (options) ->
+    module.exports = header: 'HDFS NN Check', handler: ({options}) ->
 
 ## Wait
 

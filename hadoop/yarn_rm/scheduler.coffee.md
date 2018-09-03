@@ -13,7 +13,7 @@ only uses Memory while DominantResourceCalculator uses Dominant-resource to
 compare multi-dimensional resources such as Memory, CPU etc. A Java
 ResourceCalculator class name is expected.
 
-    module.exports = header: 'YARN RM Sheduler', handler: (options) ->
+    module.exports = header: 'YARN RM Sheduler', handler: ({options}) ->
 
 ## Register
 

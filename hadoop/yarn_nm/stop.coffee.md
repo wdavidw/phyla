@@ -1,7 +1,7 @@
 
 # YARN NodeManager Stop
 
-    module.exports = header: 'YARN NM Stop', handler: (options) ->
+    module.exports = header: 'YARN NM Stop', handler: ({options}) ->
 
 ## Stop Service
 

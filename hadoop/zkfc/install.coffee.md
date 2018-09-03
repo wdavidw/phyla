@@ -1,7 +1,7 @@
 
 # Hadoop ZKFC Install
 
-    module.exports = header: 'HDFS ZKFC Install', handler: (options) ->
+    module.exports = header: 'HDFS ZKFC Install', handler: ({options}) ->
 
 ## Register
 

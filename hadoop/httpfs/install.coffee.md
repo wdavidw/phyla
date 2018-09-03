@@ -1,7 +1,7 @@
 
 # HDFS HttpFS Install
 
-    module.exports = header: 'HDFS HttpFS Install', handler: (options) ->
+    module.exports = header: 'HDFS HttpFS Install', handler: ({options}) ->
 
 ## Register
 

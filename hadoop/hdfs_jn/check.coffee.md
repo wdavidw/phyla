@@ -3,7 +3,7 @@
 
 Check if the JournalNode is running as expected.
 
-    module.exports = header: 'HDFS JN Check', handler: (options) ->
+    module.exports = header: 'HDFS JN Check', handler: ({options}) ->
 
 ## Wait
 

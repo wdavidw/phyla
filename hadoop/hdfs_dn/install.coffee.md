@@ -14,7 +14,7 @@ information regarding the location of blocks in the cluster. In order
 to achieve this, the DataNodes are configured with the location of both
 NameNodes, and send block location information and heartbeats to both.
 
-    module.exports = header: 'HDFS DN Install', handler: (options) ->
+    module.exports = header: 'HDFS DN Install', handler: ({options}) ->
 
 ## Register
 

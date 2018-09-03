@@ -1,7 +1,7 @@
 
 # MapReduce Client Check
 
-    module.exports = header: 'MapReduce Client Check', handler: (options) ->
+    module.exports = header: 'MapReduce Client Check', handler: ({options}) ->
 
 ## Wait
 

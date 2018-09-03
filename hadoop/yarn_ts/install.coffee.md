@@ -4,7 +4,7 @@
 The Timeline Server is a stand-alone server daemon and doesn't need to be
 co-located with any other service.
 
-    module.exports = header: 'YARN ATS Install', handler: (options) ->
+    module.exports = header: 'YARN ATS Install', handler: ({options}) ->
 
 ## Register
 

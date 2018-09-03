@@ -3,7 +3,7 @@
 
 Check the health of the ResourceManager(s).
 
-    module.exports = header: 'YARN RM Check', handler: (options) ->
+    module.exports = header: 'YARN RM Check', handler: ({options}) ->
 
 ## Wait
 

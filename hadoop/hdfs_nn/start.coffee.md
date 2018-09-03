@@ -4,7 +4,7 @@
 Start the NameNode service as well as its ZKFC daemon. In HA mode, all
 JournalNodes shall be previously started.
 
-    module.exports = header: 'HDFS NN Start', handler: (options) ->
+    module.exports = header: 'HDFS NN Start', handler: ({options}) ->
 
 ## Wait
 

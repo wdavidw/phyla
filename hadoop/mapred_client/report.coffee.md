@@ -1,7 +1,7 @@
 
 # MapReduce Client Report
 
-    module.exports = header: 'MapReduce Client Report', handler: (options) ->
+    module.exports = header: 'MapReduce Client Report', handler: ({options}) ->
       properties.read ctx.ssh, "#{options.conf_dir}/mapred-site.xml", (err, config) ->
         return next err if err
         ctx.emit 'report',

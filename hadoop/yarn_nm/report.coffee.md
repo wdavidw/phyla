@@ -5,7 +5,7 @@ The following values are reported:
 *   Physical memory in MB allocated for containers.   
 *   Ratio between virtual memory to physical memory.
 
-    module.exports = header: 'YARN NM Report', handler: (options) ->
+    module.exports = header: 'YARN NM Report', handler: ({options}) ->
       config = null
       @call (_, callback) ->
         properties.read @ssh, "#{options.conf_dir}/yarn-site.xml", (err, config) =>

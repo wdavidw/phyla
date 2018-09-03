@@ -7,7 +7,7 @@ In HA mode, to ensure that the leadership is assigned to the desired active
 NameNode, the ZKFC daemons on the standy NameNodes wait for the one on the
 active NameNode to start first.
 
-    module.exports = header: 'HDFS ZKFC Start', handler: (options) ->
+    module.exports = header: 'HDFS ZKFC Start', handler: ({options}) ->
 
 ## Wait
 

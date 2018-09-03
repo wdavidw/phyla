@@ -8,7 +8,7 @@ Run the command `./bin/ryba check -m ryba/hadoop/hdfs_dn` to check all the
 DataNodes.
 
 
-    module.exports = header: 'HDFS DN Check', handler: (options) ->
+    module.exports = header: 'HDFS DN Check', handler: ({options}) ->
 
 ## Wait for all datanode TCP Ports
 

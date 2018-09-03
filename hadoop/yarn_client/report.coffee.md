@@ -2,7 +2,7 @@
 # Yarn ResourceManager Report
 
 
-    module.exports = header: 'YARN Client Report', handler: (options) ->
+    module.exports = header: 'YARN Client Report', handler: ({options}) ->
       config = null
       @call (_, callback)
         properties.read @ssh, "#{options.conf_dir}/yarn-site.xml", (err, c) ->

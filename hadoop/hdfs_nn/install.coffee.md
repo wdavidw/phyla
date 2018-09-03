@@ -12,7 +12,7 @@ Worth to investigate:
 
 [rollback]: http://docs.hortonworks.com/HDPDocuments/HDP1/HDP-1.3.3/bk_Monitoring_Hadoop_Book/content/monitor-ha-undoing_2x.html
 
-    module.exports = header: 'HDFS NN Install', handler: (options) ->
+    module.exports = header: 'HDFS NN Install', handler: ({options}) ->
 
 ## Register
 

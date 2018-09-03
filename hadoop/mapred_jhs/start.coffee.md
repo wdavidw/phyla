@@ -7,7 +7,7 @@ It is recommended but not required to start the JHS server before the Resource
 Manager. If started after after, the ResourceManager will print a message in the
 log file complaining it cant reach the JSH server (default port is "10020").
 
-    module.exports = header: 'MapReduce JHS Start', handler: (options) ->
+    module.exports = header: 'MapReduce JHS Start', handler: ({options}) ->
 
 ## Wait
 

@@ -1,7 +1,7 @@
 
 # YARN NodeManager Start
 
-    module.exports = header: 'YARN NM Start', handler: (options) ->
+    module.exports = header: 'YARN NM Start', handler: ({options}) ->
 
 ## Wait
 

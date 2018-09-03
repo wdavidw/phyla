@@ -12,7 +12,7 @@ su -l yarn -c "/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh -
 The ATS requires HDFS to be operationnal or an exception is trown: 
 "java.lang.IllegalArgumentException: java.net.UnknownHostException: {cluster name}".
 
-    module.exports = header: 'YARN ATS Start', handler: (options) ->
+    module.exports = header: 'YARN ATS Start', handler: ({options}) ->
 
 ## Wait
 

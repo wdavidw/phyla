@@ -11,7 +11,7 @@ be written to a majority of JNs. To increase the number of failures a system
 can tolerate, deploy an odd number of JNs because the system can tolerate at
 most (N - 1) / 2 failures to continue to function normally.
 
-    module.exports = header: 'HDFS JN Install', handler: (options) ->
+    module.exports = header: 'HDFS JN Install', handler: ({options}) ->
 
 ## Register
 

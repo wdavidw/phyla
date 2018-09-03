@@ -1,7 +1,7 @@
 
 # Hadoop YARN ResourceManager Install
 
-    module.exports = header: 'YARN RM Install', handler: (options) ->
+    module.exports = header: 'YARN RM Install', handler: ({options}) ->
 
 ## Register
 

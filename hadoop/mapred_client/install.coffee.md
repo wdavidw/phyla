@@ -1,7 +1,7 @@
 
 # MapReduce Install
 
-    module.exports = header: 'MapReduce Client Install', handler: (options) ->
+    module.exports = header: 'MapReduce Client Install', handler: ({options}) ->
 
 ## Register
 

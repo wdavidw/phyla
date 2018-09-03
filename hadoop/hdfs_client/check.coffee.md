@@ -3,7 +3,7 @@
 
 Check the access to the HDFS cluster.
 
-    module.exports = header: 'HDFS Client Check', handler: (options) ->
+    module.exports = header: 'HDFS Client Check', handler: ({options}) ->
 
 Wait for the DataNode and NameNode.
 

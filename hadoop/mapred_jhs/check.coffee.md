@@ -2,7 +2,7 @@
 
 # MapReduce JHS Check
 
-    module.exports = header: 'MapReduce JHS Check ', handler: (options) ->
+    module.exports = header: 'MapReduce JHS Check ', handler: ({options}) ->
 
 ## Wait
 

@@ -1,7 +1,7 @@
 
 # Hadoop HDFS Client Install
 
-    module.exports = header: 'HDFS Client Install', handler: (options) ->
+    module.exports = header: 'HDFS Client Install', handler: ({options}) ->
 
 ## Register
 

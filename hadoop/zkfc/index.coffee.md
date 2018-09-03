@@ -16,7 +16,7 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn'
       configure:
         'ryba/hadoop/zkfc/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @after
           action: ['service', 'start']
           name: 'hadoop-hdfs-namenode'

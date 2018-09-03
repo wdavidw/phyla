@@ -1,7 +1,7 @@
 
 # Hadoop ZKFC Stop
 
-    module.exports = header: 'HDFS ZKFC Stop', handler: (options) ->
+    module.exports = header: 'HDFS ZKFC Stop', handler: ({options}) ->
 
 ## Stop
 
