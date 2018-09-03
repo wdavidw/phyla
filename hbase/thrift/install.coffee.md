@@ -8,7 +8,7 @@ have usecase for it yet.
 This installation also found inspiration from the
 [cloudera hbase setup in secure mode][hbase-configuration].
 
-    module.exports =  header: 'HBase Thrift Install', handler: (options) ->
+    module.exports =  header: 'HBase Thrift Install', handler: ({options}) ->
 
 ## Register
 

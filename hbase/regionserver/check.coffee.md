@@ -1,7 +1,7 @@
 
 # HBase RegionServer Check
 
-    module.exports = header: 'HBase RegionServer Check', handler: (options) ->
+    module.exports = header: 'HBase RegionServer Check', handler: ({options}) ->
 
 ## Assert
 

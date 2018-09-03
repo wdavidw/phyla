@@ -1,7 +1,7 @@
 
 # HBase Rest Gateway Check
 
-    module.exports =  header: 'HBase Rest Check', handler: (options) ->
+    module.exports =  header: 'HBase Rest Check', handler: ({options}) ->
 
 ## Register
 

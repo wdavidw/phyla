@@ -1,7 +1,7 @@
 
 # HBase Thrift server Wait
 
-    module.exports = header: 'HBase Thrift Wait', handler: (options) ->
+    module.exports = header: 'HBase Thrift Wait', handler: ({options}) ->
 
 ## HTTP Port
 

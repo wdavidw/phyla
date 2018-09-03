@@ -4,7 +4,7 @@
 Check the HBase client installation by creating a table, inserting a cell and
 scanning the table.
 
-    module.exports =  header: 'HBase Client Check', handler: (options) ->
+    module.exports =  header: 'HBase Client Check', handler: ({options}) ->
 
 ## Register
 

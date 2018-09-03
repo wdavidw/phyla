@@ -8,7 +8,7 @@ service hbase-thrift start
 su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/hbase/conf start thrift"
 ```
 
-    module.exports =  header: 'HBase Thrift Start', handler: (options) ->
+    module.exports =  header: 'HBase Thrift Start', handler: ({options}) ->
 
 Wait for Kerberos, ZooKeeper, HDFS and Hbase Master to be started.
 

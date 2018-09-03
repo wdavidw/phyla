@@ -9,7 +9,7 @@ service hbase-regionserver start
 su -l hbase -c "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /etc/hbase-regionserver/conf start regionserver"
 ```
 
-    module.exports = header: 'HBase RegionServer Start', handler: (options) ->
+    module.exports = header: 'HBase RegionServer Start', handler: ({options}) ->
 
 Wait for Kerberos, ZooKeeper, HDFS and HBase Master to be started.
 

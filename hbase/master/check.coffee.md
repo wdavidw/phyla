@@ -1,7 +1,7 @@
 
 # HBase Master Check
 
-    module.exports = header: 'HBase Master Check', handler: (options) ->
+    module.exports = header: 'HBase Master Check', handler: ({options}) ->
 
 ## Assert
 

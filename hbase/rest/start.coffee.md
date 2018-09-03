@@ -11,7 +11,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
 The file storing the PID is "/var/run/hbase/hbase-hbase-rest.pid".
 
-    module.exports = header: 'HBase Rest Start', handler: (options) ->
+    module.exports = header: 'HBase Rest Start', handler: ({options}) ->
 
 Wait for Kerberos, ZooKeeper, HDFS and Hbase Master to be started.
 

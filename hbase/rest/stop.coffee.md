@@ -11,7 +11,7 @@ su -l hbase -c "/usr/hdp/current/hbase-client/bin/hbase-daemon.sh --config /etc/
 
 ## Service
 
-    module.exports =  header: 'HBase Rest Stop', handler: (options) ->
+    module.exports =  header: 'HBase Rest Stop', handler: ({options}) ->
 
       @service.stop
         header: 'Service'

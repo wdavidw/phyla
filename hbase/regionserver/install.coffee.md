@@ -1,7 +1,7 @@
 
 # HBase RegionServer Install
 
-    module.exports = header: 'HBase RegionServer Install', handler: (options) ->
+    module.exports = header: 'HBase RegionServer Install', handler: ({options}) ->
 
 ## Register
 

@@ -3,7 +3,7 @@
 
 Install the HBase client package and configure it with secured access.
 
-    module.exports =  header: 'HBase Client Install', handler: (options) ->
+    module.exports =  header: 'HBase Client Install', handler: ({options}) ->
 
 ## Register
 

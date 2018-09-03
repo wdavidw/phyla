@@ -1,7 +1,7 @@
 
 # HBase RegionServer Wait
 
-    module.exports = header: 'HBase RegionServer Wait', handler: (options) ->
+    module.exports = header: 'HBase RegionServer Wait', handler: ({options}) ->
 
 ## RPC Port
 

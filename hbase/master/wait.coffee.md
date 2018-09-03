@@ -1,7 +1,7 @@
 
 # HBase Master Wait
 
-    module.exports =  header: 'HBase Master Wait', handler: (options) ->
+    module.exports =  header: 'HBase Master Wait', handler: ({options}) ->
 
 ## RPC Port
 

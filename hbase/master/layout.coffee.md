@@ -1,7 +1,7 @@
 
 # HBase Master Layout
 
-    module.exports = header: 'HBase Master Layout', handler: (options) ->
+    module.exports = header: 'HBase Master Layout', handler: ({options}) ->
     
 ## Register
 
