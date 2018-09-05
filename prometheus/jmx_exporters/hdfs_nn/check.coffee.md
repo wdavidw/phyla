@@ -1,7 +1,7 @@
 
 # JMX Exporter HDFS NameNode Check
 
-    module.exports = header: 'JMX Exporter Zookeeper Check', handler: (options) ->
+    module.exports = header: 'JMX Exporter Zookeeper Check', handler: ({options}) ->
 
 ## Check Port
 

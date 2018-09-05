@@ -4,7 +4,7 @@
     module.exports =
       header: 'Prometheus Monitor Prepare'
       ssh: false
-      handler: (options) ->
+      handler: ({options}) ->
         @file.cache
           if: options.download
           header: "Binary #{options.version}"

@@ -1,7 +1,7 @@
 
 # JMX Exporter Knox Install
 
-    module.exports = header: 'JMX Exporter Knox Auth', handler: (options) ->
+    module.exports = header: 'JMX Exporter Knox Auth', handler: ({options}) ->
 
 ## Registry
 

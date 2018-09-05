@@ -1,7 +1,7 @@
 
 # Prometheus Install
 
-    module.exports = header: 'Prometheus Monitor Install', handler: (options) ->
+    module.exports = header: 'Prometheus Monitor Install', handler: ({options}) ->
       tmp_archive_location = "/var/tmp/ryba/prometheus.tar.gz"
 
 ## Identities

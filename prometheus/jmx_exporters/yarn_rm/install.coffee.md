@@ -1,7 +1,7 @@
 
 # JMX Exporter Yarn ResourceManager Install
 
-    module.exports = header: 'JMX Exporter ResourceManager Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter ResourceManager Install', handler: ({options}) ->
 
 ## Registry
 

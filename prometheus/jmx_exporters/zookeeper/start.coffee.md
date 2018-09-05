@@ -1,7 +1,7 @@
 
 # JMX Exporter Zookeeper
 
-    module.exports = header: 'JMX Exporter Zookeeper Start', handler: (options) ->
+    module.exports = header: 'JMX Exporter Zookeeper Start', handler: ({options}) ->
 
 ## Start
 

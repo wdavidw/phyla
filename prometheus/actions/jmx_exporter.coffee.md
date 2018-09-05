@@ -43,7 +43,7 @@ nikita
 })
 ```
 
-    module.exports = (options) ->
+    module.exports = ({options}) ->
       throw Error 'Required Options: jar_source' unless options.jar_source
       throw Error 'Required Options: jar_target' unless options.jar_target
       throw Error 'Required Options: config' unless options.config

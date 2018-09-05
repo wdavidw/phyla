@@ -1,7 +1,7 @@
 
 # Prometheus Install
 
-    module.exports = header: 'JMX Exporter Zookeeper Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter Zookeeper Install', handler: ({options}) ->
       
 ## Registry
 

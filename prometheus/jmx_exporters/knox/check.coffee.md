@@ -1,7 +1,7 @@
 
 # JMX Exporter Knox Check
 
-    module.exports = header: 'JMX Exporter Knox Check', handler: (options) ->
+    module.exports = header: 'JMX Exporter Knox Check', handler: ({options}) ->
 
 ## Check Port
 

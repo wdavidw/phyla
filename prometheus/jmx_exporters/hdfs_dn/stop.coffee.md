@@ -1,7 +1,7 @@
 
 # JMX Exporter HDFS Datanode
 
-    module.exports = header: 'JMX Exporter Datanode Stop', handler: (options) ->
+    module.exports = header: 'JMX Exporter Datanode Stop', handler: ({options}) ->
 
 ## Start
 

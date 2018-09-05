@@ -4,7 +4,7 @@
     module.exports =
       header: 'Collectd Exporter Prepare',
       ssh: false
-      handler: (options) ->
+      handler: ({options}) ->
         @file.cache
           if: options.download
           location: true

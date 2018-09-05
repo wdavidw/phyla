@@ -1,7 +1,7 @@
 
 # JMX Exporter HDFS Datanode
 
-    module.exports = header: 'JMX Exporter HBase Master Start', handler: (options) ->
+    module.exports = header: 'JMX Exporter HBase Master Start', handler: ({options}) ->
 
 ## Start
 

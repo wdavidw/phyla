@@ -1,7 +1,7 @@
 
 # JMX Exporter HBase Rest Install
 
-    module.exports = header: 'JMX Exporter Rest Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter Rest Install', handler: ({options}) ->
 
 ## Registry
 

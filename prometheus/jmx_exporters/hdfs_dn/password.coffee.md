@@ -1,7 +1,7 @@
 
 # JMX Exporter Datanode Install
 
-    module.exports = header: 'JMX Exporter Datanode Auth', handler: (options) ->
+    module.exports = header: 'JMX Exporter Datanode Auth', handler: ({options}) ->
 
 ## Registry
 

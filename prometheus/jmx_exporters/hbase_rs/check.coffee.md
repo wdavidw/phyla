@@ -1,7 +1,7 @@
 
 # JMX Exporter Datanode Check
 
-    module.exports = header: 'JMX Exporter RegionServer Check', handler: (options) ->
+    module.exports = header: 'JMX Exporter RegionServer Check', handler: ({options}) ->
 
 ## Check Port
 

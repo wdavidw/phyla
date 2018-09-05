@@ -1,7 +1,7 @@
 
 # Collectd Exporter Check
 
-    module.exports = header: 'Collectd Exporter Check', handler: (options) ->
+    module.exports = header: 'Collectd Exporter Check', handler: ({options}) ->
 
 ## Check Port
 

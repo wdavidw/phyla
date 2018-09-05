@@ -1,7 +1,7 @@
 
 # JMX Exporter Yarn NodeManager
 
-    module.exports = header: 'JMX Exporter Yarn NodeManager Stop', handler: (options) ->
+    module.exports = header: 'JMX Exporter Yarn NodeManager Stop', handler: ({options}) ->
 
 ## Start
 

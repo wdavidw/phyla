@@ -1,7 +1,7 @@
 
 # JMX Exporter Journalnode Check
 
-    module.exports = header: 'JMX Exporter Journalnode Check', handler: (options) ->
+    module.exports = header: 'JMX Exporter Journalnode Check', handler: ({options}) ->
 
 ## Check Port
 

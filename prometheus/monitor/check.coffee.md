@@ -1,7 +1,7 @@
 
 # Prometheus Montior Check
 
-    module.exports = header: 'Prometheus Monitor Check', handler: (options) ->
+    module.exports = header: 'Prometheus Monitor Check', handler: ({options}) ->
 
 ## Check Port
 

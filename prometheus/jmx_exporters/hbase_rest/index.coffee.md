@@ -15,7 +15,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
         prometheus_monitor: module: 'ryba/prometheus/monitor', required: true
         hadoop_core: module: 'ryba/hadoop/core', local: true
       configure: 'ryba/prometheus/jmx_exporters/hbase_rest/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service']
           name: 'hbase-rest'

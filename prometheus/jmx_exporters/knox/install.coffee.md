@@ -1,7 +1,7 @@
 
 # JMX Exporter Knox Install
 
-    module.exports = header: 'JMX Exporter Knox Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter Knox Install', handler: ({options}) ->
 
 ## Registry
 

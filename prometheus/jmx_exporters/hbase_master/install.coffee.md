@@ -1,7 +1,7 @@
 
 # JMX Exporter HBase Master Install
 
-    module.exports = header: 'JMX Exporter HBase Master Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter HBase Master Install', handler: ({options}) ->
 
 ## Registry
 

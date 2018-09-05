@@ -1,7 +1,7 @@
 
 # JMX Exporter Yarn NodeManager Install
 
-    module.exports = header: 'JMX Exporter NodeManager Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter NodeManager Install', handler: ({options}) ->
 
 ## Registry
 

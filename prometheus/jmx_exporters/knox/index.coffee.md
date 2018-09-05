@@ -14,7 +14,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
         jmx_exporter: module: 'ryba/prometheus/jmx_exporters/knox'
         prometheus_monitor: module: 'ryba/prometheus/monitor', required: true
       configure: 'ryba/prometheus/jmx_exporters/knox/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service']
           name: 'knox-server'

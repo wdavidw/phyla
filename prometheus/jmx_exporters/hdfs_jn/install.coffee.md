@@ -1,7 +1,7 @@
 
 # JMX Exporter Journalnode Install
 
-    module.exports = header: 'JMX Exporter JournalNode Install', handler: (options) ->
+    module.exports = header: 'JMX Exporter JournalNode Install', handler: ({options}) ->
 
 ## Registry
 

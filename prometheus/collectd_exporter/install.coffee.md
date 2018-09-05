@@ -1,7 +1,7 @@
 
 # Collectd Exporter Install
 
-    module.exports = header: 'Collectd Exporter Install', handler: (options) ->
+    module.exports = header: 'Collectd Exporter Install', handler: ({options}) ->
       options.tmp_dir ?= '/tmp'
 
 ## Identities
