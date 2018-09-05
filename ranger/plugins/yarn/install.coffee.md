@@ -1,5 +1,5 @@
 
-    module.exports = header: 'Ranger YARN Plugin install', handler: (options) ->
+    module.exports = header: 'Ranger YARN Plugin install', handler: ({options}) ->
       version = null
 
 ## Register
@@ -24,9 +24,9 @@
           cmd: """
           hdp-select versions | tail -1
           """
-         , (err, data) ->
+         , (err, {status, stdout}) ->
             throw err if err
-            version = data.data.stdout.trim()
+            version = stdout.trim()
         @service
           name: "ranger-yarn-plugin"
 
@@ -131,18 +131,17 @@ tested.
       @call
         header: 'Activation'
       , ->
-        @file
-          header: 'Script Fix'
+        @file.render
+          header: 'Env'
           target: "/usr/hdp/#{version}/ranger-yarn-plugin/enable-yarn-plugin.sh"
-          write:[
-              match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{options.conf_dir}"
-            ,
-              match: RegExp "\\^HCOMPONENT_LIB_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hadoop-yarn-resourcemanager/lib"
-          ]
-          backup: true
-          mode: 0o750
+          source: "#{__dirname}/../../resources/enable-yarn-plugin.sh.j2"
+          local: true
+          mode: 0o755
+          eof: true
+          context:
+            conf_dir: options.conf_dir
+            install_dir: '/usr/hdp/current/hadoop-yarn-resourcemanager'
+            lib_dir: '/usr/hdp/current/hadoop-yarn-resourcemanager/lib'
         @system.execute
           header: 'Script Execution'
           cmd: """
@@ -159,6 +158,21 @@ tested.
           merge: true
           properties:
             'ranger.plugin.yarn.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
+        # @hconfigure
+        #   header: 'plugin properties site'
+        #   target: "#{options.conf_dir}/ranger-yarn-audit.xml"
+        #   properties: options.configurations['ranger-yarn-audit']
+        #   backup: true
+        # @hconfigure
+        #   header: 'policymgr ssl site'
+        #   target: "#{options.conf_dir}/ranger-policymgr-ssl.xml"
+        #   properties: options.configurations['ranger-yarn-policymgr-ssl']
+        #   backup: true
+        # @hconfigure
+        #   header: 'yarn security site'
+        #   target: "#{options.conf_dir}/ranger-yarn-security.xml"
+        #   properties: options.configurations['ranger-yarn-security']
+        #   backup: true
         @file
           header: 'Fix Ranger YARN Plugin Env'
           target: "#{options.conf_dir}/yarn-env.sh"

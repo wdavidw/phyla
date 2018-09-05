@@ -1,7 +1,7 @@
 
 # Ranger Admin Install
 
-    module.exports =  header: 'Ranger Admin Install', handler: (options) ->
+    module.exports =  header: 'Ranger Admin Install', handler: ({options}) ->
 
 ## Register
 
@@ -112,7 +112,6 @@ to allow user to create none-determisitic functions.
 
       @system.execute
         header: 'Setup Execution'
-        shy: true
         cmd: """
         cd /usr/hdp/current/ranger-admin/
         ./setup.sh

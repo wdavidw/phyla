@@ -11,16 +11,12 @@
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
       configure:
         'ryba/ranger/plugins/hdfs/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service', 'start']
           name: 'hadoop-hdfs-namenode'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/hdfs/install', options.original
+          @call 'ryba/ranger/plugins/hdfs/install', options
       commands:
         'install':
           'ryba/ranger/plugins/hdfs/install'

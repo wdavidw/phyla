@@ -1,7 +1,7 @@
 
 # Ranger HBase Plugin Install
 
-    module.exports = header: 'Ranger HBase Plugin', handler: (options) ->
+    module.exports = header: 'Ranger HBase Plugin', handler: ({options}) ->
       version = null
 
 ## Wait
@@ -141,8 +141,9 @@ Activate the plugin.
 
       @call header: 'Enable', ->
         diff = false
-        @each options.conf_dir, (opt, cb) ->
-          conf_dir = opt.key
+        {install} = options
+        @each options.conf_dir, ({options}, cb) ->
+          conf_dir = options.key
           files = ['ranger-hbase-audit.xml','ranger-hbase-security.xml','ranger-policymgr-ssl.xml']
           sources_props = {}
           current_props = {}
@@ -151,15 +152,15 @@ Activate the plugin.
             cmd: """
             echo '' | keytool -list \
               -storetype jceks \
-              -keystore /etc/ranger/#{options.install['REPOSITORY_NAME']}/cred.jceks \
+              -keystore /etc/ranger/#{install['REPOSITORY_NAME']}/cred.jceks \
             | egrep '.*ssltruststore|auditdbcred|sslkeystore'
             """
             code_skipped: 1
           @call
             if: -> @status -1 # do not need this if the cred.jceks file is not provisioned
           , ->
-            @each files, (opt, cb) ->
-              file = opt.key
+            @each files, ({options}, cb) ->
+              file = options.key
               target = "#{conf_dir}/#{file}"
               ssh = @ssh options.ssh
               fs.exists ssh, target, (err, exists) ->
@@ -186,9 +187,6 @@ Activate the plugin.
           @system.execute
             header: 'Script'
             cmd: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
-          # @system.execute
-          #   header: "Fix Plugin repository permission"
-          #   cmd: "chown -R #{options.user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
           @hconfigure
             header: 'Security Fix'
             target: "#{conf_dir}/ranger-hbase-security.xml"
@@ -196,8 +194,8 @@ Activate the plugin.
             
             properties:
               'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
-          @each files, (opt, cb) ->
-            file = opt.key
+          @each files, ({options}, cb) ->
+            file = options.key
             target = "#{conf_dir}/#{file}"
             ssh = @ssh options.ssh
             fs.exists ssh, target, (err, exists) ->

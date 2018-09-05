@@ -12,7 +12,7 @@
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
       configure:
         'ryba/ranger/plugins/hbase/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service', 'start']
           name: 'hbase-master'

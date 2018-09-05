@@ -1,7 +1,7 @@
 
 # Ranger Admin Setup
 
-    module.exports =  header: 'Ranger Admin Setup', handler: (options) ->
+    module.exports =  header: 'Ranger Admin Setup', handler: ({options}) ->
 
 ## Register
 

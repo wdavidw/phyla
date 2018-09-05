@@ -1,7 +1,7 @@
 
 # Atlas Solr Collection Bootstrap
 
-    module.exports = headler: 'SolrCloud Ranger Layout', handler: (options) ->
+    module.exports = headler: 'SolrCloud Ranger Layout', handler: ({options}) ->
       # migration: lucasbak 02112017
       # use this bootstrap scripts for every type
       return unless options.solr_type is 'external'
@@ -49,6 +49,8 @@
           cmd: mkcmd.solr options.solr.cluster_config, """
             curl --fail --negotiate -k -u : "#{protocol}://#{options.solr.cluster_config['master']}:#{options.solr.cluster_config['port']}/solr/#{getPath(options.solr.cluster_config.collection)}"
           """
+        #equivalent to
+        #curl  --negotiate -k -u : "http://docker01.metal.ryba8983/solr/admin/collections?action=CREATE&name=ranger_audits&numShards=3&replicationFactor=2&collection.configName=ranger_audits&maxShardsPerNode=2"
 
 ## Zookeeper Znode ACL
 

@@ -1,7 +1,8 @@
 
 # Ranger HDFS Plugin Install
 
-    module.exports = header: 'Ranger HDFS Plugin', handler: (options) ->
+    module.exports = header: 'Ranger HDFS Plugin', handler: ({options}) ->
+      {hdfs_conf_dir} = options
 
 ## Wait
 
@@ -25,9 +26,9 @@
         cmd: """
         hdp-select versions | tail -1
         """
-       , (err, data) ->
+       , (err, {status, stdout}) ->
           throw err if err
-          version = data.stdout.trim()
+          version = stdout.trim()
 
 ## Package
 
@@ -138,9 +139,9 @@ Not documented be taken from [github-source][plugin-source]
         @call
           if: -> @status -1 #do not need this if the cred.jceks file is not provisioned
         , ->
-          @each files, (file, cb) ->
-            file = file.key
-            target = "#{options.hdfs_conf_dir}/#{file}"
+          @each files, ({options}, cb) ->
+            file = options.key
+            target = "#{hdfs_conf_dir}/#{file}"
             ssh = @ssh options.ssh
             fs.exists ssh, target, (err, exists) ->
               return cb err if err
@@ -150,18 +151,28 @@ Not documented be taken from [github-source][plugin-source]
                 return cb err if err
                 sources_props["#{file}"] = props
                 cb()
+        @system.link
+          source: hdfs_conf_dir
+          target: '/usr/hdp/current/hadoop-hdfs-namenode/etc/hadoop'
         @file
           header: 'Fix'
           target: "/usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh"
           write: [
               match: RegExp "^HCOMPONENT_CONF_DIR=.*$", 'mg'
-              replace: "HCOMPONENT_CONF_DIR=#{options.hdfs_conf_dir}"
+              replace: "HCOMPONENT_CONF_DIR=#{hdfs_conf_dir}"
             ,
               match: RegExp "^HCOMPONENT_INSTALL_DIR_NAME=.*$", 'mg'
               replace: "HCOMPONENT_INSTALL_DIR_NAME=/usr/hdp/current/hadoop-hdfs-namenode"
             ,
               match: RegExp "^HCOMPONENT_LIB_DIR=.*$", 'mg'
               replace: "HCOMPONENT_LIB_DIR=/usr/hdp/current/hadoop-hdfs-namenode/lib"
+            ,
+              match: RegExp "^HCOMPONENT_ARCHIVE_CONF_DIR==.*$", 'mg'
+              replace: "HCOMPONENT_LIB_DIR=#{hdfs_conf_dir}/.archive"
+            ,
+              match: RegExp "^HCOMPONENT_INSTALL_DIR==.*$", 'mg'
+              replace: "HCOMPONENT_INSTALL_DIR=/usr/hdp/current/hadoop-hdfs-namenode"
+              
           ]
           backup: true
           mode: 0o750
@@ -174,18 +185,18 @@ Not documented be taken from [github-source][plugin-source]
           """
         @hconfigure
           header: 'Fix Conf'
-          target: "#{options.hdfs_conf_dir}/ranger-hdfs-security.xml"
+          target: "#{hdfs_conf_dir}/ranger-hdfs-security.xml"
           merge: true
           properties:
-            'ranger.plugin.hdfs.policy.rest.ssl.config.file': "#{options.hdfs_conf_dir}/ranger-policymgr-ssl.xml"
+            'ranger.plugin.hdfs.policy.rest.ssl.config.file': "#{hdfs_conf_dir}/ranger-policymgr-ssl.xml"
         @hconfigure
           header: 'Solr JAAS'
-          target: "#{options.hdfs_conf_dir}/ranger-hdfs-audit.xml"
+          target: "#{hdfs_conf_dir}/ranger-hdfs-audit.xml"
           merge: true
           properties: options.audit
-        @each files, (file, cb) ->
-          file = file.key
-          target = "#{options.hdfs_conf_dir}/#{file}"
+        @each files, ({options}, cb) ->
+          file = options.key
+          target = "#{hdfs_conf_dir}/#{file}"
           ssh = @ssh options.ssh
           fs.exists ssh, target, (err, exists) ->
             return callback err if err

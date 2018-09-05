@@ -1,7 +1,7 @@
 
 # Solr Install
 
-    module.exports = header: 'Solr Embedded Install', handler: (options) ->
+    module.exports = header: 'Solr Embedded Install', handler: ({options}) ->
       return unless options.solr_type is 'embedded'
 
 ## Dependencies

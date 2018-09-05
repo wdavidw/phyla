@@ -13,15 +13,11 @@
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
       configure:
         'ryba/ranger/plugins/hiveserver2/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service', 'start']
           name: 'hive-server2'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/hiveserver2/install', options.original
+          @call 'ryba/ranger/plugins/hiveserver2/install', options
         # @after 'ryba/hive/server2/install', ->
         #   @call 'ryba/ranger/plugins/hiveserver2/install', options

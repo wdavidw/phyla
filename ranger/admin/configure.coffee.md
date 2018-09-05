@@ -351,7 +351,8 @@ Configure SSL for Ranger policymanager (webui).
       options.site['ranger.service.https.attrib.ssl.enabled'] ?= 'true'
       options.site['ranger.service.https.attrib.clientAuth'] ?= 'false'
       options.site['ranger.service.https.attrib.keystore.file'] ?= '/etc/ranger/admin/conf/keystore'
-      options.site['ranger.service.https.attrib.keystore.pass'] ?= 'ryba123'
+      options.site['ranger.service.https.attrib.keystore.pass'] ?= 'rybaRanger123!'
+      options.install['keyadmin_password'] ?= options.site['ranger.service.https.attrib.keystore.pass']
       options.site['ranger.service.https.attrib.keystore.keyalias'] ?= service.node.hostname
 
 # Ranger Admin Databases
@@ -450,6 +451,9 @@ Ryba injects function to the different contexts.
       options.plugins ?= {}
       options.plugins.principal ?= "#{options.user.name}@#{options.krb5.realm}"
       options.plugins.password ?= 'rangerAdmin123'
+      options.install['rangerAdmin_password'] ?= options.admin.password
+      options.install['rangerTagsync_password'] ?= options.admin.password
+      options.install['rangerUsersync_password'] ?= options.admin.password
 
 ## Wait
 

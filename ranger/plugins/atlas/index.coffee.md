@@ -9,7 +9,7 @@
         ranger_admin: module: 'ryba/ranger/admin', single: true, required: true
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs'
         hdfs_client: module: 'ryba/hadoop/hdfs_client'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service', 'start']
           name: 'atlas-metadata-server'

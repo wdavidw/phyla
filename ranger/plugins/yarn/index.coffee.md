@@ -12,25 +12,17 @@
         ranger_hdfs: module: 'ryba/ranger/plugins/hdfs', required: true
       configure:
         'ryba/ranger/plugins/yarn/configure'
-      plugin: (options) ->
+      plugin: ({options}) ->
         @before
           action: ['service', 'start']
           name: 'hadoop-yarn-resourcemanager'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/yarn/install', options.original
+          @call 'ryba/ranger/plugins/yarn/install', options
         @before
           action: ['service', 'start']
           name: 'hadoop-yarn-nodemanager'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/yarn/install', options.original
+          @call 'ryba/ranger/plugins/yarn/install', options
       commands:
         'install':
           'ryba/ranger/plugins/yarn/install'

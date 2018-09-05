@@ -21,7 +21,7 @@ access control over Hadoop data access components like Apache Hive and Apache HB
         'ryba/ranger/admin/configure'
       commands:
         'install': [
-          'ryba/ranger/solr/install'
+          # 'ryba/ranger/solr/install'
           'ryba/ranger/solr/bootstrap'
           'ryba/ranger/admin/install'
           'ryba/ranger/admin/start'
@@ -33,3 +33,5 @@ access control over Hadoop data access components like Apache Hive and Apache HB
           'ryba/ranger/admin/status'
         'stop':
           'ryba/ranger/admin/stop'
+        'setup':
+          'ryba/ranger/admin/setup'

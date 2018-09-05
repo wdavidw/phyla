@@ -1,7 +1,7 @@
 
 # Ranger Hive Plugin Install
 
-    module.exports = header: 'Ranger Hive Plugin', handler: (options) ->
+    module.exports = header: 'Ranger Hive Plugin', handler: ({options}) ->
       version = null
       #https://mail-archives.apache.org/mod_mbox/incubator-ranger-user/201605.mbox/%3C363AE5BD-D796-425B-89C9-D481F6E74BAF@apache.org%3E
 

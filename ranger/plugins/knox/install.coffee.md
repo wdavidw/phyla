@@ -1,7 +1,7 @@
 
 # Ranger Knox Plugin Install
 
-    module.exports = header: 'Ranger Knox Plugin', handler: (options) ->
+    module.exports = header: 'Ranger Knox Plugin', handler: ({options}) ->
       version = null
 
 ## Register

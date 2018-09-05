@@ -1,7 +1,7 @@
 
 # Ranger Solr Cloud on Docker Ranger Plugin Install
 
-    module.exports = header: 'Ranger Solr Plugin install', handler: (options) ->
+    module.exports = header: 'Ranger Solr Plugin install', handler: ({options}) ->
       version = null
 
 ## Registry
