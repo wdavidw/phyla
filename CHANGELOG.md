@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: prometheus - options as destructuring assignment
 * nikita: hbase, hdp - options as destructuring assignment
 * nikita: lib - options as destructuring assignment
 * nikita: hadoop - options as destructuring assignment
