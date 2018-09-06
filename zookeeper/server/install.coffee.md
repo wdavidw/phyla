@@ -1,7 +1,7 @@
 
 # Zookeeper Server Install
 
-    module.exports = header: 'ZooKeeper Server Install', handler: (options) ->
+    module.exports = header: 'ZooKeeper Server Install', handler: ({options}) ->
 
 ## Register
 
@@ -149,9 +149,9 @@ Run "zkCli.sh" and enter `addauth digest super:EjV93vqJeB3wHqrx`
         ZK_HOME=/usr/hdp/current/zookeeper-client/
         java -cp $ZK_HOME/lib/*:$ZK_HOME/zookeeper.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider super:#{options.superuser.password}
         """
-      , (err, generated, stdout) ->
+      , (err, {status, stdout}) ->
         throw err if err
-        return unless generated # probably because password not set
+        return unless status # probably because password not set
         digest = match[1] if match = /\->(.*)/.exec(stdout)
         throw Error "Failed to get digest: bad output" unless digest
         options.env['SERVER_JVMFLAGS'] = "-Dzookeeper.DigestAuthenticationProvider.superDigest=#{digest} #{options.env['SERVER_JVMFLAGS']}"

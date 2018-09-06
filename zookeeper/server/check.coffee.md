@@ -1,7 +1,7 @@
 
 # Zookeeper Server Check
 
-    module.exports = header: 'ZooKeeper Server Check', handler: (options) ->
+    module.exports = header: 'ZooKeeper Server Check', handler: ({options}) ->
 
 ## Wait
 
@@ -22,13 +22,13 @@ Execute these commands on the ZooKeeper host machine(s).
       @system.execute
         header: 'Registration'
         cmd: cmds.join ';'
-      , (err, _, stdout) ->
+      , (err, data) ->
         return if err
         if options.zookeeper_server.length is 1 # Standalone mode
-          unless stdout.trim().split('\n').sort().join(',') is '0'
+          unless data.stdout.trim().split('\n').sort().join(',') is '0'
             throw Error "Server is not properly registered"
         else # Replicated mode
-          throw Error unless /\d+/.test server for server in stdout.trim().split('\n')
+          throw Error unless /\d+/.test server for server in data.stdout.trim().split('\n')
           # The following test only pass if all zookeeper servers are started.
           # However, we dont wait for all servers to be started but only a
           # quorum of servers.
