@@ -10,7 +10,7 @@ HDP 2.1 and 2.2 dont support secured Hive metastore in HA mode, see
 Resources:
 *   [Cloudera security instruction for CDH5](http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_sg_hiveserver2_security.html)
 
-    module.exports =  header: 'Hive Server2 Install', handler: (options) ->
+    module.exports =  header: 'Hive Server2 Install', handler: ({options}) ->
 
 ## Register
 

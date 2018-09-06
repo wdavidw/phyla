@@ -10,7 +10,7 @@ parameter:
 hive -hiveconf hive.root.logger=DEBUG,console
 ```
 
-    module.exports =  header: 'Hive Client Check', handler: (options) ->
+    module.exports =  header: 'Hive Client Check', handler: ({options}) ->
 
 ## Wait
 

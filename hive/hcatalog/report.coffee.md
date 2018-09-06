@@ -3,7 +3,7 @@
 
 Retrieve various info about the HCatalog Server and the Hive Server2.
 
-    module.exports = header: 'Hive HCatalog Report', handler: (options) ->
+    module.exports = header: 'Hive HCatalog Report', handler: ({options}) ->
 
 ## Wait
 

@@ -8,7 +8,7 @@ By default, the pid of the running server is stored in
 "/var/run/webhcat/webhcat.pid".
 
 
-    module.exports = header: 'WebHCat Start', handler: (options) ->
+    module.exports = header: 'WebHCat Start', handler: ({options}) ->
 
 ## Wait
 

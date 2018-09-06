@@ -3,7 +3,7 @@
 
 The backup script dump the content of the hive database.
 
-    module.exports =  header: 'Hive Metastore Backup', handler: (options) ->
+    module.exports =  header: 'Hive Metastore Backup', handler: ({options}) ->
 
 ## Backup Database
 

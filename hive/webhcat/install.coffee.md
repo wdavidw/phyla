@@ -1,7 +1,7 @@
 
 # WebHCat
 
-    module.exports =  header: 'WebHCat Install', handler: (options) ->
+    module.exports =  header: 'WebHCat Install', handler: ({options}) ->
 
 ## Register
 

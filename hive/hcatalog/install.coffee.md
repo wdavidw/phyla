@@ -4,7 +4,7 @@
 TODO: Implement lock for Hive Server2
 http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/4.2.0/CDH4-Installation-Guide/cdh4ig_topic_18_5.html
 
-    module.exports =  header: 'Hive HCatalog Install', handler: (options) ->
+    module.exports =  header: 'Hive HCatalog Install', handler: ({options}) ->
 
 ## Register
 
@@ -350,7 +350,7 @@ own.
         if: -> options.tez_enabled
         cmd: 'ls /usr/hdp/current/hive-metastore/lib | grep hive-exec- | sed \'s/^hive-exec-\\(.*\\)\\.jar$/\\1/g\''
         shy: true
-      , (err, status, stdout) ->
+      , (err, {status, stdout}) ->
         version = stdout.trim() unless err
         @hdfs_upload
           source: "/usr/hdp/current/hive-metastore/lib/hive-exec-#{version}.jar"

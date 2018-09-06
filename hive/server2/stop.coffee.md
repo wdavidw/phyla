@@ -4,7 +4,7 @@
 Run the command `./bin/ryba stop -m ryba/hive/server2` to stop the Hive Server2
 server using Ryba.
 
-    module.exports = header: 'Hive Server2 Stop', handler: (options) ->
+    module.exports = header: 'Hive Server2 Stop', handler: ({options}) ->
 
 ## System
 

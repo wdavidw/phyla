@@ -1,7 +1,7 @@
 
 # WebHCat Check
 
-    module.exports = header: 'WebHCat Check', handler: (options) ->
+    module.exports = header: 'WebHCat Check', handler: ({options}) ->
       # TODO, maybe we could test hive:
       # curl --negotiate -u : -d execute="show+databases;" -d statusdir="test_webhcat" http://front1.hadoop:50111/templeton/v1/hive
 

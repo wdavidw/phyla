@@ -1,7 +1,7 @@
 
 # Hive & HCatalog Client
 
-    module.exports = header: 'Hive Client Install', handler: (options) ->
+    module.exports = header: 'Hive Client Install', handler: ({options}) ->
 
 ## Register
 

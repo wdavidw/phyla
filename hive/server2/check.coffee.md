@@ -1,7 +1,7 @@
 
 # Hive HCatalog Check
 
-    module.exports =  header: 'Hive Server2 Check', handler: (options) ->
+    module.exports =  header: 'Hive Server2 Check', handler: ({options}) ->
 
 ## Assert Thrift TCP/HTTP Port
 

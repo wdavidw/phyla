@@ -5,7 +5,7 @@ The Hive HCatalog require the database server to be started. The Hive Server2
 require the HDFS Namenode to be started. Both of them will need to functionnal
 HDFS server to answer queries.
 
-    module.exports = header: 'Hive Server2 Start', handler: (options) ->
+    module.exports = header: 'Hive Server2 Start', handler: ({options}) ->
 
 ## Wait
 

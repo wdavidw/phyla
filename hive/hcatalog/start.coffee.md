@@ -3,7 +3,7 @@
 
 Start the Hive HCatalog server. 
 
-    module.exports =  header: 'Hive HCatalog Start', handler: (options) ->
+    module.exports =  header: 'Hive HCatalog Start', handler: ({options}) ->
 
 ## Wait
 

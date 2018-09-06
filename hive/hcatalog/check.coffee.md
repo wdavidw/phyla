@@ -1,7 +1,7 @@
 
 # Hive HCatalog Check
 
-    module.exports =  header: 'Hive HCatalog Check', handler: (options) ->
+    module.exports =  header: 'Hive HCatalog Check', handler: ({options}) ->
 
 ## Asset Connection
 

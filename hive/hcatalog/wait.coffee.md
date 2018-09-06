@@ -4,7 +4,7 @@
 Wait for the ResourceManager RPC and HTTP ports. It supports HTTPS and HA.
 
 
-    module.exports = header: 'Hive HCatalog Wait', handler: (options) ->
+    module.exports = header: 'Hive HCatalog Wait', handler: ({options}) ->
 
 ## RCP
 

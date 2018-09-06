@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: hive - options as destructuring assignment
 * nikita: ranger - options as destructuring assignment
 * nikita: prometheus - options as destructuring assignment
 * nikita: hbase, hdp - options as destructuring assignment

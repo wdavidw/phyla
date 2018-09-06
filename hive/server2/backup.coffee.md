@@ -3,7 +3,7 @@
 
 The backup script dump the logs and the configuration.
 
-    module.exports = header: 'Hive Server Backup', handler: (options) ->
+    module.exports = header: 'Hive Server Backup', handler: ({options}) ->
 
 ## Backup Logs
 
