@@ -1,8 +1,8 @@
 
 # Tez Install
 
-    module.exports = header: 'Tez Install', handler: (options) ->
-
+    module.exports = header: 'Tez Install', handler: ({options}) ->
+      
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
@@ -95,7 +95,3 @@ to serve this directory.
             replace: "      //url = this.correctProtocol(url);"
           ]
           backup: true
-
-## Dependencies
-
-    mkcmd = require '../lib/mkcmd'

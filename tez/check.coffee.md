@@ -1,7 +1,7 @@
 
 # Tez Check
 
-    module.exports = header: 'Tez Check', handler: (options) ->
+    module.exports = header: 'Tez Check', handler: ({options}) ->
 
 ## Check HDFS
 
@@ -16,7 +16,7 @@
         hadoop fs -cat #{remote_dir}/output/*
         """
         unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d #{remote_dir}/output"
-      , (err, executed, stdout) ->
+      , (err, {executed, stdout}) ->
         throw Error "Invalid output" if executed and stdout?.trim().split('\n').slice(-2).join('\n') isnt 'bar\t2\nfoo\t3'
 
 ## Dependencies
