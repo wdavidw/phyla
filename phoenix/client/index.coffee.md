@@ -18,25 +18,17 @@ running of those scans to produce regular JDBC result sets.
         hbase_client_local: module: 'ryba/hbase/client', local: true
       configure:
         'ryba/phoenix/client/configure'
-      plugin: (options) ->
-        @after
-          action: ['service', 'install']
+      plugin: ({options}) ->
+        @before
+          action: ['service', 'start']
           name: 'hbase-master'
         , ->
-          delete options.original.type
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/phoenix/client/install', options.original
-        @after
-          action: ['service', 'install']
+          @call 'ryba/phoenix/client/install'
+        @before
+          action: ['service', 'start']
           name: 'hbase-regionserver'
         , ->
-          delete options.original.type
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/phoenix/client/install', options.original
+          @call 'ryba/phoenix/client/install', options
       commands:
         'install': [
           'ryba/phoenix/client/install'

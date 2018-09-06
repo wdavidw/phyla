@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: solr,pig - options as destructuring assignment
 * nikita: zookeeper - options as destructuring assignment
 * nikita: hive - options as destructuring assignment
 * nikita: ranger - options as destructuring assignment

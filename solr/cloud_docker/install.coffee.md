@@ -1,7 +1,7 @@
 
 # Solr Cloud Docker Install
 
-    module.exports = header: 'Solr Cloud Docker Install', handler: (options) ->
+    module.exports = header: 'Solr Cloud Docker Install', handler: ({options}) ->
       tmp_dir  = options.tmp_dir ?= "/var/tmp/ryba/solr"
       options.build.dir = '/tmp/solr/build'
 
@@ -141,8 +141,9 @@ be prepared in the nikita cache dir.
         if: options.importCerts?
       , (_, cb) ->
         tmp_location = "/tmp/ryba_cacert_#{Date.now()}"
-        @each options.importCerts, (opts, callback) ->
-          {source, local, name} = opts.value
+        {truststore} = options
+        @each options.importCerts, ({options}, callback) ->
+          {source, local, name} = options.value
           @file.download
             header: 'download cacert'
             source: source
@@ -150,8 +151,8 @@ be prepared in the nikita cache dir.
             local: true
           @java.keystore_add
             header: "add cacert to #{name}"
-            keystore: options.truststore.target
-            storepass: options.truststore.password
+            keystore: truststore.target
+            storepass: truststore.password
             caname: name
             cacert: "#{tmp_location}/cacert"
           @next callback
@@ -163,11 +164,13 @@ be prepared in the nikita cache dir.
 Here we loop through the clusters definition to write container specific file
 configuration like solr.in.sh or solr.xml.
 
-      @each options.clusters, (opts, callback) ->
+      {clusters, hosts, fqdn, conf_dir, krb5, user, group} = options
+      opts = options
+      @each clusters, ({options}, callback) ->
         counter = 0
-        name = opts.key
-        config = options.clusters[name] # get cluster config
-        config_host = config.config_hosts["#{options.fqdn}"] # get host config for the cluster
+        name = options.key
+        config = clusters[name] # get cluster config
+        config_host = config.config_hosts["#{fqdn}"] # get host config for the cluster
         return callback() unless config_host?
         config_host.env['SOLR_AUTHENTICATION_OPTS'] ?= ''
         config_host.env['SOLR_AUTHENTICATION_OPTS'] += " -D#{k}=#{v} "  for k, v of config_host.auth_opts
@@ -180,36 +183,36 @@ configuration like solr.in.sh or solr.xml.
           rules: [
             { chain: 'INPUT', jump: 'ACCEPT', dport: config.port, protocol: 'tcp', state: 'NEW', comment: "Solr Cluster #{name}" }
           ]
-        @krb5.addprinc options.krb5.admin,
+        @krb5.addprinc krb5.admin,
           header: 'Cluster admin principal'
           principal: config.admin_principal
           password: config.admin_password
           randkey: true
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
         @system.mkdir
           header: 'Solr Cluster Configuration'
-          target: "#{options.conf_dir}/clusters/#{name}"
-          uid: options.user.name
-          gid: options.group.name
+          target: "#{conf_dir}/clusters/#{name}"
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @system.mkdir
           header: 'Solr Cluster Log dir'
           target: config.log_dir
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @system.mkdir
           header: 'Solr Cluster Pid dir'
           target: config.pid_dir
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @system.tmpfs
           if_os: name: ['redhat','centos'], version: '7'
           mount: config.pid_dir
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           perm: '0750'
         @system.mkdir
           header: 'Solr Cluster Data dir'
@@ -217,46 +220,46 @@ configuration like solr.in.sh or solr.xml.
           mode: 0o0750
         @system.chown
           target: config.data_dir
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @file
           header: 'Security config'
           content: JSON.stringify config_host.security
-          target: "#{config.data_dir}/security.json"
-          uid: options.user.name
-          gid: options.group.name
+          target: "#{conf_dir}/clusters/#{name}/security.json"
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @file
           source:"#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh.j2"
-          target: "#{options.conf_dir}/clusters/#{name}/docker_entrypoint.sh"
-          context: options
-          local: true
+          target: "#{conf_dir}/clusters/#{name}/docker_entrypoint.sh"
+          debug: true
+          context: opts
           local: true
           backup: true
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @file.render
           source:"#{__dirname}/../resources/cloud_docker/zkCli.sh.j2"
-          target: "#{options.conf_dir}/clusters/#{name}/zkCli.sh"
+          target: "#{conf_dir}/clusters/#{name}/zkCli.sh"
           context: options
           local: true
           backup: true
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @file.render
           header: 'Solr Environment'
           source: "#{__dirname}/../resources/cloud/solr.ini.sh.j2"
-          target: "#{options.conf_dir}/clusters/#{name}/solr.in.sh"
+          target: "#{conf_dir}/clusters/#{name}/solr.in.sh"
           context: options
           write: writes
           local: true
           backup: true
           eof: true
-          uid: options.user.name
-          gid: options.group.name
+          uid: user.name
+          gid: group.name
           mode: 0o0750
         @call
           unless: (config.docker_compose_version is '1') or (not config.depends_on)
@@ -270,7 +273,7 @@ configuration like solr.in.sh or solr.xml.
           for host in config.hosts
             root = builder.create('solr').dec '1.0', 'UTF-8', true
             solrcloud = root.ele 'solrcloud'
-            solrcloud.ele 'str', {'name':'host'}, "#{options.fqdn}"
+            solrcloud.ele 'str', {'name':'host'}, "#{fqdn}"
             solrcloud.ele 'str', {'name':'hostPort'}, "#{config.port}"
             solrcloud.ele 'str', {'name':'hostContext'}, '${hostContext:solr}'
             solrcloud.ele 'bool', {'name':'genericCoreNodeNames'}, '${genericCoreNodeNames:true}'
@@ -284,20 +287,20 @@ configuration like solr.in.sh or solr.xml.
             shardHandlerFactory.ele 'int', {'name':'socketTimeout'}, '${socketTimeout:600000}'
             shardHandlerFactory.ele 'int', {'name':'connTimeout'}, '${connTimeout:60000}'
             @file
-              if: host is options.fqdn
+              if: host is fqdn
               header: 'Solr Config'
-              target: "#{options.conf_dir}/clusters/#{name}/solr.xml"
-              uid: options.user.name
-              gid: options.group.name
+              target: "#{conf_dir}/clusters/#{name}/solr.xml"
+              uid: user.name
+              gid: group.name
               content: root.end pretty:true
               mode: 0o0750
               backup: true
               eof: true
             @file.render
-              if: host is options.fqdn
+              if: host is fqdn
               header: 'Log4j'
               source: "#{__dirname}/../resources/log4j.properties.j2"
-              target: "#{options.conf_dir}/clusters/#{name}/log4j.properties"
+              target: "#{conf_dir}/clusters/#{name}/log4j.properties"
               context: options
               local: true
             @call
@@ -306,31 +309,31 @@ configuration like solr.in.sh or solr.xml.
               dockerfile = null
               switch config.docker_compose_version
                 when '1'
-                  dockerfile = options.clusters[name].service_def
+                  dockerfile = clusters[name].service_def
                   break;
                 when '2'
                   dockerfile =
                     version:'2'
-                    services: options.clusters[name].service_def
+                    services: clusters[name].service_def
                   break;
               @call ->
                 @file.yaml
-                  if: options.fqdn is config['master'] or not options.swarm_conf?
-                  target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
+                  if: fqdn is config['master'] or not options.swarm_conf?
+                  target: "#{conf_dir}/clusters/#{name}/docker-compose.yml"
                   content: dockerfile
-                  uid: options.user.name
-                  gid: options.group.name
+                  uid: user.name
+                  gid: group.name
                   mode: 0o0750
         @docker.compose.up
           header: 'Compose up through swarm'
-          if: options.fqdn is config['master'] and options.swarm_conf?
-          target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
+          if: fqdn is config['master'] and options.swarm_conf?
+          target: "#{conf_dir}/clusters/#{name}/docker-compose.yml"
         @docker.compose.up
           header: 'Compose up without swarm'
           docker: options.docker
           unless: options.swarm_conf?
-          services: "node_#{options.hosts.indexOf(options.fqdn)+1}"
-          target: "#{options.conf_dir}/clusters/#{name}/docker-compose.yml"
+          services: "node_#{hosts.indexOf(fqdn)+1}"
+          target: "#{conf_dir}/clusters/#{name}/docker-compose.yml"
         @next callback
 
 ## Dependencies

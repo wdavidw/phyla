@@ -1,7 +1,7 @@
 
 # Solr Install
 
-    module.exports = header: 'Solr Cloud Install', handler: (options) ->
+    module.exports = header: 'Solr Cloud Install', handler: ({options}) ->
       tmp_archive_location = "/var/tmp/ryba/solr.tar.gz"
       protocol = if options.ssl.enabled then 'https' else 'http'
 

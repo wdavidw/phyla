@@ -1,7 +1,7 @@
 
 # Solr Install
 
-    module.exports = header: 'Solr Client Install', handler: (options) ->
+    module.exports = header: 'Solr Client Install', handler: ({options}) ->
       tmp_archive_location = "/var/tmp/ryba/solr.tar.gz"
 
 ## Registry

@@ -6,7 +6,7 @@ Build container and save it.
     module.exports =
       header: 'Solr Cloud Docker Prepare'
       ssh: false
-      handler: (options) ->
+      handler: ({options}) ->
         @system.mkdir
           target: options.build.dir
         @system.mkdir

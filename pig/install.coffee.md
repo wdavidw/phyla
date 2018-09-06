@@ -3,7 +3,7 @@
 
 Learn more about Pig optimization by reading ["Making Pig Fly"][fly].
 
-    module.exports = header: 'Pig Install', handler: (options) ->
+    module.exports = header: 'Pig Install', handler: ({options}) ->
 
 ## Identities
 
