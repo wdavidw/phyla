@@ -3,7 +3,7 @@
 
 Execute som curl command towards knox'server rest api.
     
-    module.exports = header: 'Knox Client Check', handler: (options) ->
+    module.exports = header: 'Knox Client Check', handler: ({options}) ->
       return unless options.test.user?.name? and options.test.user?.password?
 
 ## Register

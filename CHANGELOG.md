@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: knox - options as destructuring assignment
 * nikita: mongodb - options as destructuring assignment
 * nikita: oozie - options as destructuring assignment
 * nikita: kafka - options as destructuring assignment

@@ -1,7 +1,7 @@
 
 # Knox Start
 
-    module.exports = header: 'Knox Server Start', handler: (options) ->
+    module.exports = header: 'Knox Server Start', handler: ({options}) ->
 
 ## Wait
 Knox doesn't seem to re-sync when ranger-admin is not available. Add wait to ensure plugin

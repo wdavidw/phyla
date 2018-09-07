@@ -1,7 +1,7 @@
 
 # Knox Install
 
-    module.exports = header: 'Knox Install', handler: (options) ->
+    module.exports = header: 'Knox Install', handler: ({options}) ->
 
 ## Register
 
@@ -44,7 +44,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             '/usr/hdp/current/knox-server/data/security/keystores'
             '/usr/hdp/current/knox-server/conf/topologies/admin.xml'
             '/usr/hdp/current/knox-server/conf/topologies/sandbox.xml'
-          ] , (options) ->
+          ] , ({options}) ->
               @system.remove  target: options.key
         # Fix for the bug with rpm/deb packages. During installation of the package, they re-apply permissions to the folder
         @system.mkdir
