@@ -10,7 +10,7 @@ Additionnal oozie properties may be defined inside the "OOZIE_CLIENT_OPTS"
 environmental variables. For example, HDP declare its version as
 "-Dhdp.version=${HDP_VERSION}".
 
-    module.exports = header: 'Oozie Client Install', handler: (options) ->
+    module.exports = header: 'Oozie Client Install', handler: ({options}) ->
 
 ## Register
 

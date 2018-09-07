@@ -221,7 +221,8 @@ hdfs_client configuration directory.
       enrich_proxy_user srv for srv in service.deps.yarn_nm
       enrich_proxy_user srv for srv in service.deps.hdfs_client
       enrich_proxy_user srv for srv in service.deps.mapred_jhs
-      enrich_proxy_user srv for srv in service.deps.yarn_ts
+      enrich_proxy_user srv for srv in service.deps.yarn_ts if service.deps.yarn_ts
+      enrich_proxy_user srv for srv in service.deps.yarn_tr if service.deps.yarn_tr
       # migration: lucasbak 13112017
       # need hdfs_client for proxy_user
       # service.deps.hdfs_client.filter (srv) -> console.log service.node.id

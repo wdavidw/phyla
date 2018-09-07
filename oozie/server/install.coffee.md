@@ -7,7 +7,7 @@ The current version of Oozie doesnt supported automatic failover of the Yarn
 Resource Manager. RM HA (High Availability) must be configure with manual
 failover and Oozie must target the active node.
 
-    module.exports = header: 'Oozie Server Install', handler: (options) ->
+    module.exports = header: 'Oozie Server Install', handler: ({options}) ->
 
 ## Register
 

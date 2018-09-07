@@ -9,7 +9,7 @@ By default, the pid of the running server is stored in
 
 Discover the server status.
 
-    module.exports = header: 'Oozie Server Status', handler: (options) ->
+    module.exports = header: 'Oozie Server Status', handler: ({options}) ->
       @system.execute
         cmd: """
         if [ ! -f #{options.pid_dir}/oozie.pid ]; then exit 3; fi

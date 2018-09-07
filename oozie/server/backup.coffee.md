@@ -1,7 +1,7 @@
 
 # Oozie Server Backup
 
-    module.exports = header: 'Oozie Server Backup', handler: (options) ->
+    module.exports = header: 'Oozie Server Backup', handler: ({options}) ->
       {db_admin, oozie} = @config.ryba
 
 ## Database
