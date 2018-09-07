@@ -30,15 +30,6 @@
         @service
           name: "ranger-hive-plugin"
 
-## Ranger User
-
-      @ranger_user
-        header: 'Ranger User'
-        username: options.ranger_admin.username
-        password: options.ranger_admin.password
-        url: options.install['POLICY_MGR_URL']
-        user: options.plugin_user
-
 ## Audit Layout
 
       @call
@@ -118,6 +109,7 @@ tested.
 ## Plugin Scripts 
 
       @call ->
+        {conf_dir, ssh} = options
         @file
           header: 'Script Fix'
           target: "/usr/hdp/#{version}/ranger-hive-plugin/enable-hive-plugin.sh"
@@ -152,10 +144,10 @@ tested.
           @call
             if: -> @status -1 # Optional if cred.jceks file not provisioned
           , ->
-            @each files, (opt, cb) ->
-              file = opt.key
-              target = "#{options.conf_dir}/#{file}"
-              ssh = @ssh options.ssh
+            @each files, ({options}, cb) ->
+              file = options.key
+              target = "#{conf_dir}/#{file}"
+              ssh = @ssh ssh
               fs.exists ssh, target, (err, exists) ->
                 return cb err if err
                 return cb() unless exists
@@ -187,10 +179,10 @@ tested.
             target: "#{options.conf_dir}/ranger-hive-audit.xml"
             merge: true
             properties: options.audit
-          @each files, (opt, cb) ->
-            file = opt.key
-            target = "#{options.conf_dir}/#{file}"
-            ssh = @ssh options.ssh
+          @each files, ({options}, cb) ->
+            file = options.key
+            target = "#{conf_dir}/#{file}"
+            ssh = @ssh ssh
             fs.exists ssh, target, (err, exists) ->
               return callback err if err
               properties.read ssh, target , (err, props) ->
