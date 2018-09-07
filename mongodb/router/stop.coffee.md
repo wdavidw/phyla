@@ -1,7 +1,7 @@
 
 # MongoDB Routing Server Stop
 
-    module.exports = header: 'MongoDB Routing Server Stop', handler: (options)->
+    module.exports = header: 'MongoDB Routing Server Stop', handler: ({options})->
 
 ## Stop
 

@@ -1,7 +1,7 @@
 
 # MongoDB Repository Install
 
-    module.exports = header: 'Mongodb Repo Install', handler: (options) ->
+    module.exports = header: 'Mongodb Repo Install', handler: ({options}) ->
       @tools.repo
         if: options.source?
         header: 'Repository'

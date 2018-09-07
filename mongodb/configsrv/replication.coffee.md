@@ -1,7 +1,7 @@
 
 # MongoDB Config Server Replica Set Initialization
 
-    module.exports =  header: 'MongoDB ConfigSrv Replicat Set', handler: (options) ->
+    module.exports =  header: 'MongoDB ConfigSrv Replicat Set', handler: ({options}) ->
 
 The "userAdminAnyDatabase" role is the first account created thanks to 
 localhost exception. It used to manage every other users and their roles. For 

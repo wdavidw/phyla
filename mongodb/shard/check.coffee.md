@@ -1,7 +1,7 @@
 
 # MongoDB Shard Check
 
-    module.exports = header: 'MongoDB Shard Check', label_true: 'CHECKED', handler: (options) ->
+    module.exports = header: 'MongoDB Shard Check', label_true: 'CHECKED', handler: ({options}) ->
 
 ## Check 
 

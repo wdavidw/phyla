@@ -1,7 +1,7 @@
 
 # MongoDB Shard Server Replica Set Initialization
 
-    module.exports =  header: 'MongoDB Shard Server Replicat Set', handler: (options) ->
+    module.exports =  header: 'MongoDB Shard Server Replicat Set', handler: ({options}) ->
       mongo_shell_exec =  "mongo admin --port #{options.config.net.port}"
       mongo_shell_admin_exec =  "#{mongo_shell_exec} -u #{options.admin.name} --password  '#{options.admin.password}'"
       mongo_shell_root_exec =  "#{mongo_shell_exec} -u #{options.root.name} --password  '#{options.root.password}'"

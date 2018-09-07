@@ -1,7 +1,7 @@
 
 # MongoDB Config Server Install
 
-    module.exports =  header: 'MongoDB Shard Server Install', handler: (options) ->
+    module.exports =  header: 'MongoDB Shard Server Install', handler: ({options}) ->
 
 ## IPTables
 

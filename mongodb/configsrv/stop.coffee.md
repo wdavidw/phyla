@@ -4,7 +4,7 @@
 Run the command `./bin/ryba stop -m ryba/mongodb/routersrv` to stop the 
 MongoDB router server using Ryba.
 
-    module.exports = header: 'MongoDB Config Server Stop', handler: (options) ->
+    module.exports = header: 'MongoDB Config Server Stop', handler: ({options}) ->
 
 ## Service
 

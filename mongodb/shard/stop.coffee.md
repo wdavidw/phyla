@@ -4,7 +4,7 @@
 Run the command `./bin/ryba stop -m ryba/mongodb/shard` to stop the 
 MongoDB Shard server using Ryba.
 
-    module.exports = header: 'MongoDB Shard Server Stop', handler: (options) ->
+    module.exports = header: 'MongoDB Shard Server Stop', handler: ({options}) ->
 
 ## Service
 

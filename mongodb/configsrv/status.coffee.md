@@ -1,7 +1,7 @@
 
 # MongoDB Config Server Status
 
-    module.exports = header: 'MongoDB Config Server Status', handler: (options) ->
+    module.exports = header: 'MongoDB Config Server Status', handler: ({options}) ->
 
 ## Status
 

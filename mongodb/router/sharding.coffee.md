@@ -9,7 +9,7 @@
  Once done, the Sharded Cluster will be available for the mongodb.
  available does not mean used, the db admin has to manually add a shard to a database
 
-    module.exports =  header: 'MongoDB Router Servers Shard Init', handler: (options) ->
+    module.exports =  header: 'MongoDB Router Servers Shard Init', handler: ({options}) ->
       mongos_port =  options.config.net.port
 
 # Wait Shard to be available

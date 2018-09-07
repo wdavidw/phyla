@@ -1,7 +1,7 @@
 
 # MongoDB Routing Server Status
 
-    module.exports = header: 'MongoDB Routing Server Status', handler: (options) ->
+    module.exports = header: 'MongoDB Routing Server Status', handler: ({options}) ->
 
 ## Status
 

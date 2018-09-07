@@ -3,6 +3,8 @@
 
 ## Trunk
 
+* nikita: mongodb - options as destructuring assignment
+* nikita: oozie - options as destructuring assignment
 * nikita: kafka - options as destructuring assignment
 * nikita: tez - options as destructuring assignment
 * nikita: solr,pig - options as destructuring assignment

@@ -7,7 +7,7 @@ MongoDB Config server using Ryba.
 By default, the pid of the running server is stored in
 "/var/run/mongod/mongod-config-server-{fqdn}.pid".
 
-    module.exports = header: 'MongoDB Config Server Start', handler: (options) ->
+    module.exports = header: 'MongoDB Config Server Start', handler: ({options}) ->
 
 ## Service
 
