@@ -15,7 +15,7 @@ Phoenix table are automatically converted to uppercase.
 Refer to the [sqlline] documentation for a complete list of supported command
 instructions.
 
-    module.exports = header: 'Phoenix Client Check', handler: (options) ->
+    module.exports = header: 'Phoenix Client Check', handler: ({options}) ->
       zk_path = "#{options.site['hbase.zookeeper.quorum']}"
       zk_path += ":#{options.site['hbase.zookeeper.property.clientPort']}"
       zk_path += "#{options.site['zookeeper.znode.parent']}"

@@ -3,7 +3,7 @@
 
 Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
-    module.exports =  header: 'Phoenix QueryServer Install', handler: (options) ->
+    module.exports =  header: 'Phoenix QueryServer Install', handler: ({options}) ->
 
 ## Register
 
