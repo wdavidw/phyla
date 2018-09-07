@@ -1,7 +1,7 @@
 
 # Kafka Check
 
-    module.exports = header: 'Kafka Client Check', handler: (options) ->
+    module.exports = header: 'Kafka Client Check', handler: ({options}) ->
 
 ## Register
 
@@ -197,7 +197,6 @@ protocols.
             --security-protocol PLAINTEXT \
             --property security.protocol=PLAINTEXT \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'
@@ -280,7 +279,6 @@ and password given to line command because if executed before producer install
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'
@@ -355,7 +353,6 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
             --topic #{test_topic} \
             --security-protocol SASL_PLAINTEXT \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'
@@ -439,7 +436,6 @@ Trustore location and password given to line command because if executed before 
             --property ssl.truststore.location=#{options.config['ssl.truststore.location']} \
             --property ssl.truststore.password=#{options.config['ssl.truststore.password']} \
             --consumer.config #{options.conf_dir}/consumer.properties \
-            --zookeeper #{options.consumer.config['zookeeper.connect']} \
             --from-beginning \
             --max-messages 1 \
           | grep 'hello #{options.hostname}'

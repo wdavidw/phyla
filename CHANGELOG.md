@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: kafka - options as destructuring assignment
 * nikita: tez - options as destructuring assignment
 * nikita: solr,pig - options as destructuring assignment
 * nikita: zookeeper - options as destructuring assignment
