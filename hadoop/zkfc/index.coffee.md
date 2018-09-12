@@ -21,12 +21,8 @@ The [ZKFailoverController (ZKFC)](https://hadoop.apache.org/docs/r2.3.0/hadoop-y
           action: ['service', 'start']
           name: 'hadoop-hdfs-namenode'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/hadoop/zkfc/install', options.original
-          @call 'ryba/hadoop/zkfc/start', options.original
+          @call 'ryba/hadoop/zkfc/install', options
+          @call 'ryba/hadoop/zkfc/start', options
       commands:
         'check':
           'ryba/hadoop/zkfc/check'

@@ -24,7 +24,7 @@ HA Namenodes with Kerberos:
 }
 ```
 
-    module.exports = header: 'HDFS NN Wait', handler: (options) ->
+    module.exports = header: 'HDFS NN Wait', handler: ({options}) ->
       
       throw Error "Required Option: conf_dir" unless options.conf_dir
       throw Error "Required Option: krb5_user" unless options.krb5_user

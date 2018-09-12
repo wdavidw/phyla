@@ -17,20 +17,12 @@
           action: ['service', 'start']
           name: 'hbase-master'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/hbase/install', options.original
+          @call 'ryba/ranger/plugins/hbase/install', options
         @before
           action: ['service', 'start']
           name: 'hbase-regionserver'
         , ->
-          delete options.original.action
-          delete options.original.handler
-          delete options.original.argument
-          delete options.original.store
-          @call 'ryba/ranger/plugins/hbase/install', options.original
+          @call 'ryba/ranger/plugins/hbase/install', options
       commands:
         install:
           'ryba/ranger/plugins/hbase/install'

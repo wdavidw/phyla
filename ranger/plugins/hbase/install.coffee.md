@@ -191,7 +191,6 @@ Activate the plugin.
             header: 'Security Fix'
             target: "#{conf_dir}/ranger-hbase-security.xml"
             merge: true
-            
             properties:
               'ranger.plugin.hbase.policy.rest.ssl.config.file': "#{conf_dir}/ranger-policymgr-ssl.xml"
           @each files, ({options}, cb) ->

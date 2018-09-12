@@ -251,6 +251,7 @@ but is owned by 2401"
         @system.mkdir
           target: "#{options.conf_dir}"
           uid: 'root'
+          gid: ce_group
         # The path seems to be hardcoded into
         # "/usr/hdp/current/hadoop-yarn-nodemanager/etc/hadoop/container-executor.cfg"
         # which point to
@@ -296,7 +297,7 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
           target: '/etc/cgconfig.d/yarn.cgconfig.conf'
           merge: false
           groups: options.cgroup
-        , (err, _, cgroups) ->
+        , (err, {cgroups}) ->
           options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path'] = cgroups.mount
         @call ->
           # migration: wdavidw 170827, using store is a bad, very bad idea, ensure it works in the mean time
