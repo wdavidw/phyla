@@ -7,7 +7,7 @@ manually with the following command:
 service ranger-usersync stop
 ```
 
-    module.exports = header: 'Ranger Usersync Stop', handler: (options) ->
+    module.exports = header: 'Ranger Usersync Stop', handler: ({options}) ->
       @service.start
         name: 'ranger-usersync'
 

@@ -1,7 +1,7 @@
 
 # Ranger Usersync Process
 
-    module.exports = header: 'Ranger UserSync Install', handler: (options) ->
+    module.exports = header: 'Ranger UserSync Install', handler: ({options}) ->
 
 ## Registry
 
@@ -21,7 +21,7 @@ directories.
 
       @call header: 'Packages', ->
         hdp_current_version = null
-        @call ( options, callback) =>
+        @call (_, callback) =>
           @system.execute
             cmd:  "hdp-select versions | tail -1 | tr '.' '_' | tr '-' '_'"
           , (err, data) =>
@@ -87,7 +87,7 @@ Update the file "install.properties" with the properties defined by the
       @file.render
         header: 'Configure Install Scripts'
         target: "/usr/hdp/current/ranger-usersync/install.properties"
-        source: "#{__dirname}/../resources/usersync-install.properties.js2"
+        source: "#{__dirname}/../resources/usersync-install-properties.j2"
         local: true
         context: options
         write: for k, v of options.install
@@ -119,7 +119,7 @@ Update the file "install.properties" with the properties defined by the
       # the convention exit code 3 when service is stopped on the status code
       @service.init
         target: '/etc/init.d/ranger-usersync'
-        source: "#{__dirname}/../resources/ranger-usersync"
+        source: "#{__dirname}/../resources/ranger-usersync.j2"
         local: true
         mode: 0o0755
         context: options
