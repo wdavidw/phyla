@@ -130,7 +130,7 @@
           #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
           """
           unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase --config #{options.conf_dir} shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
-        , (err, executed, stdout) ->
+        , (err, {executed, stdout}) ->
           return if err or not executed
           try
             data = JSON.parse(stdout)
