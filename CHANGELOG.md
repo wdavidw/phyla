@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* nikita: collect - options as destructuring assignment
 * nikita: ambari agent, server - options as destructuring assignment
 * nikita: phoenix, opentsdb - options as destructuring assignment
 * nikita: knox - options as destructuring assignment

@@ -3,7 +3,7 @@
 Install Collectd using epel packages. Collectd comes out of the box just need to install
 and you are ready to run.
 
-    module.exports = header: 'Collectd Install', handler: (options) ->
+    module.exports = header: 'Collectd Install', handler: ({options}) ->
 
 ## Packages
 
@@ -24,31 +24,32 @@ Writing plugin config tells collectd to use the enabled plugin with given parame
           local: true
         
       @call header: 'Write Plugins', ->
-        @each options.plugins, (opts, cb) ->
-          {key, value} = opts
+        {conf_dir} = options
+        @each options.plugins, ({options}, cb) ->
+          {key, value} = options
           switch value.type
             when 'network'
               @file.render
                 source: "#{__dirname}/resources/plugin-network.conf.j2"
-                target: "#{options.conf_dir}/#{key}.conf"
+                target: "#{conf_dir}/#{key}.conf"
                 context: value
                 local: true
             when 'write_http'
               @file.render
                 source: "#{__dirname}/resources/plugin-http.conf.j2"
-                target: "#{options.conf_dir}/#{key}.conf"
+                target: "#{conf_dir}/#{key}.conf"
                 context: value
                 local: true
             when 'df'
               @file.render
                 source: "#{__dirname}/resources/plugin-df.conf.j2"
-                target: "#{options.conf_dir}/#{key}.conf"
+                target: "#{conf_dir}/#{key}.conf"
                 context: value
                 local: true
             when 'disk'
               @file.render
                 source: "#{__dirname}/resources/plugin-disk.conf.j2"
-                target: "#{options.conf_dir}/#{key}.conf"
+                target: "#{conf_dir}/#{key}.conf"
                 context: value
                 local: true
           @next cb
