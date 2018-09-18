@@ -3,7 +3,7 @@
 
 Ambari server is started with the service's syntax command.
 
-    module.exports = header: 'Ambari Server Export', handler: (options) ->
+    module.exports = header: 'Ambari Server Export', handler: ({options}) ->
       id = "#{Date.now()}"
 
 ## Blueprint

@@ -27,6 +27,7 @@
       options.config.server['secured_url_port'] = service.deps.ambari_server[0].options.config['server.secured_url_port']
       options.config.agent ?= {}
       options.config.agent['hostname_script'] ?= "#{options.conf_dir}/hostname.sh"
+      options.config.agent['parallel_execution'] ?= 0
 
 ## Ambari Rest Api URL
 

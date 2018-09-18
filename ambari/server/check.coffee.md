@@ -3,7 +3,7 @@
 
 Ambari server is started with the service's syntax command.
 
-    module.exports = header: 'Ambari Server Check', handler: (options) ->
+    module.exports = header: 'Ambari Server Check', handler: ({options}) ->
 
 Wait for the Ambari Server to be ready.
 

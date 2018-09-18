@@ -4,7 +4,7 @@
 See the Ambari documentation relative to [Software Requirements][sr] before
 executing this module.
 
-    module.exports = header: 'Ambari Server Install', handler: (options) ->
+    module.exports = header: 'Ambari Server Install', handler: ({options}) ->
 
 ## Identities
 

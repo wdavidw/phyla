@@ -1,7 +1,7 @@
 
 # Ambari Server Wait
 
-    module.exports = header: 'Ambari Server Wait', handler: (options) ->
+    module.exports = header: 'Ambari Server Wait', handler: ({options}) ->
 
 ## REST Access
 
