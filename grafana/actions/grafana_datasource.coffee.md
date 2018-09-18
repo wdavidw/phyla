@@ -40,7 +40,7 @@ nikita
 })
 ```
 
-    module.exports = (options) ->
+    module.exports = ({options}) ->
       throw Error 'Required Options: username' unless options.username?
       throw Error 'Required Options: password' unless options.password?
       throw Error 'Required Options: url' unless options.url?

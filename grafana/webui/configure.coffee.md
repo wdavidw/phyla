@@ -194,6 +194,7 @@ do not depend on cluster or host names.
           local: true
           title: 'System Activity'
           slug: 'system-activity'
+          datasource: options.datasource
       if service.deps.hbase_master and options.datasource?
         options.templates['hbase-home'] ?= 
           source: "#{__dirname}/../resources/prometheus-hbase-home.json.j2"

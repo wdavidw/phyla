@@ -1,7 +1,7 @@
 
 # Prometheus Install
 
-    module.exports = header: 'Grafana WEBUi Install', handler: (options) ->
+    module.exports = header: 'Grafana WEBUi Install', handler: ({options}) ->
       rpm_archive = '/tmp/grafana'
 
 ## Wait for database to listen

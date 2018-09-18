@@ -2,7 +2,7 @@
 # Grafana WEBUi Check
 Check that the webui is listening for connections.
 
-    module.exports = header: 'Grafana WEBUi Check', handler: (options) ->
+    module.exports = header: 'Grafana WEBUi Check', handler: ({options}) ->
       
         @connection.assert
           retry: 5

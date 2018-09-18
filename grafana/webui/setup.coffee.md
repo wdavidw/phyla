@@ -1,10 +1,11 @@
 
 # Prometheus Install
 
-    module.exports = header: 'Grafana WEBUi Setup', handler: (options) ->
+    module.exports = header: 'Grafana WEBUi Setup', handler: ({options}) ->
       beans = null
       rows = []
       exp = []
+      {ini, url} = options
 
 ## Register
 
@@ -13,24 +14,24 @@
 
 ## Datasources
 
-      @each options.datasources, (opts, callback) ->
-        {key, value} = opts
+      @each options.datasources, ({options}, callback) ->
+        {key, value} = options
         @grafana.datasource
           header: "#{key}"
-          username: options.ini['security']['admin_user']
-          password: options.ini['security']['admin_password']
-          url: options.url
+          username: ini['security']['admin_user']
+          password: ini['security']['admin_password']
+          url: url
         , value
         @next callback
 
 ## Dashboards
 
-      @each options.templates, (opts, callback) ->
-        {key, value} = opts
+      @each options.templates, ({options}, callback) ->
+        {key, value} = options
         @grafana.dashboard
-          username: options.ini['security']['admin_user']
-          password: options.ini['security']['admin_password']
-          url: options.url
+          username: ini['security']['admin_user']
+          password: ini['security']['admin_password']
+          url: url
         , value
         @next callback
 

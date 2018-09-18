@@ -1,7 +1,7 @@
 
 # Grafana Prepare
 
-    module.exports = header: 'Grafana Start', handler: (options) ->
+    module.exports = header: 'Grafana Start', handler: ({options}) ->
 
 ## Wait for database to listen
 

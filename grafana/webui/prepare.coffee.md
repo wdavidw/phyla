@@ -1,7 +1,7 @@
 
 # Grafana Prepare
 
-    module.exports = header: 'Grafana Prepare', ssh: false, handler: (options) ->
+    module.exports = header: 'Grafana Prepare', ssh: false, handler: ({options}) ->
 
 ## Cache file
 

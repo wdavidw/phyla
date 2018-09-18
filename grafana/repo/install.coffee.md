@@ -1,7 +1,7 @@
 
 # Grafana Repository Install
 
-    module.exports = header: 'Grafana repo Install', handler: (options) ->
+    module.exports = header: 'Grafana repo Install', handler: ({options}) ->
 
       @tools.repo
         if: options.source?
