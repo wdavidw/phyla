@@ -1,7 +1,7 @@
 
 # Ambari Repo Install
 
-    module.exports = header: 'Ambari Repo Install', handler: (options) ->
+    module.exports = header: 'Ambari Repo Install', handler: ({options}) ->
       @tools.repo
         if: options.source?
         header: 'Repository'
