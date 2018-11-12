@@ -308,6 +308,8 @@ from normzlized configuration.
             throw Error "Missing service check_command" unless opts.check_command?
             throw Error "use is unkown" if options.use? and options?.use not in ['process-service','unit-service','functional-service']
             options.services[opts.name] ?= {}
+            if options.services[opts.name].check_command?
+              opts.check_command = options.services[opts.name].check_command
             options.services[opts.name].hosts ?= {}
             for instance in opts.instances
               options.services[opts.name].hosts[instance.node.fqdn] ?= {}
