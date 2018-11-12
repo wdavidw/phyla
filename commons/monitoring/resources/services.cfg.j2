@@ -7,14 +7,18 @@ define service {
   contact_groups        {% if val | isArray %}{{ val | join(",") }}{% else %}{{ val }}{% endif %}{% elif s == 'check_command' %}
   {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}{% for s, val in hostvalues %}{% if s == 'check_command' %}
   check_command         {{ val | replace('$HOSTNAME$', hostname) }}{% else %}
-  {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}
+  {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}{% if svc._process_name %}
+  _process_name         {{ svc._process_name }}{% endif %}{% if svc._ambari_component_name %}
+  _ambari_component_name {{ svc._ambari_component_name }}{% endif %}
 }{% endfor %}{% else %}{% for host in svc.hosts %}
 define service {
   name                  {{ name }}
   service_description   {{ name }}
   host_name             {{ host }}{% for s, val in svc %}{% if s == 'hosts' %} {% elif s == 'check_command' %}
   check_command         {{ val | replace('$HOSTNAME$', host) }}{% else %}
-  {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}
+  {{s}}                 {% if val | isArray %}{{ val | join(",")}}{% else %}{{ val }}{% endif %}{% endif %}{% endfor %}{% if svc._process_name %}
+  _process_name         {{ svc._process_name }}{% endif %}{% if svc._ambari_component_name %}
+  _ambari_component_name {{ svc._ambari_component_name }}{% endif %}
 }{% endfor %}{% endif %}{% else %}
 define service {
   name                  {{ name }}
