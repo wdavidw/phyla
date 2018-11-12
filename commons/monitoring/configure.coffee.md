@@ -1035,7 +1035,8 @@ from normzlized configuration.
               name: 'Phoenix QueryServer - TCP'
               servicegroup: 'phoenix_qs'
               instances: srv.instances
-              use: 'process-service'
+              use: "process-service-#{clustername}"
+              ambari_component_name: 'PHOENIX_QUERY_SERVER'
               process_name: 'phoenix-queryserver'
               check_command: "check_tcp!#{srv.instances[0].options.phoenix_site['phoenix.queryserver.http.port']}"
           if 'ryba/spark/history_server' is srv.module
