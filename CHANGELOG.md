@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Trunk
+## Version 0.2.0
 
 * nikita: collect - options as destructuring assignment
 * nikita: ambari agent, server - options as destructuring assignment
