@@ -164,10 +164,10 @@ Multiple ambari instance on a same server involve a different principal or the p
           options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
           options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
 
-      options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
-      options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
-      options.explorer_user.principal ?= "#{options.explorer_user.name}/_HOST@#{options.krb5.realm}"
-      options.explorer_user.keytab ?=  "/etc/security/keytabs/activity-explorer.headless.keytab"
+        options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
+        options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
+        options.explorer_user.principal ?= "#{options.explorer_user.name}/_HOST@#{options.krb5.realm}"
+        options.explorer_user.keytab ?=  "/etc/security/keytabs/activity-explorer.headless.keytab"
 
 ## Configuration
 

@@ -43,7 +43,7 @@ Install Ambari Agent package.
         target: options.config.agent['hostname_script']
         content: """
         #!/bin/sh
-        echo #{options.fqdn}
+        echo #{options.internal_fqdn or options.fqdn}
         """
         mode: 0o751
 
