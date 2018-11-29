@@ -26,8 +26,8 @@ NameNodes, and send block location information and heartbeats to both.
 | Service   | Port       | Proto     | Parameter                  |
 |-----------|------------|-----------|----------------------------|
 | datanode  | 50010/1004 | tcp/http  | dfs.datanode.address       |
-| datanode  | 50075/1006 | tcp/http  | dfs.datanode.http.address  |
-| datanode  | 50475      | tcp/https | dfs.datanode.https.address |
+| datanode  | 9864/1006  | tcp/http  | dfs.datanode.http.address  |
+| datanode  | 9865       | tcp/https | dfs.datanode.https.address |
 | datanode  | 50020      | tcp       | dfs.datanode.ipc.address   |
 
 The "dfs.datanode.address" default to "50010" in non-secured mode. In non-secured
@@ -93,9 +93,9 @@ inside "/etc/init.d" and activate it on startup.
               name: 'lzo-devel'
             @next callback
         @service
-          name: 'hadoop-lzo'
+          name: 'hadooplzo'
         @service
-          name: 'hadoop-lzo-native'
+          name: 'hadooplzo-native'
 
 ## Layout
 
@@ -201,12 +201,12 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_HEAPSIZE: options.hadoop_heap
             HADOOP_DATANODE_OPTS: HADOOP_DATANODE_OPTS
             HADOOP_LOG_DIR: options.log_dir
-            HADOOP_PID_DIR: options.pid_dir
+            HADOOP_PID_DIR: options.secure_dn_pid_dir
             HADOOP_OPTS: options.hadoop_opts
             HADOOP_CLIENT_OPTS: ''
-            HADOOP_SECURE_DN_USER: options.user.name
-            HADOOP_SECURE_DN_LOG_DIR: options.log_dir
-            HADOOP_SECURE_DN_PID_DIR: options.secure_dn_pid_dir
+            HDFS_DATANODE_SECURE_USER: options.user.name
+            HADOOP_SECURE_LOG_DIR: options.log_dir
+            HADOOP_SECURE_PID_DIR: options.secure_dn_pid_dir
             java_home: options.java_home
           uid: options.user.name
           gid: options.hadoop_group.name

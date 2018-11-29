@@ -103,7 +103,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           gid: options.group.name
           mode: 0o0755
         @system.mkdir
-          target: "#{options.log_dir}" #/#{hdfs.user.name}
+          target: "#{options.log_dir}/logs" #/#{hdfs.user.name}
           uid: options.user.name
           gid: options.group.name
           parent: true
@@ -112,6 +112,10 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           uid: options.user.name
           gid: options.group.name
           mode: 0o0755
+        @system.mkdir
+          target: "#{options.catalina_home}/conf/server.xml"
+          mode: 0o0755
+
         @call header: 'HttpFS Env', ->
           options.catalina_opts += " -D#{k}=#{v}" for k, v of options.catalina.opts
           @file.render
@@ -143,6 +147,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           gid: options.group.name
           mode: 0o0750
         @system.copy # Copie original server.xml for no-SSL environments
+          debug: true
           source: "#{options.catalina_home}/conf/server.xml"
           target: "#{options.catalina_home}/conf/nossl-server.xml"
           unless_exists: true

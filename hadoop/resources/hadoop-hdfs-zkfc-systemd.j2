@@ -6,9 +6,9 @@ User=hdfs
 Group=hadoop
 Type=forking
 PIDFile={{options.pid_dir}}/hadoop-hdfs-zkfc.pid
-ExecStart=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs start zkfc
-ExecReload=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs restart zkfc
-ExecStop=/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs stop zkfc
+ExecStart=/usr/hdp/current/hadoop-hdfs-zkfc/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon start zkfc
+ExecReload=/usr/hdp/current/hadoop-hdfs-zkfc/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon restart zkfc
+ExecStop=/usr/hdp/current/hadoop-hdfs-zkfc/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon stop zkfc
 LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]

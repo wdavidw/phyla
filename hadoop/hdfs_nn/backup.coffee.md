@@ -20,8 +20,8 @@ can load content of HDFS fsimages dump
 ## Curl
 
 Use `curl` to download image and edit logs:
-https://<namenode>:50470/getimage?getimage=1&txid=latest
-https://<namenode>:50470/getimage?getedit=1&startTxId=X&endTxId=Y
+https://<namenode>:9871/getimage?getimage=1&txid=latest
+https://<namenode>:9871/getimage?getedit=1&startTxId=X&endTxId=Y
 
 dfsadmin -fetchImage
 

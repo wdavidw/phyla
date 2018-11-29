@@ -13,7 +13,7 @@ Worth to investigate:
 [rollback]: http://docs.hortonworks.com/HDPDocuments/HDP1/HDP-1.3.3/bk_Monitoring_Hadoop_Book/content/monitor-ha-undoing_2x.html
 
     module.exports = header: 'HDFS NN Install', handler: ({options}) ->
-
+      
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
@@ -27,8 +27,8 @@ Worth to investigate:
 
 | Service  | Port  | Proto | Parameter                  |
 | -------- | ----- | ----- | -------------------------- |
-| namenode | 50070 | tcp   | dfs.namdnode.http-address  |
-| namenode | 50470 | tcp   | dfs.namenode.https-address |
+| namenode | 9870  | tcp   | dfs.namdnode.http-address  |
+| namenode | 9871  | tcp   | dfs.namenode.https-address |
 | namenode | 8020  | tcp   | fs.defaultFS               |
 
 IPTables rules are only inserted if the parameter "iptables.action" is set to
@@ -143,9 +143,9 @@ mentions "/usr/libexec/bigtop-utils" for RHEL/CentOS/Oracle Linux. While this is
 correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 
       @call header: 'Environment', ->
-        HADOOP_NAMENODE_OPTS = options.opts.base
-        HADOOP_NAMENODE_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
-        HADOOP_NAMENODE_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
+        HDFS_NAMENODE_OPTS = options.opts.base
+        HDFS_NAMENODE_OPTS += " -D#{k}=#{v}" for k, v of options.opts.java_properties
+        HDFS_NAMENODE_OPTS += " #{k}#{v}" for k, v of options.opts.jvm
         @file.render
           header: 'Environment'
           target: "#{options.conf_dir}/hadoop-env.sh"
@@ -156,7 +156,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
             HADOOP_SECURITY_LOGGER: options.log4j.security_logger
             HDFS_AUDIT_LOGGER: options.log4j.audit_logger
             HADOOP_HEAPSIZE: options.hadoop_heap
-            HADOOP_NAMENODE_OPTS: HADOOP_NAMENODE_OPTS
+            HDFS_NAMENODE_OPTS: HDFS_NAMENODE_OPTS
             HADOOP_NAMENODE_INIT_HEAPSIZE: options.hadoop_namenode_init_heap
             HADOOP_LOG_DIR: options.log_dir
             HADOOP_PID_DIR: options.pid_dir

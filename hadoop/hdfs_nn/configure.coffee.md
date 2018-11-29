@@ -130,14 +130,15 @@ service's TCP port.
       if service.instances.length is 1
         options.core_site['fs.defaultFS'] ?= "hdfs://#{service.node.fqdn}:8020"
         options.hdfs_site['dfs.ha.automatic-failover.enabled'] ?= 'false'
-        options.hdfs_site['dfs.namenode.http-address'] ?= '0.0.0.0:50070'
-        options.hdfs_site['dfs.namenode.https-address'] ?= '0.0.0.0:50470'
+        options.hdfs_site['dfs.namenode.http-address'] ?= '0.0.0.0:9870'
+        options.hdfs_site['dfs.namenode.https-address'] ?= '0.0.0.0:9871'
         options.hdfs_site['dfs.nameservices'] = null
       # HDFS HA configuration
       else if service.instances.length is 2
         throw Error "Required Option: options.nameservice" unless options.nameservice
         options.hdfs_site['dfs.nameservices'] ?= ''
         options.hdfs_site['dfs.nameservices'] += "#{options.nameservice} " unless options.nameservice in options.hdfs_site['dfs.nameservices'].split ' '
+        options.hdfs_site["dfs.client.failover.proxy.provider.#{options.nameservice}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
         options.core_site['fs.defaultFS'] ?= "hdfs://#{options.nameservice}"
         options.active_nn_host ?= service.instances[0].node.fqdn
         options.standby_nn_host = service.instances.filter( (instance) -> instance.node.fqdn isnt options.active_nn_host )[0].node.fqdn
@@ -159,8 +160,8 @@ for distcp purpose.
         options.hdfs_site['dfs.namenode.http-address'] = null
         options.hdfs_site['dfs.namenode.https-address'] = null
         options.hdfs_site["dfs.namenode.rpc-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:8020"
-        options.hdfs_site["dfs.namenode.http-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50070"
-        options.hdfs_site["dfs.namenode.https-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:50470"
+        options.hdfs_site["dfs.namenode.http-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:9870"
+        options.hdfs_site["dfs.namenode.https-address.#{options.nameservice}.#{srv.options.hostname}"] ?= "#{srv.node.fqdn}:9871"
         options.hdfs_site["dfs.client.failover.proxy.provider.#{options.nameservice}"] ?= 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider'
       options.hdfs_site['dfs.ha.automatic-failover.enabled'] ?= 'true'
       options.hdfs_site['dfs.namenode.shared.edits.dir'] = (for srv in service.deps.hdfs_jn then "#{srv.node.fqdn}:#{srv.options.hdfs_site['dfs.journalnode.rpc-address'].split(':')[1]}").join ';'
@@ -190,6 +191,23 @@ for distcp purpose.
 #       """
 #       options.hdfs_site['dfs.ha.fencing.ssh.connect-timeout'] ?= '30000'
 #       options.hdfs_site['dfs.ha.fencing.ssh.private-key-files'] ?= "#{options.user.home}/.ssh/id_rsa"
+
+## Upgrade Domain
+[Upgrade domain](https://hadoop.apache.org/docs/r3.0.0/hadoop-project-dist/hadoop-hdfs/HdfsUpgradeDomain.html) try to address the limitation
+of block placement policy on rolling upgrade. The idea is to group datanodes in a new dimension called upgrade domain, in addition to the existing rack-based grouping.
+
+      # default configuratio from hadoop 2
+      options.hdfs_site['dfs.namenode.hosts.provider.classname'] ?= 'org.apache.hadoop.hdfs.server.blockmanagement.HostFileManager'
+      if options.upgrade_domain
+      # to enable upgrade domain use the conbinedHostFileManager
+        options.hdfs_site['dfs.namenode.hosts.provider.classname'] = 'org.apache.hadoop.hdfs.server.blockmanagement.CombinedHostFileManager'
+        # enable upgrade domains
+        for srv in service.deps.hdfs_dn
+          throw Error "rack position not specified" unless srv.options.rack.position?
+        options.hosts ?=  service.deps.hdfs_dn.map (srv) -> hostName: srv.node.fqdn, upgradeDomain: srv.options.rack.position
+        options.hdfs_site['dfs.block.replicator.classname'] ?= 'org.apache.hadoop.hdfs.server.blockmanagement.BlockPlacementPolicyWithUpgradeDomain'
+        options.hdfs_site['dfs.hosts'] ?= "#{options.conf_dir}/dfs.hosts"
+
 
 ## Metrics
 
@@ -266,6 +284,7 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
           'fs.permissions.umask-mode'
           'dfs.block.access.token.enable'
         ] then srv.options.hdfs_site[property] ?= options.hdfs_site[property]
+        srv.options.hdfs_site["dfs.client.failover.proxy.provider.#{options.nameservice}"] ?= options.hdfs_site["dfs.client.failover.proxy.provider.#{options.nameservice}"]
         for property in [
           'fs.defaultFS'
         ] then srv.options.core_site[property] ?= options.core_site[property]
@@ -322,7 +341,7 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
           [fqdn, port] = srv.options.hdfs_site["dfs.namenode.#{protocol}-address#{nameservice}#{hostname}"].split(':')
         else 
           fqdn = srv.node.fqdn
-          port = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then '50070' else '50470'
+          port = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then '9870' else '9871'
         host: fqdn, port: port
       options.wait.krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
 

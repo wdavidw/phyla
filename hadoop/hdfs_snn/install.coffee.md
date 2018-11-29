@@ -12,8 +12,8 @@
 
 | Service    | Port | Proto  | Parameter                  |
 |------------|------|--------|----------------------------|
-| namenode  | 50070 | tcp    | dfs.namdnode.http-address  |
-| namenode  | 50470 | tcp    | dfs.namenode.https-address |
+| namenode  | 9870  | tcp    | dfs.namdnode.http-address  |
+| namenode  | 9871  | tcp    | dfs.namenode.https-address |
 | namenode  | 8020  | tcp    | fs.defaultFS               |
 | namenode  | 8019  | tcp    | dfs.ha.zkfc.port           |
 

@@ -7,7 +7,7 @@ Single Namenode without Kerberos:
 {
   "conf_dir": "/etc/hadoop-hdfs-namenode/conf",
   "hdfs_user": { "name": "hdfs" },
-  "http": { "host": "master1.ryba", "port": 50470 }
+  "http": { "host": "master1.ryba", "port": 9871 }
 }
 ```
 
@@ -18,8 +18,8 @@ HA Namenodes with Kerberos:
   "conf_dir": "/etc/hadoop-hdfs-namenode/conf",
   "krb5_user": { "principal": "hdfs@HADOOP.RYBA", "password": "hdfs123" },
   "http": [
-    { "host": "master1.ryba", "port": 50470 },
-    { "host": "master2.ryba", "port": 50470 }
+    { "host": "master1.ryba", "port": 9871 },
+    { "host": "master2.ryba", "port": 9871 }
   ]
 }
 ```

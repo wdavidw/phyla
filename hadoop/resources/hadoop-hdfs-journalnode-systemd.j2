@@ -6,9 +6,9 @@ Type=forking
 User={{options.user.name}}
 Group={{options.group.name}}
 PIDFile={{options.pid_dir}}/hadoop-hdfs-journalnode.pid
-ExecStart=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs start journalnode
-ExecReload=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs restart journalnode
-ExecStop=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/sbin/hadoop-daemon.sh --config {{options.conf_dir}} --script hdfs stop journalnode
+ExecStart=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon start journalnode
+ExecReload=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon restart journalnode
+ExecStop=/usr/hdp/current/hadoop-hdfs-journalnode/../hadoop/bin/hdfs --config {{options.conf_dir}} --daemon stop journalnode
 LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]

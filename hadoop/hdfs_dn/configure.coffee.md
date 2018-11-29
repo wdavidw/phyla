@@ -94,12 +94,12 @@ Set up Java heap size like in `ryba/hadoop/hdfs_nn`.
         options.hdfs_site['dfs.datanode.address'] ?= '0.0.0.0:1004'
         options.hdfs_site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
         options.hdfs_site['dfs.datanode.http.address'] ?= '0.0.0.0:1006'
-        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
+        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:9865'
       else
         options.hdfs_site['dfs.datanode.address'] ?= '0.0.0.0:50010'
         options.hdfs_site['dfs.datanode.ipc.address'] ?= '0.0.0.0:50020'
-        options.hdfs_site['dfs.datanode.http.address'] ?= '0.0.0.0:50075'
-        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:50475'
+        options.hdfs_site['dfs.datanode.http.address'] ?= '0.0.0.0:9864'
+        options.hdfs_site['dfs.datanode.https.address'] ?= '0.0.0.0:9865'
 
 ## Centralized Cache Management
 

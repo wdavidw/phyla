@@ -15,7 +15,7 @@ value is 50020.
 ## Wait for all datanode HTTP Ports
 
 Port is defined in the "dfs.datanode.https.address" property of hdfs-site. The default
-value is 50475.
+value is 9865.
 
       @connection.wait
         header: 'HTTP'
