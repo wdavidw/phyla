@@ -57,7 +57,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
         @service
           name: 'zip' # Required by the "prepare-war" command
         @service
-          name: 'extjs-2.2-1'
+          name: 'extjs'
         @call if: options.has_falcon, ->
           @service
             name: 'falcon'
@@ -201,7 +201,7 @@ Install the ExtJS Javascript library as part of enabling the Oozie Web Console.
       @system.copy
         header: 'ExtJS Library'
         source: '/usr/share/HDP-oozie/ext-2.2.zip'
-        target: '/usr/hdp/current/oozie-server/libext/'
+        target: '/usr/hdp/current/oozie-server/libext'
 
 # HBase credentials
 
@@ -212,30 +212,21 @@ Install the HBase Libs as part of enabling the Oozie Unified Credentials with HB
       @system.copy
         header: 'HBase Libs'
         source: '/usr/hdp/current/hbase-client/lib/hbase-common.jar'
-        target: '/usr/hdp/current/oozie-server/libserver/'
+        target: '/usr/hdp/current/oozie-server/libserver'
 
 # LZO
 
 Install the LZO compression library as part of enabling the Oozie Web Console.
 
       @call header: 'LZO', ->
-        @call (_, callback) ->
-          @service
-            name: 'lzo-devel'
-            relax: true
-          , (err) ->
-            @service.remove
-              if: !!err
-              name: 'lzo-devel'
-            @next callback
         @service
-          name: 'hadoop-lzo'
+          name: 'hadooplzo'
         @service
-          name: 'hadoop-lzo-native'
+          name: 'hadooplzo-native'
         lzo_jar = null
         @system.execute
-          cmd: 'ls /usr/hdp/current/share/lzo/*/lib/hadoop-lzo-*.jar'
-        , (err, _, stdout) ->
+          cmd: 'ls /usr/hdp/current/hadoop-client/lib/hadoop-lzo-*.jar | grep -m1 .jar'
+        , (err, {status, stdout}) ->
           return if err
           lzo_jar = stdout.trim()
         @call ->
