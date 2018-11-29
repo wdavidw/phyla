@@ -16,7 +16,8 @@ built atop Apache Hadoop YARN.
         hdfs_client: module: 'ryba/hadoop/hdfs_client', local: true, auto: true, implicit: true
         yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
-        yarn_ts: module: 'ryba/hadoop/yarn_ts', required: true
+        yarn_ts: module: 'ryba/hadoop/yarn_ts'
+        yarn_tr: module: 'ryba/hadoop/yarn_tr'
         yarn_client: module: 'ryba/hadoop/yarn_client', local: true, auto: true, implicit: true
       configure:
         'ryba/tez/configure'

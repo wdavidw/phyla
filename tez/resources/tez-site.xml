@@ -307,13 +307,5 @@
     <description>The size of the buffer when output does not require to be sorted</description>
   </property>
 
-  <property>
-    <name>tez.history.logging.service.class</name>
-    <value>org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService</value>
-    <description>The class to be used for logging history data.
-      Set to org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService to log to ATS
-      Set to org.apache.tez.dag.history.logging.impl.SimpleHistoryLoggingService to log to the filesystem specified by ${fs.defaultFS}
-    </description>
-  </property>
 
 </configuration>

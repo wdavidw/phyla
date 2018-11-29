@@ -91,6 +91,14 @@ Convert [deprecated values][dep] between HDP 2.1 and HDP 2.2.
         options.tez_site[current] = options.tez_site[previous]
         console.log "Deprecated property '#{previous}' [WARN]"
 
+      if service.deps.yarn_ts?.length?
+        if service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.version'] is '1.5'
+          options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService'
+        else
+          options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'
+      else
+        options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.proto.ProtoHistoryLoggingService'
+
 ## Tez Ports
 
 Enrich the Yarn NodeManager with additionnal IPTables rules.
@@ -99,7 +107,6 @@ Enrich the Yarn NodeManager with additionnal IPTables rules.
       options.tez_site['tez.am.client.am.port-range'] ?= '34816-36864'
       for srv in service.deps.yarn_nm
         srv.options.iptables_rules.push { chain: 'INPUT', jump: 'ACCEPT', dport: options.tez_site['tez.am.client.am.port-range'].replace('-',':'), protocol: 'tcp', state: 'NEW', comment: "Tez AM Range" }
-
 
 ## UI
 
@@ -114,15 +121,19 @@ Enrich the Yarn NodeManager with additionnal IPTables rules.
           options.tez_site['tez.tez-ui.history-url.base'] ?= "http://#{service.node.fqdn}/tez-ui"
           options.ui.html_path ?= "#{service.deps.httpd.options.user.home}/tez-ui"
         id = if service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-        options.ui.env.hosts.timeline ?= if service.deps.yarn_ts[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
-        then "http://" + service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.address']
-        else "https://"+ service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
+        if service.deps.yarn_ts?.length?
+          options.ui.env.hosts.timeline ?= if service.deps.yarn_ts[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+          then "http://" + service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.address']
+          else "https://"+ service.deps.yarn_ts[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
+        else
+          options.ui.env.hosts.timeline ?= if service.deps.yarn_tr[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
+          then "http://" + service.deps.yarn_tr[0].options.yarn_site['yarn.timeline-service.webapp.address']
+          else "https://"+ service.deps.yarn_tr[0].options.yarn_site['yarn.timeline-service.webapp.https.address']
         options.ui.env.hosts.rm ?= if service.deps.yarn_rm[0].options.yarn_site['yarn.http.policy'] is 'HTTP_ONLY'
         then "http://" + service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.address#{id}"]
         else "https://"+ service.deps.yarn_rm[0].options.yarn_site["yarn.resourcemanager.webapp.https.address#{id}"]
         ## Tez Site when UI is enabled
         options.tez_site['tez.runtime.convert.user-payload.to.history-text'] ?= 'true'
-        options.tez_site['tez.history.logging.service.class'] ?= 'org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService'
 
 [tez]: http://tez.apache.org/
 [instructions]: (http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.0/HDP_Man_Install_v22/index.html#Item1.8.4)
