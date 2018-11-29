@@ -27,6 +27,7 @@
       options.force_check ?= false
       options.hostname ?= service.node.hostname
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
+      options.nn_url = service.deps.hdfs_client[0].options.nn_url
 
 ## Configuration
 
@@ -44,7 +45,7 @@
       options.mapred_site['mapreduce.admin.user.env'] ?= "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64"
       # [Configurations for MapReduce JobHistory Server](http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/ClusterSetup.html#Configuring_the_Hadoop_Daemons_in_Non-Secure_Mode)
       options.mapred_site['mapreduce.application.framework.path'] ?= "/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"
-      options.mapred_site['mapreduce.application.classpath'] ?= "$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar:/etc/hadoop/conf/secure"
+      options.mapred_site['mapreduce.application.classpath'] ?= "$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar:/usr/hdp/current/hadoop-client/lib/*:/etc/hadoop/conf/secure"
       for property in [
         'yarn.app.mapreduce.am.staging-dir'
         'mapreduce.jobhistory.address'
@@ -130,10 +131,16 @@ Resources:
       reduce_cpu = Math.max rm_cpu_min, reduce_cpu
       options.mapred_site['mapreduce.reduce.cpu.vcores'] = "#{reduce_cpu}"
 
+## Write Data To YARN TimelineV2
+      
+      if service.deps.yarn_tr?[0].options.yarn_site['yarn.timeline-service.version'] is '2.0'
+        options.mapred_site['mapreduce.job.emit-timeline-data'] ?= 'true'
+
 ## Wait
 
       options.wait_mapred_jhs = service.deps.mapred_jhs.options.wait
-      options.wait_yarn_ts = service.deps.yarn_ts.options.wait
+      options.wait_yarn_ts = service.deps.yarn_ts?.options?.wait if service.deps.yarn_ts
+      options.wait_yarn_tr = service.deps.yarn_tr?.options?.wait if service.deps.yarn_tr
       options.wait_yarn_nm = service.deps.yarn_nm[0].options.wait
       options.wait_yarn_rm = service.deps.yarn_rm[0].options.wait
 

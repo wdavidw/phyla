@@ -14,6 +14,7 @@ The URI resources are grouped into APIs based on the type of information returne
         yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
         yarn_ts: module: 'ryba/hadoop/yarn_ts'
+        yarn_tr: module: 'ryba/hadoop/yarn_tr'
       configure:
         'ryba/hadoop/yarn_client/configure'
       commands:

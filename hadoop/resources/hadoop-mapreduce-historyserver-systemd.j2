@@ -2,12 +2,13 @@
 Description=MapReduce JobHistoryServer
 
 [Service]
+Type=forking
 User={{options.user.name}}
 Group={{options.group.name}}
-PIDFile={{options.pid_dir}}/mapred-mapred-historyserver.pid
-ExecStart=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} start historyserver
-ExecReload=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} restart historyserver
-ExecStop=/usr/hdp/current/hadoop-mapreduce-historyserver/sbin/mr-jobhistory-daemon.sh --config {{options.conf_dir}} stop historyserver
+PIDFile={{options.pid_dir}}/hadoop-mapred-historyserver.pid
+ExecStart=/usr/hdp/current/hadoop-mapreduce-historyserver/../hadoop/bin/mapred --config {{options.conf_dir}} --daemon start historyserver
+ExecReload=/usr/hdp/current/hadoop-mapreduce-historyserver/../hadoop/bin/mapred --config {{options.conf_dir}} --daemon restart historyserver
+ExecStop=/usr/hdp/current/hadoop-mapreduce-historyserver/../hadoop/bin/mapred --config {{options.conf_dir}} --daemon stop historyserver
 LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]

@@ -2,12 +2,13 @@
 Description=YARN Timeline Server
 
 [Service]
+Type=forking
 User={{options.user.name}}
 Group={{options.group.name}}
-PIDFile={{options.pid_dir}}/yarn-yarn-timelineserver.pid
-ExecStart=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} start timelineserver
-ExecReload=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} restart timelineserver
-ExecStop=/usr/hdp/current/hadoop-yarn-timelineserver/sbin/yarn-daemon.sh --config {{options.conf_dir}} stop timelineserver
+PIDFile={{options.pid_dir}}/hadoop-yarn-timelineserver.pid
+ExecStart=/usr/hdp/current/hadoop-yarn-timelineserver/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon start timelineserver
+ExecReload=/usr/hdp/current/hadoop-yarn-timelineserver/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon restart timelineserver
+ExecStop=/usr/hdp/current/hadoop-yarn-timelineserver/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon stop timelineserver
 LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]

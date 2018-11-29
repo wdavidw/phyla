@@ -273,11 +273,14 @@ the property must be overriden in a config file to permit it.
       esc_realm = quote options.krb5.realm
       options.core_site['hadoop.security.auth_to_local'] ?= """
 
+            RULE:[2:$1@$0](registry@#{esc_realm})s/.*/yarn/
             RULE:[2:$1@$0]([rn]m@#{esc_realm})s/.*/yarn/
             RULE:[2:$1@$0](jhs@#{esc_realm})s/.*/mapred/
             RULE:[2:$1@$0]([nd]n@#{esc_realm})s/.*/hdfs/
             RULE:[2:$1@$0](hm@#{esc_realm})s/.*/hbase/
             RULE:[2:$1@$0](rs@#{esc_realm})s/.*/hbase/
+            RULE:[2:$1@$0](hbase_rest@#{esc_realm})s/.*/hbase/
+            RULE:[2:$1@$0](yarn-ats-hbase@#{esc_realm})s/.*/yarn-ats/
             RULE:[2:$1@$0](opentsdb@#{esc_realm})s/.*/hbase/
             DEFAULT
             RULE:[1:$1](yarn|mapred|hdfs|hive|hbase|oozie)s/.*/nobody/

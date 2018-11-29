@@ -28,8 +28,8 @@
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-client'
-      options.log_dir ?= '/var/log/hadoop-yarn'
-      options.pid_dir ?= '/var/run/hadoop-yarn'
+      options.log_dir ?= '/var/log/hadoop/yarn'
+      options.pid_dir ?= '/var/run/hadoop/yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-resourcemanager/conf'
       # Java
       options.java_home ?= service.deps.java.options.java_home
@@ -41,6 +41,7 @@
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
+      options.nn_url = service.deps.hdfs_client[0].options.nn_url
 
 ## System Options
 
@@ -69,6 +70,11 @@
       options.yarn_site['yarn.resourcemanager.keytab'] ?= '/etc/security/keytabs/rm.service.keytab'
       options.yarn_site['yarn.resourcemanager.principal'] ?= "rm/_HOST@#{options.krb5.realm}"
       options.yarn_site['yarn.resourcemanager.scheduler.class'] ?= 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
+
+## Yarn TimeLineService Layout
+
+      if service.deps.yarn_tr?.length > 0
+        options.yarn_hbase_embedded ?= service.deps.yarn_tr[0].options.yarn_hbase_embedded
 
 ## Configuration for Memory and CPU
 
@@ -278,6 +284,26 @@ rmr /rmstore/ZKRMStateRoot
       #Current YARN web UI allows anyone to kill any application as long as the user can login to the web UI.
       options.yarn_site['yarn.resourcemanager.webapp.ui-actions.enabled'] ?= 'false'
 
+## HDP3 features
+enable yarn ui 2 (apache YARN 3 feature). availabe at https://master01.metal.ryba:8090/ui2/
+
+      options.yarn_site['yarn.webapp.ui2.enable'] ?= 'true'
+      options.yarn_site['yarn.resourcemanager.placement-constraints.handler'] ?= 'scheduler'
+      #yarn.webapp.ui2.war-file-path is not needed as HDP3 has build yarn with the ui
+
+enable yarn api service
+      
+      options.yarn_site['yarn.webapp.api-service.enable'] ?= 'true'
+
+## ProxyUser
+
+      options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+      options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
+      for srv in [service.deps.hdfs_client..., service.deps.hdfs_nn...]
+        srv.options.core_site ?= {}
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+        srv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
+
 ## SSL
 
       options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
@@ -348,84 +374,23 @@ rmr /rmstore/ZKRMStateRoot
           logj4: options.log4j.properties
           properties: options.log4j.socket_opts
 
-## Import/Export to Yarn Timeline Server
+## Run docker container on YARN
+With YARN 3.1.0, docker container can be launched by nodemanager.
+      
+      # options.yarn_site['module.enabled'] ?= 'true'
+      # options.yarn_site['docker.binary'] ?= '/usr/bin/docker'
+      # options.yarn_site['docker.allowed.capabilities'] ?= ''
+      # options.yarn_site['docker.allowed.devices'] ?= ''
+      # options.yarn_site['docker.allowed.networks'] ?= 'host,default'
+      # options.yarn_site['docker.allowed.ro-mounts'] ?= '/sys/fs/cgroup'
+      # options.yarn_site['docker.allowed.rw-mounts'] ?= '/sys/fs/cgroup,/data/1/yarn/local,/data/2/yarn/local,/data/1/yarn/log,/data/2/yarn/log'
+      # options.yarn_site['docker.host-pid-namespace.enabled'] ?= 'false'
+      # options.yarn_site['docker.privileged-containers.enabled'] ?= 'false'
+      # options.yarn_site['docker.privileged-containers.registries'] ?= 'bakalian.ryba:5000,bakalian.ryba'
 
-      # Import
-      for property in [
-        'yarn.timeline-service.enabled'
-        'yarn.timeline-service.address'
-        'yarn.timeline-service.webapp.address'
-        'yarn.timeline-service.webapp.https.address'
-        'yarn.timeline-service.principal'
-        'yarn.timeline-service.http-authentication.type'
-        'yarn.timeline-service.http-authentication.kerberos.principal'
-        'yarn.timeline-service.version'
-        'yarn.timeline-service.store-class'
-        'yarn.timeline-service.entity-group-fs-store.active-dir'
-        'yarn.timeline-service.entity-group-fs-store.done-dir'
-        'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes'
-        'yarn.timeline-service.entity-group-fs-store.summary-store'
-        'yarn.timeline-service.ttl-enable'
-        'yarn.timeline-service.ttl-ms'
-        'yarn.generic-application-history.save-non-am-container-meta-info'
-      ]
-        options.yarn_site[property] ?= if service.deps.yarn_ts then service.deps.yarn_ts.options.yarn_site[property] else null
-      # Export
-      service.deps.yarn_ts.options.yarn_site ?= {}
-      service.deps.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
-      id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-      for property in [
-        'yarn.nodemanager.remote-app-log-dir'
-        'yarn.nodemanager.remote-app-log-dir-suffix'
-        'yarn.log-aggregation-enable'
-        'yarn.log-aggregation.retain-seconds'
-        'yarn.log-aggregation.retain-check-interval-seconds'
-        'yarn.generic-application-history.save-non-am-container-meta-info'
-        'yarn.http.policy'
-        'yarn.log.server.url'
-        'yarn.resourcemanager.principal'
-        'yarn.resourcemanager.cluster-id'
-        'yarn.nodemanager.remote-app-log-dir'
-        'yarn.nodemanager.remote-app-log-dir-suffix'
-        'yarn.log-aggregation-enable'
-        'yarn.resourcemanager.ha.enabled'
-        'yarn.resourcemanager.ha.rm-ids'
-        'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
-        "yarn.resourcemanager.address#{id}"
-        "yarn.resourcemanager.scheduler.address#{id}"
-        "yarn.resourcemanager.admin.address#{id}"
-        "yarn.resourcemanager.webapp.address#{id}"
-        "yarn.resourcemanager.webapp.https.address#{id}"
-        "yarn.resourcemanager.resource-tracker.address#{id}"
-      ]
-        service.deps.yarn_ts.options.yarn_site[property] ?= options.yarn_site[property]
-
-## Export to Yarn NodeManager
-
-      for srv in service.deps.yarn_nm
-        id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
-        for property in [
-          'yarn.http.policy'
-          'yarn.log.server.url'
-          'yarn.resourcemanager.principal'
-          'yarn.resourcemanager.cluster-id'
-          'yarn.nodemanager.remote-app-log-dir'
-          'yarn.nodemanager.remote-app-log-dir-suffix'
-          'yarn.log-aggregation-enable'
-          'yarn.resourcemanager.ha.enabled'
-          'yarn.resourcemanager.ha.rm-ids'
-          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
-          "yarn.resourcemanager.address#{id}"
-          "yarn.resourcemanager.scheduler.address#{id}"
-          "yarn.resourcemanager.admin.address#{id}"
-          "yarn.resourcemanager.webapp.address#{id}"
-          "yarn.resourcemanager.webapp.https.address#{id}"
-          "yarn.resourcemanager.resource-tracker.address#{id}"
-        ]
-          srv.options.yarn_site[property] ?= options.yarn_site[property]
 
 ## Export to Mapreduce HistoryServer
-
+      
       id = if options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
       for property in [
         'yarn.http.policy'
@@ -455,7 +420,6 @@ rmr /rmstore/ZKRMStateRoot
       options.wait_krb5_client = service.deps.krb5_client.options.wait
       options.wait_zookeeper_server = service.deps.zookeeper_server[0].options.wait
       options.wait_hdfs_dn = service.deps.hdfs_dn[0].options.wait
-      options.wait_yarn_ts = service.deps.yarn_ts.options.wait
       options.wait_mapred_jhs = service.deps.mapred_jhs.options.wait
       options.wait = {}
       options.wait.tcp = for srv in service.deps.yarn_rm

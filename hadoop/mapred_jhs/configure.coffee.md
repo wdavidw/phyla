@@ -23,8 +23,8 @@
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-nodemanager'
-      options.log_dir ?= '/var/log/hadoop-mapreduce'
-      options.pid_dir ?= '/var/run/hadoop-mapreduce'
+      options.log_dir ?= '/var/log/hadoop/mapreduce'
+      options.pid_dir ?= '/var/run/hadoop/mapreduce'
       options.conf_dir ?= '/etc/hadoop-mapreduce-historyserver/conf'
       # Java
       options.java_home ?= service.deps.java.options.java_home

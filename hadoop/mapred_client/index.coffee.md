@@ -18,7 +18,8 @@ The output list can then be saved to the distributed filesystem, and the reducer
         yarn_client: module: 'ryba/hadoop/yarn_client', required: true
         yarn_nm: module: 'ryba/hadoop/yarn_nm', required: true
         yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
-        yarn_ts: module: 'ryba/hadoop/yarn_ts', required: true, single: true
+        yarn_tr: module: 'ryba/hadoop/yarn_tr'
+        yarn_ts: module: 'ryba/hadoop/yarn_ts', single: true
         mapred_jhs: module: 'ryba/hadoop/mapred_jhs', single: true
       configure:
         'ryba/hadoop/mapred_client/configure'

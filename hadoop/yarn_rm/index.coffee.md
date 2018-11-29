@@ -12,9 +12,8 @@
         zookeeper_server: module: 'ryba/zookeeper/server'
         hdfs_client: module: 'ryba/hadoop/hdfs_client', required: true
         hdfs_dn: module: 'ryba/hadoop/hdfs_dn', required: true
+        hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         mapred_jhs: module: 'ryba/hadoop/mapred_jhs', single: true
-        yarn_ts: module: 'ryba/hadoop/yarn_ts', single: true
-        yarn_nm: module: 'ryba/hadoop/yarn_nm'
         yarn_rm: module: 'ryba/hadoop/yarn_rm'
         ranger_admin: module: 'ryba/ranger/admin'
         metrics: module: 'ryba/metrics', local: true
@@ -32,6 +31,7 @@
         ]
         'install': [
           'ryba/hadoop/yarn_rm/install'
+          'ryba/hadoop/yarn_rm/hbase_client'
           'ryba/hadoop/yarn_rm/scheduler'
           'ryba/hadoop/yarn_rm/start'
           'ryba/hadoop/yarn_rm/check'

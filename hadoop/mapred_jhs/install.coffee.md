@@ -142,12 +142,11 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
         local: true
         context:
           HADOOP_HEAPSIZE: options.hadoop_heap
-          HADOOP_LOG_DIR: ''
           HADOOP_PID_DIR: options.pid_dir
           HADOOP_OPTS: options.hadoop_opts
           HADOOP_CLIENT_OPTS: options.hadoop_client_opts
-          HADOOP_MAPRED_LOG_DIR: options.log_dir
-          HADOOP_MAPRED_PID_DIR: options.pid_dir
+          HADOOP_LOG_DIR: options.log_dir
+          HADOOP_PID_DIR: options.pid_dir
           java_home: options.java_home
         uid: options.user.name
         gid: options.hadoop_group.name
@@ -157,7 +156,13 @@ Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
         header: 'MapRed Env'
         target: "#{options.conf_dir}/mapred-env.sh"
         source: "#{__dirname}/../resources/mapred-env.sh.j2"
-        context: options: options
+        context:
+          HADOOP_HEAPSIZE: options.hadoop_heap
+          HADOOP_PID_DIR: options.pid_dir
+          HADOOP_OPTS: options.hadoop_opts
+          HADOOP_CLIENT_OPTS: options.hadoop_client_opts
+          HADOOP_LOG_DIR: options.log_dir
+          HADOOP_PID_DIR: options.pid_dir
         local: true
         uid: options.user.name
         gid: options.hadoop_group.name

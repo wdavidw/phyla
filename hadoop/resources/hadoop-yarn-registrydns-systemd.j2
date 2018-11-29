@@ -1,0 +1,15 @@
+[Unit]
+Description=YARN Registry DNS Server
+
+[Service]
+Type=forking
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/hadoop-yarn-registrydns.pid
+ExecStart=/usr/hdp/current/hadoop-yarn-registrydns/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon start registrydns
+ExecReload=/usr/hdp/current/hadoop-yarn-registrydns/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon restart registrydns
+ExecStop=/usr/hdp/current/hadoop-yarn-registrydns/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon stop registrydns
+LimitNOFILE={{options.user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target

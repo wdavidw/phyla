@@ -1,23 +1,21 @@
+export HADOOP_YARN_HOME={{hadoop_yarn_home}}
+export HADOOP_LOG_DIR={{yarn_log_dir}}
+export HADOOP_SECURE_LOG_DIR={{yarn_log_dir}}
+export HADOOP_PID_DIR={{yarn_pid_dir}}
+export HADOOP_SECURE_PID_DIR={{yarn_pid_dir}}
+export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
+export JAVA_HOME={{java64_home}}
+export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
 
-export HADOOP_YARN_HOME={{HADOOP_YARN_HOME}}
-export YARN_LOG_DIR={{YARN_LOG_DIR}}
-export YARN_PID_DIR={{YARN_PID_DIR}}
-export HADOOP_LIBEXEC_DIR={{HADOOP_LIBEXEC_DIR}}
-export JAVA_HOME={{JAVA_HOME}}
-
-# We need to add the EWMA appender for the yarn daemons only;
-# however, YARN_ROOT_LOGGER is shared by the yarn client and the
+# We need to add the EWMA and RFA appender for the yarn daemons only;
+# however, HADOOP_ROOT_LOGGER is shared by the yarn client and the
 # daemons. This is restrict the EWMA appender to daemons only.
-INVOKER="${0##*/}"
-if [ "$INVOKER" == "yarn-daemon.sh" ]; then
-  export YARN_ROOT_LOGGER=${YARN_ROOT_LOGGER:-{{YARN_ROOT_LOGGER}}}
-fi
+export HADOOP_LOGLEVEL=${HADOOP_LOGLEVEL:-INFO}
+export HADOOP_ROOT_LOGGER=${HADOOP_ROOT_LOGGER:-INFO,console}
+export HADOOP_DAEMON_ROOT_LOGGER=${HADOOP_DAEMON_ROOT_LOGGER:-${HADOOP_LOGLEVEL},EWMA,RFA}
 
 # User for YARN daemons
 export HADOOP_YARN_USER=${HADOOP_YARN_USER:-yarn}
-
-# resolve links - $0 may be a softlink
-export YARN_CONF_DIR="${YARN_CONF_DIR:-$HADOOP_YARN_HOME/conf}"
 
 # some Java parameters
 # export JAVA_HOME=/home/y/libexec/jdk1.6.0/
@@ -36,11 +34,11 @@ JAVA_HEAP_MAX=-Xmx1000m
 
 # For setting YARN specific HEAP sizes please use this
 # Parameter and set appropriately
-#YARN_HEAPSIZE={{YARN_HEAPSIZE}}
+YARN_HEAPSIZE={{yarn_heapsize}}
 
 # check envvars which might override default args
 if [ "$YARN_HEAPSIZE" != "" ]; then
-JAVA_HEAP_MAX="-Xmx""$YARN_HEAPSIZE"
+JAVA_HEAP_MAX="-Xmx""$YARN_HEAPSIZE""m"
 fi
 
 # Resource Manager specific parameters
@@ -48,64 +46,66 @@ fi
 # Specify the max Heapsize for the ResourceManager using a numerical value
 # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
 # the value to 1000.
-# This value will be overridden by an Xmx setting specified in either YARN_OPTS
+# This value will be overridden by an Xmx setting specified in either HADOOP_OPTS
 # and/or YARN_RESOURCEMANAGER_OPTS.
 # If not specified, the default value will be picked from either YARN_HEAPMAX
 # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-# pass all options using YARN_RESOURCEMANAGER_OPTS
-#export YARN_RESOURCEMANAGER_HEAPSIZE={{YARN_RESOURCEMANAGER_HEAPSIZE}}
+export YARN_RESOURCEMANAGER_HEAPSIZE={{resourcemanager_heapsize}}
 
 # Specify the JVM options to be used when starting the ResourceManager.
-# These options will be appended to the options specified as YARN_OPTS
-# and therefore may override any similar flags set in YARN_OPTS
-#export YARN_RESOURCEMANAGER_OPTS=
-
-# Ryba: user defined YARN RM options
-export YARN_RESOURCEMANAGER_OPTS="${YARN_RESOURCEMANAGER_OPTS} {{YARN_RESOURCEMANAGER_OPTS}}" # RYBA CONF "ryba.yarn.rm.opts", DONT OVERWRITE"
+# These options will be appended to the options specified as HADOOP_OPTS
+# and therefore may override any similar flags set in HADOOP_OPTS
+{% if security_enabled %}
+export YARN_RESOURCEMANAGER_OPTS="-Djava.security.auth.login.config={{yarn_jaas_file}}"
+{% endif %}
 
 # Node Manager specific parameters
 
 # Specify the max Heapsize for the NodeManager using a numerical value
 # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
 # the value to 1000.
-# This value will be overridden by an Xmx setting specified in either YARN_OPTS
+# This value will be overridden by an Xmx setting specified in either HADOOP_OPTS
 # and/or YARN_NODEMANAGER_OPTS.
 # If not specified, the default value will be picked from either YARN_HEAPMAX
 # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-# pass all options using YARN_NODEMANAGER_OPTS
-#export YARN_NODEMANAGER_HEAPSIZE={{YARN_NODEMANAGER_HEAPSIZE}}
+export YARN_NODEMANAGER_HEAPSIZE={{nodemanager_heapsize}}
 
-# Specify the max Heapsize for the HistoryManager using a numerical value
+# Specify the max Heapsize for the timeline server using a numerical value
 # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
 # the value to 1024.
-# This value will be overridden by an Xmx setting specified in either YARN_OPTS
-# and/or YARN_HISTORYSERVER_OPTS.
+# This value will be overridden by an Xmx setting specified in either HADOOP_OPTS
+# and/or YARN_TIMELINESERVER_OPTS.
 # If not specified, the default value will be picked from either YARN_HEAPMAX
 # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-# pass all options using YARN_HISTORYSERVER_OPTS
-# export YARN_HISTORYSERVER_HEAPSIZE={{YARN_HISTORYSERVER_HEAPSIZE}}
-# Ryba: user defined YARN RM options
-export YARN_HISTORYSERVER_OPTS="${YARN_HISTORYSERVER_OPTS} {{YARN_HISTORYSERVER_OPTS}}" # RYBA CONF "ryba.yarn.ats.opts", DONT OVERWRITE"
+export YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}
+
+{% if security_enabled %}
+export YARN_TIMELINESERVER_OPTS="-Djava.security.auth.login.config={{yarn_ats_jaas_file}}"
+{% endif %}
+
+{% if security_enabled %}
+export YARN_TIMELINEREADER_OPTS="-Djava.security.auth.login.config={{yarn_ats_jaas_file}}"
+{% endif %}
+
+{% if security_enabled %}
+export YARN_REGISTRYDNS_OPTS="-Djava.security.auth.login.config={{yarn_registry_dns_jaas_file}}"
+{% endif %}
 
 # Specify the JVM options to be used when starting the NodeManager.
-# These options will be appended to the options specified as YARN_OPTS
-# and therefore may override any similar flags set in YARN_OPTS
-#export YARN_NODEMANAGER_OPTS=
-
-# Ryba: user defined YARN NM options
-export YARN_NODEMANAGER_OPTS="{{YARN_NODEMANAGER_OPTS}}" # RYBA CONF "yarn.nm.opts", DONT OVERWRITE"
-export YARN_TIMELINESERVER_OPTS="{{YARN_TIMELINESERVER_OPTS}}" # RYBA CONF "yarn.ts.opts", DONT OVERWRITE"
+# These options will be appended to the options specified as HADOOP_OPTS
+# and therefore may override any similar flags set in HADOOP_OPTS
+{% if security_enabled %}
+export YARN_NODEMANAGER_OPTS="-Djava.security.auth.login.config={{yarn_nm_jaas_file}} -Dsun.security.krb5.rcache=none"
+{% endif %}
 
 # so that filenames w/ spaces are handled correctly in loops below
 IFS=
-
-
 # default log directory and file
-if [ "$YARN_LOG_DIR" = "" ]; then
-YARN_LOG_DIR="$HADOOP_YARN_HOME/logs"
+if [ "$HADOOP_LOG_DIR" = "" ]; then
+HADOOP_LOG_DIR="$HADOOP_YARN_HOME/logs"
 fi
-if [ "$YARN_LOGFILE" = "" ]; then
-YARN_LOGFILE='yarn.log'
+if [ "$HADOOP_LOGFILE" = "" ]; then
+HADOOP_LOGFILE='yarn.log'
 fi
 
 # default policy file for service-level authorization
@@ -116,21 +116,31 @@ fi
 # restore ordinary behaviour
 unset IFS
 
-# Imported from old templating system but might no longer be necessary
-YARN_IDENT_STRING=${YARN_IDENT_STRING:-yarn} # RYBA FIX rc.d
+# YARN now uses specific subcommand options of the pattern (command)_(subcommand)_OPTS for every
+# component. Because of this, HADDOP_OPTS is now used as a simple way to specify common properties
+# between all YARN components.
+HADOOP_OPTS="$HADOOP_OPTS -Dyarn.id.str=$YARN_IDENT_STRING"
+HADOOP_OPTS="$HADOOP_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
+HADOOP_OPTS="$HADOOP_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
 
-YARN_OPTS="$YARN_OPTS -Dhadoop.log.dir=$YARN_LOG_DIR"
-YARN_OPTS="$YARN_OPTS -Dyarn.log.dir=$YARN_LOG_DIR"
-YARN_OPTS="$YARN_OPTS -Dhadoop.log.file=$YARN_LOGFILE"
-YARN_OPTS="$YARN_OPTS -Dyarn.log.file=$YARN_LOGFILE"
-YARN_OPTS="$YARN_OPTS -Dyarn.home.dir=$YARN_COMMON_HOME"
-YARN_OPTS="$YARN_OPTS -Dyarn.id.str=$YARN_IDENT_STRING"
-YARN_OPTS="$YARN_OPTS -Dhadoop.root.logger=${YARN_ROOT_LOGGER:-INFO,console}"
-YARN_OPTS="$YARN_OPTS -Dyarn.root.logger=${YARN_ROOT_LOGGER:-INFO,console}"
+{% if security_enabled %}
+HADOOP_OPTS="$HADOOP_OPTS -Djavax.security.auth.useSubjectCredsOnly=false"
+{% endif %}
+
+export YARN_NODEMANAGER_OPTS="$YARN_NODEMANAGER_OPTS -Dnm.audit.logger=INFO,NMAUDIT {{YARN_NODEMANAGER_OPTS}}"
+export YARN_RESOURCEMANAGER_OPTS="$YARN_RESOURCEMANAGER_OPTS -Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY -Drm.audit.logger=INFO,RMAUDIT {{YARN_RESOURCEMANAGER_OPTS}}"
+export YARN_TIMELINESERVER_OPTS="$YARN_TIMELINESERVER_OPTS {{YARN_TIMELINESERVER_OPTS}}"
+
 if [ "x$JAVA_LIBRARY_PATH" != "x" ]; then
-YARN_OPTS="$YARN_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
+HADOOP_OPTS="$HADOOP_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
 fi
-YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
 
-# Ryba: user defined YARN options
-export YARN_OPTS="${YARN_OPTS} {{YARN_OPTS}}" # RYBA CONF "ryba.yarn.opts", DONT OVERWRITE"
+{% if registry_dns_needs_privileged_access %}
+# If the DNS server is configured to use the standard privileged port 53,
+# the environment variables YARN_REGISTRYDNS_SECURE_USER and
+# YARN_REGISTRYDNS_SECURE_EXTRA_OPTS must be set.
+export YARN_REGISTRYDNS_SECURE_USER={{yarn_user}}
+export YARN_REGISTRYDNS_SECURE_EXTRA_OPTS="-jvm server"
+{% endif %}
+
+export CLASSPATH="$CLASSPATH:/usr/hdp/current/hadoop-yarn-nodemanager/*:/usr/hdp/current/hadoop-yarn-timelineserver/*"

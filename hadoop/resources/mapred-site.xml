@@ -95,11 +95,6 @@
     <description></description>
   </property>
 
-  <property>
-    <name>mapreduce.job.emit-timeline-data</name>
-    <value>false</value>
-    <description></description>
-  </property>
 
   <property>
     <name>mapreduce.jobhistory.bind-host</name>

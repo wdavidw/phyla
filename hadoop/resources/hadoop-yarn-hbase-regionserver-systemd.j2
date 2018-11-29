@@ -1,0 +1,15 @@
+[Unit]
+Description=YARN ATS HBase Region server
+
+[Service]
+Type=forking
+User={{options.ats_user.name}}
+Group={{options.ats_group.name}}
+PIDFile={{options.pid_dir}}/hbase-{{options.ats_user.name}}-regionserver.pid
+ExecStart=/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config {{options.conf_dir}} start regionserver
+ExecReload=/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config {{options.conf_dir}} restart regionserver
+ExecStop=/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config {{options.conf_dir}} stop regionserver
+LimitNOFILE={{options.user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target

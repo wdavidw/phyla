@@ -2,12 +2,14 @@
 # MapReduce Install
 
     module.exports = header: 'MapReduce Client Install', handler: ({options}) ->
+      version = null
 
 ## Register
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
       @registry.register 'hdfs_upload', 'ryba/lib/hdfs_upload'
+      @registry.register ['hdfs','put'], 'ryba/lib/actions/hdfs/put'
 
 ## IPTables
 
@@ -40,6 +42,14 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
           name: 'hadoop-mapreduce'
         @hdp_select
           name: 'hadoop-client'
+        @system.execute
+          shy: true
+          cmd: """
+          hdp-select versions | tail -1
+          """
+         , (err, {status, stdout}) ->
+            throw err if err
+            version = stdout.trim()
 
       @hconfigure
         header: 'Configuration'
@@ -57,14 +67,22 @@ Upload the MapReduce tarball inside the "/hdp/apps/$version/mapreduce"
 HDFS directory. Note, the parent directories are created by the
 "ryba/hadoop/hdfs_dn/layout" module.
 
-      @hdfs_upload
+      # @hdfs_upload
+      #   header: 'HDFS Tarballs'
+      #   wait: 60*1000
+      #   id: options.hostname
+      #   lock: '/tmp/ryba-mapreduce.lock'
+      #   krb5_user: options.hdfs_krb5_user
+      @call
         header: 'HDFS Tarballs'
-        wait: 60*1000
-        source: '/usr/hdp/current/hadoop-client/mapreduce.tar.gz'
-        target: '/hdp/apps/$version/mapreduce/mapreduce.tar.gz'
-        id: options.hostname
-        lock: '/tmp/ryba-mapreduce.lock'
-        krb5_user: options.hdfs_krb5_user
+      , ->
+        @hdfs.put
+          header: 'HDFS Tarballs'
+          source: '/usr/hdp/current/hadoop-client/mapreduce.tar.gz'
+          target: "/hdp/apps/#{version}/mapreduce/mapreduce.tar.gz"
+          nn_url: options.nn_url
+          krb5_user: options.hdfs_krb5_user
+          mode: '444'
 
 ## Ulimit
 

@@ -1,0 +1,15 @@
+[Unit]
+Description=YARN Timeline Server
+
+[Service]
+Type=forking
+User={{options.user.name}}
+Group={{options.group.name}}
+PIDFile={{options.pid_dir}}/hadoop-yarn-timelinereader.pid
+ExecStart=/usr/hdp/current/hadoop-yarn-timelinereader/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon start timelinereader
+ExecReload=/usr/hdp/current/hadoop-yarn-timelinereader/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon restart timelinereader
+ExecStop=/usr/hdp/current/hadoop-yarn-timelinereader/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon stop timelinereader
+LimitNOFILE={{options.user.limits.nofile}}
+
+[Install]
+WantedBy=multi-user.target

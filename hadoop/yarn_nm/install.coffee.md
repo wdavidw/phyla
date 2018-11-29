@@ -7,6 +7,7 @@
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
+      @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
 
 ## Wait
 
@@ -49,6 +50,7 @@ inside "/etc/init.d" and activate it on startup.
         @hdp_select
           # name: 'hadoop-yarn-client' # Not checked
           name: 'hadoop-yarn-nodemanager'
+            gid: options.hadoop_group.name
         @service.init
           if_os: name: ['redhat','centos'], version: '6'
           header: 'Initd Script'
@@ -108,6 +110,7 @@ inside "/etc/init.d" and activate it on startup.
             code_skipped: 3
 
       @call header: 'Layout', ->
+        leveldb_jar = null
         @system.mkdir
           target: "#{options.conf_dir}"
         @system.mkdir
@@ -138,6 +141,25 @@ inside "/etc/init.d" and activate it on startup.
           gid: options.hadoop_group.name
           mode: 0o0750
           parent: true
+        @system.mkdir
+          target: "#{options.log_dir}/tmp" 
+          uid: options.user.name
+          gid: options.hadoop_group.name
+          mode: 0o0750
+          parent: true
+        @call ->
+          @system.execute
+            cmd: 'ls /usr/hdp/current/hadoop-hdfs-client/lib/leveldbjni*  | tail -n1'
+          , (err, data) ->
+            return cb err if err
+            leveldb_jar = data.stdout.trim()
+        @call ->
+          @system.copy
+            header: 'Copy leveldb jar'
+            source: leveldb_jar
+            target: "#{options.log_dir}/tmp/#{path.basename leveldb_jar}"
+            uid: options.user.name
+            gid: options.hadoop_group.name
 
 ## Capacity Planning
 
@@ -193,13 +215,17 @@ SSH connection to the node to gather the memory and CPU informations.
           source: "#{__dirname}/../resources/yarn-env.sh.j2"
           local: true
           context:
-            JAVA_HOME: options.java_home
-            HADOOP_YARN_HOME: options.home
-            YARN_LOG_DIR: options.log_dir
-            YARN_PID_DIR: options.pid_dir
-            HADOOP_LIBEXEC_DIR: options.libexec
-            YARN_HEAPSIZE: options.heapsize
-            YARN_NODEMANAGER_HEAPSIZE: options.heapsize
+            security_enabled: options.krb5.realm?
+            hadoop_yarn_home: options.home
+            java64_home: options.java_home
+            yarn_log_dir: options.log_dir
+            yarn_pid_dir: options.pid_dir
+            hadoop_libexec_dir: ''
+            hadoop_java_io_tmpdir: "#{options.log_dir}/tmp"
+            yarn_heapsize: options.heapsize
+            nodemanager_heapsize: options.heapsize
+            yarn_nm_jaas_file: "#{options.conf_dir}/yarn-nm.jaas"
+            # ryba options
             YARN_NODEMANAGER_OPTS: YARN_NODEMANAGER_OPTS
             YARN_OPTS: options.java_opts
           uid: options.user.name
@@ -220,6 +246,20 @@ SSH connection to the node to gather the memory and CPU informations.
         mode: 0o750
         backup: true
         eof: true
+
+## Kerberos JAAS
+
+The JAAS file is used by the ResourceManager to initiate a secure connection 
+with Zookeeper.
+
+      @file.jaas
+        header: 'Kerberos JAAS'
+        target: "#{options.conf_dir}/yarn-nm.jaas"
+        content: Client:
+          principal: options.yarn_site['yarn.nodemanager.principal'].replace '_HOST', options.fqdn
+          keyTab: options.yarn_site['yarn.nodemanager.keytab']
+        uid: options.user.name
+        gid: options.hadoop_group.name
 
 Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collector like Ganglia or Graphite.
 
@@ -251,7 +291,7 @@ but is owned by 2401"
         @system.mkdir
           target: "#{options.conf_dir}"
           uid: 'root'
-          gid: ce_group
+          gid: 'root'
         # The path seems to be hardcoded into
         # "/usr/hdp/current/hadoop-yarn-nodemanager/etc/hadoop/container-executor.cfg"
         # which point to
@@ -404,3 +444,4 @@ Layout is inspired by [Hadoop recommandation](http://hadoop.apache.org/docs/r2.1
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
+    path = require 'path'

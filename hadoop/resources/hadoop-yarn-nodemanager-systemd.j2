@@ -4,10 +4,10 @@ Description=Yarn NodeManager
 [Service]
 User={{options.user.name}}
 Group={{options.group.name}}
-PIDFile={{options.pid_dir}}/yarn-yarn-nodemanager.pid
-ExecStart=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} start nodemanager
-ExecReload=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} restart nodemanager
-ExecStop=/usr/hdp/current/hadoop-yarn-nodemanager/sbin/yarn-daemon.sh --config {{options.conf_dir}} stop nodemanager
+PIDFile={{options.pid_dir}}/hadoop-yarn-nodemanager.pid
+ExecStart=/usr/hdp/current/hadoop-yarn-nodemanager/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon start nodemanager
+ExecReload=/usr/hdp/current/hadoop-yarn-nodemanager/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon restart nodemanager
+ExecStop=/usr/hdp/current/hadoop-yarn-nodemanager/../hadoop/bin/yarn --config {{options.conf_dir}} --daemon stop nodemanager
 LimitNOFILE={{options.user.limits.nofile}}
 
 [Install]

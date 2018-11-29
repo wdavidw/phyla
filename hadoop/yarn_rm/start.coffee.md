@@ -20,7 +20,8 @@ the history of MR jobs from there.
       @call 'masson/core/krb5_client/wait', once: true, options.wait_krb5_client
       @call 'ryba/zookeeper/server/wait', once: true, options.wait_zookeeper_server
       @call 'ryba/hadoop/hdfs_dn/wait', once: true, options.wait_hdfs_dn
-      @call 'ryba/hadoop/yarn_ts/wait', once: true, options.wait_yarn_ts
+      if options.wait_yarn_ts
+        @call 'ryba/hadoop/yarn_ts/wait', once: true, options.wait_yarn_ts
       @call 'ryba/hadoop/mapred_jhs/wait', once: true, options.wait_mapred_jhs
 
 ## Cleanup

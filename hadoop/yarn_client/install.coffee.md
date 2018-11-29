@@ -61,10 +61,14 @@ Properties accepted by the template are: `ryba.yarn.rm_opts`
         source: "#{__dirname}/../resources/yarn-env.sh.j2"
         local: true
         context:
-          JAVA_HOME: options.java_home
-          HADOOP_YARN_HOME: options.home
-          YARN_HEAPSIZE: options.heapsize
-          YARN_OPTS: options.opts
+            security_enabled: options.krb5?.realm?
+            hadoop_yarn_home: options.home
+            java64_home: options.java_home
+            hadoop_libexec_dir: ''
+            hadoop_java_io_tmpdir: "#{options.log_dir}/tmp"
+            yarn_heapsize: options.heapsize
+            # ryba options
+            YARN_OPTS: options.opts
         uid: options.user.name
         gid: options.group.name
         mode: 0o0755

@@ -10,6 +10,10 @@ co-located with any other service.
 
       @registry.register 'hconfigure', 'ryba/lib/hconfigure'
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
+      @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
+      @registry.register ['hdfs','put'], 'ryba/lib/actions/hdfs/put'
+      @registry.register ['hdfs','chown'], 'ryba/lib/actions/hdfs/chown'
+      @registry.register ['hdfs','mkdir'], 'ryba/lib/actions/hdfs/mkdir'      
 
 ## Identities
 
@@ -92,6 +96,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 # Layout
 
       @call header: 'Layout', ->
+        leveldb_jar = null
         @system.mkdir
           target: "#{options.conf_dir}"
         @system.mkdir
@@ -110,6 +115,25 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
           gid: options.hadoop_group.name
           mode: 0o0750
           parent: true
+        @system.mkdir
+          target: "#{options.log_dir}/tmp" 
+          uid: options.user.name
+          gid: options.hadoop_group.name
+          mode: 0o0750
+          parent: true
+        @call ->
+          @system.execute
+            cmd: 'ls /usr/hdp/current/hadoop-hdfs-client/lib/leveldbjni*  | tail -n1'
+          , (err, data) ->
+            return cb err if err
+            leveldb_jar = data.stdout.trim()
+        @call ->
+          @system.copy
+            header: 'Copy leveldb jar'
+            source: leveldb_jar
+            target: "#{options.log_dir}/tmp/#{path.basename leveldb_jar}"
+            uid: options.user.name
+            gid: options.hadoop_group.name
 
 ## Configuration
 
@@ -146,14 +170,17 @@ Update the "yarn-site.xml" configuration file.
           source: "#{__dirname}/../resources/yarn-env.sh.j2"
           local: true
           context:
-            JAVA_HOME: options.java_home
-            HADOOP_YARN_HOME: options.home
-            YARN_LOG_DIR: options.log_dir
-            YARN_PID_DIR: options.pid_dir
-            HADOOP_LIBEXEC_DIR: ''
-            YARN_HEAPSIZE: options.heapsize
-            YARN_HISTORYSERVER_HEAPSIZE: options.heapsize
-            YARN_HISTORYSERVER_OPTS: YARN_TIMELINESERVER_OPTS
+            security_enabled: options.krb5.realm?
+            hadoop_yarn_home: options.home
+            java64_home: options.java_home
+            yarn_log_dir: options.log_dir
+            yarn_pid_dir: options.pid_dir
+            hadoop_libexec_dir: ''
+            hadoop_java_io_tmpdir: "#{options.log_dir}/tmp"
+            yarn_heapsize: options.heapsize
+            apptimelineserver_heapsize: options.heapsize
+            yarn_ats_jaas_file: "#{options.conf_dir}/yarn-ats.jaas"
+            # ryba options
             YARN_TIMELINESERVER_OPTS: YARN_TIMELINESERVER_OPTS
           uid: options.user.name
           gid: options.hadoop_group.name
@@ -180,7 +207,7 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
         header: 'Metrics'
         target: "#{options.conf_dir}/hadoop-metrics2.properties"
         content: options.metrics.config
-        backup: true
+        backup: true      
 
 # HDFS Layout
 
@@ -268,6 +295,20 @@ Create the Kerberos service principal by default in the form of
         uid: options.user.name
         gid: options.group.name
         mode: 0o0600
+
+## Kerberos JAAS
+
+The JAAS file is used by the ResourceManager to initiate a secure connection 
+with Zookeeper.
+
+      @file.jaas
+        header: 'Kerberos JAAS'
+        target: "#{options.conf_dir}/yarn-ats.jaas"
+        content: Client:
+          principal: options.yarn_site['yarn.timeline-service.principal'].replace '_HOST', options.fqdn
+          keyTab: options.yarn_site['yarn.timeline-service.keytab']
+        uid: options.user.name
+        gid: options.hadoop_group.name
 
 ## Dependencies
 

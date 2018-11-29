@@ -21,6 +21,9 @@ applications.
         hdfs_nn: module: 'ryba/hadoop/hdfs_nn', required: true
         ranger_admin: module: 'ryba/ranger/admin'
         yarn_nm: module: 'ryba/hadoop/yarn_nm'
+        yarn_ts: module: 'ryba/hadoop/yarn_ts', single: true
+        yarn_tr: module: 'ryba/hadoop/yarn_tr'
+        yarn_rm: module: 'ryba/hadoop/yarn_rm', required: true
         metrics: module: 'ryba/metrics', local: true
       configure:
         'ryba/hadoop/yarn_nm/configure'

@@ -9,6 +9,8 @@
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
+      @registry.register ['file', 'jaas'], 'ryba/lib/file_jaas'
+      @registry.register ['hdfs','mkdir'], 'ryba/lib/actions/hdfs/mkdir'      
 
 ## Identities
 
@@ -177,13 +179,17 @@ inside "/etc/init.d" and activate it on startup.
           source: "#{__dirname}/../resources/yarn-env.sh.j2"
           local: true
           context:
-            JAVA_HOME: options.java_home
-            HADOOP_YARN_HOME: options.home
-            YARN_LOG_DIR: options.log_dir
-            YARN_PID_DIR: options.pid_dir
-            HADOOP_LIBEXEC_DIR: ''
-            YARN_HEAPSIZE: options.heapsize
-            YARN_RESOURCEMANAGER_HEAPSIZE: options.heapsize
+            security_enabled: options.krb5.realm?
+            hadoop_yarn_home: options.home
+            java64_home: options.java_home
+            yarn_log_dir: options.log_dir
+            yarn_pid_dir: options.pid_dir
+            hadoop_libexec_dir: ''
+            hadoop_java_io_tmpdir: "#{options.log_dir}/tmp"
+            yarn_heapsize: options.heapsize
+            resourcemanager_heapsize: options.heapsize
+            yarn_jaas_file: "#{options.conf_dir}/yarn-rm.jaas"
+            # ryba options
             YARN_RESOURCEMANAGER_OPTS: YARN_RESOURCEMANAGER_OPTS
             # YARN_OPTS: options.client_opts # should be yarn_client.opts, not sure if needed
             YARN_ROOT_LOGGER: options.log4j.root_logger
@@ -278,24 +284,38 @@ with Zookeeper.
         uid: options.user.name
         gid: options.hadoop_group.name
 
-## Ranger YARN Plugin Install
+## HDFS Layout
 
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length > 0
-      # , ->
-      #   @call -> options.yarn_plugin_is_master = true
-      #   @call 'ryba/ranger/plugins/yarn/install'
+      @hdfs.mkdir
+        header: 'HDFS Layout Apps'
+        nn_url: options.nn_url
+        target: "#{options.core_site['fs.defaultFS']}/apps/yarn"
+        owner: options.user.name
+        group: options.group.name
+        mode: '750'
+        krb5_user: options.hdfs_krb5_user        
+
+      #based on yarn.service.framework.path=/yarn-services/3.1.1.3.0.1.0-187/service-dep.tar.gz
+      @hdfs.mkdir
+        header: 'HDFS Layout services'
+        nn_url: options.nn_url
+        target: "#{options.core_site['fs.defaultFS']}/yarn-services"
+        owner: options.user.name
+        group: options.hadoop_group.name
+        mode: '775'
+        krb5_user: options.hdfs_krb5_user        
 
 ## Node Labels HDFS Layout
 
-      @hdfs_mkdir
+      @hdfs.mkdir
         if: options.yarn_site['yarn.node-labels.enabled'] is 'true'
-        header: 'HBase Master plugin HDFS audit dir'
+        header: 'Node Labels'
+        nn_url: options.nn_url
         target: options.yarn_site['yarn.node-labels.fs-store.root-dir']
-        mode: 0o700
-        user: options.user.name
+        owner: options.user.name
         group: options.group.name
-        unless_exec: mkcmd.hdfs options.hdfs_krb5_user, "hdfs --config #{options.conf_dir} dfs -test -d #{options.yarn_site['yarn.node-labels.fs-store.root-dir']}"
+        mode: '700'
+        krb5_user: options.hdfs_krb5_user        
 
 ## Dependencies
 

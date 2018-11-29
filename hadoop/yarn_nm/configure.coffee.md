@@ -30,8 +30,8 @@
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-nodemanager'
-      options.log_dir ?= '/var/log/hadoop-yarn'
-      options.pid_dir ?= '/var/run/hadoop-yarn'
+      options.log_dir ?= '/var/log/hadoop/yarn'
+      options.pid_dir ?= '/var/run/hadoop/yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-nodemanager/conf'
       options.hadoop_conf_dir ?= service.deps.hadoop_core.options.conf_dir
       # Java
@@ -82,6 +82,8 @@
       options.yarn_site['yarn.nodemanager.log.retain-second'] ?= null
       options.yarn_site['yarn.nodemanager.log.retain-seconds'] ?= '604800'
       # Configurations for History Server (Not sure wether this should be deployed on NMs):
+      # console.log 'Warning yarn_nm/yarn_site[yarn.log-aggregation-enable] set to false'
+      options.yarn_site['yarn.app.mapreduce.am.env'] ?= 'LD_LIBRARY_PATH=$HADOOP_COMMON_HOME/lib/native'
       options.yarn_site['yarn.log-aggregation-enable'] ?= 'true'
       options.yarn_site['yarn.log-aggregation.retain-seconds'] ?= '2592000' #  30 days, how long to keep aggregation logs before deleting them. -1 disables. Be careful, set this too small and you will spam the name node.
       options.yarn_site['yarn.log-aggregation.retain-check-interval-seconds'] ?= '-1' # Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
@@ -114,12 +116,35 @@ Secure Containers work only in the context of secured YARN clusters.
       options.container_executor['banned.users'] ?= 'hdfs,yarn,mapred,bin'
       options.container_executor['min.user.id'] ?= '0'
 
+### YARN 3 Container Executor docker properties
+
+      options.container_executor['docker'] ?= {}
+      options.container_executor['docker']['module.enabled'] ?= 'true'
+      options.container_executor['docker']['docker.privileged-containers.enabled'] ?= 'false'
+      options.container_executor['docker']['docker.privileged-containers.registries'] ?= ''
+      options.container_executor['docker']['docker.trusted.registries'] ?= ''
+      options.container_executor['docker']['docker.allowed.capabilities'] ?= 'SYS_CHROOT,MKNOD,SETFCAP,SETPCAP,FSETID,CHOWN,AUDIT_WRITE,SETGID,NET_RAW,FOWNER,SETUID,DAC_OVERRIDE,KILL,NET_BIND_SERVICE'
+      options.container_executor['docker']['docker.allowed.networks'] ?= 'host,bridge'
+      options.container_executor['docker']['docker.allowed.ro-mounts'] ?= '/etc/passwd,/etc/group' # allow end user to submit their services as without docker
+      options.container_executor['docker']['docker.allowed.rw-mounts'] ?= "#{[options.container_executor['yarn.nodemanager.local-dirs'].split(',')...,options.container_executor['yarn.nodemanager.log-dirs'].split(',')...].join(',')}"
+
+## Docker in YARN
+
+      options.yarn_site['yarn.nodemanager.runtime.linux.allowed-runtimes'] ?= 'default,docker'
+      options.yarn_site['yarn.nodemanager.runtime.linux.docker.allowed-container-network'] ?= 'host,bridge'
+      options.yarn_site['yarn.nodemanager.runtime.linux.docker.default-container-network'] ?= 'host'
+      options.yarn_site['yarn.nodemanager.runtime.linux.docker.privileged-containers.allowed'] ?= 'false'
+      options.yarn_site['yarn.nodemanager.runtime.linux.docker.privileged-containers.acl'] ?= ''
+      options.yarn_site['yarn.nodemanager.runtime.linux.docker.capabilities'] ?= 'SYS_CHROOT,MKNOD,SETFCAP,SETPCAP,FSETID,CHOWN,AUDIT_WRITE,SETGID,NET_RAW,FOWNER,SETUID,DAC_OVERRIDE,KILL,NET_BIND_SERVICE'
+
 ## Work Preserving Recovery
 
 See ResourceManager for additionnal informations.
 
       options.yarn_site['yarn.nodemanager.recovery.enabled'] ?= 'true'
       options.yarn_site['yarn.nodemanager.recovery.dir'] ?= '/var/yarn/recovery-state'
+      # log debug
+      options.yarn_site['yarn.nodemanager.delete.debug-delay-sec'] ?= '3600'
 
 ## Configuration for CGroups
 
@@ -137,7 +162,7 @@ Resources:
       options.yarn_site['yarn.nodemanager.linux-container-executor.resources-handler.class'] ?= 'org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler'
       hierarchy = options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.hierarchy'] ?= "/#{options.user.name}"
       options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount'] ?= 'false'
-      options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path'] ?= '/cgroup'
+      options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path'] ?= '/cgroup'# deprecete /cgroup (RHEL 6) for /sys/fs/cgroup (RHEL 7)
       # HDP doc, probably incorrect
       # options.yarn_site['yarn.nodemanager.container-executor.cgroups.hierarchy'] ?= options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.hierarchy']
       # options.yarn_site['yarn.nodemanager.container-executor.cgroups.mount'] ?= options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount']
@@ -210,6 +235,67 @@ Resources:
 
       options.yarn_site['yarn.nodemanager.aux-services'] ?= 'mapreduce_shuffle'
       options.yarn_site['yarn.nodemanager.aux-services.mapreduce_shuffle.class'] ?= 'org.apache.hadoop.mapred.ShuffleHandler'
+      if service.deps.yarn_tr?.length
+        if options.yarn_site['yarn.nodemanager.aux-services'].indexOf('timeline_collector') isnt -1
+          options.yarn_site['yarn.nodemanager.aux-services'] = "#{options.yarn_site['yarn.nodemanager.aux-services']},timeline_collector" 
+        options.yarn_site['yarn.nodemanager.aux-services.timeline_collector.class'] ?= 'org.apache.hadoop.yarn.server.timelineservice.collector.PerNodeTimelineCollectorsAuxService'
+
+## Import from Yarn TS/TR
+
+      source_ts = if service.deps.yarn_tr?.length > 0 then service.deps.yarn_tr[0] else service.deps.yarn_ts
+
+      for srv in service.deps.yarn_nm
+        for property in [
+          'yarn.timeline-service.enabled'
+          'yarn.timeline-service.address'
+          'yarn.timeline-service.reader.webapp.address'
+          'yarn.timeline-service.reader.webapp.https.address'
+          'yarn.timeline-service.principal'
+          'yarn.timeline-service.http-authentication.type'
+          'yarn.timeline-service.http-authentication.kerberos.principal'
+        ]
+          srv.options.yarn_site ?= {}
+          srv.options.yarn_site[property] ?= options.yarn_site[property]
+
+      if service.deps.yarn_tr?[0]?
+        for property in [
+          'yarn.timeline-service.reader.webapp.address'
+          'yarn.timeline-service.reader.webapp.https.address'
+        ] then options.yarn_site[property] ?= service.deps.yarn_tr[0].options.yarn_site[property]
+
+## Import/Export to Yarn RM
+      
+      #Import Yarn Global properties
+      for property in [
+        'yarn.nodemanager.remote-app-log-dir'
+        'yarn.nodemanager.remote-app-log-dir-suffix'
+        'yarn.log-aggregation-enable'
+        'yarn.log-aggregation.retain-seconds'
+        'yarn.log-aggregation.retain-check-interval-seconds'
+        'yarn.generic-application-history.save-non-am-container-meta-info'
+        'yarn.http.policy'
+        'yarn.log.server.url'
+        'yarn.resourcemanager.principal'
+        'yarn.resourcemanager.cluster-id'
+        'yarn.resourcemanager.ha.enabled'
+        'yarn.resourcemanager.ha.rm-ids'
+      ]
+        options.yarn_site[property] ?= service.deps.yarn_rm[0].options.yarn_site[property]
+
+      #Import Yarn RM specific properties
+      for srv in service.deps.yarn_rm
+        id = if srv.options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
+        for property in [
+          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+          "yarn.resourcemanager.address#{id}"
+          "yarn.resourcemanager.scheduler.address#{id}"
+          "yarn.resourcemanager.admin.address#{id}"
+          "yarn.resourcemanager.webapp.address#{id}"
+          "yarn.resourcemanager.webapp.https.address#{id}"
+          "yarn.resourcemanager.resource-tracker.address#{id}"
+        ]
+          options.yarn_site[property] ?= srv.options.yarn_site[property]
+
 
 ## Wait
 

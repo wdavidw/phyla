@@ -62,8 +62,8 @@ to re-execute the check.
         cmd: mkcmd.test options.test_krb5_user, """
         hdfs dfs -rm -r check-#{options.hostname}-mapred || true
         hdfs dfs -mkdir -p check-#{options.hostname}-mapred
-        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar teragen 100 check-#{options.hostname}-mapred/input
-        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-2*.jar terasort check-#{options.hostname}-mapred/input check-#{options.hostname}-mapred/output
+        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-3*.jar teragen 100 check-#{options.hostname}-mapred/input
+        hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples-3*.jar terasort check-#{options.hostname}-mapred/input check-#{options.hostname}-mapred/output
         """
         unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hdfs dfs -test -d check-#{options.hostname}-mapred/output"
         trap: true

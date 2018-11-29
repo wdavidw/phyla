@@ -17,6 +17,7 @@
       options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
       options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
       options.ats_user = service.deps.hadoop_core.options.ats.user
+      options.ats_group = service.deps.hadoop_core.options.ats.group
 
 ## Kerberos
 
@@ -29,8 +30,8 @@
 
       # Layout
       options.home ?= '/usr/hdp/current/hadoop-yarn-timelineserver'
-      options.log_dir ?= '/var/log/hadoop-yarn'
-      options.pid_dir ?= '/var/run/hadoop-yarn'
+      options.log_dir ?= '/var/log/hadoop/yarn'
+      options.pid_dir ?= '/var/run/hadoop/yarn'
       options.conf_dir ?= '/etc/hadoop-yarn-timelineserver/conf'
       # Java
       options.java_home ?= service.deps.java.options.java_home
@@ -131,20 +132,63 @@
 
       options.metrics = merge {}, service.deps.hadoop_core.options.metrics, options.metrics
 
-## Export to Yarn NodeManager
+## Import/Export to Yarn RM
+      
+      # service.deps.yarn_ts.options.yarn_site['yarn.admin.acl'] ?= "#{options.user.name}"
+      #Import Yarn Global properties
+      for property in [
+        'yarn.nodemanager.remote-app-log-dir'
+        'yarn.nodemanager.remote-app-log-dir-suffix'
+        'yarn.log-aggregation-enable'
+        'yarn.log-aggregation.retain-seconds'
+        'yarn.log-aggregation.retain-check-interval-seconds'
+        'yarn.generic-application-history.save-non-am-container-meta-info'
+        'yarn.http.policy'
+        'yarn.log.server.url'
+        'yarn.resourcemanager.principal'
+        'yarn.resourcemanager.cluster-id'
+        'yarn.resourcemanager.ha.enabled'
+        'yarn.resourcemanager.ha.rm-ids'
+      ]
+        options.yarn_site[property] ?= service.deps.yarn_rm[0].options.yarn_site[property]
 
-      for srv in service.deps.yarn_nm
+      #Import Yarn RM specific properties
+      for srv in service.deps.yarn_rm
+        id = if srv.options.yarn_site['yarn.resourcemanager.ha.enabled'] is 'true' then ".#{srv.options.yarn_site['yarn.resourcemanager.ha.id']}" else ''
         for property in [
+          'yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled'
+          "yarn.resourcemanager.address#{id}"
+          "yarn.resourcemanager.scheduler.address#{id}"
+          "yarn.resourcemanager.admin.address#{id}"
+          "yarn.resourcemanager.webapp.address#{id}"
+          "yarn.resourcemanager.webapp.https.address#{id}"
+          "yarn.resourcemanager.resource-tracker.address#{id}"
+        ]
+          options.yarn_site[property] ?= srv.options.yarn_site[property]
+      #Export
+      for srv in service.deps.yarn_rm
+        for property in [
+          'yarn.timeline-service.version'
           'yarn.timeline-service.enabled'
           'yarn.timeline-service.address'
           'yarn.timeline-service.webapp.address'
           'yarn.timeline-service.webapp.https.address'
+          'yarn.timeline-service.reader.webapp.address'
+          'yarn.timeline-service.reader.webapp.https.address'
           'yarn.timeline-service.principal'
           'yarn.timeline-service.http-authentication.type'
           'yarn.timeline-service.http-authentication.kerberos.principal'
-        ]
-          srv.options.yarn_site ?= {}
-          srv.options.yarn_site[property] ?= options.yarn_site[property]
+          'yarn.timeline-service.version'
+          'yarn.timeline-service.store-class'
+          'yarn.timeline-service.entity-group-fs-store.active-dir'
+          'yarn.timeline-service.entity-group-fs-store.done-dir'
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes'
+          'yarn.timeline-service.entity-group-fs-store.summary-store'
+          'yarn.timeline-service.ttl-enable'
+          'yarn.timeline-service.ttl-ms'
+          'yarn.generic-application-history.save-non-am-container-meta-info'
+          ]
+            srv.options.yarn_site[property] ?= options.yarn_site[property]
 
 ## Wait
 
