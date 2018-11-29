@@ -4,7 +4,7 @@
 See the Ambari documentation relative to [Software Requirements][sr] before
 executing this module.
 
-    module.exports = header: 'Ambari Standalone Install', handler: (options) ->
+    module.exports = header: 'Ambari Standalone Install', handler: ({options}) ->
 
 ## Registry
 

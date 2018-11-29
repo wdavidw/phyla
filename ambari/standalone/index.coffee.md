@@ -6,7 +6,7 @@ Once logged into the ambari server host, the administrator can  provision,
 manage and monitor a Hadoop cluster.
 
     module.exports =
-      use:
+      deps:
         iptables: module: 'masson/core/iptables', local: true
         ssl: module: 'masson/core/ssl', local: true
         krb5_client: module: 'masson/core/krb5_client', local: true
@@ -26,15 +26,13 @@ manage and monitor a Hadoop cluster.
       configure: 'ryba/ambari/standalone/configure'
       commands:
         'ambari_blueprint': 'ryba/ambari/standalone/blueprint'
-        'check': ->
-          options = @config.ryba.ambari.standalone
-          @call 'ryba/ambari/standalone/check', options
-        'install': ->
-          options = @config.ryba.ambari.standalone
-          @call 'ryba/ambari/standalone/install', options
-          @call 'ryba/ambari/standalone/start', options
-          @call 'ryba/ambari/standalone/check', options
-          @call 'ryba/ambari/views', options if options.views?.enabled
+        'check': 'ryba/ambari/standalone/check'
+        'install': [
+          'ryba/ambari/standalone/install'
+          'ryba/ambari/standalone/start'
+          'ryba/ambari/standalone/check'
+          'ryba/ambari/views'
+        ]
         'start': 'ryba/ambari/standalone/start'
         'stop': 'ryba/ambari/standalone/stop'
 

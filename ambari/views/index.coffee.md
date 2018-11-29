@@ -4,11 +4,11 @@
 Instantiate a Files view. For now it does only create a single instance of the file view for current cluster.
 It uses the Apache Ambari REST Api.
 
-    module.exports =  header: 'Ambari Views', handler: (options)->
+    module.exports =  header: 'Ambari Views', handler: ({options})->
         url = ''
         protocol = if options.config['api.ssl'] is 'true' then 'https' else 'http'
         port = if protocol is 'https' then options.config['client.api.ssl.port'] else options.config['client.api.port']
-        url = "#{protocol}://#{@config.host}:#{port}"
+        url = "#{protocol}://#{options.fqdn}:#{port}"
 
 ## Create the FILES View
 
