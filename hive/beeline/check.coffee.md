@@ -12,7 +12,7 @@ This module check the Hive Server2 servers using the `beeline` command.
 ## Wait
 
       @call 'ryba/hive/server2/wait', once: true, options.wait_hive_server2
-      @call 'ryba/spark/thrift_server/wait', once: true, options.wait_spark_thrift_server if options.wait_spark_thrift_server
+      @call 'ryba/spark2/thrift_server/wait', once: true, options.wait_spark_thrift_server if options.wait_spark_thrift_server
 
 ## Add Ranger Policy
 
@@ -33,7 +33,10 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
         @call 'ryba/ranger/admin/wait', once: true, options.wait_ranger_admin
         # Prepare the list of databases
         dbs = []
+        dirs = [] 
         for hive_server2 in options.hive_server2
+          dirs.push "check-#{options.hostname}-hive_server2-#{hive_server2.hostname}"
+          dirs.push "check-#{options.hostname}-hive_server2-zoo-#{hive_server2.hive_site['hive.server2.zookeeper.namespace']}"
           dbs.push "check_#{options.hostname}_server2_#{hive_server2.hostname}"
           dbs.push "check_#{options.hostname}_hs2_zoo_#{hive_server2.hive_site['hive.server2.zookeeper.namespace']}"
         for spark_thrift_server in options.spark_thrift_server
@@ -43,18 +46,18 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
           cmd: """
           curl --fail -H \"Content-Type: application/json\" -k -X GET  \
             -u #{options.ranger_admin.username}:#{options.ranger_admin.password} \
-            \"#{options.ranger_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_install['REPOSITORY_NAME']}\"
+            \"#{options.ranger_hive_install['POLICY_MGR_URL']}/service/public/v2/api/service/name/#{options.ranger_hive_install['REPOSITORY_NAME']}\"
           """
           code_skipped: [1, 7, 22] # 22 is for 404 not found, 7 is for not connected to host
         @ranger_policy
-          header: 'Create'
+          header: 'Create hive Policy'
           username: options.ranger_admin.username
           password: options.ranger_admin.password
-          url: options.ranger_install['POLICY_MGR_URL']
+          url: options.ranger_hive_install['POLICY_MGR_URL']
           policy:
             'name': "ryba-check-#{options.hostname}"
             'description': 'Ryba policy used to check the beeline service'
-            'service': options.ranger_install['REPOSITORY_NAME']
+            'service': options.ranger_hive_install['REPOSITORY_NAME']
             'isEnabled': true
             'isAuditEnabled': true
             'resources':
@@ -75,10 +78,42 @@ curl --fail -k -X GET -H "Content-Type: application/json" \
                 'type': 'all'
                 'isAllowed': true
               ]
-              'users': [options.test.user.name]
+              'users': [options.test.user.name, options.user.name]
               'groups': []
               'conditions': []
               'delegateAdmin': false
+            ]
+        @ranger_policy
+          header: 'Create HDFS Policy'
+          username: options.ranger_admin.username
+          password: options.ranger_admin.password
+          url: options.ranger_hive_install['POLICY_MGR_URL']
+          policy:
+            'name': "ryba-check-#{options.hostname}"
+            'description': 'Ryba policy used to check the beeline service'
+            'service': options.ranger_hdfs_install['REPOSITORY_NAME']
+            'isEnabled': true
+            'isAuditEnabled': true
+            'resources':
+              'path':
+                'isRecursive': 'true'
+                'values': dirs
+                'isExcludes': false
+            'policyItems': [
+              'users': ["#{options.user.name}"]
+              'groups': []
+              'delegateAdmin': true
+              'accesses': [
+                  "isAllowed": true
+                  "type": "read"
+              ,
+                  "isAllowed": true
+                  "type": "write"
+              ,
+                  "isAllowed": true
+                  "type": "execute"
+              ]
+              'conditions': []
             ]
 
 ## Check Server2

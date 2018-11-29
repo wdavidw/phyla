@@ -76,6 +76,8 @@ isnt yet started.
           name: 'hive'
         @service
           name: 'hive-server2'
+        @service
+          name: 'hive-webhcat'
         @hdp_select
           name: 'hive-server2'
         @service.init
@@ -194,13 +196,6 @@ Create the directories to store the logs and pid information. The properties
         keytab: options.hive_site['hive.server2.authentication.kerberos.keytab']
         uid: options.user.name
         gid: options.group.name
-
-## Ranger Hive Plugin Install
-      # 
-      # @call
-      #   if: -> @contexts('ryba/ranger/admin').length > 0
-      # , ->
-      #   @call 'ryba/ranger/plugins/hiveserver2/install'
 
 ## Dependencies
 

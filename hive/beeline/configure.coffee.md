@@ -77,7 +77,8 @@ Example:
 ## Test
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
-      options.ranger_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
+      options.ranger_hive_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
+      options.ranger_hdfs_install = service.deps.ranger_hdfs[0].options.install if service.deps.ranger_hdfs
       options.test = merge {}, service.deps.test_user.options, options.test
       # Hive Server2
       options.hive_server2 = for srv in service.deps.hive_server2

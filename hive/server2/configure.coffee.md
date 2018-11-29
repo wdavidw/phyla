@@ -81,6 +81,11 @@ Example:
         'hive.exec.max.created.files'
         'hive.auto.convert.sortmerge.join.noconditionaltask'
         'hive.zookeeper.quorum'
+        'hive.create.as.insert.only'
+        'metastore.create.as.acid'
+        'hive.metastore.warehouse.external.dir'
+        'hive.hook.proto.base-directory'
+
       ]
       if options.mode is 'local'
         properties = properties.concat [
@@ -108,11 +113,12 @@ Example:
       options.hive_site['hive.server2.logging.operation.log.location'] ?= "/tmp/#{options.user.name}/operation_logs"
       # Tez
       # https://streever.atlassian.net/wiki/pages/viewpage.action?pageId=4390918
-      options.hive_site['hive.execution.engine'] ?= if service.deps.tez then 'tez' else 'mr'
+      options.hive_site['hive.execution.engine'] ?= 'tez'
+      throw Error 'Starting from HDP 3.0 only tez execution engine is supported' unless options.hive_site['hive.execution.engine'] is 'tez'
       options.hive_site['hive.server2.tez.default.queues'] ?= 'default'
       options.hive_site['hive.server2.tez.sessions.per.default.queue'] ?= '1'
       options.hive_site['hive.server2.tez.initialize.default.sessions'] ?= 'false'
-      options.hive_site['hive.exec.post.hooks'] ?= 'org.apache.hadoop.hive.ql.hooks.ATSHook'
+      options.hive_site['hive.exec.post.hooks'] ?= 'org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook'
       # Permission inheritance
       # https://cwiki.apache.org/confluence/display/Hive/Permission+Inheritance+in+Hive
       # true unless ranger is the authorizer
@@ -171,7 +177,6 @@ Import database information from the Hive Metastore
       # Ensure we dont create the same principal as with the Hive HCatalog or the kvno will be incremented
       hive_hcatalog_local_srv = service.deps.hive_hcatalog.filter((srv) -> srv.node.id is service.node.id)[0]
       options.principal_identical_to_hcatalog = hive_hcatalog_local_srv and hive_hcatalog_local_srv.options.hive_site['hive.metastore.kerberos.principal'] is options.hive_site['hive.server2.authentication.kerberos.principal']
-
 
 ## SSL
 
@@ -287,6 +292,15 @@ Add Hive user as proxyuser
         hsrv.options.core_site ?= {}
         hsrv.options.core_site["hadoop.proxyuser.#{options.user.name}.hosts"] ?= '*'
         hsrv.options.core_site["hadoop.proxyuser.#{options.user.name}.groups"] ?= '*'
+
+## Export To Hcatalog
+
+      for srv in service.deps.hive_hcatalog
+        srv.options.hive_site ?= {}
+        for prop in [
+          'hive.execution.engine'
+        ]
+          srv.options.hive_site[prop] ?= options.hive_site[prop]
 
 ## Wait
 

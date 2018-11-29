@@ -12,6 +12,9 @@ http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/4.2.0/CDH4-I
       @registry.register 'hdp_select', 'ryba/lib/hdp_select'
       @registry.register 'hdfs_mkdir', 'ryba/lib/hdfs_mkdir'
       @registry.register 'hdfs_upload', 'ryba/lib/hdfs_upload'
+      @registry.register ['hdfs','put'], 'ryba/lib/actions/hdfs/put'
+      @registry.register ['hdfs','chown'], 'ryba/lib/actions/hdfs/chown'
+      @registry.register ['hdfs','mkdir'], 'ryba/lib/actions/hdfs/mkdir'      
 
 ## IPTables
 
@@ -273,19 +276,15 @@ and access their tables, but prevents them from deleting tables they don't
 own.
 
       @call header: 'HDFS Layout', ->
-        # cmd = mkcmd.hdfs options.hdfs_krb5_user, "hdfs dfs -config #{options.hdfs_conf_dir} -test -d /user && hdfs dfs -test -d /apps && hdfs dfs -test -d /tmp"
-        # @wait.execute
-        #   cmd: cmd
-        #   code_skipped: 1
-        # migration: wdavidw 170907, commented since the if condition disabled it
-        # @system.execute
-        #   cmd: mkcmd.hdfs options.hdfs_krb5_user, """
-        #   if hdfs dfs -ls /user/#{hive_user} &>/dev/null; then exit 1; fi
-        #   hdfs dfs -mkdir /user/#{hive_user}
-        #   hdfs dfs -chown #{hive_user}:#{hdfs.user.name} /user/#{hive_user}
-        #   """
-        #   code_skipped: 1
-        #   if: false # Disabled
+        #hdfs dfs -setfacl -m default:user:{hive_user}:rwx {external_dir}
+        @hdfs.mkdir
+          header: 'External Warehouse dir'
+          nn_url: options.nn_url
+          target: options.hive_site['hive.metastore.warehouse.external.dir']
+          owner: options.user.name
+          group: options.group.name
+          krb5_user: options.hdfs_krb5_user 
+          mode: '1777'
         # migration: wdavidw 170907, get path from config and change permissions
         @hdfs_mkdir
           header: 'Warehouse'

@@ -9,9 +9,10 @@
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
         hive_hcatalog: module: 'ryba/hive/hcatalog', required: true
         hive_server2: module: 'ryba/hive/server2', required: true
-        spark_thrift_server: module: 'ryba/spark/thrift_server'
+        spark_thrift_server: module: 'ryba/spark2/thrift_server'
         ranger_admin: module: 'ryba/ranger/admin', single: true
         ranger_hive: module: 'ryba/ranger/plugins/hiveserver2'
+        ranger_hdfs: module: 'ryba/ranger/plugins/hdfs'
       configure:
         'ryba/hive/beeline/configure'
       commands:

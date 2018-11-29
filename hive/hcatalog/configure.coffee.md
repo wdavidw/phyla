@@ -60,6 +60,7 @@ Example:
       options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
       # HDFS Kerberos Admin
       options.hdfs_krb5_user ?= service.deps.hadoop_core.options.hdfs.krb5_user
+      options.nn_url ?= service.deps.hdfs_client.options.nn_url
 
 ## Identities
 
@@ -137,6 +138,11 @@ ${hive.scratch.dir.permission}.
 
       options.hive_site['hive.metastore.warehouse.dir'] ?= "/apps/#{options.user.name}/warehouse"
       options.hive_site['hive.exec.scratchdir'] ?= "/tmp/hive"
+      ## Hive 3
+      options.hive_site['hive.create.as.insert.only'] ?= 'true'
+      options.hive_site['metastore.create.as.acid'] ?= 'true'
+      options.hive_site['hive.metastore.warehouse.external.dir'] ?= '/warehouse/tablespace/external/hive'#location of default database for the warehouse of external tables
+      options.hive_site['hive.hook.proto.base-directory'] ?= "#{options.hive_site['hive.metastore.warehouse.external.dir']}/sys.db/query_data"
 
 ## Common Configuration
 
