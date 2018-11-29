@@ -13,6 +13,7 @@ access control over Hadoop data access components like Apache Hive and Apache HB
         mariadb_client: module: 'masson/commons/mariadb/client', local: true, auto: true
         db_admin: module: 'ryba/commons/db_admin', local: true, auto: true, implicit: true
         hadoop_core: module: 'ryba/hadoop/core', local: true, required: true
+        ambari_repo: module: 'ryba/ambari/repo'
         # remove ryba/solr/cloud from logs destination
         # keep only solr embedded and solr/cloud_docker
         # solr_cloud: module: 'ryba/solr/cloud'
@@ -22,6 +23,7 @@ access control over Hadoop data access components like Apache Hive and Apache HB
       commands:
         'install': [
           # 'ryba/ranger/solr/install'
+          'ryba/ranger/solr/infra'
           'ryba/ranger/solr/bootstrap'
           'ryba/ranger/admin/install'
           'ryba/ranger/admin/start'

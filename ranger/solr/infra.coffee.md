@@ -1,8 +1,8 @@
 
 # Solr Install
 
-    module.exports = header: 'Solr Embedded Install', handler: ({options}) ->
-      return unless options.solr_type is 'embedded'
+    module.exports = header: 'Solr Embedded Ambari Infra Install', handler: ({options}) ->
+      return unless (options.solr_type is 'embedded')
 
 ## Dependencies
 
@@ -48,11 +48,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
       @call header: 'Packages', ->
         @service
-          name: 'lucidworks-hdpsearch'
-        @system.chown
-          target: '/opt/lucidworks-hdpsearch'
-          uid: options.solr.user.name
-          gid: options.solr.group.name
+          name: 'ambari-infra-solr'
 
 ## Configuration
 
@@ -222,11 +218,10 @@ We manage creating the ranger_audits core/collection in the three modes.
         exists_url="$protocol://#{options.fqdn}:#{options.solr.port}/solr/admin/cores?core=ranger_audits&wt=json"
         curl -k --fail $exists_url | grep '"schema":"managed-schema"'
         """
-        cmd: """su -l solr -c '
+        cmd: """su -l #{options.solr.user.name} -c '
         #{options.solr.latest_dir}/bin/solr create_core \
           -c ranger_audits \
-          -d #{options.solr.user.home}/ranger_audits
-          '
+          -d #{options.solr.user.home}/ranger_audits'
         """
         code_skipped: 3
         retry: 3

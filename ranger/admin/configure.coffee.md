@@ -103,6 +103,7 @@ User can be External and Internal. Only Internal users can be created from the r
       # Needed starting from 2.5 version to not have problem during setup execution
       options.install['hadoop_conf'] ?= "#{service.deps.hadoop_core.options.conf_dir}"
       options.install['RANGER_ADMIN_LOG_DIR'] ?= "#{options.log_dir}"
+      options.core_site ?= merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
 
 # Kerberos
 
@@ -204,7 +205,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
       options.solr_type ?= 'embedded'
       options.solr_client_source ?= service.deps.solr_client.options.source if service.deps.solr_client
       options.solr_client_source = if options.solr_client_source is 'HDP'
-      then '/opt/lucidworks-hdpsearch/solr'
+      then '/usr/lib/ambari-infra-solr'
       else '/usr/solr/current'      # solr = {}
       solrs_urls = ''
       # solr_ctx = {}
@@ -230,7 +231,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           options.solr.version ?= '5.5.2'
           options.solr.root_dir ?= '/usr'
           options.solr.install_dir ?= "#{options.solr.root_dir}/solr/#{options.solr.version}"
-          options.solr.latest_dir = '/opt/lucidworks-hdpsearch/solr'
+          options.solr.latest_dir = '/usr/lib/ambari-infra-solr'
           options.solr.pid_dir ?= '/var/run/solr'
           options.solr.log_dir ?= '/var/log/solr'
           options.solr.conf_dir ?= '/etc/solr/conf'
@@ -288,6 +289,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           options.install['audit_solr_urls'] ?= options.solr.cluster_config.hosts.map( (host) ->
               "#{if options.solr.cluster_config.ssl_enabled then 'https://' else 'http://'}#{host}:#{options.solr.cluster_config.port}")
           options.install['audit_solr_zookeepers'] ?= options.solr.cluster_config.zk_connect
+          options.site['ranger.is.solr.kerberised'] ?= 'true'
         # when 'cloud'
         #   throw Error 'No Solr Cloud Server configured' unless service.deps.solr_cloud.length > 0
         #     # options.solr_admin_user ?= 'solr'
@@ -344,15 +346,36 @@ ranger.admin.cluster_config.ranger.solr_users =
             secret:"#{options.install['audit_solr_password']}"
           }
 
+## Ranger Credential API
+Ranger use java credential api to store password
+we need to create the provider and populate with the main password (db and ssl keystore)
+
+      options.site['ranger.credential.provider.path'] ?= '/etc/ranger/admin/rangeradmin.jceks'
+      throw Error 'Unspecified credential store password for ranger admin' unless options.credential_password?
+
+## SSL
+
+      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl      
+
 ## Ranger Admin SSL
 
 Configure SSL for Ranger policymanager (webui).
 
       options.site['ranger.service.https.attrib.ssl.enabled'] ?= 'true'
       options.site['ranger.service.https.attrib.clientAuth'] ?= 'false'
+      #trustStore
+      throw Error 'Unspecified ssl truststore password' unless options.ssl.truststore.password?
+      options.site['ranger.truststore.alias'] ?= 'rangeradmin.truststore'
+      options.site['ranger.truststore.file'] ?= '/etc/ranger/admin/conf/truststore'
+      options.site['ranger.truststore.password'] ?= '_'
+      #keystore
+      throw Error 'Unspecified ssl keystore password' unless options.ssl.keystore.password?
+      options.site['ranger.service.https.attrib.keystore.credential.alias'] ?= 'rangeradmin.keystore'
       options.site['ranger.service.https.attrib.keystore.file'] ?= '/etc/ranger/admin/conf/keystore'
-      options.site['ranger.service.https.attrib.keystore.pass'] ?= 'rybaRanger123!'
-      options.install['keyadmin_password'] ?= options.site['ranger.service.https.attrib.keystore.pass']
+      options.site['ranger.service.https.attrib.keystore.pass'] ?= '_'
+      
+      # throw Error 'keyadmin_password' unless options.install['keyadmin_password'] ?
+      options.install['keyadmin_password'] ?= 'rangerAdminKeyPassword123'
       options.site['ranger.service.https.attrib.keystore.keyalias'] ?= service.node.hostname
 
 # Ranger Admin Databases
@@ -364,6 +387,8 @@ Configures the Ranger WEBUi (policymanager) database. For now only mysql is supp
       options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
       switch options.db.engine
         when 'mysql', 'mariadb'
+          options.site['ranger.jpa.jdbc.credential.alias'] ?= 'rangeradmin.db'
+          options.site['ranger.jpa.jdbc.password'] ?= '_'
           options.install['DB_FLAVOR'] ?= 'MYSQL' # we support only mysql for now
           options.install['SQL_CONNECTOR_JAR'] ?= '/usr/hdp/current/ranger-admin/lib/mysql-connector-java.jar'
           # not setting these properties on purpose, we manage manually databases inside mysql

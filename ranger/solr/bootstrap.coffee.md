@@ -58,11 +58,11 @@
         header: 'Zookeeper SolrCloud Znode ACL'
         unless_exec: mkcmd.solr options.solr.cluster_config, """
         zookeeper-client -server #{options.solr.cluster_config.zk_connect} \
-          getAcl /#{options.solr.cluster_config.zk_node} | grep \"'sasl,'#{options.solr.cluster_config.user.name}\"
+          getAcl #{options.solr.cluster_config.zk_node} | grep \"'sasl,'#{options.solr.cluster_config.user}\"
         """
         cmd: mkcmd.solr options.solr.cluster_config, """
         zookeeper-client -server #{options.solr.cluster_config.zk_connect} \
-          setAcl /#{options.solr.cluster_config.zk_node} sasl:#{options.solr.cluster_config.user.name}:cdrwa
+          setAcl #{options.solr.cluster_config.zk_node} sasl:#{options.solr.cluster_config.user}:cdrwa
         """
 
     getPath = (opts) ->

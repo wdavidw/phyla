@@ -196,10 +196,65 @@ SSL can be configured to use SSL if ranger admin has SSL enabled.
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= options.ssl_server['ssl.server.truststore.location']
         options.install['SSL_TRUSTSTORE_PASSWORD'] ?= options.ssl_server['ssl.server.truststore.password']
 
-## Merge yarn_plugin conf to ranger admin
+## Ambari Config  - YARN Plugin Audit
 
-      # migration: should we really need this? noone is gonna use it, isnt it?
-      # ranger_admin_ctx.config.ryba.ranger.yarn_plugin = merge yarn_plugin
+        options.configurations ?= {}
+        options.configurations['ranger-yarn-audit'] ?= {}
+        options.configurations['ranger-yarn-audit']['xasecure.audit.is.enabled'] ?= 'true'
+        # audit to hdfs
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.hdfs'] ?= options.install['XAAUDIT.HDFS.IS_ENABLED']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.hdfs.batch.filespool.dir'] ?= options.install['XAAUDIT.HDFS.FILE_SPOOL_DIR']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.hdfs.dir'] ?= options.install['XAAUDIT.HDFS.HDFS_DIR']
+        # audit to solr
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.solr'] ?= options.install['XAAUDIT.SOLR.IS_ENABLED']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.solr.batch.filespool.dir'] ?= options.install['XAAUDIT.SOLR.FILE_SPOOL_DIR']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.destination.solr.zookeepers'] ?= options.install['XAAUDIT.SOLR.ZOOKEEPER']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.solr.solr_url'] ?= options.install['XAAUDIT.SOLR.URL']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.loginModuleName'] ?= 'com.sun.security.auth.module.Krb5LoginModule'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.loginModuleControlFlag'] ?= 'required'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.useKeyTab'] ?= 'true'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.debug'] ?= 'true'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.doNotPrompt'] ?= 'yes'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.storeKey'] ?= 'yes'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.serviceName'] ?= 'solr'
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.keyTab'] ?= service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.keytab']
+        options.configurations['ranger-yarn-audit']['xasecure.audit.jaas.inmemory.Client.option.principal'] ?= service.deps.yarn_rm[0].options.yarn_site['yarn.resourcemanager.principal']
+
+## Ambari Config - YARN Plugin SSL
+SSL can be configured to use SSL if ranger admin has SSL enabled.
+
+        options.configurations['ranger-yarn-policymgr-ssl'] ?= {}
+        if service.deps.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore'] ?= options.ssl_server['ssl.server.keystore.location']
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'] ?= options.ssl_server['ssl.server.keystore.password']
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore'] ?= options.ssl_server['ssl.server.truststore.location']
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'] ?= options.ssl_server['ssl.server.truststore.password']
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.credential.file'] ?= "jceks://file/etc/ranger/#{options.service_repo.name}/cred.jceks"
+          options.configurations['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.credential.file'] ?=  "jceks://file/etc/ranger/#{options.service_repo.name}/cred.jceks"
+
+## Ambari Config - YARN Plugin Properties
+
+        options.configurations['ranger-yarn-plugin-properties'] ?= {}
+        options.configurations['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'] ?= 'Yes' 
+        options.configurations['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'] ?= options.service_repo.configs.username
+        options.configurations['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'] ?= options.service_repo.configs.password
+        options.configurations['ranger-yarn-plugin-properties']['common.name.for.certificate'] ?= options.service_repo.configs['commonNameForCertificate']
+        options.configurations['ranger-yarn-plugin-properties']['hadoop.rpc.protection'] ?= options.service_repo.configs['hadoop.rpc.protection']
+        options.configurations['ranger-yarn-plugin-properties']['policy_user'] ?= options.service_repo.configs['policy.download.auth.users']
+        for k, v of options.install
+          if k.indexOf('XAAUDIT') isnt -1
+            options.configurations['ranger-yarn-plugin-properties'][k] ?= v
+
+## Ambari Config - YARN Plugin Security
+
+        options.configurations['ranger-yarn-security'] ?= {}
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.service.name'] ?= options.service_repo.name
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.policy.rest.url'] ?= options.install['POLICY_MGR_URL']
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.policy.cache.dir'] ?= "/etc/ranger/#{options.service_repo.name}/policycache"
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.policy.pollIntervalMs'] ?= "30000"
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.policy.rest.ssl.config.file'] ?= "#{options.conf_dir}/ranger-policymgr-ssl.xml"
+        options.configurations['ranger-yarn-security']['ranger.plugin.yarn.policy.source.impl'] ?= 'org.apache.ranger.admin.client.RangerAdminRESTClient'
+        options.configurations['ranger-yarn-security']['xasecure.add-hadoop-authorization'] ?= 'true'
 
 ## Wait
 

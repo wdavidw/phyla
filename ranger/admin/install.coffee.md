@@ -119,11 +119,11 @@ to allow user to create none-determisitic functions.
       @system.execute
         header: 'Fix Setup Execution'
         cmd: "chown -R #{options.user.name}:#{options.user.name} #{options.conf_dir}"
-      @system.remove
-        target: "#{options.conf_dir}/core-site.xml"
-      @system.link
-        source: '/etc/hadoop/conf/core-site.xml'
-        target: "#{options.conf_dir}/core-site.xml"
+      @hconfigure
+        header: 'Core site'
+        target: '/etc/ranger/admin/conf/core-site.xml'
+        properties: options.core_site
+        backup: true
       # the setup scripts already render an init.d script but it does not respect 
       # the convention exit code 3 when service is stopped on the status code
       @service.init
@@ -137,7 +137,42 @@ to allow user to create none-determisitic functions.
         mount: '/var/run/ranger'
         uid: options.user.name
         gid: options.user.name
-        perm: '0750'
+      @system.execute
+        header: 'Credential db alias'
+        cmd: """
+        cd /usr/hdp/current/ranger-admin/
+        java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks create '#{options.site['ranger.jpa.jdbc.credential.alias']}' \ 
+        -value '#{options.install['db_password']}'  -provider jceks://file#{options.site['ranger.credential.provider.path']}
+        """
+        unless_exec: """
+          cd /usr/hdp/current/ranger-admin/
+          java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks list \ 
+          -provider jceks://file#{options.site['ranger.credential.provider.path']} | grep '#{options.site['ranger.jpa.jdbc.credential.alias']}'
+        """
+      @system.execute
+        header: 'Credential ssl keystore'
+        cmd: """
+        cd /usr/hdp/current/ranger-admin/
+        java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks create '#{options.site['ranger.service.https.attrib.keystore.credential.alias']}' \ 
+        -value '#{options.ssl.keystore.password}'  -provider jceks://file#{options.site['ranger.credential.provider.path']}
+        """
+        unless_exec: """
+          cd /usr/hdp/current/ranger-admin/
+          java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks list \ 
+          -provider jceks://file#{options.site['ranger.credential.provider.path']} | grep '#{options.site['ranger.service.https.attrib.keystore.credential.alias']}'
+        """
+      @system.execute
+        header: 'Credential ssl truststore'
+        cmd: """
+        cd /usr/hdp/current/ranger-admin/
+        java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks create '#{options.site['ranger.truststore.alias']}' \ 
+        -value '#{options.ssl.truststore.password}'  -provider jceks://file#{options.site['ranger.credential.provider.path']}
+        """
+        unless_exec: """
+          cd /usr/hdp/current/ranger-admin/
+          java -cp "cred/lib/*" org.apache.ranger.credentialapi.buildks list \ 
+          -provider jceks://file#{options.site['ranger.credential.provider.path']} | grep '#{options.site['ranger.truststore.alias']}'
+        """
       @service
         name: 'ranger-admin'
         startup: true
@@ -151,21 +186,27 @@ to allow user to create none-determisitic functions.
         @java.keystore_add
           header: 'SSL'
           keystore: options.site['ranger.service.https.attrib.keystore.file']
-          storepass: options.site['ranger.service.https.attrib.keystore.pass']
+          storepass: options.ssl.keystore.password
           key: "#{options.ssl.key.source}"
           cert: "#{options.ssl.cert.source}"
-          keypass: options.site['ranger.service.https.attrib.keystore.pass']
+          keypass: options.ssl.keystore.password
           name: options.site['ranger.service.https.attrib.keystore.keyalias']
           local: "#{options.ssl.cert.local}"
         @java.keystore_add
           keystore: options.site['ranger.service.https.attrib.keystore.file']
-          storepass: options.site['ranger.service.https.attrib.keystore.pass']
+          storepass: options.ssl.keystore.password
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
           local: "#{options.ssl.cacert.local}"
         @java.keystore_add
           keystore: '/usr/java/latest/jre/lib/security/cacerts'
           storepass: 'changeit'
+          caname: "hadoop_root_ca"
+          cacert: "#{options.ssl.cacert.source}"
+          local: "#{options.ssl.cacert.local}"
+        @java.keystore_add
+          keystore: options.site['ranger.truststore.file']
+          storepass: options.ssl.truststore.password
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
           local: "#{options.ssl.cacert.local}"
