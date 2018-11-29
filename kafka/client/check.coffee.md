@@ -98,8 +98,8 @@ protocols.
           cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --partitions #{options.brokers['PLAINTEXT'].length} \
-            --replication-factor #{options.brokers['PLAINTEXT'].length} \
+            --partitions #{Math.min(options.brokers['PLAINTEXT'].length-1,1)} \
+            --replication-factor #{Math.min(options.brokers['PLAINTEXT'].length-1,0)} \
             --topic #{test_topic}
           """
           unless_exec: mkcmd.kafka options.admin, """
@@ -112,8 +112,8 @@ protocols.
           cmd: """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --partitions #{options.brokers['PLAINTEXT'].length} \
-            --replication-factor #{options.brokers['PLAINTEXT'].length} \
+            --partitions #{Math.min(options.brokers['PLAINTEXT'].length-1,1)} \
+            --replication-factor #{Math.min(options.brokers['PLAINTEXT'].length-1,0)} \
             --topic #{test_topic}
           """
           unless_exec: """
@@ -140,6 +140,7 @@ protocols.
             --add \
             --allow-principal User:ANONYMOUS \
             --consumer \
+            --producer \
             --group #{options.consumer.config['group.id']} \
             --topic #{test_topic}
           )
@@ -168,6 +169,7 @@ protocols.
             --add \
             --allow-principal User:ANONYMOUS \
             --consumer \
+            --producer \
             --group #{options.consumer.config['group.id']} \
             --topic #{test_topic}
           )
@@ -190,7 +192,6 @@ protocols.
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['PLAINTEXT'].join ','} \
             --topic #{test_topic} \
@@ -218,8 +219,8 @@ and password given to line command because if executed before producer install
           cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --partitions #{options.brokers['SSL'].length} \
-            --replication-factor #{options.brokers['SSL'].length} \
+            --partitions #{Math.min(options.brokers['SSL'].length-1,1)} \
+            --replication-factor #{Math.min(options.brokers['SSL'].length-1,0)} \
             --topic #{test_topic}
           """
           unless_exec: mkcmd.kafka options.admin, """
@@ -245,6 +246,7 @@ and password given to line command because if executed before producer install
             --add \
             --allow-principal User:ANONYMOUS \
             --consumer \
+            --producer \
             --group #{options.consumer.config['group.id']} \
             --topic #{test_topic}
           )
@@ -270,7 +272,6 @@ and password given to line command because if executed before producer install
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['SSL'].join ','} \
             --topic #{test_topic} \
@@ -298,8 +299,8 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
           cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --partitions #{options.brokers['SASL_PLAINTEXT'].length} \
-            --replication-factor #{options.brokers['SASL_PLAINTEXT'].length} \
+            --partitions #{Math.min(options.brokers['SASL_PLAINTEXT'].length-1,1)} \
+            --replication-factor #{Math.min(options.brokers['SASL_PLAINTEXT'].length-1,0)} \
             --topic #{test_topic}
           """
           unless_exec: mkcmd.kafka options.admin, """
@@ -347,7 +348,6 @@ Check Message by writing to a test topic on the SASL_PLAINTEXT channel.
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['SASL_PLAINTEXT'].join ','} \
             --topic #{test_topic} \
@@ -374,8 +374,8 @@ Trustore location and password given to line command because if executed before 
           cmd: mkcmd.kafka options.admin, """
           /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create \
             --zookeeper #{options.consumer.config['zookeeper.connect']} \
-            --partitions #{options.brokers['SASL_SSL'].length} \
-            --replication-factor #{options.brokers['SASL_SSL'].length-1} \
+            --partitions #{Math.min(options.brokers['SASL_SSL'].length-1,1)} \
+            --replication-factor #{Math.min(options.brokers['SASL_SSL'].length-1,0)} \
             --topic #{test_topic}
           """
           unless_exec: mkcmd.kafka options.admin, """
@@ -403,6 +403,7 @@ Trustore location and password given to line command because if executed before 
             --add \
             --allow-principal User:#{options.test.user.name} \
             --consumer \
+            --producer \
             --group #{options.consumer.config['group.id']} \
             --topic #{test_topic}
           )
@@ -427,7 +428,6 @@ Trustore location and password given to line command because if executed before 
               --topic #{test_topic}
           )&
           /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh \
-            --new-consumer \
             --delete-consumer-offsets \
             --bootstrap-server #{options.brokers['SASL_SSL'].join ','} \
             --topic #{test_topic} \
