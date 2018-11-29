@@ -1039,7 +1039,7 @@ from normzlized configuration.
               ambari_component_name: 'PHOENIX_QUERY_SERVER'
               process_name: 'phoenix-queryserver'
               check_command: "check_tcp!#{srv.instances[0].options.phoenix_site['phoenix.queryserver.http.port']}"
-          if 'ryba/spark/history_server' is srv.module
+          if 'ryba/spark2/history_server' is srv.module
             add_srv_to_cluster 'spark_hs', clustername
             add_srv_to_host_hostgroups  'spark_hs', srv.instances
             create_service
@@ -1050,7 +1050,7 @@ from normzlized configuration.
               ambari_component_name: 'SPARK_JOBHISTORYSERVER'
               process_name: 'spark-history-server'
               check_command: "check_tcp!#{srv.instances[0].options.conf['spark.history.ui.port']}"
-          if 'ryba/spark/livy_server' is srv.module
+          if 'ryba/spark2/livy_server' is srv.module
             add_srv_to_cluster 'spark_ls', clustername
             add_srv_to_host_hostgroups  'spark_ls', srv.instances
             create_service
