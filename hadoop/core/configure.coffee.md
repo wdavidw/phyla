@@ -89,9 +89,9 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       # Layout
       options.conf_dir ?= '/etc/hadoop/conf'
       # options.hadoop_lib_home ?= '/usr/hdp/current/hadoop-client/lib' # refered by oozie-env.sh, now hardcoded
-      options.hdfs.log_dir ?= '/var/log/hadoop-hdfs'
-      options.hdfs.pid_dir ?= '/var/run/hadoop-hdfs'
-      options.hdfs.secure_dn_pid_dir ?= '/var/run/hadoop-hdfs' # /$HADOOP_SECURE_DN_USER
+      options.hdfs.log_dir ?= '/var/log/hadoop/hdfs'
+      options.hdfs.pid_dir ?= '/var/run/hadoop/hdfs'
+      options.hdfs.secure_dn_pid_dir ?= '/var/run/hadoop/hdfs' # /$HADOOP_SECURE_DN_USER
       options.hdfs.secure_dn_user ?= options.hdfs.user.name
       # Java
       options.hadoop_opts ?= '-Djava.net.preferIPv4Stack=true'
@@ -127,7 +127,7 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       options.mapred.group.system ?= true
       options.ats.group ?= {}
       options.ats.group = name: options.ats.group if typeof options.ats.group is 'string'
-      options.ats.group.name ?= 'ats'
+      options.ats.group.name ?= 'yarn-ats'
       options.ats.group.system ?= true
       # Unix user hdfs
       options.hdfs.user ?= {}
@@ -168,12 +168,12 @@ java.lang.IllegalArgumentException: Does not contain a valid host:port authority
       # Unix user for ats
       options.ats.user ?= {}
       options.ats.user = name: options.ats.user if typeof options.ats.user is 'string'
-      options.ats.user.name ?= 'ats'
+      options.ats.user.name ?= 'yarn-ats'
       options.ats.user.system ?= true
       options.ats.user.gid = options.ats.group.name
       options.ats.user.groups ?= 'hadoop'
       options.ats.user.comment ?= 'YARN ATS User'
-      options.ats.user.home ?= '/var/lib/hadoop-yarn'
+      options.ats.user.home ?= '/var/lib/yarn-ts'
       options.ats.user.limits ?= {}
       options.ats.user.limits.nofile ?= 64000
       options.ats.user.limits.nproc ?= true
