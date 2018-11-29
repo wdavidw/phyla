@@ -42,6 +42,19 @@ is already handled by kerberos
 
       options.hdfs_site['dfs.namenode.kerberos.principal.pattern'] ?= '*'
 
+## Publish HDFS NameNode url
+
+      protocol = if options.hdfs_site['dfs.http.policy'] is 'HTTP_ONLY' then 'http' else 'https'
+      if service.deps.hdfs_nn.length > 1
+        nameservice = service.deps.hdfs_nn[0].options.core_site['fs.defaultFS'].split('hdfs://')[1].split(':')[0]
+        namenodes =  service.deps.hdfs_nn[0].options.hdfs_site["dfs.ha.namenodes.#{nameservice}"].split(',')
+        options.nn_url = (for nn in namenodes
+           service.deps.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{protocol}-address.#{nameservice}.#{nn}"]
+           "#{protocol}://" + service.deps.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{protocol}-address.#{nameservice}.#{nn}"]
+           )
+      else
+        options.nn_url =  service.deps.hdfs_nn[0].options.hdfs_site["dfs.namenode.#{protocol}-address"]
+
 ## Core Jars
 
       options.core_jars ?= {}
