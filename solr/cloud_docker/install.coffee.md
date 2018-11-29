@@ -164,7 +164,7 @@ be prepared in the nikita cache dir.
 Here we loop through the clusters definition to write container specific file
 configuration like solr.in.sh or solr.xml.
 
-      {clusters, hosts, fqdn, conf_dir, krb5, user, group} = options
+      {clusters, hosts, fqdn, conf_dir, krb5, user, group, iptables} = options
       opts = options
       @each clusters, ({options}, callback) ->
         counter = 0
@@ -179,7 +179,7 @@ configuration like solr.in.sh or solr.xml.
           replace: "#{k}=\"#{v}\" # RYBA DON'T OVERWRITE"
           append: true
         @tools.iptables
-          if: options.iptables
+          if: iptables
           rules: [
             { chain: 'INPUT', jump: 'ACCEPT', dport: config.port, protocol: 'tcp', state: 'NEW', comment: "Solr Cluster #{name}" }
           ]
@@ -233,7 +233,6 @@ configuration like solr.in.sh or solr.xml.
         @file
           source:"#{__dirname}/../resources/cloud_docker/docker_entrypoint.sh.j2"
           target: "#{conf_dir}/clusters/#{name}/docker_entrypoint.sh"
-          debug: true
           context: opts
           local: true
           backup: true
@@ -243,7 +242,7 @@ configuration like solr.in.sh or solr.xml.
         @file.render
           source:"#{__dirname}/../resources/cloud_docker/zkCli.sh.j2"
           target: "#{conf_dir}/clusters/#{name}/zkCli.sh"
-          context: options
+          context: opts
           local: true
           backup: true
           uid: user.name
@@ -253,7 +252,7 @@ configuration like solr.in.sh or solr.xml.
           header: 'Solr Environment'
           source: "#{__dirname}/../resources/cloud/solr.ini.sh.j2"
           target: "#{conf_dir}/clusters/#{name}/solr.in.sh"
-          context: options
+          context: opts
           write: writes
           local: true
           backup: true
