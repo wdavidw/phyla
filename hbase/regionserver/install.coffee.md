@@ -72,7 +72,7 @@ Install the "hbase-regionserver" service, symlink the rc.d startup script
 inside "/etc/init.d" and activate it on startup.
 
       @call header: 'Service', ->
-        @service
+        @service.install
           name: 'hbase-regionserver'
         @hdp_select
           name: 'hbase-client'

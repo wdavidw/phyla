@@ -188,6 +188,8 @@ Metrics information are entirely derived from the Master.
       options.wait.info = for srv in service.deps.hbase_regionserver
         host: srv.node.fqdn
         port: srv.options.hbase_site['hbase.regionserver.info.port']
+      for srv in service.deps.hbase_master
+        srv.options.wait_hbase_regionserver ?= options.wait
 
 ## Dependencies
 

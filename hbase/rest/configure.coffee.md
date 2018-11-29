@@ -97,11 +97,24 @@ See [REST Gateway Impersonation Configuration][impersonation].
 
 ## Test
 
-
       options.ranger_install = service.deps.ranger_hbase[0].options.install if service.deps.ranger_hbase
       options.test = merge {}, service.deps.test_user.options, options.test
       options.test.namespace ?= "ryba_check_rest_#{service.node.hostname}"
       options.test.table ?= 'a_table'
+      options.ranger_user ?= {}
+      options.ranger_user.name ?= options.user.name
+      if service.deps.ranger_admin?
+        throw Error "Undefined Password for hbase rest user (ranger admin portal)" unless options.ranger_user.password?
+        service.deps.ranger_admin.options.users['hbase_rest'] ?=
+          "name": options.user.name
+          "firstName": options.user.name
+          "lastName": 'hadoop'
+          "emailAddress": 'hbase_rest@hadoop.ryba'
+          "password": 'hbaseRest123-'
+          'userSource': 1
+          'userRoleList': ['ROLE_USER']
+          'groups': []
+          'status': 1
 
 ## Wait
 

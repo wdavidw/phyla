@@ -13,6 +13,9 @@ Ensure for the server is listening for remote connections.
         retry: 3
         sleep: 3000
 
+The http connection will be available once the region servers have connected to the master
+
+      @call once: true, if: options.wait_hbase_regionserver?, 'ryba/hbase/regionserver/wait', options.wait_hbase_regionserver
       @connection.assert
         header: 'HTTP'
         servers: options.wait.http.filter (server) -> server.host is options.fqdn

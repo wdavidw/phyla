@@ -144,9 +144,9 @@ Note, we are re-using the namespace created above.
           CMD
           """
           unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}'}\" | egrep '[0-9]+ row'"
-        , (err, data) ->
-          isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test data.stdout
-          throw Error 'Invalid command output' if data.status and not isRowCreated
+        , (err, {status, stdout}) ->
+          isRowCreated = RegExp("column=#{options.hostname}:my_column, timestamp=\\d+, value=10").test stdout
+          throw Error 'Invalid command output' if status and not isRowCreated
 
 ## Check MapReduce
 

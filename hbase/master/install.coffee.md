@@ -74,7 +74,7 @@ Install the "hbase-master" service, symlink the rc.d startup script inside
 "/etc/init.d" and activate it on startup.
 
       @call header: 'Service', ->
-        @service
+        @service.install
           name: 'hbase-master'
         @hdp_select
           name: 'hbase-client'
@@ -111,9 +111,9 @@ Install compression libs as defined in HDP docs
 
       @call header: 'Compression libs', ->
         @service
-          name: 'hadoop-lzo'
+          name: 'hadooplzo'
         @service
-          name: 'hadoop-lzo-native'
+          name: 'hadooplzo-native'
 
 ## Configure
 

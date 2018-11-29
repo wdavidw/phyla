@@ -104,7 +104,7 @@
         @system.execute
           cmd: mkcmd.hbase options.admin, """
           if hbase --config #{options.conf_dir} shell 2>/dev/null <<< "list_namespace_tables '#{options.test.namespace}'" | egrep '[0-9]+ row'; then
-            if [ ! -z '#{options.force_check or ''}' ]; then
+            if [ ! -z '#{options.force_check}' ] || [ "$?" -eq 1]; then
               echo [DEBUG] Cleanup existing table and namespace
               hbase --config #{options.conf_dir} shell 2>/dev/null << '    CMD' | sed -e 's/^    //';
                 disable '#{options.test.namespace}:#{options.test.table}'
@@ -117,7 +117,7 @@
           fi
           hbase --config #{options.conf_dir} shell 2>/dev/null <<-CMD
             create_namespace '#{options.test.namespace}'
-            grant '#{options.test.user.name}', 'RWC', '@#{options.test.namespace}'
+            grant '#{options.test.user.name}', 'RWCA', '@#{options.test.namespace}'
             create '#{options.test.namespace}:#{options.test.table}', 'family1'
           CMD
           """
@@ -130,8 +130,8 @@
           #{curl} #{protocol}://#{options.fqdn}:#{port}/#{options.test.namespace}:#{options.test.table}/my_row_rest
           """
           unless_exec: unless options.force_check then mkcmd.test options.test_krb5_user, "hbase --config #{options.conf_dir} shell 2>/dev/null <<< \"scan '#{options.test.namespace}:#{options.test.table}', {COLUMNS => '#{options.hostname}_rest'}\" | egrep '[0-9]+ row'"
-        , (err, {executed, stdout}) ->
-          return if err or not executed
+        , (err, {status, stdout, stderr}) ->
+          return if err or not status
           try
             data = JSON.parse(stdout)
           catch e then throw Error "Invalid Command Output: #{JSON.stringify stdout}"
