@@ -68,7 +68,7 @@ com.sun.management.jmxremote.ssl.config.file=<file>.
       options.authenticate ?= 'false'
       if options.authenticate
         options.username ?= 'monitorRole'# be careful if changing , should configure access file
-        options.jmx_auth_file ?=  '/etc/security/jmxPasswords/hdfs-datanode.password'
+        options.jmx_auth_file ?=  '/etc/security/jmxPasswords/yarn-nodemanager.password'
         options.jmx_config['com.sun.management.jmxremote.authenticate'] ?= 'true'
         throw Error 'Missing options.password' unless options.password
         options.jmx_config['com.sun.management.jmxremote.password.file'] ?= options.jmx_auth_file

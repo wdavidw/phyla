@@ -26,6 +26,7 @@ It meant to be run as a Java Agent, exposing an HTTP server and scraping the loc
           @call 'ryba/prometheus/jmx_exporters/hdfs_nn/password.coffee.md', options.original
       commands:
         install: [
+          'ryba/prometheus/jmx_exporters/hdfs_nn/password'
           'ryba/prometheus/jmx_exporters/hdfs_nn/install'
           'ryba/prometheus/jmx_exporters/hdfs_nn/start'
         ]
