@@ -68,7 +68,7 @@
   </property>
   <property>
     <name>hive.exec.pre.hooks</name>
-    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <value>org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook</value>
     <description>
       Comma-separated list of pre-execution hooks to be invoked for each statement. 
       A pre-execution hook is specified as the name of a Java class which implements the 
@@ -77,7 +77,7 @@
   </property>
   <property>
     <name>hive.exec.post.hooks</name>
-	<value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+	<value>org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook</value>
     <description>
       Comma-separated list of post-execution hooks to be invoked for each statement. 
       A post-execution hook is specified as the name of a Java class which implements the 
@@ -86,7 +86,7 @@
   </property>
   <property>
     <name>hive.exec.failure.hooks</name>
-    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <value>org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook</value>
     <description>
       Comma-separated list of on-failure hooks to be invoked for each statement. 
       An on-failure hook is specified as the name of Java class which implements the 

@@ -1,15 +1,5 @@
 <configuration>
     <property>
-      <name>hadoop.registry.rm.enabled</name>
-      <value>false</value>
-    </property>
-
-    <property>
-      <name>hadoop.registry.zk.quorum</name>
-      <value>TODO-ZOOKEEPER1-HOST:2181,TODO-ZOOKEEPER2-HOST:2181,TODO-ZOOKEEPER3-HOST:2181</value>
-    </property>
-
-    <property>
       <name>yarn.acl.enable</name>
       <value>true</value>
     </property>
