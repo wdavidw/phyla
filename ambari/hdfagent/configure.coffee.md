@@ -35,5 +35,5 @@
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'
     migration = require 'masson/lib/migration'

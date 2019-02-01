@@ -3,7 +3,7 @@ fs = require 'ssh2-fs'
 # jsdom = require 'jsdom'
 xmldom = require 'xmldom'
 builder = require 'xmlbuilder'
-misc = require 'nikita/lib/misc'
+misc = require '@nikita/core/lib/misc'
 
 module.exports = exports =
   ###

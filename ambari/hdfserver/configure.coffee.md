@@ -223,5 +223,5 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Dependencies
 
     url = require 'url'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'
     migration = require 'masson/lib/migration'

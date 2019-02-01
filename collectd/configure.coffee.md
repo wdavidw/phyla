@@ -26,4 +26,4 @@ can render the configuration files.
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

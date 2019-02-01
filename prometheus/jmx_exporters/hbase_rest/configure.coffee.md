@@ -145,6 +145,6 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'
 
 [jmx_exporter]:(https://github.com/prometheus/jmx_exporter)

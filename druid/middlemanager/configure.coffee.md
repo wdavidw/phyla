@@ -106,4 +106,4 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

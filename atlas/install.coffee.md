@@ -578,10 +578,10 @@ The commands a divided per user, as the hive bridge is not mandatory.
 ## Dependencies
 
     mkcmd = require '../lib/mkcmd'
-    string = require 'nikita/lib/misc/string'
+    string = require '@nikita/core/lib/misc/string'
     path = require 'path'
     fs = require 'ssh2-fs'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'
 
 [atlas-credential-file]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_data-governance/content/ch_hdp_data_governance_install_atlas_ambari.html)
 [solr-rest-api-roles]:(https://lucene.apache.org/solr/guide/6_6/rule-based-authorization-plugin.html)

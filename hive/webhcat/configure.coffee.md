@@ -105,4 +105,4 @@
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

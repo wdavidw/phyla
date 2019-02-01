@@ -219,5 +219,5 @@ Note, we might move this middleware to Masson.
 
 ## Dependencies
 
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'
     minimatch = require 'minimatch'

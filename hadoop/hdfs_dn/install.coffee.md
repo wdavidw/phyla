@@ -362,7 +362,7 @@ need to fix limits to root account, until Bigtop integrates jsvc 1.0.6
 
 ## Dependencies
 
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'
     path = require 'path'
 
 [key_os]: http://fr.slideshare.net/vgogate/hadoop-configuration-performance-tuning

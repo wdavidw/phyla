@@ -26,4 +26,4 @@ List the current FS root locations for the Hive databases.
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    string = require 'nikita/lib/misc/string'
+    string = require '@nikita/core/lib/misc/string'

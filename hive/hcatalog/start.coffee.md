@@ -33,4 +33,4 @@ su -l hive -c 'nohup hive --config /etc/hive-hcatalog/conf --service metastore >
 
 # Module Dependencies
 
-    db = require 'nikita/lib/misc/db'
+    db = require '@nikita/core/lib/misc/db'

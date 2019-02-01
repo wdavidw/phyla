@@ -65,4 +65,4 @@ The components should register their user to ambari agents
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

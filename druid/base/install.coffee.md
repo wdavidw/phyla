@@ -201,5 +201,5 @@ Configure deep storage.
 
 ## Dependencies
 
-    db = require 'nikita/lib/misc/db'
+    db = require '@nikita/core/lib/misc/db'
     path = require 'path'

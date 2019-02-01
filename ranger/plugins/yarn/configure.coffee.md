@@ -262,4 +262,4 @@ SSL can be configured to use SSL if ranger admin has SSL enabled.
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

@@ -77,4 +77,4 @@ Note rmp can only be download from the Hortonworks Support Web UI.
 
 ## Dependencies
 
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'

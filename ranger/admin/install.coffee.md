@@ -286,6 +286,6 @@ This part of the setup is not documented. Deduce from launch scripts.
     glob = require 'glob'
     path = require 'path'
     quote = require 'regexp-quote'
-    db = require 'nikita/lib/misc/db'
+    db = require '@nikita/core/lib/misc/db'
 
 [instruction-24-25]:http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_command-line-upgrade/content/upgrade-ranger_24.html

@@ -193,4 +193,4 @@ Used only if SSL is enabled between Policy Admin Tool and Plugin
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

@@ -61,4 +61,4 @@ Each provider has two properties:
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

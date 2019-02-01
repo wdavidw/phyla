@@ -102,4 +102,4 @@ from https://support.hortonworks.com site
 ## Dependencies
 
     migration = require 'masson/lib/migration'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

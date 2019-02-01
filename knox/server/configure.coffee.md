@@ -427,6 +427,6 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'
 
 [knox-conf-example]:https://github.com/apache/knox/blob/master/gateway-release/home/templates/sandbox.knoxrealm2.xml

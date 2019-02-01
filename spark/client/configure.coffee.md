@@ -211,4 +211,4 @@ Spark mecanism to set up resources based on cluster availability
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

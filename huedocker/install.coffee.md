@@ -280,9 +280,9 @@ Write startup script to /etc/init.d/service-hue-docker
 
 ## Dependencies
 
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'
     fs = require 'fs'
-    db = require 'nikita/lib/misc/db'
+    db = require '@nikita/core/lib/misc/db'
     path = require 'path'
 
 ## Resources:

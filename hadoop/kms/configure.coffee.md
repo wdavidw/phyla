@@ -175,4 +175,4 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

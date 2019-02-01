@@ -63,6 +63,6 @@
 
 ## Dependencies
 
-    string = require 'nikita/lib/misc/string'
-    {merge} = require 'nikita/lib/misc'
+    string = require '@nikita/core/lib/misc/string'
+    {merge} = require '@nikita/core/lib/misc'
     appender = require '../../lib/appender'

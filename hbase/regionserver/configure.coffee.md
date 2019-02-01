@@ -194,4 +194,4 @@ Metrics information are entirely derived from the Master.
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

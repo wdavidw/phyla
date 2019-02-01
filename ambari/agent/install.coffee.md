@@ -75,4 +75,4 @@ Install Ambari Agent package.
 ## Dependencies
 
     path = require 'path'
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'

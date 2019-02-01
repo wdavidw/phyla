@@ -238,4 +238,4 @@
           if user != null
             es.plugins_urls["#{repo}"].push "https://github.com/#{user}/#{repo}/archive/master.zip"
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

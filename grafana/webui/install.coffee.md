@@ -119,4 +119,4 @@
 ## Dependencies
 
     quote = require 'regexp-quote'
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'

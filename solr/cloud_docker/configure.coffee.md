@@ -237,4 +237,4 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## Dependencies
 
     configure_solr_cluster = require './clusterize'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

@@ -359,4 +359,4 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
 ## Dependencies
 
     url = require 'url'
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikita/core/lib/misc'

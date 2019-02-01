@@ -125,4 +125,4 @@
 
 ## Dependecies
 
-    docker = require 'nikita/lib/misc/docker'
+    docker = require '@nikita/core/lib/misc/docker'

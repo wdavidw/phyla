@@ -343,8 +343,8 @@ Start the service or restart it if there were any changes.
 ## Dependencies
 
     url = require 'url'
-    misc = require 'nikita/lib/misc'
-    db = require 'nikita/lib/misc/db'
-    {properties} = require 'nikita/lib/file/properties'
+    misc = require '@nikita/core/lib/misc'
+    db = require '@nikita/core/lib/misc/db'
+    {properties} = require '@nikita/core/lib/file/properties'
 
 [sr]: http://docs.hortonworks.com/HDPDocuments/Ambari-2.2.2.0/bk_Installing_HDP_AMB/content/_meet_minimum_system_requirements.html

@@ -153,4 +153,4 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Dependencies
 
-    misc = require 'nikita/lib/misc'
+    misc = require '@nikita/core/lib/misc'

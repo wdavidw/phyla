@@ -441,8 +441,8 @@ hdfs_client configuration directory.
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
-    db = require 'nikita/lib/misc/db'
+    {merge} = require '@nikita/core/lib/misc'
+    db = require '@nikita/core/lib/misc/db'
 
 [home]: http://gethue.com
 [hdp-2.3.2.0-hue]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_installing_manually_book/content/prerequisites_hue.html)
