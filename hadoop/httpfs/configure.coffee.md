@@ -115,4 +115,4 @@ Export the proxy user to all DataNodes and NameNodes
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

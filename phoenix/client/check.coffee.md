@@ -99,6 +99,6 @@ instructions.
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    string = require '@nikita/core/lib/misc/string'
+    string = require '@nikitajs/core/lib/misc/string'
 
 [sqlline]: http://sqlline.sourceforge.net/#commands

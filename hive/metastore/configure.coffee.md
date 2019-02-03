@@ -68,5 +68,5 @@ keystore file](https://cwiki.apache.org/confluence/display/Hive/AdminManual+Conf
 
 ## Module Dependencies
 
-    db = require '@nikita/core/lib/misc/db'
-    {merge} = require '@nikita/core/lib/misc'
+    db = require '@nikitajs/core/lib/misc/db'
+    {merge} = require '@nikitajs/core/lib/misc'

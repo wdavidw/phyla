@@ -155,4 +155,4 @@ By changing the default port, we can allow different mongo service to run on the
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

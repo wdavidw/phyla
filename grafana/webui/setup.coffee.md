@@ -38,5 +38,5 @@
 ## Dependencies
 
     quote = require 'regexp-quote'
-    misc = require '@nikita/core/lib/misc'
+    misc = require '@nikitajs/core/lib/misc'
     mkcmd = require '../../lib/mkcmd'

@@ -279,4 +279,4 @@ NameNode, we wait for the active NameNode to take leadership and start the ZKFC 
 
     fs = require 'ssh2-fs'
     mkcmd = require '../../lib/mkcmd'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

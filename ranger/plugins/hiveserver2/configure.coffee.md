@@ -228,4 +228,4 @@ The repository name should match the reposity name in web ui.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

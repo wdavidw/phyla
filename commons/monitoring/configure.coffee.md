@@ -1661,7 +1661,7 @@ from normzlized configuration.
 
     fs = require 'fs'
     glob = require 'glob'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'
     normalize = require 'masson/lib/config/normalize'
     store = require 'masson/lib/config/store'

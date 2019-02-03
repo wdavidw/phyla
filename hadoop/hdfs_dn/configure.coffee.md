@@ -273,5 +273,5 @@ Inherits log4j configuration from the `ryba/log4j`. The rendered file uses the v
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     appender = require '../../lib/appender'

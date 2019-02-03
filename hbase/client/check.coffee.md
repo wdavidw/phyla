@@ -222,7 +222,7 @@ This check is only executed if more than two HBase Master are declared.
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    string = require '@nikita/core/lib/misc/string'
+    string = require '@nikitajs/core/lib/misc/string'
 
 
 [HBASE-8409]: https://issues.apache.org/jira/browse/HBASE-8409

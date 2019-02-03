@@ -543,5 +543,5 @@ the ShareLib contents without having to go into HDFS.
     url = require 'url'
     path = require 'path'
     mkcmd = require '../../lib/mkcmd'
-    db = require '@nikita/core/lib/misc/db'
+    db = require '@nikitajs/core/lib/misc/db'
     quote = require 'regexp-quote'

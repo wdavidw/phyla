@@ -220,6 +220,6 @@ Follow official instruction from [Hortonworks HDP 2.2 Manual Upgrade][upgrade]
 
     util = require 'util'
     each = require 'each'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     run = require 'masson/lib/run'
     mkcmd = require '../mkcmd'

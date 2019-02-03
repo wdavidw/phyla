@@ -196,6 +196,6 @@ Note: Compatible with every version of docker available at this time.
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    docker = require '@nikita/core/lib/misc/docker'
+    docker = require '@nikitajs/core/lib/misc/docker'
 
 [ranger-solr-script]:(https://community.hortonworks.com/questions/29291/ranger-solr-script-create-ranger-audits-collection.html)

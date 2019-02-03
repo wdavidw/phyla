@@ -78,4 +78,4 @@ This starting options should be injected to @config.docker variable. For now
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

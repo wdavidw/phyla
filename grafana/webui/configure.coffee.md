@@ -242,4 +242,4 @@ do not depend on cluster or host names.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

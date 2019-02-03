@@ -171,4 +171,4 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

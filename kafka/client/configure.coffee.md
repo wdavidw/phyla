@@ -118,4 +118,4 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

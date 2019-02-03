@@ -468,4 +468,4 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 
     path = require 'path'
     quote = require 'regexp-quote'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

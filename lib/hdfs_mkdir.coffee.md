@@ -101,4 +101,4 @@ Options include:
 
 ## Dependecies
 
-    {mode} = require '@nikita/core/lib/misc'
+    {mode} = require '@nikitajs/core/lib/misc'

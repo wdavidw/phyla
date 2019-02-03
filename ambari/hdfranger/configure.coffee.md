@@ -60,5 +60,5 @@ https://community.hortonworks.com/articles/81184/understanding-the-initial-admin
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     migration = require 'masson/lib/migration'

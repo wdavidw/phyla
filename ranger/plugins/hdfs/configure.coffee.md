@@ -202,4 +202,4 @@ Repository creating is only executed from one NameNode.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

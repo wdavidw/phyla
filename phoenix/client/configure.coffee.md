@@ -63,6 +63,6 @@ HBase Client.
 
 ## Dependencies
 
-    string = require '@nikita/core/lib/misc/string'
-    {merge} = require '@nikita/core/lib/misc'
+    string = require '@nikitajs/core/lib/misc/string'
+    {merge} = require '@nikitajs/core/lib/misc'
     appender = require '../../lib/appender'

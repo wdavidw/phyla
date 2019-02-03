@@ -172,5 +172,5 @@ Gather all shinken's arbiter, scheduler, poller, broker daemons config to render
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 

@@ -132,4 +132,4 @@ fencing method should be configured to not block failover.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

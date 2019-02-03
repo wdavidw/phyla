@@ -42,4 +42,4 @@ Check if the Hive HCatalog (Metastore) server is listening.
 # Module Dependencies
 
     url = require 'url'
-    db = require '@nikita/core/lib/misc/db'
+    db = require '@nikitajs/core/lib/misc/db'

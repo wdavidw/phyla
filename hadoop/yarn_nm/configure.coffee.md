@@ -337,7 +337,7 @@ Resources:
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 
 [yarn-cgroup-red7]: https://issues.apache.org/jira/browse/YARN-2194
 [container]: http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/SecureContainer.html

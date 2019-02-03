@@ -495,7 +495,7 @@ Ryba injects function to the different contexts.
 ## Dependencies
 
     quote = require 'regexp-quote'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'
 
 [ranger-2.4.0]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/configure-the-ranger-policy-administration-authentication-moades.html)

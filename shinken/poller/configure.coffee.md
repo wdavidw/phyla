@@ -108,4 +108,4 @@ be set runtime by arbiter configuration synchronization.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

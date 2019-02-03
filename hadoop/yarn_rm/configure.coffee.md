@@ -452,4 +452,4 @@ With YARN 3.1.0, docker container can be launched by nodemanager.
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

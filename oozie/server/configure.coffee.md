@@ -296,6 +296,6 @@ the same database. It uses zookeeper for enabling HA.
 
 ## Dependencies
 
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 
 [oozie-ha]:(https://oozie.apache.org/docs/4.2.0/AG_Install.html#High_Availability_HA)

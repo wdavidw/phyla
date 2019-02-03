@@ -20,4 +20,4 @@ The backup script dump the content of the hive database.
 
 ## Dependencies
 
-    db = require '@nikita/core/lib/misc/db'
+    db = require '@nikitajs/core/lib/misc/db'

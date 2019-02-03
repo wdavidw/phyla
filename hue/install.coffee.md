@@ -239,7 +239,7 @@ modified time are older than 10 days will be removed.
 
 ## Dependencies
 
-    misc = require '@nikita/core/lib/misc'
+    misc = require '@nikitajs/core/lib/misc'
 
 ## Resources:   
 

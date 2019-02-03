@@ -367,7 +367,7 @@ supported contexts are "hbase", "jvm" and "rpc".
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 
 ## Resources
 

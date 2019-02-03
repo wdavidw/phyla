@@ -85,6 +85,6 @@ Add password authentication
 
     quote = require 'regexp-quote'
     migration = require 'masson/lib/migration'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 
 [redis-replication]:https://redis.io/topics/replication

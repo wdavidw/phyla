@@ -85,7 +85,7 @@ Add password authentication
 ## Dependencies
 
     quote = require 'regexp-quote'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
 
 [redis-replication]:https://redis.io/topics/replication
 [redis-cluster]: https://redis.io/topics/cluster-tutorial

@@ -152,4 +152,4 @@ Signature is `hdfs_upload(options)`.
 ## Dependencies
 
     mkcmd = require './mkcmd'
-    string = require '@nikita/core/lib/misc/string'
+    string = require '@nikitajs/core/lib/misc/string'

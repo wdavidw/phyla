@@ -643,7 +643,7 @@ in or out of docker.
 ## Dependencies
 
     configure_solr_cluster = require '../solr/cloud_docker/clusterize'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'
 
 [titan]:(http://titan.thinkaurelius.com)

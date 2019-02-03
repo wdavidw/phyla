@@ -45,4 +45,4 @@ By default, merge group and user from the Ranger admin configuration.
 ## Dependencies
 
     migration = require 'masson/lib/migration'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

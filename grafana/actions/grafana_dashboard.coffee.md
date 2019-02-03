@@ -120,4 +120,4 @@ nikita
 ## Dependencies
 
     fs = require 'fs'
-    {merge} = require '@nikita/core/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
