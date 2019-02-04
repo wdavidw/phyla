@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Trunk
+
+* nikita: monorepos
+
 ## Version 0.2.0
 
 * nikita: collect - options as destructuring assignment
