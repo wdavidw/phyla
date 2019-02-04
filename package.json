@@ -1,6 +1,6 @@
 {
   "name": "ryba",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "description": "Hadoop deployment made easy: HA and Kerberos secured cluster in 1 command",
   "author": "David Worms <david@adaltas.com>",
   "bugs": {
@@ -22,7 +22,7 @@
     }
   ],
   "homepage": "https://github.com/ryba-io/ryba",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "keywords": [
     "hadoop",
     "hdp",
@@ -55,6 +55,7 @@
     "xmldom": "~0.1.27"
   },
   "devDependencies": {
+    "lerna": "^3.9.0",
     "mocha": "~5.2.0",
     "should": "~13.2.3"
   },

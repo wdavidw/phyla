@@ -1,0 +1,32 @@
+{
+  "name": "@rybajs/storage",
+  "version": "0.0.0",
+  "description": "Database and filesystem deployments",
+  "keywords": [
+    "database",
+    "rdbms",
+    "nosql",
+    "fs",
+    "filesystems"
+  ],
+  "author": "David Worms <david@adaltas.com>",
+  "homepage": "http://www.ryba.io",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/ryba-io/ryba/issues"
+  }
+}

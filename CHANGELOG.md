@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Trunk
+
+* package: convert to monorepo
+
 ## Version 0.3.0
 
 * nikita: monorepos

@@ -1,0 +1,40 @@
+
+## Init
+
+There is 4 phoenix 'SYSTEM.*' tables. If they don't exist in HBase, we launch
+phoenix with hbase admin user.
+Independently, if 'ryba' hasn't CREATE right on these 4 tables, it will be granted
+
+    module.exports = header: 'Phoenix Client Init', handler: ({options}) ->
+
+Wait for HBase to be started.
+
+      @call once: true, '@rybajs/metal/hbase/regionserver/wait'
+      @call once: true, '@rybajs/metal/hbase/master/wait'
+
+Trigger Phoenix tables creation.
+
+      zk_path = "#{options.site['hbase.zookeeper.quorum']}"
+      zk_path += ":#{options.site['hbase.zookeeper.property.clientPort']}"
+      zk_path += "#{options.site['zookeeper.znode.parent']}"
+      @system.execute
+        header: 'Namespace'
+        cmd: mkcmd.hbase options.admin, """
+        export HBASE_CONF_DIR=#{options.hbase_conf_dir}
+        code=3
+        if ! hbase shell 2>/dev/null <<< "list_namespace_tables 'SYSTEM'" | egrep '^CATALOG$'; then
+          /usr/hdp/current/phoenix-client/bin/sqlline.py #{zk_path} <<< '!q' # 2>/dev/null
+          echo 'Phoenix tables now created'
+          code=0
+        fi
+        if ! hbase shell 2>/dev/null <<< "user_permission '@SYSTEM'" | egrep 'ryba.* actions=(CREATE|READ|WRITE|ADMIN),(CREATE|READ|WRITE|ADMIN),(CREATE|READ|WRITE|ADMIN),(CREATE|READ|WRITE|ADMIN)'; then
+          hbase shell 2>/dev/null <<< "grant 'ryba', 'RWCA', '@SYSTEM'"
+          code=0
+        fi
+        exit $code
+        """
+        code_skipped: 3
+
+## Dependencies
+
+    mkcmd = require '../../lib/mkcmd'
