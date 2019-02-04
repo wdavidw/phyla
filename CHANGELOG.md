@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Trunk
+## Version 0.3.0
 
 * nikita: monorepos
 
