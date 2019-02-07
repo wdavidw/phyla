@@ -36,7 +36,7 @@
 ```
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfserver', ['ryba', 'ambari', 'hdfserver'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/ambari/hdfserver', ['ryba', 'ambari', 'hdfserver'], require('@nikitajs/core/lib/misc').merge require('.').use,
         iptables: key: ['iptables']
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']

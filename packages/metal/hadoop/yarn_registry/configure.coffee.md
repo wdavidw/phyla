@@ -100,4 +100,4 @@ By default, when acl are enabled, ony super users have the right to read/write r
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

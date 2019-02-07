@@ -2,7 +2,7 @@
 # Hortonworks Smartsense Agent Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/smartsense/agent', ['ryba', 'smartsense', 'agent'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/smartsense/agent', ['ryba', 'smartsense', 'agent'], require('@nikitajs/core/lib/misc').merge require('.').use,
         java: key: ['java']
         iptables: key: ['iptables']
         smartsense_servers: key: ['ryba','smartsense','server']

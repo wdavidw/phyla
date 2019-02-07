@@ -162,4 +162,4 @@ to configure ssl and use hadoop credential configuration to store passwords.
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'

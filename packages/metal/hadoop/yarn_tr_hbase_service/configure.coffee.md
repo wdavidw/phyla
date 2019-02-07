@@ -217,5 +217,5 @@ instance of yarn hbase master svice principal, ans the keytab will be upload to 
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'

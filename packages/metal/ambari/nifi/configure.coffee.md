@@ -2,7 +2,7 @@
 # Ambari NiFi Configure
 
     module.exports = ->
-      service = migration.call @, service, '@rybajs/metal/ambari/server', ['ryba', 'ambari', 'nifi'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/ambari/server', ['ryba', 'ambari', 'nifi'], require('@nikitajs/core/lib/misc').merge require('.').use,
         ssl: key: ['ssl']
         hdf: key: ['ryba', 'hdf']
       options = @config.ryba.ambari.nifi = service.options

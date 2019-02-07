@@ -2,7 +2,7 @@
 # Ambari Repo Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfrepo', ['ryba', 'ambari', 'hdfrepo'], require('nikita/lib/misc').merge require('.').use, {}
+      service = migration.call @, service, '@rybajs/metal/ambari/hdfrepo', ['ryba', 'ambari', 'hdfrepo'], require('@nikitajs/core/lib/misc').merge require('.').use, {}
       @config.ryba ?= {}
       @config.ryba.ambari ?= {}
       options = @config.ryba.ambari.hdfrepo = service.options

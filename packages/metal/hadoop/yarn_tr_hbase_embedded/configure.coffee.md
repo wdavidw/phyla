@@ -180,5 +180,5 @@
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'

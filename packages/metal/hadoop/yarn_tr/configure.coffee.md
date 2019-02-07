@@ -298,5 +298,5 @@ ryba can configure YARN to use HBase deployed by `@rybajs/metal/hbase`, or HBase
 
 ## Dependencies
 
-    {merge} = require 'nikita/lib/misc'
+    {merge} = require '@nikitajs/core/lib/misc'
     path = require 'path'

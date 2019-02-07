@@ -2,7 +2,7 @@
 # Hortonworks Smartsense Server Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/smartsense/server', ['ryba', 'smartsense', 'server'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/smartsense/server', ['ryba', 'smartsense', 'server'], require('@nikitajs/core/lib/misc').merge require('.').use,
         java: key: ['java']
         iptables: key: ['iptables']
         ssl: key: ['ssl']

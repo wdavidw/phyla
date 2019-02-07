@@ -2,7 +2,7 @@
 # Ranger with Ambari Configure
 
     module.exports = ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfranger', ['ryba', 'ambari', 'hdfranger'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/ambari/hdfranger', ['ryba', 'ambari', 'hdfranger'], require('@nikitajs/core/lib/misc').merge require('.').use,
         ssl: key: ['ssl']
         krb5_client: key: ['krb5_client']
         java: key: ['java']

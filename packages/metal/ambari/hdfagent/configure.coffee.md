@@ -2,7 +2,7 @@
 # Ambari Agent Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfagent', ['ryba', 'ambari', 'hdfagent'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/metal/ambari/hdfagent', ['ryba', 'ambari', 'hdfagent'], require('@nikitajs/core/lib/misc').merge require('.').use,
         java: key: ['java']
         hdf: key: ['ryba', 'hdf']
         ambari_server: key: ['ryba', 'ambari', 'hdfserver']

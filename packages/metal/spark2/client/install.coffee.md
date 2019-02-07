@@ -159,6 +159,6 @@ has finished (logs are only available in yarn-cluster mode).
 
     mkcmd = require '../../lib/mkcmd'
     quote = require 'regexp-quote'
-    string = require 'nikita/lib/misc/string'
+    string = require '@nikitajs/core/lib/misc/string'
 
 [spark-conf]:https://spark.apache.org/docs/latest/configuration.html

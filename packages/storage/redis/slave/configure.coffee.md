@@ -5,7 +5,7 @@ Redis cluster replication adopts a slave-master architecture. This module config
 that slave will link to.
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/storage/redis/master', ['ryba', 'redis', 'master'], require('nikita/lib/misc').merge require('.').use,
+      service = migration.call @, service, '@rybajs/storage/redis/master', ['ryba', 'redis', 'master'], require('@nikitajs/core/lib/misc').merge require('.').use,
         iptables: key: ['iptables']
         yum: key: ['yum']
         redis_master: key: ['ryba', 'redis', 'master']

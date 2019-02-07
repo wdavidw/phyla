@@ -45,4 +45,4 @@ describe 'hdfs mkdir', ->
       status.should.be.false() unless err
     .next next
 
-string = require 'nikita/lib/misc/string'
+string = require '@nikitajs/core/lib/misc/string'
