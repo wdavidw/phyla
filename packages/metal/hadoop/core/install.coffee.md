@@ -32,7 +32,7 @@ not handled here.
       for group in [options.hadoop_group, options.hdfs.group, options.yarn.group, options.mapred.group, options.ats.group]
         @system.group header: "Group #{group.name}", group
       for user in [options.hdfs.user, options.yarn.user, options.mapred.user, options.ats.user]
-        @system.user header: "user #{user.name}", user
+        @system.user header: "User #{user.name}", user
 
 ## Packages
 
