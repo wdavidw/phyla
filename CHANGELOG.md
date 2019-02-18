@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ambari: new services
 * system.authconfig: new service
 * package: convert to monorepo
 
