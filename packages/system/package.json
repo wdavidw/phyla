@@ -1,0 +1,31 @@
+{
+  "name": "@rybajs/system",
+  "version": "0.0.0",
+  "description": "Tools commonly used accros Ryba",
+  "keywords": [
+    "ryba",
+    "nikita",
+    "system",
+    "authconfig"
+  ],
+  "author": "David Worms <david@adaltas.com>",
+  "homepage": "http://www.ryba.io",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/ryba-io/ryba/issues"
+  }
+}
