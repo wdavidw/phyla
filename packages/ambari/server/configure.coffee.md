@@ -1,6 +1,19 @@
 
 # Ambari Server Configuration
 
+## Options
+
+* `db_hive.database` (string)   
+  Name of the database storing the Hive database.
+* `db_hive.enabled` (boolean)   
+  Prepare the Hive database.
+* `db_hive.engine` (boolean)   
+  Type of database; one of "mariadb", "mysql" or "postgresql".
+* `db_hive.password` (boolean)   
+  Password associated with the database administrator user.
+* `db_hive.username` (boolean)   
+  Hive database administrator user.
+
 ## Minimal Example
 
 ```json
@@ -45,7 +58,7 @@
       options.conf_dir ?= '/etc/ambari-server/conf'
       options.sudo ?= false
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
-      options.java_home ?= service.deps.java.options.java_home
+      options.java_home ?= service.deps.java and service.deps.java.options.java_home
       options.master_key ?= null
       options.admin ?= {}
       options.current_admin_password ?= 'admin'
@@ -81,7 +94,6 @@ Hadoop group. The default group name is "hadoop".
       options.user.groups ?= ['hadoop']
       options.user.gid = options.group.name
 
-
       # test User
       options.test_group = name: options.test_group if typeof options.test_group is 'string'
       options.test_group ?= {}
@@ -97,36 +109,36 @@ Hadoop group. The default group name is "hadoop".
       options.test_user.gid = options.test_group.name
 
       # test User
-      options.explorer_group = name: options.explorer_group if typeof options.explorer_group is 'string'
-      options.explorer_group ?= {}
-      options.explorer_group.name ?= 'activity_explorer'
-      options.explorer_group.system ?= true
-      options.explorer_user = name: options.explorer_user if typeof options.v is 'string'
-      options.explorer_user ?= {}
-      options.explorer_user.name ?= 'activity_explorer'
-      options.explorer_user.system ?= true
-      options.explorer_user.comment ?= 'Ambari Activity Explorer User'
-      options.explorer_user.home ?= "/var/lib/#{options.explorer_user.name}"
-      options.explorer_user.groups ?= ['hadoop']
-      options.explorer_user.gid = options.explorer_group.name
+      # options.explorer_group = name: options.explorer_group if typeof options.explorer_group is 'string'
+      # options.explorer_group ?= {}
+      # options.explorer_group.name ?= 'activity_explorer'
+      # options.explorer_group.system ?= true
+      # options.explorer_user = name: options.explorer_user if typeof options.v is 'string'
+      # options.explorer_user ?= {}
+      # options.explorer_user.name ?= 'activity_explorer'
+      # options.explorer_user.system ?= true
+      # options.explorer_user.comment ?= 'Ambari Activity Explorer User'
+      # options.explorer_user.home ?= "/var/lib/#{options.explorer_user.name}"
+      # options.explorer_user.groups ?= ['hadoop']
+      # options.explorer_user.gid = options.explorer_group.name
 
       # test User
-      options.analyzer_group = name: options.analyzer_group if typeof options.analyzer_group is 'string'
-      options.analyzer_group ?= {}
-      options.analyzer_group.name ?= 'activity_analyzer'
-      options.analyzer_group.system ?= true
-      options.analyzer_user = name: options.analyzer_user if typeof options.v is 'string'
-      options.analyzer_user ?= {}
-      options.analyzer_user.name ?= 'activity_analyzer'
-      options.analyzer_user.system ?= true
-      options.analyzer_user.comment ?= 'Ambari Activity Analyzer User'
-      options.analyzer_user.home ?= "/var/lib/#{options.analyzer_user.name}"
-      options.analyzer_user.groups ?= ['hadoop']
-      options.analyzer_user.gid = options.analyzer_group.name
+      # options.analyzer_group = name: options.analyzer_group if typeof options.analyzer_group is 'string'
+      # options.analyzer_group ?= {}
+      # options.analyzer_group.name ?= 'activity_analyzer'
+      # options.analyzer_group.system ?= true
+      # options.analyzer_user = name: options.analyzer_user if typeof options.v is 'string'
+      # options.analyzer_user ?= {}
+      # options.analyzer_user.name ?= 'activity_analyzer'
+      # options.analyzer_user.system ?= true
+      # options.analyzer_user.comment ?= 'Ambari Activity Analyzer User'
+      # options.analyzer_user.home ?= "/var/lib/#{options.analyzer_user.name}"
+      # options.analyzer_user.groups ?= ['hadoop']
+      # options.analyzer_user.gid = options.analyzer_group.name
 
 ## Ambari TLS and Truststore
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       if options.ssl.enabled
@@ -146,35 +158,37 @@ Multiple ambari instance on a same server involve a different principal or the p
 `auth=KERBEROS;proxyuser=ambari`
 
       # Krb5 Import
-      options.krb5_enabled ?= !!service.deps.krb5_client
-      if options.krb5_enabled
-        options.krb5 ?= {}
+      options.krb5 ?= {}
+      # Krb5 Client adapter
+      if service.deps.krb5_client
         options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
-        throw Error 'Required Options: "realm"' unless options.krb5.realm
         options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      if options.krb5.enabled
+        throw Error 'Required Options: "realm"' unless options.krb5.realm
         # Krb5 Validation
         throw Error "Require Property: krb5.admin.kadmin_principal" unless options.krb5.admin.kadmin_principal
         throw Error "Require Property: krb5.admin.kadmin_password" unless options.krb5.admin.kadmin_password
         throw Error "Require Property: krb5.admin.admin_server" unless options.krb5.admin.admin_server
-        # JAAS
-        options.jaas ?= {}
-        options.jaas.enabled ?= false
-        if options.jaas.enabled
-          options.jaas.keytab ?= '/etc/security/keytabs/ambari.service.keytab'
-          options.jaas.principal ?= "ambari/_HOST@#{options.jaas.realm}"
-          options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
+      # JAAS
+      options.jaas ?= {}
+      options.jaas.enabled ?= options.krb5.enabled
+      options.jaas.keytab ?= '/etc/security/keytabs/ambari.service.keytab'
+      if options.jaas.enabled
+        throw Error 'jaas.enabled required krb5.enabled' unless options.krb5.enabled
+        options.jaas.principal ?= "ambari/_HOST@#{options.krb5.realm}"
+        options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
 
-        options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
-        options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
-        options.explorer_user.principal ?= "#{options.explorer_user.name}/_HOST@#{options.krb5.realm}"
-        options.explorer_user.keytab ?=  "/etc/security/keytabs/activity-explorer.headless.keytab"
+        # options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
+        # options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
+        # options.explorer_user.principal ?= "#{options.explorer_user.name}/_HOST@#{options.krb5.realm}"
+        # options.explorer_user.keytab ?=  "/etc/security/keytabs/activity-explorer.headless.keytab"
 
 ## Configuration
 
       options.config ?= {}
       options.config['server.url_port'] ?= "8440"
       options.config['server.secured_url_port'] ?= "8441"
-      options.config['api.ssl'] ?= unless options.ssl then 'false' else 'true'
+      options.config['api.ssl'] ?= if options.ssl.enabled then 'true' else 'false'
       options.config['client.api.port'] ?= "8080"
       # Be Carefull, collision in HDP 2.5.3 on port 8443 between Ambari and Knox
       options.config['client.api.ssl.port'] ?= "8442"
@@ -188,7 +202,7 @@ and can be updated in between major releases.
 The only MPack file to be registered in the configuration is the one for HDF. It is desactivated by default.
 
       options.mpacks ?= {}
-      options.mpacks.hdf = merge
+      options.mpacks.hdf = mixme
         enabled: false
         arch: 'centos'
         version: '7'
@@ -202,8 +216,8 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
+      Error "Unsupported Database Engine: got #{options.db.engine}" unless options.db.engine in options.supported_db_engines
+      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -211,33 +225,33 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
 ## Hive provisionning
 
-      options.db_hive ?= false
-      options.db_hive = password: options.db_hive if typeof options.db_hive is 'string'
-      if options.db_hive
+      options.db_hive ?= {}
+      options.db_hive.enabled ?= false
+      if options.db_hive.enabled
         options.db_hive.engine ?= options.db.engine
-        options.db_hive = merge {}, service.deps.db_admin.options[options.db_hive.engine], options.db_hive
+        options.db_hive = mixme service.deps.db_admin.options[options.db_hive.engine], options.db_hive
         options.db_hive.database ?= 'hive'
         options.db_hive.username ?= 'hive'
         throw Error "Required Option: db_hive.password" unless options.db_hive.password
 
 ## Oozie provisionning
 
-      options.db_oozie ?= false
-      options.db_oozie = password: options.db_oozie if typeof options.db_oozie is 'string'
-      if options.db_oozie
+      options.db_oozie ?= {}
+      options.db_oozie.enabled ?= false
+      if options.db_oozie.enabled
         options.db_oozie.engine ?= options.db.engine
-        options.db_oozie = merge {}, service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
+        options.db_oozie = mixme service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
         options.db_oozie.database ?= 'oozie'
         options.db_oozie.username ?= 'oozie'
         throw Error "Required Option: db_oozie.password" unless options.db_oozie.password
 
 ## Ranger provisionning
 
-      options.db_ranger ?= false
-      options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
-      if options.db_ranger
+      options.db_ranger ?= {}
+      options.db_ranger.enabled ?= false
+      if options.db_ranger.enabled
         options.db_ranger.engine ?= options.db.engine
-        options.db_ranger = merge {}, service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
+        options.db_ranger = mixme service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
@@ -256,11 +270,11 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.wait = {}
       options.wait.rest = for srv in service.deps.ambari_server
         clusters_url: url.format
-          protocol: if srv.options.config['api.ssl'] is true
+          protocol: if srv.options.config['api.ssl'] is 'true'
           then 'https'
           else 'http'
           hostname: srv.options.fqdn
-          port: if srv.options.config['api.ssl'] is true
+          port: if srv.options.config['api.ssl'] is 'true'
           then srv.options.config['client.api.ssl.port']
           else srv.options.config['client.api.port']
           pathname: '/api/v1/clusters'
@@ -270,4 +284,4 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Dependencies
 
     url = require 'url'
-    {merge} = require 'nikita/lib/misc'
+    mixme = require 'mixme'

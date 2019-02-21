@@ -10,7 +10,7 @@ Wait for the Ambari Server to be ready.
       @connection.assert
         header: 'Connection'
         host: options.fqdn
-        port: unless options.config['api.ssl'] is true
+        port: unless options.config['api.ssl'] is 'true'
         then options.config['client.api.port']
         else options.config['client.api.ssl.port']
         retry: 3
@@ -19,11 +19,11 @@ Wait for the Ambari Server to be ready.
 ## Check HTTP Server
 
       clusters_url = url.format
-        protocol: if options.config['api.ssl'] is true
+        protocol: if options.config['api.ssl'] is 'true'
         then 'https'
         else 'http'
         hostname: options.fqdn
-        port: if options.config['api.ssl'] is true
+        port: if options.config['api.ssl'] is 'true'
         then options.config['client.api.ssl.port']
         else options.config['client.api.port']
         pathname: '/api/v1/clusters'

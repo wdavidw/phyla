@@ -4,8 +4,8 @@
     module.exports =
       deps: {}
       configure:
-        'ryba-ambari-takeover/ambari/repo/configure'
+        '@rybajs/ambari/repo/configure'
       commands:
         'install':  [
-            'ryba-ambari-takeover/ambari/repo/install'
-          ]
+          '@rybajs/ambari/repo/install'
+        ]

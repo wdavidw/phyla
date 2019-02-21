@@ -29,5 +29,9 @@
   },
   "bugs": {
     "url": "https://github.com/ryba-io/ryba/issues"
+  },
+  "dependencies": {
+    "@nikitajs/core": "^0.9.3-alpha.7",
+    "mixme": "^0.0.1"
   }
 }

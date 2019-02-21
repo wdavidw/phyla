@@ -7,9 +7,9 @@ installed before the agent registration.
 
     module.exports =
       deps:
-        java: module: 'masson/commons/java', local: true, recommanded: true
+        java: module: '@rybajs/system/java', local: true, recommanded: true
         ambari_server: module: '@rybajs/ambari/server', required: true
-        ambari_repo: module: '@rybajs/ambari/repo', local: true, implicit: true
+        ambari_repo: module: '@rybajs/ambari/repo', local: true, auto: true, implicit: true
         ambari_agent: module: '@rybajs/ambari/agent'
         # local_agent: module: '@rybajs/agent', local: true, required: true
       configure:

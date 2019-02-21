@@ -41,9 +41,17 @@ Install Ambari server package.
         name: 'ambari-server'
         startup: true
       @service
-        header: 'Mysql Connector'
-        name: 'mysql-connector-java'
+        if: options.db.engine is 'mysql'
+        header: 'Mysql client'
+        name: 'mysql'
+      @service
+        if: options.db.engine is 'mariadb'
+        header: 'Mariadb client'
+        name: 'mariadb'
+      @service
         if: options.db.engine in ['mysql', 'mariadb']
+        header: 'Mysql connector'
+        name: 'mysql-connector-java'
 
 ## Non-Root
 
@@ -53,11 +61,15 @@ Install Ambari server package.
         target: '/etc/sudoers.d/ambari_server'
         content: """
         # Ambari Commands
-        ambari ALL=(ALL) NOPASSWD:SETENV: /bin/mkdir -p /etc/security/keytabs, /bin/chmod * /etc/security/keytabs/*.keytab, /bin/chown * /etc/security/keytabs/*.keytab, /bin/chgrp * /etc/security/keytabs/*.keytab, /bin/rm -f /etc/security/keytabs/*.keytab, /bin/cp -p -f /var/lib/ambari-server/data/tmp/* /etc/security/keytabs/*.keytab
+        ambari ALL=(ALL) NOPASSWD:SETENV: /bin/mkdir -p /etc/security/keytabs, /bin/ls /etc/security/keytabs, /bin/chmod * /etc/security/keytabs/*.keytab, /bin/chown * /etc/security/keytabs/*.keytab, /bin/chgrp * /etc/security/keytabs/*.keytab, /bin/rm -f /etc/security/keytabs/*.keytab, /bin/cp -p -f /var/lib/ambari-server/data/tmp/* /etc/security/keytabs/*.keytab
+        ambari ALL=(ALL) NOPASSWD:SETENV: /bin/mkdir -p /var/lib/ambari-server/data/tmp, /bin/chmod * /var/lib/ambari-server/data/tmp, /bin/chown * /var/lib/ambari-server/data/tmp, /bin/chgrp * /var/lib/ambari-server/data/tmp, /bin/rm -rf /var/lib/ambari-server/data/tmp/*, /bin/cp -f /tmp/* /var/lib/ambari-server/data/tmp/*, /usr/bin/test * *, /bin/stat -c %u %g %a /var/lib/ambari-server/data/tmp/*
         Defaults exempt_group = ambari
         Defaults !env_reset,env_delete-=PATH
         Defaults: ambari !requiretty
         """
+        uid: 0
+        gid: 0
+        eof: true
       @system.remove
         header: 'Clean Sudo'
         unless: options.sudo
@@ -124,7 +136,7 @@ Load the database with initial data
 
 ## Hive DB
 
-      @call header: 'Hive DB', if: !!options.db_hive, ->
+      @call header: 'Hive DB', if: options.db_hive.enabled, ->
         @db.user options.db_hive, database: null,
           header: 'User'
           if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
@@ -141,7 +153,7 @@ Load the database with initial data
 
 ## Oozie DB
 
-      @call header: 'Oozie DB', if: !!options.db_oozie, ->
+      @call header: 'Oozie DB', if: options.db_oozie.enabled, ->
         @db.user options.db_oozie, database: null,
           header: 'User'
           if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
@@ -158,58 +170,7 @@ Load the database with initial data
 
 ## Ranger DB
 
-      @call header: 'Ranger DB', if: !!options.db_ranger, ->
-        @db.user options.db_ranger, database: null,
-          header: 'User'
-          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.database options.db_ranger,
-          header: 'Database'
-          user: options.db_ranger.username
-          if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.schema options.db_ranger,
-          header: 'Schema'
-          if: options.db_ranger.engine is 'postgresql'
-          schema: options.db_ranger.schema or options.db_ranger.database
-          database: options.db_ranger.database
-          owner: options.db_ranger.username
-
-## Hive DB
-
-      @call header: 'Hive DB', if: !!options.db_hive, ->
-        @db.user options.db_hive, database: null,
-          header: 'User'
-          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.database options.db_hive,
-          header: 'Database'
-          user: options.db_hive.username
-          if: options.db_hive.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.schema options.db_hive,
-          header: 'Schema'
-          if: options.db_hive.engine is 'postgresql'
-          schema: options.db_hive.schema or options.db_hive.database
-          database: options.db_hive.database
-          owner: options.db_hive.username
-
-## Oozie DB
-
-      @call header: 'Oozie DB', if: !!options.db_oozie, ->
-        @db.user options.db_oozie, database: null,
-          header: 'User'
-          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.database options.db_oozie,
-          header: 'Database'
-          user: options.db_oozie.username
-          if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
-        @db.schema options.db_oozie,
-          header: 'Schema'
-          if: options.db_oozie.engine is 'postgresql'
-          schema: options.db_oozie.schema or options.db_oozie.database
-          database: options.db_oozie.database
-          owner: options.db_oozie.username
-
-## Ranger DB
-
-      @call header: 'Ranger DB', if: !!options.db_ranger, ->
+      @call header: 'Ranger DB', if: options.db_ranger.enabled, ->
         @db.user options.db_ranger, database: null,
           header: 'User'
           if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
@@ -285,8 +246,8 @@ Note, Ambari will change ownership to root.
 
       @krb5.addprinc options.krb5.admin,
         header: 'JAAS'
-        if: options.jaas?.enabled
-        principal: options.jaas.principal.replace '_HOST', options.fqdn
+        if: options.jaas.enabled
+        principal: options.jaas.principal?.replace '_HOST', options.fqdn
         keytab: options.jaas.keytab
         randkey: true
         uid: 'root'
@@ -365,7 +326,7 @@ Be carefull, notes from Ambari 2.4.2:
             --security-option=setup-https \
             --api-ssl=#{options.config['api.ssl']} \
             --api-ssl-port=#{options.config['client.api.ssl.port']} \
-            --pem-password= \
+            --pem-password='' \
             --import-cert-path="#{options.conf_dir}/cert.pem" \
             --import-key-path="#{options.conf_dir}/key.pem"
           """
@@ -374,6 +335,7 @@ Be carefull, notes from Ambari 2.4.2:
           cmd: """
           ambari-server setup-security \
             --security-option=setup-truststore \
+            --truststore-reconfigure \
             --truststore-path=#{options.truststore.target} \
             --truststore-type=#{options.truststore.type} \
             --truststore-password=#{options.truststore.password} \
@@ -435,7 +397,7 @@ Start the service or restart it if there were any changes.
         name: 'ambari-server'
         state: ['started', 'restarted']
         if: -> @status()
-      @call 'ryba-ambari-takeover/ambari/server/wait', once: true, options.wait
+      @call '@rybajs/ambari/server/wait', once: true, options.wait
 
 ## Admin Credentials
 
@@ -467,8 +429,6 @@ Start the service or restart it if there were any changes.
 
     path = require 'path'
     url = require 'url'
-    misc = require 'nikita/lib/misc'
-    db = require 'nikita/lib/misc/db'
-    properties = require 'nikita/lib/file/properties/read'
+    db = require '@nikitajs/core/lib/misc/db'
 
 [sr]: http://docs.hortonworks.com/HDPDocuments/Ambari-2.2.2.0/bk_Installing_HDP_AMB/content/_meet_minimum_system_requirements.html
