@@ -8,7 +8,6 @@ The ambari server must be set in the configuration file.
 
       @call '@rybajs/ambari/server/wait', rest: options.wait_ambari_rest
 
-
 ## Identities
 
 By default, the "ambari-agent" package does not create any identities.
@@ -30,10 +29,22 @@ Install Ambari Agent package.
           header: 'which'
           name: 'which'
         @service
+          header: 'wget'
+          name: 'wget'
+        @service
+          header: 'openssl'
+          name: 'openssl'
+        @service
           header: 'nscd'
           name: 'nscd'
           startup: true
           action: 'start'
+        # When starting solr in Ambari Infra, it will complain with "Please
+        # install lsof as this script needs it to determine if Solr is listening
+        # on port 8983."
+        @service
+          header: 'lsof'
+          name: 'lsof'
 
 ## Configure
 
@@ -64,7 +75,7 @@ Install Ambari Agent package.
 ## Non-Root
 
       @file
-        if: options.sudo
+        if: options.config.agent['run_as_user'] isnt 'root'
         target: '/etc/sudoers.d/ambari_agent'
         content: """
         # Ambari Customizable Users
@@ -90,6 +101,10 @@ Install Ambari Agent package.
         uid: 0
         gid: 0
         eof: true
+      @system.remove
+        header: 'Clean Sudo'
+        if: options.config.agent['run_as_user'] is 'root'
+        target: '/etc/sudoers.d/ambari_agent'
 
 ## Dependencies
 

@@ -57,7 +57,7 @@ Install Ambari server package.
 
       @file
         header: 'Sudo'
-        if: options.sudo
+        if: options.config['ambari-server.user'] isnt 'root'
         target: '/etc/sudoers.d/ambari_server'
         content: """
         # Ambari Commands
@@ -72,7 +72,7 @@ Install Ambari server package.
         eof: true
       @system.remove
         header: 'Clean Sudo'
-        unless: options.sudo
+        if: options.config['ambari-server.user'] is 'root'
         target: '/etc/sudoers.d/ambari_server'
 
 ## Database

@@ -16,36 +16,39 @@
 
 ## Minimal Example
 
-```json
-{ "config": {
-  "admin_password": "MySecret"
-  "db": {
-    "password": "MySecret"
-  }
-} }
+```yaml
+config:
+  admin_password: MySecret
+  db:
+    password: MySecret
 ```
 
 ## Database Encryption
 
-```json
-{ "config": {
-  "master_key": "MySecret",
-} }
+```yaml
+config:
+  master_key: MySecret
+```
+
+## Enable sudoer
+
+```yaml
+config:
+  ambari-server.user: ambari
 ```
 
 ## LDAP Connection
 
-```json
-{ "config": {
-  "client.security": "ldap",
-  "authentication.ldap.useSSL": true,
-  "authentication.ldap.primaryUrl": "master3.ryba:636",
-  "authentication.ldap.baseDn": "ou=users,dc=ryba",
-  "authentication.ldap.bindAnonymously": false,
-  "authentication.ldap.managerDn": "cn=admin,ou=users,dc=ryba",
-  "authentication.ldap.managerPassword": "XXX",
-  "authentication.ldap.usernameAttribute": "cn"
-} }
+```yaml
+config:
+  client.security: ldap
+  authentication.ldap.useSSL: true,
+  authentication.ldap.primaryUrl: master3.ryba:636
+  authentication.ldap.baseDn: ou=users,dc=ryba
+  authentication.ldap.bindAnonymously: false,
+  authentication.ldap.managerDn: cn=admin,ou=users,dc=ryba
+  authentication.ldap.managerPassword: XXX
+  authentication.ldap.usernameAttribute: cn
 ```
 
     module.exports = (service) ->
@@ -56,7 +59,6 @@
       options.fqdn = service.node.fqdn
       # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
-      options.sudo ?= false
       options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
       options.java_home ?= service.deps.java and service.deps.java.options.java_home
       options.master_key ?= null
@@ -186,6 +188,7 @@ Multiple ambari instance on a same server involve a different principal or the p
 ## Configuration
 
       options.config ?= {}
+      options.config['ambari-server.user'] ?= 'root'
       options.config['server.url_port'] ?= "8440"
       options.config['server.secured_url_port'] ?= "8441"
       options.config['api.ssl'] ?= if options.ssl.enabled then 'true' else 'false'

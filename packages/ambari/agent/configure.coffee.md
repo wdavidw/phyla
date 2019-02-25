@@ -11,7 +11,6 @@
 ## Environment
 
       options.fqdn = node.fqdn
-      options.sudo ?= false
       options.conf_dir ?= '/etc/ambari-agent/conf'
 
 ## Identities
@@ -32,7 +31,7 @@
       options.config.agent ?= {}
       options.config.agent['hostname_script'] ?= "#{options.conf_dir}/hostname.sh"
       options.config.agent['parallel_execution'] ?= 0
-      options.config.agent['run_as_user'] ?= if options.sudo then options.user.name else 'root'
+      options.config.agent['run_as_user'] ?= 'root'
 
 ## Ambari Rest Api URL
 

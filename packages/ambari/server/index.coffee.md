@@ -26,8 +26,8 @@ manage and monitor a Hadoop cluster.
           '@rybajs/ambari/server/check'
         'install': [
           '@rybajs/ambari/server/install'
-          # '@rybajs/ambari/server/start'
-          # '@rybajs/ambari/server/check'
+          '@rybajs/ambari/server/start'
+          '@rybajs/ambari/server/check'
         ]
         'start':
           '@rybajs/ambari/server/start'

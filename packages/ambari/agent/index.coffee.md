@@ -15,9 +15,12 @@ installed before the agent registration.
       configure:
         '@rybajs/ambari/agent/configure'
       commands:
+        'check':
+          '@rybajs/ambari/agent/check'
         'install': [
           '@rybajs/ambari/agent/install'
           '@rybajs/ambari/agent/start'
+          '@rybajs/ambari/agent/check'
         ]
         'start':
           '@rybajs/ambari/agent/start'
