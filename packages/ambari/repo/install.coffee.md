@@ -4,7 +4,10 @@
     module.exports = header: 'Ambari Repo Install', handler: ({options}) ->
     
       @tools.repo
-        if: options.ambari.source or options.ambari.content
+        if: [
+          options.ambari.source or options.ambari.content
+          options.ambari.enabled
+        ]
         header: 'Ambari'
         source: options.ambari.source
         content: options.ambari.content
@@ -15,7 +18,10 @@
         update: true
         
       @tools.repo
-        if: options.hdp.source or options.hdp.content
+        if: [
+          options.hdp.source or options.hdp.content
+          options.hdp.enabled
+        ]
         header: 'HDP'
         source: options.hdp.source
         content: options.hdp.content

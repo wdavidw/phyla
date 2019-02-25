@@ -185,6 +185,23 @@ Load the database with initial data
           database: options.db_ranger.database
           owner: options.db_ranger.username
 
+## Ranger DB
+
+      @call header: 'Ranger KMS DB', if: options.db_rangerkms.enabled, ->
+        @db.user options.db_rangerkms, database: null,
+          header: 'User'
+          if: options.db_rangerkms.engine in ['mysql', 'mariadb', 'postgresql']
+        @db.database options.db_rangerkms,
+          header: 'Database'
+          user: options.db_rangerkms.username
+          if: options.db_rangerkms.engine in ['mysql', 'mariadb', 'postgresql']
+        @db.schema options.db_rangerkms,
+          header: 'Schema'
+          if: options.db_rangerkms.engine is 'postgresql'
+          schema: options.db_rangerkms.schema or options.db_rangerkms.database
+          database: options.db_rangerkms.database
+          owner: options.db_rangerkms.username
+
 ## Configuration
 
 Merge used defined configuration. This could be used to set up
@@ -309,6 +326,7 @@ Be carefull, notes from Ambari 2.4.2:
             --databaseusername=#{options.db.username} \
             --databasepassword=#{options.db.password} \
             --enable-lzo-under-gpl-license
+          # TODO: condition to mysql and mariadb
           ambari-server setup \
             --jdbc-db=mysql \
             --jdbc-driver=/usr/share/java/mysql-connector-java.jar

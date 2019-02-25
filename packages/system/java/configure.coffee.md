@@ -62,7 +62,7 @@ jdk:
         source: http://download.oracle.com/otn-pub/java/jce/7/UnlimitedJCEPolicyJDK7.zip
         sha256: 7a8d790e7bd9c2f82a83baddfae765797a4a56ea603c9150c87b7cdb7800194d
     }
-    1.8.0_101:
+    1.8.0_121:
       jdk:
         source: http://download.oracle.com/otn-pub/java/jdk/8u121-b14/jdk-8u121-linux-x64.tar.gz
         sha256: 467f323ba38df2b87311a7818bcbf60fe0feb2139c455dfa0e08ba7ed8581328
@@ -82,9 +82,9 @@ jdk:
 
       options.jdk ?= {}
       options.jdk.root_dir ?= '/usr/java'
-      options.jdk.version ?= '1.8.0_152'
+      options.jdk.version ?= '1.8.0_202'
       options.jdk.versions ?=
-        '1.8.0_152':
+        '1.8.0_202':
           jdk:
             source: "https://download.oracle.com/otn-pub/java/jdk/8u202-b08/1961070e4c9b4e26a04e7f5a083f551e/jdk-8u202-linux-x64.tar.gz"
             md5: "0029351f7a946f6c05b582100c7d45b7" 

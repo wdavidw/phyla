@@ -256,6 +256,17 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
 
+## Ranger provisionning
+
+      options.db_rangerkms ?= {}
+      options.db_rangerkms.enabled ?= false
+      if options.db_rangerkms.enabled
+        options.db_rangerkms.engine ?= options.db.engine
+        options.db_rangerkms = mixme service.deps.db_admin.options[options.db_rangerkms.engine], options.db_rangerkms
+        options.db_rangerkms.database ?= 'rangerkms'
+        options.db_rangerkms.username ?= 'rangerkms'
+        throw Error "Required Option: db_rangerkms.password" unless options.db_rangerkms.password
+
 ## Client Rest API Url
 
       options.ambari_url ?= if options.config['api.ssl'] is 'false'
