@@ -159,8 +159,8 @@ Load the database with initial data
           if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
         @db.database options.db_oozie,
           header: 'Database'
-          user: options.db_oozie.username
           if: options.db_oozie.engine in ['mysql', 'mariadb', 'postgresql']
+          user: options.db_oozie.username
         @db.schema options.db_oozie,
           header: 'Schema'
           if: options.db_oozie.engine is 'postgresql'
@@ -174,10 +174,13 @@ Load the database with initial data
         @db.user options.db_ranger, database: null,
           header: 'User'
           if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
+        # Force latin1, now default in Nikita (following MySQL default)
+        # see https://community.hortonworks.com/content/supportkb/49076/receiving-error-commysqljdbcexceptionsjdbc4mysqlsy.html
         @db.database options.db_ranger,
           header: 'Database'
           user: options.db_ranger.username
           if: options.db_ranger.engine in ['mysql', 'mariadb', 'postgresql']
+          character_set: 'latin1'
         @db.schema options.db_ranger,
           header: 'Schema'
           if: options.db_ranger.engine is 'postgresql'
@@ -337,6 +340,46 @@ Be carefull, notes from Ambari 2.4.2:
           # --cluster-name=#{options.cluster_name}
           """
         @system.execute
+          header: 'Setup LDAP'
+          if: options.ldap.enabled
+          shy: true
+          cmd: [
+            'ambari-server', 'setup-ldap'
+            "--ldap-url #{options.ldap['ldap-url']}" if options.ldap['ldap-url']
+            "--ldap-primary-host #{options.ldap['ldap-primary-host']}" if options.ldap['ldap-primary-host']
+            "--ldap-primary-port #{options.ldap['ldap-primary-port']}" if options.ldap['ldap-primary-port']
+            "--ldap.ldap-secondary-url #{options.ldap['ldap.ldap-secondary-url']}" if options.ldap['ldap.ldap-secondary-url']
+            "--ldap-secondary-host #{options.ldap['ldap-secondary-host']}" if options.ldap['ldap-secondary-host']
+            "--ldap-secondary-port #{options.ldap['ldap-secondary-port']}" if options.ldap['ldap-secondary-port']
+            "--ldap-ssl" if options.ldap['ldap-ssl']
+            "--ldap-type #{options.ldap['ldap-type']}" if options.ldap['ldap-type']
+            "--ldap-user-class #{options.ldap['ldap-user-class']}" if options.ldap['ldap-user-class']
+            "--ldap-user-attr #{options.ldap['ldap-user-attr']}" if options.ldap['ldap-user-attr']
+            "--ldap-group-class #{options.ldap['ldap-group-class']}" if options.ldap['ldap-group-class']
+            "--ldap-group-attr #{options.ldap['ldap-group-attr']}" if options.ldap['ldap-group-attr']
+            "--ldap-member-attr #{options.ldap['ldap-member-attr']}" if options.ldap['ldap-member-attr']
+            "--ldap-dn #{options.ldap['ldap-dn']}" if options.ldap['ldap-dn']
+            "--ldap-base-dn #{options.ldap['ldap-base-dn']}" if options.ldap['ldap-base-dn']
+            "--ldap-manager-dn #{options.ldap['ldap-manager-dn']}" if options.ldap['ldap-manager-dn']
+            "--ldap-manager-password #{options.ldap['ldap-manager-password']}" if options.ldap['ldap-manager-password']
+            "--ldap-save-settings #{options.ldap['ldap-save-settings']}" if options.ldap['ldap-save-settings']
+            "--ldap-referral #{options.ldap['ldap-referral']}" if options.ldap['ldap-referral']
+            "--ldap-bind-anonym #{options.ldap['ldap-bind-anonym']}" if options.ldap['ldap-bind-anonym']
+            "--ldap-sync-username-collisions-behavior #{options.ldap['ldap-sync-username-collisions-behavior']}" if options.ldap['ldap-sync-username-collisions-behavior']
+            "--ldap-sync-disable-endpoint-identification #{options.ldap['ldap-sync-disable-endpoint-identification']}" if options.ldap['ldap-sync-disable-endpoint-identification']
+            "--ldap-force-lowercase-usernames #{options.ldap['ldap-force-lowercase-usernames']}" if options.ldap['ldap-force-lowercase-usernames']
+            "--ldap-pagination-enabled #{options.ldap['ldap-pagination-enabled']}" if options.ldap['ldap-pagination-enabled']
+            "--ldap-force-setup" if options.ldap['ldap-force-setup']
+            "--ldap.ambari-admin-username #{options.ldap['ldap.ambari-admin-username']}" if options.ldap['ldap.ambari-admin-username']
+            "--ambari-admin-password #{options.ldap['ambari-admin-password']}" if options.ldap['ambari-admin-password']
+            "--truststore-type #{options.ldap['truststore-type']}" if options.ldap['truststore-type']
+            "--truststore-path #{options.ldap['truststore-path']}" if options.ldap['truststore-path']
+            "--.truststore-password #{options.ldap['.truststore-password']}" if options.ldap['.truststore-password']
+            "--truststore-reconfigure #{options.ldap['truststore-reconfigure']}" if options.ldap['truststore-reconfigure']
+          ].join ' '
+        
+        @system.execute
+          header: 'Setup SSL'
           # if: options.config['api.ssl'] is 'true'
           shy: true
           cmd: """
@@ -349,6 +392,7 @@ Be carefull, notes from Ambari 2.4.2:
             --import-key-path="#{options.conf_dir}/key.pem"
           """
         @system.execute
+          header: 'Setup trustores'
           shy: true
           cmd: """
           ambari-server setup-security \
