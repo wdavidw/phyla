@@ -60,7 +60,7 @@ The default configuration is located inside the source code in the location
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.deps.hdfs_client.options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hdfs_client.options.core_site, options.core_site or {}
       options.java_home ?= service.deps.java.options.java_home or '/usr/java/default'
       # Env
       options.env ?= {}
@@ -83,11 +83,11 @@ The default configuration is located inside the source code in the location
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
 
 ## Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       if options.log4j.remote_host? && options.log4j.remote_port?
         options.catalina.opts['httpfs.log.server.logger'] = 'INFO,httpfs,socket'
@@ -115,4 +115,4 @@ Export the proxy user to all DataNodes and NameNodes
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

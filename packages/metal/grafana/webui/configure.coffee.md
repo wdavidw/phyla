@@ -34,7 +34,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
+      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'grafana'
       options.db.username ?= 'grafana'
       throw Error "Required Option: db.password" unless options.db.password
@@ -66,7 +66,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -242,4 +242,4 @@ do not depend on cluster or host names.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

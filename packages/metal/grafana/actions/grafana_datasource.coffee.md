@@ -56,7 +56,6 @@ nikita
         Access: options.access
         basicAuth: options.basicAuth
       options.slug ?= options.name.toLowerCase().split(' ').join('-')
-      # options.merge ?= (options.title? or options.dashboard?) and options.source?
       @system.execute
         cmd: """
         curl --fail -H "Content-Type: application/json" -k -X POST \

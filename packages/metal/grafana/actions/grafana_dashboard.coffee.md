@@ -54,7 +54,6 @@ nikita
       throw Error 'Required Options: datasource' unless options.datasource?
       throw Error 'Required Options: local when source is used' if options.source and !options.local
       options.slug ?= options.title.toLowerCase().replace(/[\s]*/, '-')
-      # options.merge ?= (options.title? or options.dashboard?) and options.source?
       options.merge = false
       options.rows ?= []
       options.tags ?= []
@@ -87,7 +86,7 @@ nikita
       #     throw err if err
       #     dashboard = JSON.parse data.toString()
       #     if options.merge
-      #       options.dashboard = merge {}, options.dashboard, dashboard, title: options.title
+      #       options.dashboard = mixme options.dashboard, dashboard, title: options.title
       #     else
       #       options.dashboard = dashboard
       #     cb()
@@ -120,4 +119,4 @@ nikita
 ## Dependencies
 
     fs = require 'fs'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

@@ -34,12 +34,12 @@ your specific hardware. The most commonly adjusted configurations are:
 
 ## Identities
 
-      options.group = merge {}, service.deps.druid.options.group, options.group
-      options.user = merge {}, service.deps.druid.options.user, options.user
+      options.group = mixme service.deps.druid.options.group, options.group
+      options.user = mixme service.deps.druid.options.user, options.user
 
 ## Kerberos
 
-      options.krb5_service = merge {}, service.deps.druid.options.krb5_service, options.krb5_service
+      options.krb5_service = mixme service.deps.druid.options.krb5_service, options.krb5_service
       # Kerberos Druid Admin
       options.krb5_user ?= service.deps.druid.options.krb5_user
       # Kerberos HDFS Admin
@@ -137,4 +137,4 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

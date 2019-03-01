@@ -168,7 +168,7 @@ The property `zkCredentialsProvider` is named `zkCredientialsProvider`
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.ssl?.options, ssl:
+      options.ssl = mixme service.deps.ssl?.options, ssl:
         truststore: target: "#{options.conf_dir}/truststore"
         keystore: target: "#{options.conf_dir}/keystore"
       , options.ssl
@@ -227,7 +227,7 @@ solr zkCli script
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [solr-krb5]:https://cwiki.apache.org/confluence/display/solr/Kerberos+Authentication+Plugin
 [solr-ssl]: https://cwiki.apache.org/confluence/display/solr/Enabling+SSL#EnablingSSL-RunSolrCloudwithSSL

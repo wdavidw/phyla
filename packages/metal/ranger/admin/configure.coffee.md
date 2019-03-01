@@ -44,7 +44,7 @@ variables but also inject some function to be executed.
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
 
 ## Log4j
 
@@ -103,7 +103,7 @@ User can be External and Internal. Only Internal users can be created from the r
       # Needed starting from 2.5 version to not have problem during setup execution
       options.install['hadoop_conf'] ?= "#{service.deps.hadoop_core.options.conf_dir}"
       options.install['RANGER_ADMIN_LOG_DIR'] ?= "#{options.log_dir}"
-      options.core_site ?= merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site ?= mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
 
 # Kerberos
 
@@ -242,7 +242,7 @@ If you have configured a Solr Cloud Docker in your cluster, you can configure li
           if options.krb5.enabled
             options.solr.principal ?= "#{options.solr.user.name}/#{service.node.fqdn}@#{options.krb5.realm}"
             options.solr.keytab ?= '/etc/security/keytabs/solr.service.keytab'
-          options.solr.ssl = merge options.solr.ssl or {}, service.deps.hadoop_core.options.ssl
+          options.solr.ssl = mixme options.solr.ssl or {}, service.deps.hadoop_core.options.ssl
           # lucasbak 11102017
           # in HDP 2.5.3 SSL enabled solr sink is not supported
           options.solr.ssl.enabled = false
@@ -355,7 +355,7 @@ we need to create the provider and populate with the main password (db and ssl k
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl      
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl      
 
 ## Ranger Admin SSL
 
@@ -384,7 +384,7 @@ Configures the Ranger WEBUi (policymanager) database. For now only mysql is supp
 
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
+      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
       switch options.db.engine
         when 'mysql', 'mariadb'
           options.site['ranger.jpa.jdbc.credential.alias'] ?= 'rangeradmin.db'
@@ -495,7 +495,7 @@ Ryba injects function to the different contexts.
 ## Dependencies
 
     quote = require 'regexp-quote'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     path = require 'path'
 
 [ranger-2.4.0]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/configure-the-ranger-policy-administration-authentication-moades.html)

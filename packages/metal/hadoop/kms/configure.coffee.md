@@ -6,7 +6,7 @@
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       options.group = name: options.group if typeof options.group is 'string'
       options.group ?= {}
       options.group.name ?= 'kms'
@@ -167,7 +167,7 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
       # Password to the Java Keystore stored in the 'kms.keystore' file
       throw Error 'Required Options: ssl.password' unless options.ssl.password
       options.kms_site['hadoop.kms.key.provider.uri'] ?= "jceks://file@/#{options.conf_dir}/kms.keystore"
@@ -175,4 +175,4 @@ NOTE: The default and whitelist key ACL does not support ALL operation qualifier
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

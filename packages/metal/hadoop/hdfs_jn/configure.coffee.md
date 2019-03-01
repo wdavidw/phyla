@@ -40,9 +40,9 @@ Example:
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## System Options
 
@@ -57,7 +57,7 @@ Example:
 
 ## Configuration
 
-      options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
       options.hdfs_site ?= {}
       options.hdfs_site['dfs.journalnode.rpc-address'] ?= '0.0.0.0:8485'
       options.hdfs_site['dfs.journalnode.http-address'] ?= '0.0.0.0:8480'
@@ -83,13 +83,13 @@ Example:
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
-      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Metrics
 
-      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
+      options.metrics = mixme service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.config["*.period"] ?= '60'
@@ -134,4 +134,4 @@ Example:
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

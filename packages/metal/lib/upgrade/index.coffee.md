@@ -79,7 +79,7 @@ Follow official instruction from [Hortonworks HDP 2.2 Manual Upgrade][upgrade]
 
     exports.contexts = (params, config, callback) ->
       contexts = []
-      params = merge {}, params
+      params = mixme params
       params.end = false
       params.modules = [
         'masson/bootstrap/connection'
@@ -220,6 +220,6 @@ Follow official instruction from [Hortonworks HDP 2.2 Manual Upgrade][upgrade]
 
     util = require 'util'
     each = require 'each'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     run = require 'masson/lib/run'
     mkcmd = require '../mkcmd'

@@ -367,4 +367,4 @@ ${HADOOP_CONF_DIR}/core-site.xml
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

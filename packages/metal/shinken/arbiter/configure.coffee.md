@@ -27,8 +27,8 @@
 
 ## Identities
 
-      options.user ?= merge {}, service.deps.commons.options.user, options.user
-      options.group ?= merge {}, service.deps.commons.options.group, options.user
+      options.user ?= mixme service.deps.commons.options.user, options.user
+      options.group ?= mixme service.deps.commons.options.group, options.user
 
 ## Credentials
       
@@ -66,7 +66,7 @@ arbiter host.
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         options.config['use_ssl'] ?= '1'
@@ -172,5 +172,5 @@ Gather all shinken's arbiter, scheduler, poller, broker daemons config to render
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 

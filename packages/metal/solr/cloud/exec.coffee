@@ -15,10 +15,10 @@ module.exports = ->
     .parallel true
     .call (host, node, next) ->
       node.config ?= {}
-      node.config = merge {}, config.config, node.config
+      node.config = mixme config.config, node.config
       return next() if params.hosts? and multimatch(node.config.host, params.hosts).indexOf(node.config.host) is -1
       nikita()
-      .ssh.open ssh: merge {}, node.config.nikita?.ssh, host: node.config.ip or node.config.host
+      .ssh.open ssh: mixme node.config.nikita?.ssh, host: node.config.ip or node.config.host
       .call (options, callback) ->
         ssh = @ssh options.ssh
         exec ssh, params.subcommand, (err, stdout, stderr) ->

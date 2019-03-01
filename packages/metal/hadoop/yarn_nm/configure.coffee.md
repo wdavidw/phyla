@@ -15,9 +15,9 @@
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
 
 ## Kerberos
 
@@ -48,9 +48,9 @@
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = mixme service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn NodeManager "yarn-site.xml"
       options.yarn_site ?= {}
       options.yarn_site['yarn.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
@@ -188,16 +188,16 @@ Resources:
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
+      options.metrics = mixme service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -337,7 +337,7 @@ Resources:
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [yarn-cgroup-red7]: https://issues.apache.org/jira/browse/YARN-2194
 [container]: http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/SecureContainer.html

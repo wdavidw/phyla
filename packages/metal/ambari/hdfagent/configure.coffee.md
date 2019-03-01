@@ -2,14 +2,7 @@
 # Ambari Agent Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfagent', ['ryba', 'ambari', 'hdfagent'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        java: key: ['java']
-        hdf: key: ['ryba', 'hdf']
-        ambari_server: key: ['ryba', 'ambari', 'hdfserver']
-        ambari_repo: key: ['ryba', 'ambari', 'repo']
-      @config.ryba ?= {}
-      @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.hdfagent = service.options
+      options = service.options
 
 ## Environment
 
@@ -19,9 +12,9 @@
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.use.ambari_server[0].options.hadoop_group, options.hadoop_group
-      options.group = merge service.use.ambari_server[0].options.group, options.group
-      options.user = merge service.use.ambari_server[0].options.user, options.user
+      options.hadoop_group = mixme service.use.ambari_server[0].options.hadoop_group, options.hadoop_group
+      options.group = mixme service.use.ambari_server[0].options.group, options.group
+      options.user = mixme service.use.ambari_server[0].options.user, options.user
 
 ## Configuration
 
@@ -35,5 +28,4 @@
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
-    migration = require 'masson/lib/migration'
+    mixme = require 'mixme'

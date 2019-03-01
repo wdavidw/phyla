@@ -145,7 +145,7 @@ Example :
 
 ## Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
 
       if options.log4j.remote_host? and options.log4j.remote_port? and options.env['ZOO_LOG4J_PROP'].indexOf('SOCKET') is -1
         options.env['ZOO_LOG4J_PROP'] = "#{options.env['ZOO_LOG4J_PROP']},SOCKET"
@@ -200,4 +200,4 @@ Example :
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

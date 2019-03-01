@@ -11,9 +11,9 @@ See [REST Gateway Impersonation Configuration][impersonation].
 
 ## Identities
 
-      options.group = merge service.deps.hbase_master[0].options.group, options.group
-      options.user = merge service.deps.hbase_master[0].options.user, options.user
-      options.admin = merge service.deps.hbase_master[0].options.admin, options.admin
+      options.group = mixme service.deps.hbase_master[0].options.group, options.group
+      options.user = mixme service.deps.hbase_master[0].options.user, options.user
+      options.admin = mixme service.deps.hbase_master[0].options.admin, options.admin
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
 
 ## Kerberos
@@ -98,7 +98,7 @@ See [REST Gateway Impersonation Configuration][impersonation].
 ## Test
 
       options.ranger_install = service.deps.ranger_hbase[0].options.install if service.deps.ranger_hbase
-      options.test = merge {}, service.deps.test_user.options, options.test
+      options.test = mixme service.deps.test_user.options, options.test
       options.test.namespace ?= "ryba_check_rest_#{service.node.hostname}"
       options.test.table ?= 'a_table'
       options.ranger_user ?= {}
@@ -135,4 +135,4 @@ See [REST Gateway Impersonation Configuration][impersonation].
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

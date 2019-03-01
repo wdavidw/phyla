@@ -12,7 +12,7 @@
       # is ranger enabled or not for policies management
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       options.ranger_install = service.deps.ranger_knox[0].options.install if service.deps.ranger_knox
-      options.test = merge {}, service.deps.knox_server[0].options.test, options.test
+      options.test = mixme service.deps.knox_server[0].options.test, options.test
       # Knox Server
       options.knox_gateway = for srv in service.deps.knox_server
         fqdn: srv.options.fqdn
@@ -26,4 +26,4 @@
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

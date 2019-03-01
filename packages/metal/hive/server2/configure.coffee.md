@@ -55,8 +55,8 @@ Example:
 
 ## Identities
 
-      options.group = merge {}, service.deps.hive_hcatalog[0].options.group, options.group
-      options.user = merge {}, service.deps.hive_hcatalog[0].options.user, options.user
+      options.group = mixme service.deps.hive_hcatalog[0].options.group, options.group
+      options.user = mixme service.deps.hive_hcatalog[0].options.user, options.user
 
 ## Configuration
 
@@ -128,7 +128,7 @@ Example:
 
 Import database information from the Hive Metastore
 
-      merge options.hive_site, service.deps.hive_metastore.options.hive_site
+      options.hive_site = mixme options.hive_site, service.deps.hive_metastore.options.hive_site
 
 ## Hive Server2 Environment
 
@@ -180,7 +180,7 @@ Import database information from the Hive Metastore
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
       options.hive_site['hive.server2.use.SSL'] ?= 'true'
       options.hive_site['hive.server2.keystore.path'] ?= "#{options.conf_dir}/keystore"
       options.hive_site['hive.server2.keystore.password'] ?= service.deps.hadoop_core.options.ssl.keystore.password
@@ -207,7 +207,7 @@ and its value is the server "host:port".
 
 # Configure Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.properties['hive.log.file'] ?= 'hiveserver2.log'
       options.log4j.properties['hive.log.dir'] ?= "#{options.log_dir}"
@@ -320,4 +320,4 @@ Add Hive user as proxyuser
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

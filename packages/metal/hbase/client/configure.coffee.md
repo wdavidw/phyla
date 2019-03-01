@@ -6,10 +6,10 @@
 
 # Identities
 
-      options.group = merge service.deps.hbase_master[0].options.group, options.group
-      options.user = merge service.deps.hbase_master[0].options.user, options.user
+      options.group = mixme service.deps.hbase_master[0].options.group, options.group
+      options.user = mixme service.deps.hbase_master[0].options.user, options.user
       # Krb5 admin user
-      options.admin = merge service.deps.hbase_master[0].options.admin, options.admin
+      options.admin = mixme service.deps.hbase_master[0].options.admin, options.admin
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       # Kerberos Test Principal
       options.test_krb5_user ?= service.deps.test_user.options.krb5.user
@@ -42,7 +42,7 @@
 ## Test
 
       options.ranger_install = service.deps.ranger_hbase[0].options.install if service.deps.ranger_hbase
-      options.test = merge {}, service.deps.test_user.options, options.test
+      options.test = mixme service.deps.test_user.options, options.test
       options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
       options.test.table ?= 'a_table'
 
@@ -101,4 +101,4 @@
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

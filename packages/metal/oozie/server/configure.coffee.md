@@ -82,7 +82,7 @@ Example
 
 ## Security
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       options.ssl.truststore ?= {}
       if options.ssl.enabled
@@ -107,7 +107,7 @@ Example
 
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      options.db = merge {}, service.deps.db_admin.options[options.db.engine], options.db
+      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'oozie'
       options.db.username ?= 'oozie'
       throw Error "Required Option: db.password" unless options.db.password
@@ -240,7 +240,7 @@ hdfs_client configuration directory.
 
 ## Configuration for Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.opts ?= {}# used to set variable in oozie-env.sh
       if options.log4j.server_port?
         options.log4j.opts['extra_appender'] = ",socket_server"
@@ -296,6 +296,6 @@ the same database. It uses zookeeper for enabling HA.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [oozie-ha]:(https://oozie.apache.org/docs/4.2.0/AG_Install.html#High_Availability_HA)

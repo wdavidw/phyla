@@ -99,7 +99,7 @@ Example
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         options.config['use_ssl'] ?= '1'
@@ -136,4 +136,4 @@ Example
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

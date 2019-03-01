@@ -8,8 +8,8 @@
 
 By default, merge group and user from the Ranger admin configuration.
 
-      options.group = merge {}, service.deps.ranger_admin[0].options.group, options.group
-      options.user = merge {}, service.deps.ranger_admin[0].options.user, options.user
+      options.group = mixme service.deps.ranger_admin[0].options.group, options.group
+      options.user = mixme service.deps.ranger_admin[0].options.user, options.user
 
 ## Environment
 
@@ -105,9 +105,9 @@ SSl properties are not documented, they are extracted from setup.py scripts.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     path = require 'path'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [ambari-conf-example]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.0/bk_Ranger_Install_Guide/content/ranger-usersync_settings.html)
 [ranger-usersync]:(http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/install_and_start_user_sync_ranger.html)

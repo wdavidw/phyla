@@ -82,7 +82,7 @@ default setting for Yarn and its client application such as MapReduce or Tez.
       .each config.nodes, (opts, cb) ->
         # node was context before migration
         fqdn = opts.key
-        node = nikita merge {}, config.nikita
+        node = nikita mixme config.nikita
         node.log.cli host: fqdn, pad: host: 20, header: 60
         node.ssh.open header: 'SSH Open', host: opts.value.ip
         node.call 'masson/core/info'
@@ -689,7 +689,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
+        nodes = mixme nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         print = (config, properties) ->
           {capacity} = ctx.config
           for property in properties
@@ -806,7 +806,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
+        nodes = mixme nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         ws.write JSON.stringify nodes: nodes, null, 2
       do_end = (ws) ->
         ws.end() if params.output
@@ -823,7 +823,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
+        nodes = mixme nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         source = JSON.stringify nodes: nodes, null, 2
         source = "module.exports = #{source};"
         ws.write source
@@ -842,7 +842,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
           do_write fs.createWriteStream params.output, encoding: 'utf8'
       do_write = (ws) ->
         nodes = {}
-        nodes = merge nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
+        nodes = mixme nodes, exports.capacity_to_ryba  params, config, cluster.nodes for cluster in clusters
         source = JSON.stringify nodes: nodes
         source = "module.exports = #{source}"
         argv = process.argv
@@ -973,7 +973,7 @@ opts settings (mapreduce.map.java.opts) will be used by default for map tasks.
     fs = require 'fs'
     ssh2fs = require 'ssh2-fs'
     nikita = require 'nikita'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     string = require '@nikitajs/core/lib/misc/string'
     multimatch = require 'multimatch'
     prink = require 'prink'

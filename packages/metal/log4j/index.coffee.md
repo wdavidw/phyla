@@ -20,4 +20,4 @@ Configure Log4j. Does not write anyfile.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

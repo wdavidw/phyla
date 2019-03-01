@@ -29,9 +29,9 @@ Example:
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
@@ -70,7 +70,7 @@ Example:
 ## Configuration
 
       # Hadoop core-site.xml
-      options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
       # Number of minutes after which the checkpoint gets deleted
       options.core_site['fs.trash.interval'] ?= '10080' #1 week
       # Hadoop hdfs-site.xml
@@ -169,11 +169,11 @@ for distcp purpose.
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 # ### Fencing
@@ -211,7 +211,7 @@ of block placement policy on rolling upgrade. The idea is to group datanodes in 
 
 ## Metrics
 
-      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
+      options.metrics = mixme service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -238,7 +238,7 @@ of block placement policy on rolling upgrade. The idea is to group datanodes in 
 Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file uses the variable
 `options.log4j.properties`
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.root_logger ?= 'INFO,RFA'
       options.log4j.security_logger ?= 'INFO,DRFAS'
@@ -264,7 +264,7 @@ Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file u
           RemoteHost: '${hadoop.log.remote_host}'
           Port: '${hadoop.log.remote_port}'
           ReconnectionDelay: '10000'
-        options.log4j.properties = merge options.log4j.properties, appender
+        options.log4j.properties = mixme options.log4j.properties, appender
           type: 'org.apache.log4j.net.SocketAppender'
           name: options.log4j.socket_client
           logj4: options.log4j.properties
@@ -315,7 +315,7 @@ Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file u
 
 ## Test
 
-      options.test = merge {}, service.deps.test_user.options, options.test or {}
+      options.test = mixme service.deps.test_user.options, options.test or {}
 
 ## Wait
 
@@ -348,5 +348,5 @@ Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file u
 ## Dependencies
 
     string = require '@nikitajs/core/lib/misc/string'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     appender = require '../../lib/appender'

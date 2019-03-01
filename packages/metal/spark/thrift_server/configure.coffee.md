@@ -8,9 +8,9 @@
 
 ## Identities
 
-      options.group = merge service.deps.spark_client.options.group, options.group
-      options.user = merge service.deps.spark_client.options.user, options.user
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.spark_client.options.group, options.group
+      options.user = mixme service.deps.spark_client.options.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       options.hdfs_krb5_user = service.deps.hdfs_nn[0].options.hdfs_krb5_user
 
 ## Layout
@@ -44,7 +44,7 @@ Only port, execution engine and dynamic discovery change (not supported).
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
 
 ### Hive server2 Configuration
 
@@ -166,6 +166,6 @@ Spark SQL thrift server is runned in yarn through the hive server user, and must
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [hdp-spark-sql]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_installing_manually_book/content/starting_sts.html)

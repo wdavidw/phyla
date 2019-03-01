@@ -6,8 +6,8 @@
 
 ## Identities
 
-      options.group = merge {}, service.deps.hadoop_core.options.hdfs.group, options.group
-      options.user = merge {}, service.deps.hadoop_core.options.hdfs.user, options.user
+      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
@@ -30,7 +30,7 @@
 
 ## Configuration
 
-      options.core_site = merge {}, service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
       options.hdfs_site ?= {}
       options.hdfs_site['dfs.http.policy'] ?= 'HTTPS_ONLY'
 
@@ -65,8 +65,8 @@ is already handled by kerberos
 
 ## SSL
     
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Import NameNode properties
@@ -102,14 +102,14 @@ is already handled by kerberos
 
 ## Log4j
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.hadoop_root_logger ?= 'INFO,RFA'
       options.log4j.hadoop_security_logger ?= 'INFO,RFAS'
       options.log4j.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
 
 ## Test
 
-      options.test = merge {}, service.deps.test_user.options, options.test or {}
+      options.test = mixme service.deps.test_user.options, options.test or {}
 
 ## Wait
 
@@ -118,4 +118,4 @@ is already handled by kerberos
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

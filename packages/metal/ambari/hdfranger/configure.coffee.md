@@ -1,17 +1,8 @@
 
 # Ranger with Ambari Configure
 
-    module.exports = ->
-      service = migration.call @, service, '@rybajs/metal/ambari/hdfranger', ['ryba', 'ambari', 'hdfranger'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        krb5_client: key: ['krb5_client']
-        java: key: ['java']
-        hdf: key: ['ryba', 'hdf']
-        ambari_repo: key: ['ryba', 'ambari', 'repo']
-        hadoop_core: key: ['ryba']
-      @config.ryba ?= {}
-      @config.ryba.ambari ?= {}
-      options = @config.ryba.ambari.hdfranger = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -37,7 +28,7 @@
 
 https://community.hortonworks.com/articles/81184/understanding-the-initial-admin-identity-access-po.html
 
-      options.ssl = merge {}, service.use.ssl?[0]?.options, options.ssl
+      options.ssl = mixme service.use.ssl?[0]?.options, options.ssl
       options.ssl.enabled ?= !!service.use.ssl
       options.ssl.certs = {}
       # options.ssl.truststore ?= {}
@@ -60,5 +51,4 @@ https://community.hortonworks.com/articles/81184/understanding-the-initial-admin
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
-    migration = require 'masson/lib/migration'
+    mixme = require 'mixme'

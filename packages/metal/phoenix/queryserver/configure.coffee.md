@@ -64,5 +64,5 @@
 ## Dependencies
 
     string = require '@nikitajs/core/lib/misc/string'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     appender = require '../../lib/appender'

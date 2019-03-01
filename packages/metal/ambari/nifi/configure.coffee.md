@@ -1,11 +1,8 @@
 
 # Ambari NiFi Configure
 
-    module.exports = ->
-      service = migration.call @, service, '@rybajs/metal/ambari/server', ['ryba', 'ambari', 'nifi'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        ssl: key: ['ssl']
-        hdf: key: ['ryba', 'hdf']
-      options = @config.ryba.ambari.nifi = service.options
+    module.exports = (service) ->
+      options = service.options
 
 ## Environment
 
@@ -38,7 +35,7 @@
 
 https://community.hortonworks.com/articles/81184/understanding-the-initial-admin-identity-access-po.html
 
-      options.ssl = merge {}, service.use.ssl?[0]?.options, options.ssl
+      options.ssl = mixme service.use.ssl?[0]?.options, options.ssl
       options.ssl.enabled ?= !!service.use.ssl
       options.ssl.certs = {}
       # options.ssl.truststore ?= {}
@@ -61,5 +58,5 @@ https://community.hortonworks.com/articles/81184/understanding-the-initial-admin
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     migration = require 'masson/lib/migration'

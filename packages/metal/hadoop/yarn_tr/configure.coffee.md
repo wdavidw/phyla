@@ -13,9 +13,9 @@
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge {}, service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = merge {}, service.deps.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
       options.ats_user = service.deps.hadoop_core.options.ats.user
       options.ats_group = service.deps.hadoop_core.options.ats.group
       options.hdfs_user = service.deps.hadoop_core.options.hdfs.user
@@ -82,17 +82,17 @@
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = merge {}, service.deps.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = mixme service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = merge {}, service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = mixme service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn ATS "yarn-site.xml"
       options.yarn_site ?= {}
       # Yarn site
       if options.yarn_hbase_embedded
-        options.hbase_site ?= merge {}, service.deps.yarn_tr_hbase_embedded[0].options.hbase_site, options.hbase_site or {}
+        options.hbase_site ?= mixme service.deps.yarn_tr_hbase_embedded[0].options.hbase_site, options.hbase_site or {}
         options.hbase_local = service.deps.yarn_tr_hbase_embedded[0].node.fqdn is service.node.fqdn
       if options.yarn_hbase_service
-        options.hbase_site ?= merge {}, service.deps.yarn_tr_hbase_service[0].options.hbase_site, options.hbase_site or {}
+        options.hbase_site ?= mixme service.deps.yarn_tr_hbase_service[0].options.hbase_site, options.hbase_site or {}
       # The hostname of the Timeline service web application.
       options.yarn_site['yarn.timeline-service.hostname'] ?= service.node.fqdn
       options.yarn_site['yarn.http.policy'] ?= 'HTTPS_ONLY' # HTTP_ONLY or HTTPS_ONLY or HTTP_AND_HTTPS
@@ -225,26 +225,26 @@ ryba can configure YARN to use HBase deployed by `@rybajs/metal/hbase`, or HBase
 
           ]
             srv.options.yarn_site[property] ?= options.yarn_site[property]
-        srv.options.hbase_site  = merge {}, options.hbase_site, srv.options.hbase_site
-        srv.options.yarn_ats_user  = merge {}, options.yarn_ats_user, srv.options.yarn_ats_user
-        srv.options.ats_user  = merge {}, options.ats_user, srv.options.ats_user
+        srv.options.hbase_site  = mixme options.hbase_site, srv.options.hbase_site
+        srv.options.yarn_ats_user  = mixme options.yarn_ats_user, srv.options.yarn_ats_user
+        srv.options.ats_user  = mixme options.ats_user, srv.options.ats_user
         srv.options.ats2_hbase_conf_dir  ?=  options.ats2_hbase_conf_dir
 
 ## Yarn ts Service Principal
 
       if options.yarn_hbase_service
-        options.hbase_site ?= merge {}, service.deps.yarn_tr_hbase_service[0].options.hbase_site, options.hbase_site or {}
-        options.ats_yarn_service ?= merge {}, service.deps.yarn_tr_hbase_service[0].options.ats_yarn_service, options.ats_yarn_service or {}
+        options.hbase_site ?= mixme service.deps.yarn_tr_hbase_service[0].options.hbase_site, options.hbase_site or {}
+        options.ats_yarn_service ?= mixme service.deps.yarn_tr_hbase_service[0].options.ats_yarn_service, options.ats_yarn_service or {}
         options.ats_yarn_service.yarn_ats_hbase_principal = options.yarn_site['yarn.timeline-service.principal'].replace '_HOST', options.fqdn
         options.ats_yarn_service.yarn_ats_hbase_keytab = "#{service.deps.hdfs_nn[0].options.core_site['fs.defaultFS']}/atsv2/yarn-ats.hbase-master.service.keytab"
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = merge {}, service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = merge {}, service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## YARN URL
@@ -278,7 +278,7 @@ ryba can configure YARN to use HBase deployed by `@rybajs/metal/hbase`, or HBase
 
 ## Metrics
 
-      options.metrics = merge {}, service.deps.hadoop_core.options.metrics, options.metrics
+      options.metrics = mixme service.deps.hadoop_core.options.metrics, options.metrics
 
 ## Wait
 
@@ -298,5 +298,5 @@ ryba can configure YARN to use HBase deployed by `@rybajs/metal/hbase`, or HBase
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
     path = require 'path'

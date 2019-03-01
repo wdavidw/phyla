@@ -136,4 +136,4 @@ Spark History Server server is runned as the spark user.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

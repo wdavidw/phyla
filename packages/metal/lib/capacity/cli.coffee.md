@@ -120,5 +120,4 @@ Taken from masson/lib/index.coffee
     parameters = require 'parameters'
     load = require 'masson/lib/config/load'
     normalize = require 'masson/lib/config/normalize'
-    merge = require 'masson/lib/utils/merge'
     capacity = require './'

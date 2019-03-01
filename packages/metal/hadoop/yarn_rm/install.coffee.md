@@ -319,7 +319,7 @@ with Zookeeper.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 ## Todo: WebAppProxy.
 

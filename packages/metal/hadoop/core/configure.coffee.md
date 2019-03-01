@@ -333,7 +333,7 @@ keytool -list -v -keystore keystore -alias hadoop
 
 [hdp_ssl]: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.1-latest/bk_reference/content/ch_wire-https.html
 
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         options.ssl_client ?= {}
@@ -431,7 +431,7 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 "datanode", "nodemanager", "maptask", "reducetask", "journalnode",
 "historyserver", "nimbus", "supervisor".
 
-      options.metrics = merge {}, service.deps.metrics?.options, options.metrics
+      options.metrics = mixme service.deps.metrics?.options, options.metrics
 
       # Hadoop metrics
       options.metrics ?= {}
@@ -459,7 +459,7 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 
 ## Log4j
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.hadoop_root_logger ?= 'INFO,RFA'
       options.log4j.hadoop_security_logger ?= 'INFO,RFAS'
       options.log4j.hadoop_audit_logger ?= 'INFO,RFAAUDIT'
@@ -468,4 +468,4 @@ source code, the list of supported prefixes is: "namenode", "resourcemanager",
 
     path = require 'path'
     quote = require 'regexp-quote'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

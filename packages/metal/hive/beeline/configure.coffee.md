@@ -21,9 +21,9 @@ Example:
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge service.deps.hive_server2[0].options.group, options.group
-      options.user = merge service.deps.hive_server2[0].options.user, options.user
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hive_server2[0].options.group, options.group
+      options.user = mixme service.deps.hive_server2[0].options.user, options.user
 
 ## Kerberos
 
@@ -70,7 +70,7 @@ Example:
 
 ## Configure SSL
 
-      options.ssl = merge {}, service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
       options.truststore_location ?= "#{options.conf_dir}/truststore"
       options.truststore_password ?= options.ssl.truststore.password
 
@@ -79,7 +79,7 @@ Example:
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       options.ranger_hive_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
       options.ranger_hdfs_install = service.deps.ranger_hdfs[0].options.install if service.deps.ranger_hdfs
-      options.test = merge {}, service.deps.test_user.options, options.test
+      options.test = mixme service.deps.test_user.options, options.test
       # Hive Server2
       options.hive_server2 = for srv in service.deps.hive_server2
         fqdn: srv.options.fqdn
@@ -98,4 +98,4 @@ Example:
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

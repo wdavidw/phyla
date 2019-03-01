@@ -219,7 +219,7 @@
 
 ## SSL
 
-        options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+        options.ssl = mixme service.deps.ssl?.options, options.ssl
         options.ssl.enabled ?= !!service.deps.ssl
         options.truststore ?= {}
         options.keystore ?= {}
@@ -342,7 +342,7 @@
 
 ## Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
 
       options.logback ?= {}
@@ -380,6 +380,6 @@ Set local path of additional libs (for custom processors) in this array.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [nifi-properties]:https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster-node-properties

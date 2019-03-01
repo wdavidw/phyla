@@ -49,7 +49,7 @@ in the start option of the local daemon engine to enable it.
 ### SSL
 Inherits properties from local docker daemon
       
-      options.ssl ?= merge {}, service.deps.docker.options.ssl
+      options.ssl ?= mixme service.deps.docker.options.ssl
       options.other_args ?= {}
       options.other_args['tlscacert'] ?= service.deps.docker.options.other_args['tlscacert']
       options.other_args['tlscert'] ?= service.deps.docker.options.other_args['tlscert']
@@ -62,12 +62,12 @@ This starting options should be injected to @config.docker variable. For now
 `@rybajs/metal/swarm/agent` modify the starting options and restart docker engine.
 
       options.cluster ?= {}
-      options.cluster =  merge service.deps.swarm_manager[0].options.cluster, options.cluster
+      options.cluster = mixme service.deps.swarm_manager[0].options.cluster, options.cluster
       # @config.docker.other_args['cluster-store'] ?= swarm.cluster.zk_store
       # @config.docker.other_args['cluster-advertise'] ?= "#{swarm.manager.advertise_host}:#{swarm.manager.advertise_port}"
       options.other_args['cluster-store'] ?= options.cluster.zk_store
       options.other_args['cluster-advertise'] ?= "#{service.node.ip}:#{options.advertise_port}"
-      service.deps.docker.options.other_args = merge service.deps.docker.options.other_args, options.other_args if service.deps.docker?
+      service.deps.docker.options.other_args = mixme service.deps.docker.options.other_args, options.other_args if service.deps.docker?
       service.deps.docker.options.daemon ?= {}
       service.deps.docker.options.daemon['cluster-advertise'] ?= options.other_args['cluster-advertise']
       service.deps.docker.options.daemon['cluster-store'] ?= options.other_args['cluster-store']
@@ -78,4 +78,4 @@ This starting options should be injected to @config.docker variable. For now
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

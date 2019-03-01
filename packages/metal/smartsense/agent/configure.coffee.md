@@ -2,20 +2,14 @@
 # Hortonworks Smartsense Agent Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/smartsense/agent', ['ryba', 'smartsense', 'agent'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        java: key: ['java']
-        iptables: key: ['iptables']
-        smartsense_servers: key: ['ryba','smartsense','server']
-      @config.ryba ?= {}
-      @config.ryba.smartsense ?= {}
-      options = @config.ryba.smartsense.agent = service.options
+      options = service.options
 
 ## Identities
 
 By default, merge group and user from the Ranger admin configuration.
 
-      options.group = merge service.use.smartsense_servers[0].options.group, options.group
-      options.user = merge service.use.smartsense_servers[0].options.user, options.user
+      options.group = mixme service.use.smartsense_servers[0].options.group, options.group
+      options.user = mixme service.use.smartsense_servers[0].options.user, options.user
 
 ## Environment
       
@@ -45,4 +39,4 @@ By default, merge group and user from the Ranger admin configuration.
 ## Dependencies
 
     migration = require 'masson/lib/migration'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

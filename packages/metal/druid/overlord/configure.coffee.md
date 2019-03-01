@@ -17,8 +17,8 @@ Example:
 
 ## Identities
 
-      options.group = merge {}, service.deps.druid.options.group, options.group
-      options.user = merge {}, service.deps.druid.options.user, options.user
+      options.group = mixme service.deps.druid.options.group, options.group
+      options.user = mixme service.deps.druid.options.user, options.user
 
 ## Environment
 
@@ -49,7 +49,7 @@ Example:
 
 ## Kerberos
 
-      options.krb5_service = merge {}, service.deps.druid.options.krb5_service, options.krb5_service
+      options.krb5_service = mixme service.deps.druid.options.krb5_service, options.krb5_service
 
 ## Wait
 
@@ -61,4 +61,4 @@ Example:
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

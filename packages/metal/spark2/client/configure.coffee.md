@@ -50,7 +50,7 @@ Tez configuration directory is injected into "spark-env.sh".
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       options.ranger_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
-      options.test = merge {}, service.deps.test_user.options, options.test
+      options.test = mixme service.deps.test_user.options, options.test
       # Hive Server2
       if service.deps.hive_server2
         options.hive_server2 = for srv in service.deps.hive_server2
@@ -98,7 +98,7 @@ Tez configuration directory is injected into "spark-env.sh".
 
 ## SSL
 
-      options.ssl = merge {}, service.deps.ssl.options, options.ssl
+      options.ssl = mixme service.deps.ssl.options, options.ssl
       options.conf['spark.ssl.enabled'] ?= "false" # `!!service.deps.ssl`
       # options.conf['spark.ssl.enabledAlgorithms'] ?= "MD5"
       options.conf['spark.ssl.keyPassword'] ?= service.deps.ssl.options.keystore.password
@@ -202,4 +202,4 @@ Spark mecanism to set up resources based on cluster availability
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

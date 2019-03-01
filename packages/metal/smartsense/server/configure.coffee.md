@@ -2,14 +2,7 @@
 # Hortonworks Smartsense Server Configuration
 
     module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/metal/smartsense/server', ['ryba', 'smartsense', 'server'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        java: key: ['java']
-        iptables: key: ['iptables']
-        ssl: key: ['ssl']
-      @config.ryba ?= {}
-      @config.ryba.smartsense ?= {}
-      options = @config.ryba.smartsense.server = service.options
-
+      options = service.options
 
 ## Identities
 
@@ -44,7 +37,7 @@ from https://support.hortonworks.com site
 
 ## SSL
 
-      options.ssl = merge {}, service.use.ssl?.options, options.ssl
+      options.ssl = mixme service.use.ssl?.options, options.ssl
       options.ssl.enabled = !!service.use.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -101,5 +94,4 @@ from https://support.hortonworks.com site
 
 ## Dependencies
 
-    migration = require 'masson/lib/migration'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

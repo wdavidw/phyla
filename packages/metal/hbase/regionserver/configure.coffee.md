@@ -12,10 +12,10 @@
 
 ## Identities
 
-      options.hadoop_group = merge {}, service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = merge service.deps.hbase_master[0].options.group, options.group
-      options.user = merge service.deps.hbase_master[0].options.user, options.user
-      options.admin = merge service.deps.hbase_master[0].options.admin, options.admin
+      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = mixme service.deps.hbase_master[0].options.group, options.group
+      options.user = mixme service.deps.hbase_master[0].options.user, options.user
+      options.admin = mixme service.deps.hbase_master[0].options.admin, options.admin
       # Kerberos Test Principal
       options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
@@ -139,7 +139,7 @@ Metrics information are entirely derived from the Master.
 
 ## Configuration for Log4J
 
-      options.log4j = merge {}, service.deps.log4j?.options, options.log4j
+      options.log4j = mixme service.deps.log4j?.options, options.log4j
 
       options.opts.java_properties['hbase.security.log.file'] ?= 'SecurityAuth-Regional.audit'
       #HBase bin script use directly environment bariables
@@ -165,7 +165,7 @@ Metrics information are entirely derived from the Master.
           Port: '${hbase.log.remote_port}'
           ReconnectionDelay: '10000'
 
-        options.log4j.properties = merge options.log4j.properties, appender
+        options.log4j.properties = mixme options.log4j.properties, appender
           type: 'org.apache.log4j.net.SocketAppender'
           name: options.log4j.socket_client
           logj4: options.log4j.properties
@@ -194,4 +194,4 @@ Metrics information are entirely derived from the Master.
 ## Dependencies
 
     appender = require '../../lib/appender'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

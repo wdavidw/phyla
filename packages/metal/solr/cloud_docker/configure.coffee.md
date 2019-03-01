@@ -60,7 +60,7 @@ ryba:
       options.user.limits.nofile ?= 64000
       options.user.limits.nproc ?= true
       options.java_home ?= service.deps.java.options.java_home
-      options.hadoop_group = merge {}, service.deps.hadoop_core?.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = mixme service.deps.hadoop_core?.options.hadoop_group, options.hadoop_group
 
 ## Environment
 
@@ -160,7 +160,7 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## SSL
 
       options.port ?= 8893
-      options.ssl = merge {}, service.deps.ssl?.options, options.ssl
+      options.ssl = mixme service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       options.keystore ?= {}
@@ -237,4 +237,4 @@ The property `zkCredentialsProvider` was named `zkCredientialsProvider`
 ## Dependencies
 
     configure_solr_cluster = require './clusterize'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

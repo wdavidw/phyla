@@ -26,4 +26,4 @@ can render the configuration files.
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'

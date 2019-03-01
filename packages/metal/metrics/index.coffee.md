@@ -61,4 +61,4 @@ Each provider has two properties:
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
