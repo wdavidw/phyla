@@ -55,10 +55,27 @@
         options.key.target = path.resolve '/etc/security/certs', options.key.target
       options.key.name ?= node.hostname
 
+## FreeIPA Java cacert
+
+Automatically insert the FreeIPA CA into the Java truststore in 
+"/etc/pki/java/cacerts".
+
+Note, it seems like FreeIPA is doing it for us. The CA certificate is 
+registered in "/etc/pki/java/cacerts" under the name "<IPA_DOMAIN>ipaca".
+
+      options.ipa_java_cacerts ?= {}
+      options.ipa_java_cacerts.enabled ?= true
+      options.ipa_java_cacerts.caname ?= 'ipa_cacert'
+      options.ipa_java_cacerts.target ?= ' /usr/java/default/jre/lib/security/cacerts'
+      options.ipa_java_cacerts.source ?= deps.freeipa.options.ssl.cacert
+      options.ipa_java_cacerts.local ?= false
+      options.ipa_java_cacerts.password ?= 'changeit'
+
 ## JKS Truststore
 
-      options.truststore ?= disabled: true
-      unless options.truststore.disabled
+      options.truststore ?= {}
+      options.truststore.enabled = false
+      if options.truststore.enabled
         throw Error "Required Option: options.cacert" unless options.cacert
         options.truststore.target ?= path.resolve '/etc/security/jks', 'truststore.jks'
         options.truststore.caname ?= "ryba_root_ca"
@@ -86,8 +103,9 @@ In Tomcat servers, the key password must match the keystore password. This is co
 which state: "You MUST use the same password here as was used for the keystore 
 password itself. This is a restriction of the Tomcat implementation."
 
-      options.keystore ?= disabled: true
-      unless options.keystore.disabled
+      options.keystore ?= {}
+      options.keystore.enabled = false
+      if options.keystore.enabled
         throw Error "Required Option: options.key" unless options.key
         throw Error "Required Option: options.cert" unless options.cert
         options.keystore.target ?= path.resolve '/etc/security/jks', 'keystore.jks'

@@ -3,6 +3,7 @@
 
 ## Trunk
 
+* ssl: use enabled instead of disabled
 * system.authconfig: new service
 * package: convert to monorepo
 

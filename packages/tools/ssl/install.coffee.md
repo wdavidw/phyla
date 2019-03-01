@@ -24,16 +24,27 @@
         if: options.key?.target
       , options.key
 
+## FreeIPA Java cacert
+
+      @java.keystore_add
+        header: 'FreeIPA Java cacert'
+        if: options.ipa_java_cacerts.enabled
+        keystore: options.ipa_java_cacerts.target
+        storepass: options.ipa_java_cacerts.password
+        caname: options.ipa_java_cacerts.caname
+        cacert: options.ipa_java_cacerts.source
+        local: options.ipa_java_cacerts.local
+
 ## JKS
 
       @service
         header: 'OpenJDK'
-        if: !options.truststore.disabled or !options.keystore.disabled
+        if: options.truststore.enabled or options.keystore.enabled
         name: 'java-1.8.0-openjdk-devel'
       # Client: import CA certificate
       @java.keystore_add
         header: 'Truststore'
-        disabled: options.truststore.disabled
+        if: options.truststore.enabled
         keystore: options.truststore.target
         storepass: options.truststore.password
         caname: options.truststore.caname
@@ -44,7 +55,7 @@
       # Server: import CA certificate, private and public keys
       @java.keystore_add
         header: 'Keystore'
-        disabled: options.keystore.disabled
+        if: options.keystore.enabled
         keystore: options.keystore.target
         storepass: options.keystore.password
         caname: options.keystore.caname
