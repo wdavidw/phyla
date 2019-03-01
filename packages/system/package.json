@@ -22,15 +22,18 @@
     "type": "git",
     "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
   },
+  "dependencies": {
+    "@nikitajs/core": "^0.9.3-alpha.7",
+    "each": "^1.2.1",
+    "mixme": "^0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
     "url": "https://github.com/ryba-io/ryba/issues"
-  },
-  "dependencies": {
-    "@nikitajs/core": "^0.9.3-alpha.7",
-    "each": "^1.2.1",
-    "mixme": "^0.0.1"
   }
 }

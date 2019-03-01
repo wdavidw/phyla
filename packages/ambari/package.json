@@ -24,6 +24,9 @@
     "type": "git",
     "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },

@@ -39,6 +39,9 @@
     "xmlbuilder": "~10.1.1",
     "xmldom": "~0.1.27"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "lib"
   ],

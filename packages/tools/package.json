@@ -24,6 +24,9 @@
   "dependencies": {
     "mixme": "^0.0.1"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
