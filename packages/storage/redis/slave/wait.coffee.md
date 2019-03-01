@@ -7,4 +7,4 @@ Wait for the Redis Slave to be up
       
       @connection.wait
         port: @config.ryba.redis.slave.conf.port
-        host: @config.ryba.redis.slave.host
+        host: @config.ryba.redis.slave.fqdn

@@ -4,13 +4,7 @@
 Redis cluster replication adopts a slave-master architecture. This module configure the master
 that slave will link to.
 
-    module.exports = (service) ->
-      service = migration.call @, service, '@rybajs/storage/redis/master', ['ryba', 'redis', 'master'], require('@nikitajs/core/lib/misc').merge require('.').use,
-        iptables: key: ['iptables']
-        yum: key: ['yum']
-        redis_master: key: ['ryba', 'redis', 'master']
-      @config.ryba.redis ?= {}
-      options = @config.ryba.redis.master ?= service.options
+    module.exports = ({deps, node, options}) ->
 
 ## Identities
 
@@ -34,9 +28,9 @@ The Redis package does create the redis user.
 ## Master Configuration
 
       # Misc
-      options.fqdn ?= service.node.fqdn
-      options.hostname = service.node.hostname
-      options.iptables ?= service.use.iptables and service.use.iptables.options.action is 'start'
+      options.fqdn ?= node.fqdn
+      options.hostname = node.hostname
+      options.iptables ?= deps.iptables and deps.iptables.options.action is 'start'
       options.clean_logs ?= false
       options.conf_dir ?= "/etc/redis"
       options.pid_dir ?= '/var/run/redis'
@@ -45,7 +39,6 @@ The Redis package does create the redis user.
 ## Configuration
 
       options.conf ?= {}
-      options.host ?= @config.host
       options.conf['port'] ?= '6379'
       options.conf['pidfile'] ?= "#{options.pid_dir}/redis.pid"
       options.conf['daemonize'] ?= 'no'
@@ -78,13 +71,13 @@ Add password authentication
       options.slave_password ?= 'redis123'
       throw Error 'Missing Redis master password' unless options.slave_password?
       options.conf['requirepass'] ?= options.slave_password
-      options.conf['slaveof'] ?= "#{service.use.redis_master[0].node.fqdn} #{service.use.redis_master[0].options.conf['port']}"
-      options.conf['masterauth'] ?= "#{service.use.redis_master[0].options.conf['requirepass']}"
+      options.conf['slaveof'] ?= "#{deps.redis_master[0].node.fqdn} #{deps.redis_master[0].options.conf['port']}"
+      options.conf['masterauth'] ?= "#{deps.redis_master[0].options.conf['requirepass']}"
 
 ## Dependencies
 
     quote = require 'regexp-quote'
     migration = require 'masson/lib/migration'
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [redis-replication]:https://redis.io/topics/replication

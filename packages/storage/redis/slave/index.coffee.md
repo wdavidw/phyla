@@ -8,7 +8,7 @@ used as a database, cache and message broker.
 
 
     module.exports =
-      use:
+      deps:
         yum: module:'masson/core/yum', local: true
         iptables: module: 'masson/core/iptables', local: true
         redis_master: '@rybajs/storage/redis/master'

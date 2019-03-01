@@ -7,4 +7,4 @@ Wait for the Redis Master to be up
       [redis_master_ctx] = @contexts '@rybajs/storage/redis/master'
       @connection.wait
         port: redis_master_ctx.config.ryba.redis.master.conf.port
-        host: redis_master_ctx.config.ryba.redis.master.host
+        host: redis_master_ctx.config.ryba.redis.master.fqdn

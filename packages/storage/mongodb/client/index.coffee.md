@@ -6,8 +6,6 @@
         locale: module: 'masson/core/locale', local: true, auto: true, implicit: true
         repo: module: '@rybajs/storage/mongodb/repo'
         config_servers: module: '@rybajs/storage/mongodb/configsrv'
-      configure:
-        '@rybajs/storage/mongodb/client/configure'
       commands:
         'install':
           '@rybajs/storage/mongodb/client/install'
