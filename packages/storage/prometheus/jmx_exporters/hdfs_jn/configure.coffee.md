@@ -8,10 +8,10 @@
 
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
       # Group
-      options.group ?= merge {}, service.deps.prometheus_monitor[0].options.group, options.group
-      options.user ?= merge {}, service.deps.prometheus_monitor[0].options.user, options.user
-      options.hdfs_user ?= merge {}, service.deps.hdfs_jn.options.user
-      options.hdfs_group ?= merge {}, service.deps.hdfs_jn.options.group
+      options.group ?= mixme service.deps.prometheus_monitor[0].options.group, options.group
+      options.user ?= mixme service.deps.prometheus_monitor[0].options.user, options.user
+      options.hdfs_user ?= mixme service.deps.hdfs_jn.options.user
+      options.hdfs_group ?= mixme service.deps.hdfs_jn.options.group
 
 ## Configuration Layout
 
@@ -47,7 +47,7 @@ com.sun.management.jmxremote.ssl.config.file=<file>.
 
 ## Enable JMX SSL
 
-      options.ssl = merge {}, service.deps.ssl, service.deps.hdfs_jn.options.ssl
+      options.ssl = mixme service.deps.ssl, service.deps.hdfs_jn.options.ssl
       if !!options.ssl
         options.jmx_ssl_file ?= options.jmx_config['com.sun.management.jmxremote.ssl.config.file']
         options.jmx_ssl_config ?= {}
@@ -148,7 +148,7 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
 ## Dependencies
 
-    {merge} = require '@nikitajs/core/lib/misc'
+    mixme = require 'mixme'
 
 [example]:(https://github.com/prometheus/jmx_exporter/blob/master/example_configs/zookeeper.yaml)
 [jmx_exporter]:(https://github.com/prometheus/jmx_exporter)
