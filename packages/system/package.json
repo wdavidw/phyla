@@ -16,7 +16,8 @@
     "test": "test"
   },
   "files": [
-    "lib"
+    "authconfig",
+    "java"
   ],
   "repository": {
     "type": "git",

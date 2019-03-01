@@ -3,7 +3,7 @@
 
 ## Trunk
 
-* system.authconfig: new service
+* project: define package files
 * package: convert to monorepo
 
 ## Version 0.3.0

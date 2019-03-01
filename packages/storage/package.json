@@ -25,7 +25,10 @@
     "access": "public"
   },
   "files": [
-    "lib"
+    "elasticsaerch",
+    "mongodb",
+    "prometheus",
+    "redis"
   ],
   "repository": {
     "type": "git",

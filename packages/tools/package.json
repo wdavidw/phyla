@@ -19,7 +19,8 @@
     "test": "test"
   },
   "files": [
-    "lib"
+    "db_admin",
+    "ssl"
   ],
   "dependencies": {
     "mixme": "^0.0.1"
