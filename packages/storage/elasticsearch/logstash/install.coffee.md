@@ -114,7 +114,3 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             match: /.*document\[\"@timestamp\"\] = document\[\"@timestamp\"\]\.iso8601.*/
             replace: ""
           ]
-          
-## Dependencies
-
-    # mkcmd = require '../lib/mkcmd'

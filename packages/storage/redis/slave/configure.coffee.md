@@ -77,7 +77,6 @@ Add password authentication
 ## Dependencies
 
     quote = require 'regexp-quote'
-    migration = require 'masson/lib/migration'
     mixme = require 'mixme'
 
 [redis-replication]:https://redis.io/topics/replication

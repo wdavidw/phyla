@@ -21,6 +21,9 @@
   "files": [
     "lib"
   ],
+  "dependencies": {
+    "mixme": "^0.0.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"

@@ -27,7 +27,3 @@
           mode: 0o644
           backup: true
           # eof: true
-
-## Dependencies
-
-    # mkcmd = require '../lib/mkcmd'

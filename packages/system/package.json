@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@nikitajs/core": "^0.9.3-alpha.7",
-    "each": "^1.2.1"
+    "each": "^1.2.1",
+    "mixme": "^0.0.1"
   }
 }
