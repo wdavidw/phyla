@@ -63,11 +63,12 @@
     "ryba": "./bin/ryba"
   },
   "scripts": {
-    "preversion": "grep '## Trunk' CHANGELOG.md",
-    "version": "version=`grep '^  \"version\": ' package.json | sed 's/.*\"\\([0-9\\.]*\\)\".*/\\1/'` && sed -i \"s/## Trunk/## Version $version/\" CHANGELOG.md && git add CHANGELOG.md",
-    "postversion": "git push origin HEAD && git push --tags && npm publish",
-    "patch": "npm version patch -m 'Bump to version %s'",
-    "minor": "npm version minor -m 'Bump to version %s'",
-    "major": "npm version major -m 'Bump to version %s'"
+    "compile": "lerna run compile",
+    "clean": "lerna run clean",
+    "lint": "lerna run lint",
+    "test": "lerna run test",
+    "update-version": "lerna publish --skip-git --skip-npm --force-publish '*'",
+    "check-packages": "yarn clean && yarn compile && yarn test && yarn lint",
+    "publish-packages": "./scripts/publish"
   }
 }
