@@ -199,6 +199,7 @@ to allow user to create none-determisitic functions.
           cacert: "#{options.ssl.cacert.source}"
           local: "#{options.ssl.cacert.local}"
         @java.keystore_add
+          # shouldnt be "/etc/pki/java/cacerts"?
           keystore: '/usr/java/latest/jre/lib/security/cacerts'
           storepass: 'changeit'
           caname: "hadoop_root_ca"
