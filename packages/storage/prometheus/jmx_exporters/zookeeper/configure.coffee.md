@@ -8,8 +8,8 @@
 
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
       # Group
-      options.group ?= mixme service.deps.prometheus_monitor[0].options.group, options.group
-      options.user ?= mixme service.deps.prometheus_monitor[0].options.user, options.user
+      options.group ?= merge service.deps.prometheus_monitor[0].options.group, options.group
+      options.user ?= merge service.deps.prometheus_monitor[0].options.user, options.user
 
 ## Package
     
@@ -124,7 +124,7 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 [example]:(https://github.com/prometheus/jmx_exporter/blob/master/example_configs/zookeeper.yaml)
 [jmx_exporter]:(https://github.com/prometheus/jmx_exporter)

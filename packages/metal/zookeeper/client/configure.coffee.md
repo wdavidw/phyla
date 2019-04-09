@@ -11,9 +11,9 @@
 
 ## Identities
 
-      options.group = mixme zookeeper_server_options.group, options.group
-      options.hadoop_group = mixme zookeeper_server_options.hadoop_group, options.hadoop_group
-      options.user = mixme zookeeper_server_options.user, options.user
+      options.group = merge zookeeper_server_options.group, options.group
+      options.hadoop_group = merge zookeeper_server_options.hadoop_group, options.hadoop_group
+      options.user = merge zookeeper_server_options.user, options.user
 
 ## Configuration
 
@@ -30,4 +30,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

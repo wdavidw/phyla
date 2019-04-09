@@ -18,8 +18,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
+      options.group = merge service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge service.deps.hadoop_core.options.yarn.user, options.user
       # Kerberos Test Principal
       options.test_krb5_user ?= service.deps.test_user.options.krb5.user
 
@@ -123,4 +123,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

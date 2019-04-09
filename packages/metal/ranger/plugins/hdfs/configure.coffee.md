@@ -9,8 +9,8 @@ as external.
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.hdfs_user = service.deps.hdfs_nn.options.user
       options.hdfs_group = service.deps.hdfs_nn.options.group
       options.hadoop_group = service.deps.hdfs_nn.options.hadoop_group
@@ -202,4 +202,4 @@ Repository creating is only executed from one NameNode.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

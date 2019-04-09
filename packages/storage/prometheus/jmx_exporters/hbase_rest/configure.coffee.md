@@ -8,10 +8,10 @@
 
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
       # Group
-      options.group ?= mixme service.deps.prometheus_monitor[0].options.group, options.group
-      options.user ?= mixme service.deps.prometheus_monitor[0].options.user, options.user
-      options.hbase_user ?= mixme service.deps.hbase_rest.options.user
-      options.hbase_group ?= mixme service.deps.hbase_rest.options.group
+      options.group ?= merge service.deps.prometheus_monitor[0].options.group, options.group
+      options.user ?= merge service.deps.prometheus_monitor[0].options.user, options.user
+      options.hbase_user ?= merge service.deps.hbase_rest.options.user
+      options.hbase_group ?= merge service.deps.hbase_rest.options.group
         
 ## Package
     
@@ -41,7 +41,7 @@ com.sun.management.jmxremote.ssl.config.file=<file>.
 
 ## Enable JMX SSL
 
-      options.ssl = mixme service.deps.ssl, service.deps.hadoop_core.options.ssl
+      options.ssl = merge service.deps.ssl, service.deps.hadoop_core.options.ssl
       if !!options.ssl
         options.jmx_ssl_file ?= options.jmx_config['com.sun.management.jmxremote.ssl.config.file']
         options.jmx_ssl_config ?= {}
@@ -145,6 +145,6 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 [jmx_exporter]:(https://github.com/prometheus/jmx_exporter)

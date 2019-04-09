@@ -37,7 +37,7 @@ from https://support.hortonworks.com site
 
 ## SSL
 
-      options.ssl = mixme service.use.ssl?.options, options.ssl
+      options.ssl = merge service.use.ssl?.options, options.ssl
       options.ssl.enabled = !!service.use.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -94,4 +94,4 @@ from https://support.hortonworks.com site
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

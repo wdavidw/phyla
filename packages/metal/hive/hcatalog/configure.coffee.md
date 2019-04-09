@@ -177,8 +177,8 @@ ${hive.scratch.dir.permission}.
 Import database information from the Hive Metastore
 
       
-      options.db = mixme service.deps.hive_metastore.options.db, options.db
-      options.hive_site = mixme options.hive_site, service.deps.hive_metastore.options.hive_site
+      options.db = merge service.deps.hive_metastore.options.db, options.db
+      options.hive_site = merge options.hive_site, service.deps.hive_metastore.options.hive_site
 
 ## Configure Transactions and Lock Manager
 
@@ -262,7 +262,7 @@ default to the [DBTokenStore]. Also worth of interest is the
 
 ## Log4J
 
-      options.log4j = mixme service.deps.log4j?.options, options.log4j
+      options.log4j = merge service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.application ?= 'metastore'
       options.log4j.properties['hive.log.file'] ?= 'hcatalog.log'
@@ -351,7 +351,7 @@ default to the [DBTokenStore]. Also worth of interest is the
 
 # Module Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     db = require '@nikitajs/core/lib/misc/db'
 
 [HIVE-7935]: https://issues.apache.org/jira/browse/HIVE-7935

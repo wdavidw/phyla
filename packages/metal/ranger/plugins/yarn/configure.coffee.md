@@ -11,8 +11,8 @@ variables but also inject some function to be executed.
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.yarn_user = if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.user else service.deps.yarn_nm.options.user
       options.hadoop_group = if service.deps.yarn_rm_local then service.deps.yarn_rm_local.options.hadoop_group else service.deps.yarn_nm.options.hadoop_group## Kerberos
 
@@ -262,4 +262,4 @@ SSL can be configured to use SSL if ranger admin has SSL enabled.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

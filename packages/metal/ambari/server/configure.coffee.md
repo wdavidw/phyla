@@ -126,7 +126,7 @@ Hadoop group. The default group name is "hadoop".
 
 ## Ambari TLS and Truststore
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       if options.ssl.enabled
@@ -203,7 +203,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -215,7 +215,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_hive = password: options.db_hive if typeof options.db_hive is 'string'
       if options.db_hive
         options.db_hive.engine ?= options.db.engine
-        options.db_hive = mixme service.deps.db_admin.options[options.db_hive.engine], options.db_hive
+        options.db_hive = merge service.deps.db_admin.options[options.db_hive.engine], options.db_hive
         options.db_hive.database ?= 'hive'
         options.db_hive.username ?= 'hive'
         throw Error "Required Option: db_hive.password" unless options.db_hive.password
@@ -226,7 +226,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_oozie = password: options.db_oozie if typeof options.db_oozie is 'string'
       if options.db_oozie
         options.db_oozie.engine ?= options.db.engine
-        options.db_oozie = mixme service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
+        options.db_oozie = merge service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
         options.db_oozie.database ?= 'oozie'
         options.db_oozie.username ?= 'oozie'
         throw Error "Required Option: db_oozie.password" unless options.db_oozie.password
@@ -237,7 +237,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_ranger = password: options.db_ranger if typeof options.db_ranger is 'string'
       if options.db_ranger
         options.db_ranger.engine ?= options.db.engine
-        options.db_ranger = mixme service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
+        options.db_ranger = merge service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
@@ -270,4 +270,4 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Dependencies
 
     url = require 'url'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

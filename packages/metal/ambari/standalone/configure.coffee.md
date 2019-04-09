@@ -84,7 +84,7 @@ Hadoop group. The default group name is "hadoop".
 
 ## Ambari TLS and Truststore
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -139,7 +139,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
 
@@ -233,7 +233,7 @@ It has only been tested with HIVe VIEW version 1.5.0 and 2.0.0
           properties['hive.metastore.warehouse.dir'] ?= '/apps/hive/warehouse'
           properties['scripts.dir'] ?= '/user/${username}/hive/scripts'
           properties['jobs.dir'] ?= '/user/${username}/hive/jobs'
-          options.views.files.configuration.properties = mixme properties, options.views.files.configuration.properties
+          options.views.files.configuration.properties = merge properties, options.views.files.configuration.properties
 
 #### HIVE View to Yarn ATS
 
@@ -297,7 +297,7 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
             properties = options.views.wfmanager.configuration.properties ?= {}
             properties['hadoop.security.authentication'] ?= hadoop_service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
             properties['oozie.service.uri'] = service.oozie_server[0].oozie_site['oozie.base.url']
-            options.views.wfmanager.configuration.properties = mixme properties, options.views.files.configuration.properties
+            options.views.wfmanager.configuration.properties = merge properties, options.views.files.configuration.properties
 
 ## Workflow Manager YARN
 
@@ -359,4 +359,4 @@ The workflow manager correspond to the oozie view. It needs HDFS'properties and 
 ## Dependencies
 
     url = require 'url'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

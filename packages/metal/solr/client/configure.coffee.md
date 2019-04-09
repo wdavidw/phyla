@@ -47,4 +47,4 @@ ryba:
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

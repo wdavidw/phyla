@@ -97,7 +97,7 @@ Example:
 
 ## Metrics
 
-      options.metrics = mixme service.deps.metrics?.options, options.metrics
+      options.metrics = merge service.deps.metrics?.options, options.metrics
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
       options.metrics.sinks.ganglia_enabled ?= false
@@ -114,7 +114,7 @@ Example:
 
 # Log4J
 
-      options.log4j = mixme service.deps.log4j?.options, options.log4j
+      options.log4j = merge service.deps.log4j?.options, options.log4j
 
       options.log4j.properties ?= {}
       options.log4j.properties['log4j.appender.stdout'] ?= 'org.apache.log4j.ConsoleAppender'
@@ -243,7 +243,7 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
 
 ## Security SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.config['ssl.keystore.location'] ?= "#{options.conf_dir}/keystore"
       throw Error "Required Option: options.config['ssl.keystore.password']" unless options.config['ssl.keystore.password']
       options.config['ssl.key.password'] ?= options.config['ssl.keystore.password']
@@ -297,7 +297,7 @@ Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 [kafka-security]:(http://kafka.apache.org/documentation.html#security)
 [hdp-security-kafka]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_Security_Guide/content/ch_wire-kafka.html)

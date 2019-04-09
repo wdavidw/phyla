@@ -77,6 +77,5 @@ Add password authentication
 ## Dependencies
 
     quote = require 'regexp-quote'
-    mixme = require 'mixme'
 
 [redis-replication]:https://redis.io/topics/replication

@@ -17,8 +17,8 @@ Example:
 
 ## Identity
       
-      options.group ?= mixme service.deps.druid.options.user, options.group
-      options.user ?= mixme service.deps.druid.options.user, options.user
+      options.group ?= merge service.deps.druid.options.user, options.group
+      options.user ?= merge service.deps.druid.options.user, options.user
 
 ## Environment
 
@@ -90,7 +90,7 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Kerberos
 
-      options.krb5_service = mixme service.deps.druid.options.krb5_service, options.krb5_service
+      options.krb5_service = merge service.deps.druid.options.krb5_service, options.krb5_service
 
 ## Wait
 
@@ -106,4 +106,4 @@ memoryNeeded = druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuf
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

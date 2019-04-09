@@ -32,9 +32,9 @@
 ## Identities
 
       # Hadoop Group
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hive_hcatalog[0].options.group, options.group
-      options.user = mixme service.deps.hive_hcatalog[0].options.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hive_hcatalog[0].options.group, options.group
+      options.user = merge service.deps.hive_hcatalog[0].options.user, options.user
 
 ## Configuration
 
@@ -63,7 +63,7 @@
 
 ## Logj4 Properties
 
-      options.log4j = mixme service.deps.log4j?.options, options.log4j
+      options.log4j = merge service.deps.log4j?.options, options.log4j
 
 
       options.log4j.properties ?= {}
@@ -105,4 +105,4 @@
 ## Dependencies
 
     appender = require '../../lib/appender'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

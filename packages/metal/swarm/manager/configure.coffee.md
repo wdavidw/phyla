@@ -81,12 +81,12 @@ This starting options should be injected to serivce.use.docker variable. For now
       options.other_args ?= { }
       options.other_args['cluster-store'] ?= options.cluster.zk_store
       options.other_args['cluster-advertise'] ?= "#{options.advertise_host}:#{options.advertise_port}"
-      service.deps.docker.options.other_args = mixme service.deps.docker.options.other_args, options.other_args if service.deps.docker?
+      service.deps.docker.options.other_args = merge service.deps.docker.options.other_args, options.other_args if service.deps.docker?
 
 ### SSL
 Inherits properties from local docker daemon
       
-      options.ssl ?= mixme service.deps.docker.options.ssl
+      options.ssl ?= merge service.deps.docker.options.ssl
       if options.ssl.enabled
         options.other_args['tlscacert'] ?= service.deps.docker.options.other_args['tlscacert']
         options.other_args['tlscert'] ?= service.deps.docker.options.other_args['tlscert']
@@ -110,4 +110,4 @@ Inherits properties from local docker daemon
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

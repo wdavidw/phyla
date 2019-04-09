@@ -13,9 +13,9 @@
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge service.deps.hadoop_core.options.yarn.user, options.user
       options.ats_user = service.deps.hadoop_core.options.ats.user
       options.ats_group = service.deps.hadoop_core.options.ats.group
       options.hdfs_user = service.deps.hadoop_core.options.hdfs.user
@@ -81,9 +81,9 @@
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = mixme service.deps.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = mixme service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # The hostname of the Timeline service web application.
       options.hbase_site ?= {}
       options.hbase_policy ?= {}
@@ -194,7 +194,7 @@ instance of yarn hbase master svice principal, ans the keytab will be upload to 
   
 ## Metrics
 
-      options.metrics = mixme service.deps.hadoop_core.options.metrics, options.metrics
+      options.metrics = merge service.deps.hadoop_core.options.metrics, options.metrics
 
 ## Wait
 
@@ -217,5 +217,5 @@ instance of yarn hbase master svice principal, ans the keytab will be upload to 
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     path = require 'path'

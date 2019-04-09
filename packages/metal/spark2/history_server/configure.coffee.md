@@ -72,7 +72,7 @@ Spark History Server server is runned as the spark user.
 Use official [2.X documentation](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
 to configure ssl and use hadoop credential configuration to store passwords.
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       options.truststore ?= {}
       options.keystore ?= {}
@@ -162,4 +162,4 @@ to configure ssl and use hadoop credential configuration to store passwords.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

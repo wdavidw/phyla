@@ -24,7 +24,7 @@ Note, at the moment, only MariaDB, PostgreSQL and MySQL are supported.
 
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'hive'
       options.db.username ?= 'hive'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -69,4 +69,4 @@ keystore file](https://cwiki.apache.org/confluence/display/Hive/AdminManual+Conf
 ## Module Dependencies
 
     db = require '@nikitajs/core/lib/misc/db'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

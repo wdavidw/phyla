@@ -8,9 +8,9 @@ configures the registry according following [YARN 3.1 documentation](https://had
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge service.deps.hadoop_core.options.yarn.user, options.user
       options.ats_user = service.deps.hadoop_core.options.ats.user
 
 ## Options
@@ -100,4 +100,4 @@ By default, when acl are enabled, ony super users have the right to read/write r
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

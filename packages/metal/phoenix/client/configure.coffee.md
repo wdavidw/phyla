@@ -27,8 +27,8 @@ HBase Client.
 
 ## Configuration
 
-      options.site = mixme deps.hbase_master[0].options.hbase_site, options.site
-      options.admin = mixme  deps.hbase_master[0].options.admin, options.admin
+      options.site = merge deps.hbase_master[0].options.hbase_site, options.site
+      options.admin = merge deps.hbase_master[0].options.admin, options.admin
       for srv in deps.hbase_client
         srv.options.hbase_site['phoenix.schema.isNamespaceMappingEnabled'] = 'true'
         srv.options.hbase_site['phoenix.schema.mapSystemTablesToNamespace'] = 'true'
@@ -51,7 +51,7 @@ HBase Client.
         
 ## Test
 
-      options.test = mixme deps.test_user.options, options.test
+      options.test = merge deps.test_user.options, options.test
       options.test.namespace ?= "ryba_check_client_#{service.node.hostname}"
       options.test.table ?= 'a_table'
       options.hostname = service.node.hostname
@@ -64,5 +64,5 @@ HBase Client.
 ## Dependencies
 
     string = require '@nikitajs/core/lib/misc/string'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     appender = require '../../lib/appender'

@@ -12,9 +12,9 @@
 
 ## Identities
 
-      options.hadoop_group = mixme service.use.ambari_server[0].options.hadoop_group, options.hadoop_group
-      options.group = mixme service.use.ambari_server[0].options.group, options.group
-      options.user = mixme service.use.ambari_server[0].options.user, options.user
+      options.hadoop_group = merge service.use.ambari_server[0].options.hadoop_group, options.hadoop_group
+      options.group = merge service.use.ambari_server[0].options.group, options.group
+      options.user = merge service.use.ambari_server[0].options.user, options.user
 
 ## Configuration
 
@@ -28,4 +28,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

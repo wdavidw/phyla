@@ -8,8 +8,8 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
 
 ## Kerberos
 
@@ -181,7 +181,7 @@ Ranger Atlas plugin runs inside Atlas Metadata server's JVM
 Used only if SSL is enabled between Policy Admin Tool and Plugin
 
       if service.deps.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+        options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
         options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.location']
         options.install['SSL_KEYSTORE_PASSWORD'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.password']
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.truststore.location']
@@ -193,4 +193,4 @@ Used only if SSL is enabled between Policy Admin Tool and Plugin
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

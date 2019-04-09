@@ -87,7 +87,7 @@ Example:
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
       Error 'Unsupported database engine' unless options.db.engine in options.supported_db_engines
-      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'druid'
       options.db.username ?= 'druid'
       throw Error "Require Options: db.password" unless options.db.password
@@ -134,4 +134,4 @@ Example:
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

@@ -6,9 +6,9 @@
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.mapred.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.mapred.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.mapred.group, options.group
+      options.user = merge service.deps.hadoop_core.options.mapred.user, options.user
 
 ## Kerberos
 
@@ -39,9 +39,9 @@
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = mixme service.deps.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = mixme service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # YARN client "yarn-site.xml"
       # Options will be exported by the YARN RM
       options.yarn_site ?= {}
@@ -104,16 +104,16 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## SSL
 
-      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = mixme service.deps.hadoop_core.options.metrics, options.metrics
+      options.metrics = merge service.deps.hadoop_core.options.metrics, options.metrics
       options.metrics.config ?= {}
       if options.metrics.sinks.file_enabled
         options.metrics.config["*.sink.file.#{k}"] ?= v for k, v of options.metrics.sinks.file
@@ -125,7 +125,7 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## Metrics
 
-      options.metrics = mixme service.deps.metrics?.options, options.metrics
+      options.metrics = merge service.deps.metrics?.options, options.metrics
 
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
@@ -171,4 +171,4 @@ They are referenced by [the druid hadoop configuration][druid] and
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

@@ -23,7 +23,3 @@ can render the configuration files.
           'network'
         ]
       options.loads ?= ['disk']
-
-## Dependencies
-
-    mixme = require 'mixme'

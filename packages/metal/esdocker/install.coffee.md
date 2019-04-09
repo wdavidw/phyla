@@ -170,7 +170,7 @@ Note, we might move this middleware to Masson.
                 service_def["cpuset"] = es_node.cpuset
               else
                 service_def["cpu_quota"] = if es_node.cpu_quota? then es_node.cpu_quota * 1000 else es.default_cpu_quota
-              mixme.mutate docker_services[type], service_def
+              mutate docker_services[type], service_def
             if es.kibana?
               docker_services["#{es_name}_kibana"] =
                 image: es.docker_kibana_image
@@ -219,5 +219,5 @@ Note, we might move this middleware to Masson.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {mutate} = require 'mixme'
     minimatch = require 'minimatch'

@@ -6,8 +6,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.druid.options.group, options.group
-      options.user = mixme service.deps.druid.options.user, options.user
+      options.group = merge service.deps.druid.options.group, options.group
+      options.user = merge service.deps.druid.options.user, options.user
 
 ## Environment
 
@@ -24,4 +24,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

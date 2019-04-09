@@ -57,7 +57,7 @@ loop on topologies to provide missing values
 ## Test
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
-      options.test = mixme service.deps.test_user.options, options.test
+      options.test = merge service.deps.test_user.options, options.test
       if service.deps.ranger_admin?
         service.deps.ranger_admin.options.users ?= {}
         service.deps.ranger_admin.options.users[options.test.user.name] ?=
@@ -88,7 +88,7 @@ Knox reads its own env variable to retrieve configuration.
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       # options.truststore ?= {}
       if options.ssl.enabled
@@ -220,7 +220,7 @@ Example:
           if realm_config.sssd_lookup
             throw Error 'masson/core/sssd must be used when realm.sssd_lookup is set' unless service.deps.sssd?
             throw Error "masson/core/sssd ldap domain #{realm_config.sssd_lookup} does not exist" unless service.deps.sssd.options.config[realm_config.sssd_lookup]?
-            realm_config = mixme realm_config, service.deps.sssd.options.config[realm_config.sssd_lookup]
+            realm_config = merge realm_config, service.deps.sssd.options.config[realm_config.sssd_lookup]
           else
             throw Error 'Required property ldap_uri' unless realm_config['ldap_uri']?
             throw Error 'Required property ldap_default_bind_dn' unless realm_config['ldap_default_bind_dn']?
@@ -391,7 +391,7 @@ This mechanism can be used to configure a specific gateway without having to dec
 
 ## Configuration for Log4J
 
-      options.log4j ?= mixme service.deps.log4j?.options, options.log4j
+      options.log4j ?= merge service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.properties ?= {}
       options.log4j.properties['app.log.dir'] ?= "#{options.log_dir}"
@@ -427,6 +427,6 @@ This mechanism can be used to configure a specific gateway without having to dec
 ## Dependencies
 
     appender = require '../../lib/appender'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 [knox-conf-example]:https://github.com/apache/knox/blob/master/gateway-release/home/templates/sandbox.knoxrealm2.xml

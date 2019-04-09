@@ -51,9 +51,9 @@ Set up Java heap size like in `@rybajs/metal/hadoop/hdfs_nn`.
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group 
-      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.hdfs.group, options.group 
+      options.user = merge service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Kerberos
 
@@ -73,7 +73,7 @@ Set up Java heap size like in `@rybajs/metal/hadoop/hdfs_nn`.
 
 ## Configuration
 
-      options.core_site = mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site = merge service.deps.hadoop_core.options.core_site, options.core_site or {}
       # Note: moved during masson migration from nn to dn
       options.core_site['io.compression.codecs'] ?= "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec,com.hadoop.compression.lzo.LzoCodec"
       options.hdfs_site ?= {}
@@ -124,9 +124,9 @@ memory that you can lock than what you have configured.
 
 ## SSL
 
-      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
-      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
+      options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge service.deps.hadoop_core.options.ssl_server, options.ssl_server or {}
+      options.ssl_client = merge service.deps.hadoop_core.options.ssl_client, options.ssl_client or {}
 
 ## Tuning
 
@@ -169,7 +169,7 @@ memory that you can lock than what you have configured.
 
 ## Metrics
 
-      options.metrics = mixme service.deps.metrics?.options, options.metrics
+      options.metrics = merge service.deps.metrics?.options, options.metrics
       options.metrics.config ?= {}
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
@@ -194,7 +194,7 @@ memory that you can lock than what you have configured.
 Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file uses the variable
 `options.log4j.properties`
 
-      options.log4j = mixme service.deps.log4j?.options, options.log4j
+      options.log4j = merge service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.log4j.root_logger ?= 'INFO,RFA'
       options.log4j.security_logger ?= 'INFO,RFAS'
@@ -222,7 +222,7 @@ Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file u
           Port: '${hadoop.log.remote_port}'
           ReconnectionDelay: '10000'
 
-        options.log4j.properties = mixme options.log4j.properties, appender
+        options.log4j.properties = merge options.log4j.properties, appender
           type: 'org.apache.log4j.net.SocketAppender'
           name: options.log4j.socket_client
           logj4: options.log4j.properties
@@ -273,5 +273,5 @@ Inherits log4j configuration from the `@rybajs/metal/log4j`. The rendered file u
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     appender = require '../../lib/appender'

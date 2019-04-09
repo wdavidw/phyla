@@ -41,8 +41,8 @@ Example:
 
 ## Identities
 
-      options.user = mixme service.deps.hive_hcatalog[0].options.user, options.user
-      options.group = mixme service.deps.hive_hcatalog[0].options.group, options.group
+      options.user = merge service.deps.hive_hcatalog[0].options.user, options.user
+      options.group = merge service.deps.hive_hcatalog[0].options.group, options.group
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
 
 ## Kerberos
@@ -110,7 +110,7 @@ Example:
 ## Test
 
       options.ranger_hdfs_install = service.deps.ranger_hdfs[0].options.install if service.deps.ranger_hdfs
-      options.test = mixme service.deps.test_user.options, options.test
+      options.test = merge service.deps.test_user.options, options.test
       # Hive Hcatalog
       options.hive_hcatalog = for srv in service.deps.hive_hcatalog
         # fqdn: srv.options.fqdn
@@ -124,7 +124,7 @@ Example:
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 ## Notes
 

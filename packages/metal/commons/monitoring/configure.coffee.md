@@ -1661,7 +1661,6 @@ from normzlized configuration.
 
     fs = require 'fs'
     glob = require 'glob'
-    mixme = require 'mixme'
     path = require 'path'
     normalize = require 'masson/lib/config/normalize'
     store = require 'masson/lib/config/store'

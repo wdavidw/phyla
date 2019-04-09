@@ -24,9 +24,9 @@
     "url": "git+https://wdavidw@github.com/ryba-io/ryba.git"
   },
   "dependencies": {
-    "@nikitajs/core": "^0.9.3-alpha.7",
+    "@nikitajs/core": "^0.9.3-alpha.12",
     "each": "^1.2.1",
-    "mixme": "^0.0.1"
+    "mixme": "^0.3.0"
   },
   "publishConfig": {
     "access": "public"

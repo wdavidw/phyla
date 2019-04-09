@@ -61,4 +61,4 @@ Each provider has two properties:
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

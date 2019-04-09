@@ -6,8 +6,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.oozie_server[0].options.group, options.group
-      options.user = mixme service.deps.oozie_server[0].options.user, options.user
+      options.group = merge service.deps.oozie_server[0].options.group, options.group
+      options.user = merge service.deps.oozie_server[0].options.user, options.user
 
 ## Kerberos
 
@@ -35,14 +35,14 @@
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
 
 ## Test
 
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
       options.ranger_install = service.deps.ranger_hive[0].options.install if service.deps.ranger_hive
-      options.test = mixme service.deps.test_user.options, options.test
+      options.test = merge service.deps.test_user.options, options.test
       #hive client properties for hcat check
       if service.deps.hive_hcatalog?.length > 0 and service.deps.hive_client?
         options.test.hive_hcat ?= true
@@ -71,4 +71,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

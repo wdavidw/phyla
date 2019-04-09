@@ -367,4 +367,3 @@ ${HADOOP_CONF_DIR}/core-site.xml
 ## Dependencies
 
     mkcmd = require '../../lib/mkcmd'
-    mixme = require 'mixme'

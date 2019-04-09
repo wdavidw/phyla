@@ -14,7 +14,7 @@ Atlas needs also kafka as a bus to broadcats message betwwen the different compo
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       # Group
       options.group = name: options.group if typeof options.group is 'string'
       options.group ?= {}
@@ -166,7 +166,7 @@ Atlas server does take care of parallel executions of the setup steps.
 ## SSL
 Atlas SSL Encryption can be enabled by configuring following properties.
 
-      options.ssl = mixme service.deps.ssl?.options,
+      options.ssl = merge service.deps.ssl?.options,
         truststore: target: "#{options.conf_dir}/truststore"
         keystore: target: "#{options.conf_dir}/keystore"
       , options.ssl
@@ -512,7 +512,7 @@ in or out of docker.
           #     name: 'ranger'
           #     secret: 'ranger123'
           #   ]
-          #   options.solr ?= mixme service.deps.solr_cloud_docker[0].options, options.solr
+          #   options.solr ?= merge service.deps.solr_cloud_docker[0].options, options.solr
           #   #configure atlas'titan solr cluster and pass config to solr's context
           #   options.solr.cluster_config ?= {}
           #   options.solr.cluster_config.authentication ?= service.deps.hadoop_core.options.core_site['hadoop.security.authentication']
@@ -531,7 +531,7 @@ in or out of docker.
           #   #Search for a cloud_docker cluster find in solr.cloud_docker.clusters
           #   for srv in service.deps.solr_cloud_docker
           #     srv.options.clusters[options.solr_cluster_name] =  configure_solr_cluster options.solr , options.solr_cluster_name, options.solr.cluster_config
-          #   options.solr.cluster_config = mixme service.deps.solr_cloud_docker[0].options.clusters[options.solr_cluster_name], options.solr.cluster_config
+          #   options.solr.cluster_config = merge service.deps.solr_cloud_docker[0].options.clusters[options.solr_cluster_name], options.solr.cluster_config
           #   #Concifugre collections
           #   options.solr.collections ?=
           #     'vertex_index':
@@ -643,7 +643,7 @@ in or out of docker.
 ## Dependencies
 
     configure_solr_cluster = require '../solr/cloud_docker/clusterize'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     path = require 'path'
 
 [titan]:(http://titan.thinkaurelius.com)

@@ -117,7 +117,7 @@ By changing the default port, we can allow different mongo service to run on the
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -155,4 +155,4 @@ By changing the default port, we can allow different mongo service to run on the
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

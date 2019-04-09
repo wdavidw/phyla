@@ -8,8 +8,8 @@
 
 By default, merge group and user from the Ranger admin configuration.
 
-      options.group = mixme service.use.smartsense_servers[0].options.group, options.group
-      options.user = mixme service.use.smartsense_servers[0].options.user, options.user
+      options.group = merge service.use.smartsense_servers[0].options.group, options.group
+      options.user = merge service.use.smartsense_servers[0].options.user, options.user
 
 ## Environment
       
@@ -39,4 +39,4 @@ By default, merge group and user from the Ranger admin configuration.
 ## Dependencies
 
     migration = require 'masson/lib/migration'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

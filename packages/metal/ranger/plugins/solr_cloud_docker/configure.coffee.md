@@ -27,8 +27,8 @@ the same machine.
       
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.solr_user = service.deps.solr_cloud_docker.options.user
       options.solr_group = service.deps.solr_cloud_docker.options.group
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
@@ -236,4 +236,4 @@ which does need it.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

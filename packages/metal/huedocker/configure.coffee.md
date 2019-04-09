@@ -109,7 +109,7 @@ Example:
 
 ## Hue Webui TLS
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cacert" if options.ssl and not options.ssl.cacert
@@ -250,7 +250,7 @@ Example:
 
       options.db ?= {}
       options.db.engine ?= service.deps.db_admin.options.engine
-      options.db = mixme service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'hue3'
       options.db.username ?= 'hue'
       throw Error "Required Option: db.password" unless options.db.password
@@ -441,7 +441,7 @@ hdfs_client configuration directory.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
     db = require '@nikitajs/core/lib/misc/db'
 
 [home]: http://gethue.com

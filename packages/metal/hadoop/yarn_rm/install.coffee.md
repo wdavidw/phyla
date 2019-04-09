@@ -319,7 +319,7 @@ with Zookeeper.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 ## Todo: WebAppProxy.
 

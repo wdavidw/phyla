@@ -13,9 +13,9 @@
 
 ## Identities
 
-      options.group = mixme service.deps.hbase_master[0].options.group, options.group
-      options.user = mixme service.deps.hbase_master[0].options.user, options.user
-      options.admin = mixme service.deps.hbase_master[0].options.admin, options.admin
+      options.group = merge service.deps.hbase_master[0].options.group, options.group
+      options.user = merge service.deps.hbase_master[0].options.user, options.user
+      options.admin = merge service.deps.hbase_master[0].options.admin, options.admin
       options.ranger_admin ?= service.deps.ranger_admin.options.admin if service.deps.ranger_admin
 
 ## Environment
@@ -130,4 +130,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

@@ -97,7 +97,7 @@ The replica set config servers must run the WiredTiger storage engine
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -171,7 +171,7 @@ Ryba user must provide the replica set master by set the boolean property `ryba.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 
 [mongod-ssl]:(https://docs.mongodb.org/manual/reference/configuration-options/#net.ssl.mode)

@@ -26,8 +26,8 @@
 
 ## Identities
 
-      options.user ?= mixme service.deps.commons.options.user, options.user
-      options.group ?= mixme service.deps.commons.options.group, options.group
+      options.user ?= merge service.deps.commons.options.user, options.user
+      options.group ?= merge service.deps.commons.options.group, options.group
       # Add shinken to docker group
       options.user.groups ?= []
       options.user.groups.push service.deps.docker.options.group.name unless service.deps.docker.options.group.name in options.user.groups
@@ -66,7 +66,7 @@ arbiter host.
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled ?= !!service.deps.ssl
       if options.ssl.enabled
         options.config['use_ssl'] ?= '1'
@@ -108,4 +108,4 @@ be set runtime by arbiter configuration synchronization.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

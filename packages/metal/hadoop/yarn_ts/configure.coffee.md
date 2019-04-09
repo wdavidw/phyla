@@ -13,9 +13,9 @@
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.yarn.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.yarn.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.yarn.group, options.group
+      options.user = merge service.deps.hadoop_core.options.yarn.user, options.user
       options.ats_user = service.deps.hadoop_core.options.ats.user
       options.ats_group = service.deps.hadoop_core.options.ats.group
 
@@ -56,9 +56,9 @@
 ## Configuration
 
       # Hadoop core "core-site.xml"
-      options.core_site = mixme service.deps.hdfs_client[0].options.core_site, options.core_site or {}
+      options.core_site = merge service.deps.hdfs_client[0].options.core_site, options.core_site or {}
       # HDFS client "hdfs-site.xml"
-      options.hdfs_site = mixme service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
+      options.hdfs_site = merge service.deps.hdfs_client[0].options.hdfs_site, options.hdfs_site or {}
       # Yarn ATS "yarn-site.xml"
       options.yarn_site ?= {}
       # The hostname of the Timeline service web application.
@@ -121,16 +121,16 @@
 
 ## SSL
 
-      options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
-      options.ssl_server = mixme service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
+      options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
+      options.ssl_server = merge service.deps.hadoop_core.options.ssl_server, options.ssl_server or {},
         'ssl.server.keystore.location': "#{options.conf_dir}/keystore"
         'ssl.server.truststore.location': "#{options.conf_dir}/truststore"
-      options.ssl_client = mixme service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
+      options.ssl_client = merge service.deps.hadoop_core.options.ssl_client, options.ssl_client or {},
         'ssl.client.truststore.location': "#{options.conf_dir}/truststore"
 
 ## Metrics
 
-      options.metrics = mixme service.deps.hadoop_core.options.metrics, options.metrics
+      options.metrics = merge service.deps.hadoop_core.options.metrics, options.metrics
 
 ## Import/Export to Yarn RM
       
@@ -205,4 +205,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

@@ -86,7 +86,7 @@ nikita
       #     throw err if err
       #     dashboard = JSON.parse data.toString()
       #     if options.merge
-      #       options.dashboard = mixme options.dashboard, dashboard, title: options.title
+      #       options.dashboard = merge options.dashboard, dashboard, title: options.title
       #     else
       #       options.dashboard = dashboard
       #     cb()
@@ -119,4 +119,3 @@ nikita
 ## Dependencies
 
     fs = require 'fs'
-    mixme = require 'mixme'

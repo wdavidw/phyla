@@ -9,8 +9,8 @@
 
 Merge group and user from the Kafka broker configuration.
 
-      options.group = mixme service.deps.kafka_broker[0].options.group, options.group
-      options.user = mixme service.deps.kafka_broker[0].options.user, options.user
+      options.group = merge service.deps.kafka_broker[0].options.group, options.group
+      options.user = merge service.deps.kafka_broker[0].options.user, options.user
       # Admin principal
       options.admin ?= {}
       options.admin.principal ?= service.deps.kafka_broker[0].options.admin.principal
@@ -92,7 +92,7 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       # Configuration
       ssl_enabled = service.deps.kafka_broker[0].options.protocols.some (protocol) ->
         protocol in ['SASL_SSL', 'SSL']
@@ -107,7 +107,7 @@ best protocol available and pass needed protocol to command line in the checks.
 ## Test
 
       options.ranger_install = service.deps.ranger_kafka[0].options.install if service.deps.ranger_kafka
-      options.test = mixme service.deps.test_user.options, options.test
+      options.test = merge service.deps.test_user.options, options.test
 
 ## Wait
 
@@ -118,4 +118,4 @@ best protocol available and pass needed protocol to command line in the checks.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

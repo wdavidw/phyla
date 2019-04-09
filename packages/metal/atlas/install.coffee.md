@@ -581,7 +581,6 @@ The commands a divided per user, as the hive bridge is not mandatory.
     string = require '@nikitajs/core/lib/misc/string'
     path = require 'path'
     fs = require 'ssh2-fs'
-    mixme = require 'mixme'
 
 [atlas-credential-file]:(https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.0/bk_data-governance/content/ch_hdp_data_governance_install_atlas_ambari.html)
 [solr-rest-api-roles]:(https://lucene.apache.org/solr/guide/6_6/rule-based-authorization-plugin.html)

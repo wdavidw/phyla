@@ -28,7 +28,7 @@
 
 https://community.hortonworks.com/articles/81184/understanding-the-initial-admin-identity-access-po.html
 
-      options.ssl = mixme service.use.ssl?[0]?.options, options.ssl
+      options.ssl = merge service.use.ssl?[0]?.options, options.ssl
       options.ssl.enabled ?= !!service.use.ssl
       options.ssl.certs = {}
       # options.ssl.truststore ?= {}
@@ -51,4 +51,4 @@ https://community.hortonworks.com/articles/81184/understanding-the-initial-admin
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

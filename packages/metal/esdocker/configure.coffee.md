@@ -68,7 +68,7 @@
 ## Elastic config
 
       options.clusters ?= {}
-      options.ssl = mixme service.deps.ssl.options, options.ssl
+      options.ssl = merge service.deps.ssl.options, options.ssl
       throw Error 'Required property "ssl.cacert" or "ryba.options.ssl.cacert"' unless options.ssl.cacert?
       throw Error 'Required property "ssl.cert"' unless options.ssl.cert?
       throw Error 'Required property "ssl.key"' unless options.ssl.key?
@@ -238,4 +238,4 @@
           if user != null
             es.plugins_urls["#{repo}"].push "https://github.com/#{user}/#{repo}/archive/master.zip"
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

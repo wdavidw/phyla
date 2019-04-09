@@ -67,7 +67,7 @@ Example:
 
 ## Test
 
-      options.test = mixme service.deps.test_user.options, options.test
+      options.test = merge service.deps.test_user.options, options.test
 
 ## Wait
 
@@ -76,4 +76,4 @@ Example:
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

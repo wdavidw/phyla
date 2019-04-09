@@ -19,8 +19,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.knox_user = service.deps.knox.options.user
       options.knox_group = service.deps.knox.options.group
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
@@ -78,7 +78,7 @@
 ## Knox Plugin SSL
 
       if service.deps.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+        options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
         options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.deps.knox.options.ssl.keystore.target
         options.install['SSL_KEYSTORE_PASSWORD'] ?= service.deps.knox.options.ssl.keystore.password
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_client['ssl.client.truststore.location']
@@ -146,4 +146,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

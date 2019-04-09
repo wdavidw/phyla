@@ -6,8 +6,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.hbase_user = service.deps.hbase_master[0].options.user
       options.hbase_group = service.deps.hbase_master[0].options.group
       options.hadoop_group = service.deps.hbase_master[0].options.hadoop_group
@@ -200,7 +200,7 @@ make configuration effective.
 ### Plugin Execution
 
       if service.deps.ranger_admin.options.site['ranger.service.https.attrib.ssl.enabled'] is 'true'
-        options.ssl = mixme service.deps.hadoop_core.options.ssl, options.ssl
+        options.ssl = merge service.deps.hadoop_core.options.ssl, options.ssl
         options.install['SSL_KEYSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.location']
         options.install['SSL_KEYSTORE_PASSWORD'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.keystore.password']
         options.install['SSL_TRUSTSTORE_FILE_PATH'] ?= service.deps.hadoop_core.options.ssl_server['ssl.server.truststore.location']
@@ -232,7 +232,7 @@ make configuration effective.
 
 ## Merge hive_plugin conf to ranger admin
 
-        # ranger_admin_ctx.config.ryba.ranger.hbase_plugin = mixme hbase_plugin
+        # ranger_admin_ctx.config.ryba.ranger.hbase_plugin = merge hbase_plugin
 
 ## Wait
 
@@ -240,4 +240,4 @@ make configuration effective.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

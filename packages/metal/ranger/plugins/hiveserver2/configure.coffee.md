@@ -8,8 +8,8 @@ Ranger Hive plugin runs inside Hiveserver2's JVM
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.hive_user = service.deps.hive_server2.options.user
       options.hive_group = service.deps.hive_server2.options.group
       options.hdfs_krb5_user = service.deps.hadoop_core.options.hdfs.krb5_user
@@ -228,4 +228,4 @@ The repository name should match the reposity name in web ui.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

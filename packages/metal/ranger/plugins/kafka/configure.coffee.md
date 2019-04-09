@@ -6,8 +6,8 @@
 
 ## Identities
 
-      options.group = mixme service.deps.ranger_admin.options.group, options.group or {}
-      options.user = mixme service.deps.ranger_admin.options.user, options.user or {}
+      options.group = merge service.deps.ranger_admin.options.group, options.group or {}
+      options.user = merge service.deps.ranger_admin.options.user, options.user or {}
       options.kafka_user = service.deps.kafka_broker.options.user
       options.kafka_group = service.deps.kafka_broker.options.group
       options.hadoop_group = service.deps.hadoop_core.options.hadoop_group
@@ -196,4 +196,4 @@ from Hadoop Core.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

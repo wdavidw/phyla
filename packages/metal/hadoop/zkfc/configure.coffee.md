@@ -20,9 +20,9 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = merge service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Environment
 
@@ -44,7 +44,7 @@ Optional, activate digest type access to zookeeper to manage the zkfc znode:
 
 ## Configuration
 
-      options.core_site ?= mixme service.deps.hadoop_core.options.core_site, options.core_site or {}
+      options.core_site ?= merge service.deps.hadoop_core.options.core_site, options.core_site or {}
       options.core_site['ha.zookeeper.quorum'] ?= service.deps.zookeeper_server
       .filter (srv) -> srv.options.config['peerType'] is 'participant'
       .map (srv)-> "#{srv.node.fqdn}:#{srv.options.config['clientPort']}"
@@ -132,4 +132,4 @@ fencing method should be configured to not block failover.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

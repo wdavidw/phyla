@@ -5,8 +5,8 @@
 
 ## Identities
 
-      options.test_user = mixme deps.ambari_server[0].options.test_user, options.test_user
-      options.test_group = mixme deps.ambari_server[0].options.test_group, options.test_group
+      options.test_user = merge deps.ambari_server[0].options.test_user, options.test_user
+      options.test_group = merge deps.ambari_server[0].options.test_group, options.test_group
 
 ## Environment
 
@@ -15,11 +15,11 @@
 
 ## Identities
 
-      options.hadoop_group = mixme deps.ambari_server[0].options.hadoop_group, options.hadoop_group
-      options.group = mixme deps.ambari_server[0].options.group, options.group
-      options.user = mixme deps.ambari_server[0].options.user, options.user
-      options.test_group = mixme deps.ambari_server[0].options.test_group, options.test_group
-      options.test_user = mixme deps.ambari_server[0].options.test_user, options.test_user
+      options.hadoop_group = merge deps.ambari_server[0].options.hadoop_group, options.hadoop_group
+      options.group = merge deps.ambari_server[0].options.group, options.group
+      options.user = merge deps.ambari_server[0].options.user, options.user
+      options.test_group = merge deps.ambari_server[0].options.test_group, options.test_group
+      options.test_user = merge deps.ambari_server[0].options.test_user, options.test_user
 
 ## Configuration
 
@@ -62,4 +62,4 @@ The components should register their user to ambari agents
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

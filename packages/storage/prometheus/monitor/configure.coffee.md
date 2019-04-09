@@ -123,7 +123,7 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
 
 ## SSL
 
-      # options.ssl = mixme service.deps.ssl?.options, options.ssl
+      # options.ssl = merge service.deps.ssl?.options, options.ssl
       # options.ssl.enabled ?= !!service.deps.ssl
       # if options.ssl.enabled
       #   throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -142,10 +142,6 @@ Note: cluster name shoul not contain other character than ([a-zA-Z0-9\-\_]*)
       options.wait.tcp ?= for srv in service.deps.prometheus_monitor
           host: srv.node.fqdn
           port: srv.options.port or options.port or 9091
-
-## Dependencies
-
-    mixme = require 'mixme'
 
 ## Documentation
 

@@ -20,4 +20,4 @@ Configure Log4j. Does not write anyfile.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'

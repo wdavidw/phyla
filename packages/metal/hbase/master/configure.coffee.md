@@ -38,7 +38,7 @@ Example
 ```
 
       # Hadoop Group
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
       # Group
       options.group ?= {}
       options.group = name: options.group if typeof options.group is 'string'
@@ -242,7 +242,7 @@ RS if RS count < 3.
 
 ## Configuration for Log4J
 
-      options.log4j = mixme service.deps.log4j?.options, options.log4j
+      options.log4j = merge service.deps.log4j?.options, options.log4j
       options.log4j.properties ?= {}
       options.opts.java_properties['hbase.security.log.file'] ?= 'SecurityAuth-master.audit'
       #HBase bin script use directly environment bariables
@@ -268,7 +268,7 @@ RS if RS count < 3.
           Port: '${hbase.log.remote_port}'
           ReconnectionDelay: '10000'
 
-        options.log4j.properties = mixme options.log4j.properties, appender
+        options.log4j.properties = merge options.log4j.properties, appender
           type: 'org.apache.log4j.net.SocketAppender'
           name: options.log4j.socket_client
           logj4: options.log4j.properties
@@ -314,7 +314,7 @@ additionnal informations.
 According to the default "hadoop-metrics-hbase.properties", the list of
 supported contexts are "hbase", "jvm" and "rpc".
 
-      options.metrics = mixme service.deps.metrics?.options, options.metrics
+      options.metrics = merge service.deps.metrics?.options, options.metrics
       options.metrics.sinks ?= {}
       options.metrics.sinks.file_enabled ?= true
       options.metrics.sinks.ganglia_enbaled ?= !!service.deps.ganglia_collector
@@ -367,7 +367,7 @@ supported contexts are "hbase", "jvm" and "rpc".
 ## Dependencies
 
     appender = require '../../lib/appender'
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 ## Resources
 

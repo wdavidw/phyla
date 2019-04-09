@@ -8,8 +8,8 @@
 
 By default, merge group and user from the MongoDb config server.
 
-      options.group = mixme service.deps.config_servers[0].options.group, options.group
-      options.user = mixme service.deps.config_servers[0].options.user, options.user
+      options.group = merge service.deps.config_servers[0].options.group, options.group
+      options.user = merge service.deps.config_servers[0].options.user, options.user
 
 ## Configuration
 
@@ -113,7 +113,7 @@ config servers replica set will hold metadata.
 
 ## SSL
 
-      options.ssl = mixme service.deps.ssl?.options, options.ssl
+      options.ssl = merge service.deps.ssl?.options, options.ssl
       options.ssl.enabled = !!service.deps.ssl
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -167,6 +167,6 @@ Should work nonetheless.
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
 
 [mongod-ssl]:(https://docs.mongodb.org/manual/reference/configuration-options/#net.ssl.mode)

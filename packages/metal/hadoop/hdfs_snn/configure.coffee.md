@@ -16,9 +16,9 @@
 
 ## Identities
 
-      options.hadoop_group = mixme service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
-      options.group = mixme service.deps.hadoop_core.options.hdfs.group, options.group
-      options.user = mixme service.deps.hadoop_core.options.hdfs.user, options.user
+      options.hadoop_group = merge service.deps.hadoop_core.options.hadoop_group, options.hadoop_group
+      options.group = merge service.deps.hadoop_core.options.hdfs.group, options.group
+      options.user = merge service.deps.hadoop_core.options.hdfs.user, options.user
 
 ## Kerberos
 
@@ -52,4 +52,4 @@
 
 ## Dependencies
 
-    mixme = require 'mixme'
+    {merge} = require 'mixme'
