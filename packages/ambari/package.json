@@ -38,7 +38,7 @@
     "url": "https://github.com/ryba-io/ryba/issues"
   },
   "dependencies": {
-    "@nikitajs/core": "^0.9.3-alpha.12",
-    "mixme": "^0.3.0"
+    "@nikitajs/core": "^0.9.3",
+    "mixme": "^0.3.1"
   }
 }
