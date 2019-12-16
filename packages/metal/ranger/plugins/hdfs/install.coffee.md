@@ -11,7 +11,6 @@
 ## HDFS Dependencies
 
       # @call '@rybajs/metal/hadoop/hdfs_client/install' #migation solved it with implicy hdfs_client requirement
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_service', '@rybajs/metal/ranger/actions/ranger_service'
       @registry.register 'ranger_policy', '@rybajs/metal/ranger/actions/ranger_policy'
@@ -183,13 +182,13 @@ Not documented be taken from [github-source][plugin-source]
           export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec
           /usr/hdp/#{version}/ranger-hdfs-plugin/enable-hdfs-plugin.sh
           """
-        @hconfigure
+        @file.types.hfile
           header: 'Fix Conf'
           target: "#{hdfs_conf_dir}/ranger-hdfs-security.xml"
           merge: true
           properties:
             'ranger.plugin.hdfs.policy.rest.ssl.config.file': "#{hdfs_conf_dir}/ranger-policymgr-ssl.xml"
-        @hconfigure
+        @file.types.hfile
           header: 'Solr JAAS'
           target: "#{hdfs_conf_dir}/ranger-hdfs-audit.xml"
           merge: true

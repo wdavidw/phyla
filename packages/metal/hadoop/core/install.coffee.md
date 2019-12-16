@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## Identities
@@ -131,10 +130,10 @@ recommendations](http://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html).
 ## SSL
 
       @call header: 'SSL', retry: 0, ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

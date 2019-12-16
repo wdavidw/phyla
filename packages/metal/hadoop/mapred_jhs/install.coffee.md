@@ -10,7 +10,6 @@ Job History Server.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -108,24 +107,24 @@ directory with the location of the directory storing the process pid.
 
 Templated properties are "ryba.mapred.heapsize" and "ryba.mapred.pid_dir".
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         properties: options.hdfs_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "#{options.conf_dir}/yarn-site.xml"
         properties: options.yarn_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'MapRed Site'
         target: "#{options.conf_dir}/mapred-site.xml"
         properties: options.mapred_site
@@ -180,10 +179,10 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 ## SSL
 
       @call header: 'SSL', ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

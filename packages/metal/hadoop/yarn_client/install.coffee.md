@@ -3,10 +3,6 @@
 
     module.exports = header: 'YARN Client Install', handler: ({options}) ->
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Identities
 
 By default, the "hadoop-yarn" package create the following entries:
@@ -76,7 +72,7 @@ Properties accepted by the template are: `ryba.yarn.rm_opts`
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/yarn-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/yarn-site.xml"

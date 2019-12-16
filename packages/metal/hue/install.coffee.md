@@ -9,10 +9,6 @@ article from december 2014 describe how to
       {realm, hue} = @config.ryba
       krb5 = @config.krb5_client.admin[realm]
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Identities
 
 By default, the "hue" package create the following entries:
@@ -60,7 +56,7 @@ TODO: only work if WebHCat is running on the same server as Hue
       {webhcat} = @config.ryba
       webhcat_server = @host_with_module '@rybajs/metal/hive/webhcat'
       throw Error "WebHCat shall be on the same server as Hue" unless webhcat_server is @config.host
-      @hconfigure
+      @file.types.hfile
         header: 'WebHCat'
         target: "#{webhcat.conf_dir}/webhcat-site.xml"
         properties:
@@ -79,7 +75,7 @@ TODO: only work if Oozie is running on the same server as Hue
       {oozie} = @config.ryba
       oozie_server = @host_with_module '@rybajs/metal/oozie/server'
       return Error "Oozie shall be on the same server as Hue" unless oozie_server is @config.host
-      @hconfigure
+      @file.types.hfile
         header: 'Oozie'
         target: "#{oozie.conf_dir}/oozie-site.xml"
         properties:

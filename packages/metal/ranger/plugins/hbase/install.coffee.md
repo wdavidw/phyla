@@ -10,7 +10,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_policy', '@rybajs/metal/ranger/actions/ranger_policy'
       @registry.register 'ranger_service', '@rybajs/metal/ranger/actions/ranger_service'
@@ -187,7 +186,7 @@ Activate the plugin.
           @system.execute
             header: 'Script'
             cmd: "/usr/hdp/#{version}/ranger-hbase-plugin/enable-hbase-plugin.sh"
-          @hconfigure
+          @file.types.hfile
             header: 'Security Fix'
             target: "#{conf_dir}/ranger-hbase-security.xml"
             merge: true

@@ -8,7 +8,6 @@ co-located with any other service.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
       @registry.register ['hdfs','put'], '@rybajs/metal/lib/actions/hdfs/put'
@@ -109,24 +108,24 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 
 Update the "yarn-site.xml" configuration file.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         properties: options.hdfs_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "#{options.conf_dir}/yarn-site.xml"
         properties: options.yarn_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "#{options.ats2_hbase_conf_dir}/yarn-site.xml"
         properties: options.yarn_site
@@ -216,10 +215,10 @@ Note, this is not documented anywhere and might not be considered as a best prac
 ## SSL
 
       @call header: 'SSL', ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts
@@ -304,14 +303,14 @@ with Zookeeper.
           uid: options.ats_user.name
           gid: options.hadoop_group.name
           mode: 0o775
-        @hconfigure
+        @file.types.hfile
           unless: options.hbase_local
           header: 'HBase Site'
           target: "#{options.ats2_hbase_conf_dir}/hbase-site.xml"
           properties: options.hbase_site
           backup: true
           user: options.ats_user.name
-          group: options.hadoop_group.name  
+          group: options.hadoop_group.name
     
 ## Dependencies
 

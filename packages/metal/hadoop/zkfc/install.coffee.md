@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -62,11 +61,11 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
       @call header: 'Configure', ->
         @system.mkdir
           target: "#{options.conf_dir}"
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/core-site.xml"
           properties: options.core_site
           backup: true
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true

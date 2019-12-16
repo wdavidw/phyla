@@ -7,7 +7,6 @@ new service features, as it enable to keep track of long running application on 
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -91,19 +90,19 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 
 Update the "yarn-site.xml" configuration file.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         properties: options.hdfs_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "#{options.conf_dir}/yarn-site.xml"
         properties: options.yarn_site
@@ -180,10 +179,10 @@ with Zookeeper.
 # ## SSL
 # 
 #       @call header: 'SSL', ->
-#         @hconfigure
+#         @file.types.hfile
 #           target: "#{options.conf_dir}/ssl-server.xml"
 #           properties: options.ssl_server
-#         @hconfigure
+#         @file.types.hfile
 #           target: "#{options.conf_dir}/ssl-client.xml"
 #           properties: options.ssl_client
 #         # Client: import certificate to all hosts

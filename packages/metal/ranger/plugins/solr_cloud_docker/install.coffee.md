@@ -6,7 +6,6 @@
 
 ## Registry
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_service', '@rybajs/metal/ranger/actions/ranger_service'
       @registry.register 'ranger_policy', '@rybajs/metal/ranger/actions/ranger_policy'
@@ -177,7 +176,7 @@ loads the lib directory found in the `SOLR_HOME`.
             else exit 1 ;
             fi;
             """
-          @hconfigure
+          @file.types.hfile
             header: 'Fix ranger-solr-security conf'
             target: "#{options.conf_dir}/clusters/#{key}/server/solr-webapp/webapp/WEB-INF/classes/ranger-solr-security.xml"
             merge: true
@@ -188,7 +187,7 @@ loads the lib directory found in the `SOLR_HOME`.
             target: "/etc/ranger/#{value.install['REPOSITORY_NAME']}/.cred.jceks.crc"
             uid: options.solr_user.name
             gid: options.solr_group.name
-          @hconfigure
+          @file.types.hfile
             header: 'JAAS Properties for solr'
             target: "#{options.conf_dir}/clusters/#{key}/server/solr-webapp/webapp/WEB-INF/classes/ranger-solr-audit.xml"
             merge: true

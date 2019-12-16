@@ -15,7 +15,6 @@ most (N - 1) / 2 failures to continue to function normally.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -118,14 +117,14 @@ keytab, also used by the NameNodes, DataNodes, ResourceManagers and
 NodeManagers.
 
       @call header: 'Configure', ->
-        @hconfigure
+        @file.types.hfile
           header: 'Core Site'
           target: "#{options.conf_dir}/core-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
           local: true
           properties: options.core_site
           backup: true
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/hdfs-site.xml"
           source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
           local: true
@@ -182,10 +181,10 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
         options.ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
         options.ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
         options.ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

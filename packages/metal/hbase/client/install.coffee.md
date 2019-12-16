@@ -7,7 +7,6 @@ Install the HBase client package and configure it with secured access.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -50,7 +49,7 @@ RegionServer, and HBase client host machines.
 
 Note, we left the permission mode as default, Master and RegionServer need to
 
-      @hconfigure
+      @file.types.hfile
         header: 'HBase Site'
         target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"

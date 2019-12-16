@@ -14,7 +14,6 @@ environmental variables. For example, HDP declare its version as
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       
 ## Identities
@@ -53,7 +52,7 @@ Expose the "OOZIE_URL" environmental variable to every users.
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Oozie site'
         target: "#{options.conf_dir}/oozie-site.xml"
         source: "#{__dirname}/../resources/oozie-site.xml"

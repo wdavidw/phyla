@@ -16,7 +16,6 @@ Worth to investigate:
       
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## Wait
@@ -117,14 +116,14 @@ file is usually stored inside the "/var/run/hadoop-hdfs/hdfs" directory.
 
 ## Configure
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
@@ -196,10 +195,10 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 ## SSL
 
       @call header: 'SSL', retry: 0, ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts
@@ -350,7 +349,7 @@ By default the service-level authorization is disabled in hadoop, to enable that
 we need to set/configure the hadoop.security.authorization to true in
 ${HADOOP_CONF_DIR}/core-site.xml
 
-      @hconfigure
+      @file.types.hfile
         header: 'Policy'
         if: options.core_site['hadoop.security.authorization'] is 'true'
         target: "#{options.conf_dir}/hadoop-policy.xml"

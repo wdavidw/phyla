@@ -8,7 +8,6 @@ co-located with any other service.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
       @registry.register ['yarn','service', 'create'], '@rybajs/metal/lib/actions/yarn/service/create'
@@ -113,7 +112,7 @@ in "/etc/init.d/hadoop-hdfs-datanode" and define its startup strategy.
 
 Update the "hbase-site.xml" and "hbase-env.sh" configuration file.
 
-      @hconfigure
+      @file.types.hfile
         header: 'HBase Site'
         target: "#{options.conf_dir}/hbase-site.xml"
         properties: options.hbase_site

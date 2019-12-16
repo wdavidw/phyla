@@ -7,10 +7,6 @@ Spark comes with 1.2.1 in HDP 2.2.4.
 
     module.exports = header: 'Zeppelin Install', handler: (options) ->
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Identitites
 
 By default, the "zeppelin" package create the following
@@ -128,7 +124,7 @@ Use the spark yarn assembly jar to execute spark aplication in yarn-client mode.
         header: 'Directory'
         target: "#{options.conf_dir}"
         mode: 0o0750
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/zeppelin-site.xml"
         source: "#{__dirname}/resources/zeppelin-site.xml"

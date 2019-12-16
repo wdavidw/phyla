@@ -4,7 +4,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_policy', '@rybajs/metal/ranger/actions/ranger_policy'
       @registry.register 'ranger_service', '@rybajs/metal/ranger/actions/ranger_service'
@@ -152,23 +151,23 @@ tested.
         @system.execute
           header: 'Fix repository'
           cmd: "chown -R #{options.yarn_user.name}:#{options.hadoop_group.name} /etc/ranger/#{options.install['REPOSITORY_NAME']}"
-        @hconfigure
+        @file.types.hfile
           header: 'Fix ranger-yarn-security conf'
           target: "#{options.conf_dir}/ranger-yarn-security.xml"
           merge: true
           properties:
             'ranger.plugin.yarn.policy.rest.ssl.config.file': "#{options.conf_dir}/ranger-policymgr-ssl.xml"
-        # @hconfigure
+        # @file.types.hfile
         #   header: 'plugin properties site'
         #   target: "#{options.conf_dir}/ranger-yarn-audit.xml"
         #   properties: options.configurations['ranger-yarn-audit']
         #   backup: true
-        # @hconfigure
+        # @file.types.hfile
         #   header: 'policymgr ssl site'
         #   target: "#{options.conf_dir}/ranger-policymgr-ssl.xml"
         #   properties: options.configurations['ranger-yarn-policymgr-ssl']
         #   backup: true
-        # @hconfigure
+        # @file.types.hfile
         #   header: 'yarn security site'
         #   target: "#{options.conf_dir}/ranger-yarn-security.xml"
         #   properties: options.configurations['ranger-yarn-security']

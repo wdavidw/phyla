@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -181,19 +180,19 @@ SSH connection to the node to gather the memory and CPU informations.
 
 ## Configure
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         properties: options.hdfs_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "#{options.conf_dir}/yarn-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/yarn-site.xml"
@@ -343,7 +342,7 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
           # migration: wdavidw 170827, using store is a bad, very bad idea, ensure it works in the mean time
           # lucasbak 180127 not using store anymore
           throw Error 'YARN NM Cgroup is undefined' unless options.yarn_site['yarn.nodemanager.linux-container-executor.cgroups.mount-path']
-          @hconfigure
+          @file.types.hfile
             header: 'YARN Site'
             target: "#{options.conf_dir}/yarn-site.xml"
             properties: options.yarn_site
@@ -357,10 +356,10 @@ on Centos/Redhat7 OS. Legacy cgconfig and cgroup-tools package must be used. (ma
 ## SSL
 
       @call header: 'SSL', retry: 0, ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

@@ -18,7 +18,6 @@ NameNodes, and send block location information and heartbeats to both.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -154,7 +153,7 @@ pid directory is set by the "hdfs\_pid\_dir" and default to "/var/run/hadoop-hdf
 Update the "core-site.xml" configuration file with properties from the
 "ryba.core_site" configuration.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
@@ -167,7 +166,7 @@ Update the "core-site.xml" configuration file with properties from the
 Update the "hdfs-site.xml" configuration file with the High Availabity properties
 present inside the "hdp.ha\_client\_config" object.
 
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
@@ -260,10 +259,10 @@ Also some [interesting info about snn](http://blog.cloudera.com/blog/2009/02/mul
         options.ssl_server['ssl.server.keystore.location'] = "#{options.conf_dir}/keystore"
         options.ssl_server['ssl.server.truststore.location'] = "#{options.conf_dir}/truststore"
         options.ssl_client['ssl.client.truststore.location'] = "#{options.conf_dir}/truststore"
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

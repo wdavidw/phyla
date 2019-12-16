@@ -7,7 +7,6 @@ Please refer to the Apache Phoenix QueryServer [documentation][phoenix-doc].
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## Identities
@@ -81,7 +80,7 @@ We use the SPNEGO keytab, so we let hadoop/core handle principal & keytab
 
 ## HBase Site
 
-      @hconfigure
+      @file.types.hfile
         header: 'HBase Site'
         target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../../hbase/resources/hbase-site.xml"

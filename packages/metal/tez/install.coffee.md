@@ -5,7 +5,6 @@
       
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_upload', '@rybajs/metal/lib/hdfs_upload'
 
 ## Packages
@@ -29,7 +28,7 @@ HDFS directory. Note, the parent directories are created by the
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Tez Site'
         target: "#{options.env['TEZ_CONF_DIR']}/tez-site.xml"
         source: "#{__dirname}/resources/tez-site.xml"

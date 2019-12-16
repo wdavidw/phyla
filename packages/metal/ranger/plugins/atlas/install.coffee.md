@@ -7,7 +7,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_user', '@rybajs/metal/ranger/actions/ranger_user'
       @registry.register 'ranger_policy', '@rybajs/metal/ranger/actions/ranger_policy'
@@ -168,7 +167,7 @@ tested.
               else exit 1 ;
               fi;
             """
-          @hconfigure
+          @file.types.hfile
             header: 'Fix ranger-atlas-security conf'
             target: "#{options.conf_dir}/ranger-atlas-security.xml"
             merge: true
@@ -179,7 +178,7 @@ tested.
             target: "/etc/ranger/#{options.install['REPOSITORY_NAME']}/.cred.jceks.crc"
             uid: options.atlas_user.name
             gid: options.atlas_group.name
-          @hconfigure
+          @file.types.hfile
             header: 'JAAS Properties for solr'
             target: "#{options.conf_dir}/ranger-atlas-audit.xml"
             merge: true

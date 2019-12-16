@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -94,7 +93,7 @@ script inside "/etc/init.d" and activate it on startup.
 
 # Configure
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"

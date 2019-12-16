@@ -5,7 +5,6 @@
 
 ## Register and load
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
 
 ## Identities
@@ -158,7 +157,7 @@ Configure deep storage.
         header: 'HDFS Site'
         target: "/opt/druid/conf/druid/_common/hdfs-site.xml"
         source: "#{options.hadoop_conf_dir}/hdfs-site.xml"
-      @hconfigure
+      @file.types.hfile
         header: 'YARN Site'
         target: "/opt/druid/conf/druid/_common/yarn-site.xml"
         source: "#{options.hadoop_conf_dir}/yarn-site.xml"
@@ -167,7 +166,7 @@ Configure deep storage.
             [id] = properties['yarn.resourcemanager.ha.rm-ids'].split ','
             properties['yarn.resourcemanager.address'] = properties["yarn.resourcemanager.address.#{id}"]
           properties
-      @hconfigure
+      @file.types.hfile
         header: 'MapRed Site'
         target: "/opt/druid/conf/druid/_common/mapred-site.xml"
         source: "#{options.hadoop_conf_dir}/mapred-site.xml"

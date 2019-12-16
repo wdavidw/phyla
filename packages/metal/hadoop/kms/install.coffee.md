@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -108,14 +107,14 @@ Maintain the "kms-env.sh" file.
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/kms-site.xml"
         properties: options.kms_site
         uid: options.user.name
         gid: options.user.name
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'ACLs'
         target: "#{options.conf_dir}/kms-acls.xml"
         properties: options.acls

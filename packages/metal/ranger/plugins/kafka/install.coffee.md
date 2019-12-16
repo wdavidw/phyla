@@ -6,7 +6,6 @@
 
 # Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'ranger_user', '@rybajs/metal/ranger/actions/ranger_user'
       @registry.register 'ranger_service', '@rybajs/metal/ranger/actions/ranger_service'
@@ -182,7 +181,7 @@ tested.
           uid: options.user.name
           gid: options.group.name
           mode: 0o750
-        @hconfigure
+        @file.types.hfile
           header: 'Fix ranger-kafka-security conf'
           target: "#{options.conf_dir}/ranger-kafka-security.xml"
           merge: true

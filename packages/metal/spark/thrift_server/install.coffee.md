@@ -7,7 +7,6 @@
 
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
 
 ## Identities
 
@@ -136,8 +135,7 @@ Custom mode: 0o0760 to allow hive user to write into /var/run/spark and /var/log
         @system.copy
           target: "#{options.conf_dir}/hive-site.xml"
           source: '/etc/hive/conf/hive-site.xml'
-
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/hive-site.xml"
           properties: options.hive_site
           merge: true

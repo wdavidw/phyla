@@ -7,10 +7,6 @@ co-located with any other service.
     module.exports = header: 'YARN ATS HBase Conf Install', handler: ({options}) ->
       return if options.yarn_hbase_embedded
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## HBase Backend Client Configuration
 
       @call
@@ -22,7 +18,7 @@ co-located with any other service.
           uid: options.ats_user.name
           gid: options.hadoop_group.name
           mode: 0o775
-        @hconfigure
+        @file.types.hfile
           unless: options.hbase_local
           header: 'HBase Site'
           target: "#{options.ats2_hbase_conf_dir}/hbase-site.xml"

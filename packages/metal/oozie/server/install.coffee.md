@@ -11,7 +11,6 @@ failover and Oozie must target the active node.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
 
@@ -250,7 +249,7 @@ Copy or symlink the MySQL JDBC driver JAR into the /var/lib/oozie/ directory fol
         target: '/usr/hdp/current/oozie-server/libext/mysql-connector-java.jar'
 
       @call header: 'Configuration', ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/oozie-site.xml"
           source: "#{__dirname}/../resources/oozie-site.xml"
           local: true
@@ -265,7 +264,7 @@ Copy or symlink the MySQL JDBC driver JAR into the /var/lib/oozie/ directory fol
           source: "#{__dirname}/../resources/oozie-default.xml"
           local: true
           backup: true
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/hadoop-conf/core-site.xml"
           # local_default: true
           properties: options.hadoop_config
@@ -304,7 +303,7 @@ Copy or symlink the MySQL JDBC driver JAR into the /var/lib/oozie/ directory fol
         header: 'Falcon'
         if: options.falcon?.enabled
       , ->
-        @hconfigure
+        @file.types.hfile
           header: 'Hive Site'
           if: options.falcon?.enabled
           target: "#{options.conf_dir}/action-conf/hive.xml"

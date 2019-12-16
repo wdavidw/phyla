@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -141,7 +140,7 @@ RegionServer, and HBase client host machines.
 
 [secop]: http://fr.slideshare.net/HBaseCon/features-session-2
 
-      @hconfigure
+      @file.types.hfile
         header: 'HBase Site'
         target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"

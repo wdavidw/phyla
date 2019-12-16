@@ -8,7 +8,6 @@ co-located with any other service.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
       @registry.register ['hdfs','put'], '@rybajs/metal/lib/actions/hdfs/put'

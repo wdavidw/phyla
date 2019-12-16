@@ -16,7 +16,6 @@ Users should user module inside `@rybajs/metal/ranger/solr`
 
 ## Dependencies
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @call once: true, "@rybajs/metal/solr/#{mode}/start" unless mode is 'cloud_docker'
       @call once: true, "@rybajs/metal/solr/#{mode}/wait" unless mode is 'cloud_docker'
 

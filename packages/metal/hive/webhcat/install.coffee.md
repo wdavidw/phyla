@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_upload', '@rybajs/metal/lib/hdfs_upload'
 
@@ -96,7 +95,7 @@ Create file system directories for log and pid.
 
 Upload configuration inside '/etc/hive-webhcat/conf/webhcat-site.xml'.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Webhcat Site'
         target: "#{options.conf_dir}/webhcat-site.xml"
         source: "#{__dirname}/../../resources/hive-webhcat/webhcat-site.xml"

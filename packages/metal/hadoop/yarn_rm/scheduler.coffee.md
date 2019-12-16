@@ -15,13 +15,9 @@ ResourceCalculator class name is expected.
 
     module.exports = header: 'YARN RM Sheduler', handler: ({options}) ->
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Write Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Capacity Scheduler'
         if: options.yarn_site['yarn.resourcemanager.scheduler.class'] is 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler'
         target: "#{options.conf_dir}/capacity-scheduler.xml"

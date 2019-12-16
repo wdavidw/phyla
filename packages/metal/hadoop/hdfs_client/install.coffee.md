@@ -3,10 +3,6 @@
 
     module.exports = header: 'HDFS Client Install', handler: ({options}) ->
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Env
 
 Maintain the "hadoop-env.sh" file present in the HDP companion File.
@@ -41,7 +37,7 @@ correct for RHEL, it is installed in "/usr/lib/bigtop-utils" on my CentOS.
 Update the "core-site.xml" configuration file with properties from the
 "core_site" configuration.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
@@ -54,7 +50,7 @@ Update the "core-site.xml" configuration file with properties from the
 Update the "hdfs-site.xml" configuration file with properties from the
 "ryba.hdfs.site" configuration.
 
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/hdfs-site.xml"
@@ -94,7 +90,7 @@ Update the "hdfs-site.xml" configuration file with properties from the
 ## SSL
 
       @call header: 'SSL', ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         @java.keystore_add

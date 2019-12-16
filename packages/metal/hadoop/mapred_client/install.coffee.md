@@ -6,7 +6,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_upload', '@rybajs/metal/lib/hdfs_upload'
       @registry.register ['hdfs','put'], '@rybajs/metal/lib/actions/hdfs/put'
@@ -51,7 +50,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
             throw err if err
             version = stdout.trim()
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/mapred-site.xml"
         source: "#{__dirname}/../resources/mapred-site.xml"

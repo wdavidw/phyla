@@ -6,7 +6,6 @@
 ## Register
 
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
 
 ## Identities
 
@@ -119,7 +118,7 @@ to allow user to create none-determisitic functions.
       @system.execute
         header: 'Fix Setup Execution'
         cmd: "chown -R #{options.user.name}:#{options.user.name} #{options.conf_dir}"
-      @hconfigure
+      @file.types.hfile
         header: 'Core site'
         target: '/etc/ranger/admin/conf/core-site.xml'
         properties: options.core_site
@@ -211,7 +210,7 @@ to allow user to create none-determisitic functions.
           caname: "hadoop_root_ca"
           cacert: "#{options.ssl.cacert.source}"
           local: "#{options.ssl.cacert.local}"
-        @hconfigure
+        @file.types.hfile
           header: 'Admin site'
           target: '/etc/ranger/admin/conf/ranger-admin-site.xml'
           properties: options.site

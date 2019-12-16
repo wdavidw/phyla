@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## Identities
@@ -162,7 +161,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configuration'
         target: "#{options.conf_dir}/httpfs-site.xml"
         properties: options.httpfs_site

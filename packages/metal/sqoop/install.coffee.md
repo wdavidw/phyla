@@ -8,7 +8,6 @@ driver used by Sqoop.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## Identities
@@ -56,7 +55,7 @@ Upload the "sqoop-env.sh" file into the "/etc/sqoop/conf" folder.
 
 Upload the "sqoop-site.xml" files into the "/etc/sqoop/conf" folder.
 
-      @hconfigure
+      @file.types.hfile
         header: 'Sqoop Site'
         target: "#{options.conf_dir}/sqoop-site.xml"
         source: "#{__dirname}/resources/sqoop-site.xml"

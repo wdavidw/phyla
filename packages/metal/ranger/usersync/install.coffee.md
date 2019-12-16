@@ -6,7 +6,6 @@
 ## Registry
 
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
 
 ## Identities
 
@@ -139,13 +138,13 @@ Update the file "install.properties" with the properties defined by the
         target: '/etc/ranger/usersync/conf/ranger-usersync-env-1.sh'
         write: writes
 
-      @hconfigure
+      @file.types.hfile
         header: 'Usersync site'
         target: "/etc/ranger/usersync/conf/ranger-ugsync-site.xml"
         properties: options.site
         merge: true
         backup: true
-      # 
+      #
       # @java.keystore_add
       #   keystore: options.site['options.truststore.file']
       #   storepass: 'ryba123'

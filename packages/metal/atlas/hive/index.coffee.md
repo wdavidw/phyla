@@ -22,7 +22,7 @@ Atlas server to be active.
         , ->
           @call '@rybajs/metal/atlas/hive/install', options.original
         @after
-          action: ['hconfigure']
+          action: ['file', 'types', 'hfile']
           target: "#{options.conf_dir}/hive-site.xml"
         , ->
           @file.properties

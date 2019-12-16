@@ -1,7 +1,7 @@
 
 # Hue Install
 
-Install  dockerized hue 3.8 container. The container can be build by ./bin/prepare
+Install dockerized hue 3.8 container. The container can be build by ./bin/prepare
 script or directly downloaded (from local computer only for now,
 no images available on dockerhub).
 
@@ -9,11 +9,8 @@ Run `ryba prepare` to create the Docker container.
 
     module.exports = header: 'Hue Docker Install', handler: (options) ->
 
-## Register
-
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
-
 ## Wait
+
 Wait only needed service for starting.
 
       @call '@rybajs/metal/commons/db_admin/wait', once: true, options.wait_db_admin

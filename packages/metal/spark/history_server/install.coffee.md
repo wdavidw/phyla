@@ -13,7 +13,6 @@ web interface.
 
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
 
 # Identities
 
@@ -119,20 +118,18 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Clients Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Hive Site'
         target: "#{options.conf_dir}/hive-site.xml"
         source: "/etc/hive/conf/hive-site.xml"
         merge: true
         backup: true
-
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "/etc/hadoop/conf/core-site.xml"
         merge: true
         backup: true
-
       @system.copy
         target: "#{options.conf_dir}/hdfs-site.xml"
         source: "/etc/hadoop/conf/hdfs-site.xml"

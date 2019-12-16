@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
 
@@ -79,7 +78,7 @@ IPTables rules are only inserted if the parameter "iptables.action" is set to
 
 ## Configure
 
-      @hconfigure
+      @file.types.hfile
         header: 'Configure'
         target: "#{options.conf_dir}/gateway-site.xml"
         properties: options.gateway_site

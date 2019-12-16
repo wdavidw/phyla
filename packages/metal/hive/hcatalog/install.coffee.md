@@ -8,7 +8,6 @@ http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/4.2.0/CDH4-I
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register 'hdfs_upload', '@rybajs/metal/lib/hdfs_upload'
@@ -94,7 +93,7 @@ isnt yet started.
 
 ## Configuration
 
-      @hconfigure
+      @file.types.hfile
         header: 'Hive Site'
         target: "#{options.conf_dir}/hive-site.xml"
         source: "#{__dirname}/../../resources/hive/hive-site.xml"

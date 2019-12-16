@@ -10,7 +10,6 @@ have usecase for it yet.
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
 
 ## IPTables
@@ -102,7 +101,7 @@ hbase:x:492:
 Note, we left the permission mode as default, Master and RegionServer need to
 restrict it but not the rest server.
 
-      @hconfigure
+      @file.types.hfile
         header: 'HBase Site'
         target: "#{options.conf_dir}/hbase-site.xml"
         source: "#{__dirname}/../resources/hbase-site.xml"

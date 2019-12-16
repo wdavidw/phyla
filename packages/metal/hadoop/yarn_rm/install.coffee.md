@@ -5,7 +5,6 @@
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdp_select', '@rybajs/metal/lib/hdp_select'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
       @registry.register ['file', 'jaas'], '@rybajs/metal/lib/file_jaas'
@@ -142,19 +141,19 @@ inside "/etc/init.d" and activate it on startup.
 
 ## Configure
 
-      @hconfigure
+      @file.types.hfile
         header: 'Core Site'
         target: "#{options.conf_dir}/core-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/core-site.xml"
         local: true
         properties: options.core_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         header: 'HDFS Site'
         target: "#{options.conf_dir}/hdfs-site.xml"
         properties: options.hdfs_site
         backup: true
-      @hconfigure
+      @file.types.hfile
         label: 'YARN Site'
         target: "#{options.conf_dir}/yarn-site.xml"
         source: "#{__dirname}/../../resources/core_hadoop/yarn-site.xml"
@@ -222,7 +221,7 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 
 ## MapRed Site
 
-      # @hconfigure # Ideally placed inside a mapred_jhs_client module
+      # @file.types.hfile # Ideally placed inside a mapred_jhs_client module
       #   header: 'MapRed Site'
       #   target: "#{options.conf_dir}/mapred-site.xml"
       #   properties: options.mapred_site
@@ -231,10 +230,10 @@ Configure the "hadoop-metrics2.properties" to connect Hadoop to a Metrics collec
 ## SSL
 
       @call header: 'SSL', ->
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-server.xml"
           properties: options.ssl_server
-        @hconfigure
+        @file.types.hfile
           target: "#{options.conf_dir}/ssl-client.xml"
           properties: options.ssl_client
         # Client: import certificate to all hosts

@@ -12,7 +12,6 @@ Resources:
 
 ## Register
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
       @registry.register 'hdfs_mkdir', '@rybajs/metal/lib/hdfs_mkdir'
 
 ## Identities
@@ -128,7 +127,7 @@ has finished (logs are only available in yarn-cluster mode).
           @file
             target: "#{options.conf_dir}/java-opts"
             content: "-Dhdp.version=#{hdp_current_version}"
-          @hconfigure
+          @file.types.hfile
             header: 'Hive Site'
             target: "#{options.conf_dir}/hive-site.xml"
             source: "/etc/hive/conf/hive-site.xml"
