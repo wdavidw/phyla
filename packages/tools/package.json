@@ -14,6 +14,19 @@
   "author": "David Worms <david@adaltas.com>",
   "homepage": "http://www.ryba.io",
   "license": "MIT",
+  "coffeelintConfig": {
+    "indentation": {
+      "level": "error",
+      "value": 2
+    },
+    "line_endings": {
+      "level": "error",
+      "value": "unix"
+    },
+    "max_line_length": {
+      "level": "ignore"
+    }
+  },
   "directories": {
     "lib": "lib",
     "test": "test"
