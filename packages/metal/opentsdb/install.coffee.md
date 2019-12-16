@@ -72,7 +72,7 @@ OpenTSDB archive comes with an RPM
             useTicketCache: true
           uid: opentsdb.user.name
           gid: opentsdb.group.name
-        @cron.add
+        @tools.cron.add
           cmd: "/usr/bin/kinit #{opentsdb.user.name}/#{options.fqdn}@#{options.krb5.realm} -k -t /etc/security/keytabs/opentsdb.service.keytab"
           when: '0 */9 * * *'
           user: opentsdb.user.name

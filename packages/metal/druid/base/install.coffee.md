@@ -126,7 +126,7 @@ Create a service principal for this NameNode. The principal is named after
 Druid has no mechanism to renew its keytab. For that, we use a cron daemon
 We then ask a first TGT.
 
-      @cron.add
+      @tools.cron.add
         header: 'Cron-ed kinit'
         cmd: "/usr/bin/kinit #{options.krb5_service.principal} -kt #{options.krb5_service.keytab}"
         when: '0 */9 * * *'

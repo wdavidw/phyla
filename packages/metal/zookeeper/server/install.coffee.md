@@ -218,7 +218,7 @@ parameters autopurge.snapRetainCount and autopurge.purgeInterval.
   org.apache.zookeeper.server.PurgeTxnLog  /var/zookeeper/data/ -n 3
 ```
 
-      @cron.add
+      @tools.cron.add
         header: 'Schedule Purge'
         if: options.purge
         cmd: """
