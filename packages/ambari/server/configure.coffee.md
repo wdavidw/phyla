@@ -118,16 +118,15 @@ config:
   authentication.ldap.usernameAttribute: cn
 ```
 
-    module.exports = (service) ->
-      options = service.options
+    module.exports = ({deps, node, options}) ->
 
 ## Environment
 
-      options.fqdn = service.node.fqdn
+      options.fqdn = node.fqdn
       # options.http ?= '/var/www/html'
       options.conf_dir ?= '/etc/ambari-server/conf'
-      options.iptables ?= service.deps.iptables and service.deps.iptables.options.action is 'start'
-      options.java_home ?= service.deps.java and service.deps.java.options.java_home
+      options.iptables ?= deps.iptables and deps.iptables.options.action is 'start'
+      options.java_home ?= deps.java and deps.java.options.java_home
       options.master_key ?= null
       options.admin ?= {}
       options.current_admin_password ?= 'admin'
@@ -142,7 +141,7 @@ The non-root user you choose to run the Ambari Server should be part of the
 Hadoop group. The default group name is "hadoop".
 
       # Hadoop Group
-      options.hadoop_group ?= service.deps.hadoop_core.options.hadoop_group if service.deps.hadoop_core
+      options.hadoop_group ?= deps.hadoop_core.options.hadoop_group if deps.hadoop_core
       options.hadoop_group = name: options.group if typeof options.group is 'string'
       options.hadoop_group ?= {}
       options.hadoop_group.name ?= 'hadoop'
@@ -207,8 +206,8 @@ Hadoop group. The default group name is "hadoop".
 
 ## Ambari TLS and Truststore
 
-      options.ssl = merge service.deps.ssl?.options, options.ssl
-      options.ssl.enabled ?= !!service.deps.ssl
+      options.ssl = merge deps.ssl?.options, options.ssl
+      options.ssl.enabled ?= !!deps.ssl
       options.truststore ?= {}
       if options.ssl.enabled
         throw Error "Required Option: ssl.cert" if  not options.ssl.cert
@@ -229,9 +228,9 @@ Multiple ambari instance on a same server involve a different principal or the p
       # Krb5 Import
       options.krb5 ?= {}
       # Krb5 Client adapter
-      if service.deps.krb5_client
-        options.krb5.realm ?= service.deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
-        options.krb5.admin ?= service.deps.krb5_client.options.admin[options.krb5.realm]
+      if deps.krb5_client
+        options.krb5.realm ?= deps.krb5_client.options.etc_krb5_conf?.libdefaults?.default_realm
+        options.krb5.admin ?= deps.krb5_client.options.admin[options.krb5.realm]
       if options.krb5.enabled
         throw Error 'Required Options: "realm"' unless options.krb5.realm
         # Krb5 Validation
@@ -245,7 +244,7 @@ Multiple ambari instance on a same server involve a different principal or the p
       if options.jaas.enabled
         throw Error 'jaas.enabled required krb5.enabled' unless options.krb5.enabled
         options.jaas.principal ?= "ambari/_HOST@#{options.krb5.realm}"
-        options.jaas.principal = options.jaas.principal.replace '_HOST', service.node.fqdn
+        options.jaas.principal = options.jaas.principal.replace '_HOST', node.fqdn
 
         # options.analyzer_user.principal ?= "#{options.analyzer_user.name}/_HOST@#{options.krb5.realm}"
         # options.analyzer_user.keytab ?= "/etc/security/keytabs/activity-analyzer.headless.keytab"
@@ -285,9 +284,9 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 
       options.supported_db_engines ?= ['mysql', 'mariadb', 'postgresql']
       options.db ?= {}
-      options.db.engine ?= service.deps.db_admin.options.engine
+      options.db.engine ?= deps.db_admin.options.engine
       Error "Unsupported Database Engine: got #{options.db.engine}" unless options.db.engine in options.supported_db_engines
-      options.db = merge service.deps.db_admin.options[options.db.engine], options.db
+      options.db = merge deps.db_admin.options[options.db.engine], options.db
       options.db.database ?= 'ambari'
       options.db.username ?= 'ambari'
       options.db.jdbc += "/#{options.db.database}?createDatabaseIfNotExist=true"
@@ -299,7 +298,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_hive.enabled ?= false
       if options.db_hive.enabled
         options.db_hive.engine ?= options.db.engine
-        options.db_hive = merge service.deps.db_admin.options[options.db_hive.engine], options.db_hive
+        options.db_hive = merge deps.db_admin.options[options.db_hive.engine], options.db_hive
         options.db_hive.database ?= 'hive'
         options.db_hive.username ?= 'hive'
         throw Error "Required Option: db_hive.password" unless options.db_hive.password
@@ -310,7 +309,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_oozie.enabled ?= false
       if options.db_oozie.enabled
         options.db_oozie.engine ?= options.db.engine
-        options.db_oozie = merge service.deps.db_admin.options[options.db_oozie.engine], options.db_oozie
+        options.db_oozie = merge deps.db_admin.options[options.db_oozie.engine], options.db_oozie
         options.db_oozie.database ?= 'oozie'
         options.db_oozie.username ?= 'oozie'
         throw Error "Required Option: db_oozie.password" unless options.db_oozie.password
@@ -321,7 +320,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_ranger.enabled ?= false
       if options.db_ranger.enabled
         options.db_ranger.engine ?= options.db.engine
-        options.db_ranger = merge service.deps.db_admin.options[options.db_ranger.engine], options.db_ranger
+        options.db_ranger = merge deps.db_admin.options[options.db_ranger.engine], options.db_ranger
         options.db_ranger.database ?= 'ranger'
         options.db_ranger.username ?= 'ranger'
         throw Error "Required Option: db_ranger.password" unless options.db_ranger.password
@@ -332,7 +331,7 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
       options.db_rangerkms.enabled ?= false
       if options.db_rangerkms.enabled
         options.db_rangerkms.engine ?= options.db.engine
-        options.db_rangerkms = merge service.deps.db_admin.options[options.db_rangerkms.engine], options.db_rangerkms
+        options.db_rangerkms = merge deps.db_admin.options[options.db_rangerkms.engine], options.db_rangerkms
         options.db_rangerkms.database ?= 'rangerkms'
         options.db_rangerkms.username ?= 'rangerkms'
         throw Error "Required Option: db_rangerkms.password" unless options.db_rangerkms.password
@@ -362,16 +361,16 @@ Ambari DB password is stash into "/etc/ambari-server/conf/password.dat".
 ## Client Rest API Url
 
       options.ambari_url ?= if options.config['api.ssl'] is 'false'
-      then "http://#{service.node.fqdn}:#{options.config['client.api.port']}"
-      else "https://#{service.node.fqdn}:#{options.config['client.api.ssl.port']}"
+      then "http://#{node.fqdn}:#{options.config['client.api.port']}"
+      else "https://#{node.fqdn}:#{options.config['client.api.ssl.port']}"
       options.ambari_admin_password ?= options.admin_password
       #options.cluster_name ?= options.cluster_name
 
 ## Wait
 
-      options.wait_db_admin = service.deps.db_admin.options.wait
+      options.wait_db_admin = deps.db_admin.options.wait
       options.wait = {}
-      options.wait.rest = for srv in service.deps.ambari_server
+      options.wait.rest = for srv in deps.ambari_server
         clusters_url: url.format
           protocol: if srv.options.config['api.ssl'] is 'true'
           then 'https'
