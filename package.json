@@ -35,8 +35,8 @@
     "spark"
   ],
   "devDependencies": {
-    "lerna": "^3.9.0",
-    "mocha": "~5.2.0",
+    "lerna": "^3.20.2",
+    "mocha": "~7.0.0",
     "should": "~13.2.3"
   },
   "bin": {

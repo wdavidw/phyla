@@ -120,7 +120,7 @@ have been copied or not (in case they already exist).
       @system.execute
         header: 'Set default JDK'
         cmd: """
-        if [ -L  "#{root_dir}/default" ] || [ -e "#{root_dir}/default" ] ; then 
+        if [ -L  "#{root_dir}/default" ] || [ -e "#{root_dir}/default" ] ; then
           source=`readlink #{root_dir}/default`
           if [ "$source" == "#{root_dir}/jdk#{options.jdk.version}" ]; then
             exit 3
