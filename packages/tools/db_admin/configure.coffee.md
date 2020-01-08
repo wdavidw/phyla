@@ -128,8 +128,8 @@ properties. Commons properties are:
         url = options.mysql.fqdns.map((fqdn)-> "#{fqdn}:#{options.mysql.port}").join(',')
         options.mysql.jdbc ?= "jdbc:mysql://#{url}"
       if options.mysql
-          throw Error 'Required Option: mysql.admin_username' unless options.mysql.admin_username?
-          throw Error 'Required Option: mysql.admin_password' unless options.mysql.admin_password?
+        throw Error 'Required Option: mysql.admin_username' unless options.mysql.admin_username?
+        throw Error 'Required Option: mysql.admin_password' unless options.mysql.admin_password?
 
 ## Wait
 

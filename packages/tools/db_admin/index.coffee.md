@@ -3,36 +3,71 @@
 
 This service is a convenient facade towards multiple database services. Multiple
 components derived their database configuration from this service. It must be 
-provided if you use an external database like MySQL, MariaDB or PostgreSQL
+provided if you use an external database like MySQL, MariaDB or PostgreSQL.
 
-Example:
-```
-  ryba.db_admin:
-    mysql:
-      engine: 'mysql'
-      hosts: ['master1.ryba','master2.ryba']
-      port: '3306'
-      admin_username: 'test'
-      admin_password: 'test123'
-      path: 'mysql'
-      jdbc: 'jdbc:mysql://master1.ryba:3306,master2.ryba:3306'
-    postgres:
-      engine: 'postgresql'
-      hosts: ['master1.ryba','master2.ryba']
-      port: '3306'
-      admin_username: 'test'
-      admin_password: 'test123'
-      path: 'mysql'
-      jdbc: 'jdbc:postgresql://master1.ryba:3306,master2.ryba:3306'
+Exported configuration:
+
+```jsonp
+{
+  "mariadb": {
+    "engine": "mysql",
+    "fqdns": ["mariadb-1.ryba", "mariadb-1.ryba"],
+    "port": "3306",
+    "admin_username": "test",
+    "admin_password": "test123",
+    "path": "mysql",
+    "jdbc": "jdbc:mysql://master1.ryba:3306,master2.ryba:3306",
+    "java": {
+      "datasource": "org.mariadb.jdbc.MariaDbDataSource",
+      "driver": "com.mysql.jdbc.Driver"
+    }
+  },
+  "mysql": {
+    "engine": "mysql",
+    "fqdns": ["mysql-1.ryba", "mysql-2.ryba"],
+    "port": "3306",
+    "admin_username": "test",
+    "admin_password": "test123",
+    "path": "mysql",
+    "jdbc": "jdbc:mysql://master1.ryba:3306,master2.ryba:3306",
+    "java": {
+      "datasource": "com.mysql.jdbc.Driver",
+      "driver": "com.mysql.jdbc.Driver"
+    }
+  },
+  postgresql: {
+    "engine": "postgresql",
+    "fqdns": ["postgresql-1.ryba", "postgresql-2.ryba"],
+    "port": "5432",
+    "admin_username": "test",
+    "admin_password": "test123",
+    "path": "mysql",
+    "jdbc": "jdbc:postgresql://master1.ryba:3306,master2.ryba:3306",
+    "java": {
+      "datasource": "org.postgresql.jdbc2.Jdbc2PoolingDataSource",
+      "driver": "org.postgresql.Driver"
+    }
+  },
+  wait_mariadb: {}
+  wait_mysql: {}
+  wait_postgresql: {}
+  wait: {
+    tcp: [{
+      host: 'mariadb-1.ryba', port: 3306
+    }, {
+      host: 'mariadb-2.ryba', port: 3306
+    }]
+  }
+}
 ```
 
 If an external database is used, mandatory properties should be hosts,
 admin\_username and admin\_password.
 
-`@rybajs/metal/commons/db_admin` constructs the jdbc_url.
+`@rybajs/tools/db_admin` constructs the jdbc_url.
 
-`host` is also generated in the final object for legacy compatibility. If the administrators
-set it hosts will be constructed on it.
+`[engine].host` is also generated in the final object to preserve compatibility with
+lecacy versions.
 
 ## Source Code
 
