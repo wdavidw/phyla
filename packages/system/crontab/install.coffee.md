@@ -5,6 +5,7 @@
 
 ## Deploy crontabs
 
+      {purge} = options
       @each options.crontabs, ({options}, callback) ->
         user = options.key
         crontabs = options.value
@@ -13,7 +14,7 @@
 
         @system.execute
           header: "Delete all existing crontabs for user #{user}"
-          if_exec: options.purge
+          if: purge
           user: user
           cmd: "crontab -u #{user} -r"
           code: [0, 1]
