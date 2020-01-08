@@ -2,16 +2,30 @@
 # Hue Install
 
 Here's how to uninstall Hue: `rpm -qa | grep hue | xargs sudo rpm -e`. This
-article from december 2014 describe how to 
-[install the latest version of hue on HDP](http://gethue.com/how-to-deploy-hue-on-hdp/).
+article from december 2014 describe how to  [install the latest version of hue
+on HDP](http://gethue.com/how-to-deploy-hue-on-hdp/).
 
-    module.exports = header: 'Hue Install', handler: ->
-      {realm, hue} = @config.ryba
-      krb5 = @config.krb5_client.admin[realm]
+## Metadata
 
-## Register
+    metadata =
+      header: 'Hue Install'
+      schema:
+        banner_style:
+          type: 'string'
+        ca_bundle:
+          type: 'string'
+        clean_tmp:
+          type: 'boolean'
+        conf_dir:
+          type: 'string'
+        ini:
+          type: 'object'
+        group:
+          "$ref": "/nikita/system/group"
+  
+## Action
 
-      @registry.register 'hconfigure', '@rybajs/metal/lib/hconfigure'
+    module.exports = header: metadata.header, schema: metadata.schema, handler: ({options}) ->
 
 ## Identities
 
@@ -24,8 +38,8 @@ cat /etc/group | grep hue
 hue:x:494:
 ```
 
-      @system.group header: 'Group', hue.group
-      @system.user header: 'User', hue.user
+      # @system.group header: 'Group', options.group
+      # @system.user header: 'User', options.user
 
 ## IPTables
 
@@ -36,56 +50,55 @@ hue:x:494:
 IPTables rules are only inserted if the parameter "iptables.action" is set to 
 "start" (default value).
 
-      @tools.iptables
-        header: 'IPTables'
-        rules: [
-          { chain: 'INPUT', jump: 'ACCEPT', dport: hue.ini.desktop.http_port, protocol: 'tcp', state: 'NEW', comment: "Hue Web UI" }
-        ]
-        if: @config.iptables.action is 'start'
+      # @tools.iptables
+      #   header: 'IPTables'
+      #   rules: [
+      #     { chain: 'INPUT', jump: 'ACCEPT', dport: options.ini['desktop']['http_port'], protocol: 'tcp', state: 'NEW', comment: "Hue Web UI" }
+      #   ]
+      #   if: options.iptables
 
 ## Packages
 
 The packages "extjs-2.2-1" and "hue" are installed.
 
-      @service header: 'Packages', name: 'hue'
-
-## WebHCat
-
-
-Update the "webhcat-site.xml" on the server running the "webhcat" service 
-to allow impersonnation through the "hue" user.
-
-TODO: only work if WebHCat is running on the same server as Hue
-
-      {webhcat} = @config.ryba
-      webhcat_server = @host_with_module '@rybajs/metal/hive/webhcat'
-      throw Error "WebHCat shall be on the same server as Hue" unless webhcat_server is @config.host
-      @hconfigure
-        header: 'WebHCat'
-        target: "#{webhcat.conf_dir}/webhcat-site.xml"
-        properties:
-          'webhcat.proxyuser.hue.hosts': '*'
-          'webhcat.proxyuser.hue.groups': '*'
-        merge: true
-
-## Oozie
-
-
-Update the "oozie-site.xml" on the server running the "oozie" service 
-to allow impersonnation through the "hue" user.
-
-TODO: only work if Oozie is running on the same server as Hue
-
-      {oozie} = @config.ryba
-      oozie_server = @host_with_module '@rybajs/metal/oozie/server'
-      return Error "Oozie shall be on the same server as Hue" unless oozie_server is @config.host
-      @hconfigure
-        header: 'Oozie'
-        target: "#{oozie.conf_dir}/oozie-site.xml"
-        properties:
-          'oozie.service.ProxyUserService.proxyuser.hue.hosts': '*'
-          'oozie.service.ProxyUserService.proxyuser.hue.groups': '*'
-        merge: true
+      # @call header: 'Dependencies', ->
+      #   @service.install
+      #     if: options.db.engine in ['mariadb', 'mysql']
+      #     name: 'mariadb'
+      #   @service.install
+      #     if: options.db.engine in ['postgresql']
+      #     name: 'postgresql'
+      #   @service.install name for name in [
+      #     'ant', 'asciidoc', 'cyrus-sasl-devel', 'cyrus-sasl-gssapi'
+      #     'cyrus-sasl-plain', 'gcc', 'gcc-c++', 'krb5-devel', 'libffi-devel'
+      #     'libxml2-devel', 'libxslt-devel', 'make', 'maven', 'mysql', 'mysql-devel',
+      #     'openldap-devel', 'openssl-devel', 'python-devel', 'rsync', 'sqlite-devel', 'gmp-devel'
+      #   ]
+      #   @system.execute
+      #     header: 'Node.js'
+      #     unless_exec: 'command -v node'
+      #     cmd: """
+      #     yum install -y epel-release
+      #     yum install -y nodejs
+      #     """
+      # @file.download
+      #   header: 'Download'
+      #   source: 'https://cdn.gethue.com/downloads/hue-4.6.0.tgz'
+      #   target: '/tmp/hue-4.6.0.tgz'
+      # @system.execute
+      #   header: 'Extract'
+      #   unless_exists: '/tmp/hue-4.6.0'
+      #   cmd: """
+      #   tar -xzf /tmp/hue-4.6.0.tgz -C /tmp/
+      #   """
+      # @system.execute
+      #   header: 'Compile'
+      #   unless_exists: '/usr/share/hue/build/env/bin/supervisor'
+      #   cwd: '/tmp/hue-4.6.0'
+      #   cmd: """
+      #   rm -rf /usr/share/hue/
+      #   PREFIX=/usr/share make install
+      #   """
 
 ## Configure
 
@@ -94,15 +107,15 @@ recommandations. Merge the configuration object from "hdp.hue.ini" with the prop
 
       @file.ini
         header: 'Configure'
-        target: "#{hue.conf_dir}/hue.ini"
-        content: hue.ini
+        target: "#{options.conf_dir}/hue.ini"
+        content: options.ini
         merge: true
         parse: misc.ini.parse_multi_brackets
         stringify: misc.ini.stringify_multi_brackets
         separator: '='
         comment: '#'
-        uid: hue.user.name
-        gid: hue.group.name
+        uid: options.user.name
+        gid: options.group.name
         mode: 0o0750
 
 ## Database
@@ -111,30 +124,70 @@ Setup the database hosting the Hue data. Currently two database providers are
 implemented but Hue supports MySQL, PostgreSQL, and Oracle. Note, sqlite is 
 the default database while mysql is the recommanded choice.
 
-      @call header: 'Database', ->
-        {hue, db_admin} = @config.ryba
-        switch hue.ini.desktop.database.engine
-          when 'mysql'
-            {host, port, user, password, name} = hue.ini.desktop.database
-            escape = (text) -> text.replace(/[\\"]/g, "\\$&")
-            mysql_exec = "#{db_admin.path} -u#{db_admin.username} -p#{db_admin.password} -h#{db_admin.host} -P#{db_admin.port} -e "
-            @system.execute
-              cmd: """
-              #{mysql_exec} "
-              create database #{name};
-              grant all privileges on #{name}.* to '#{user}'@'localhost' identified by '#{password}';
-              grant all privileges on #{name}.* to '#{user}'@'%' identified by '#{password}';
-              flush privileges;
-              "
-              """
-              unless_exec: "#{mysql_exec} 'use #{name}'"
-            @system.execute
-              # TODO: handle updates
-              cmd: """
-              su -l #{hue.user.name} -c "/usr/lib/hue/build/env/bin/hue syncdb --noinput"
-              """
-              unless_exec: "#{mysql_exec} 'show tables from #{name};' | grep auth"
-          else throw Error 'Hue database engine not supported'
+      @call header: 'DB', ->
+
+Wait for database to listen
+
+        @call '@rybajs/tools/db_admin/wait', once: true, options.wait_db_admin
+
+Create the database hosting the Ambari data with restrictive user permissions.
+
+        # @db.user options.db, database: null,
+        #   header: 'User'
+        #   if: options.db.engine in ['mariadb', 'mysql', 'postgresql']
+        # @db.database options.db,
+        #   header: 'Database'
+        #   user: options.db.username
+        #   if: options.db.engine in ['mariadb', 'mysql', 'postgresql']
+        # @db.schema options.db,
+        #   header: 'Schema'
+        #   if: options.db.engine is 'postgresql'
+        #   options:
+        #     schema: options.db.schema or options.db.database
+        #     database: options.db.database
+        #     owner: options.db.username
+
+Load the database with initial data
+
+        # @db.query options.db,
+        #   cmd: "show tables from #{options.db.database};"
+        #   grep: 'auth_user'
+        #   shy: true
+        # @system.execute
+        #   header: 'Init'
+        #   unless: -> @status -1
+        #   cmd: """
+        #   su -l #{options.user.name} -c "/usr/share/hue/build/env/bin/hue syncdb --noinput && /usr/share/hue/build/env/bin/hue migrate"
+        #   """
+## SSL
+
+      @call header: 'SSL IPA', ->
+        @file
+          header: 'Sync'
+          target: "#{options.conf_dir}/import_ipa_cert.sh"
+          mode: 0o0755
+          content: """
+          cp -rp /etc/ipa/cert.pem #{options.ini.desktop.ssl_certificate}
+          cp -rp /etc/ipa/key.pem #{options.ini.desktop.ssl_private_key}
+          cp -rp /etc/ipa/ca.crt #{options.ini.desktop.ssl_cacerts}
+          chown #{options.user.name} \\
+            #{options.ini.desktop.ssl_certificate} \\
+            #{options.ini.desktop.ssl_private_key} \\
+            #{options.ini.desktop.ssl_cacerts}
+          """
+          uid: "#{options.user.name}"
+          gid: "#{options.group.name}"
+          eof: true
+          trap: true
+        @tools.cron.add
+          header: 'Cron'
+          cmd: "#{options.conf_dir}/import_ipa_cert.sh"
+          when: '0 5 * * *'
+          user: "#{options.user.name}"
+          exec: true
+          backup: true
+
+      return
 
 ## Kerberos
 
@@ -144,52 +197,52 @@ the "security_enabled" property set to "true".
 
       @krb5.addprinc krb5,
         header: 'Kerberos'
-        principal: hue.ini.desktop.kerberos.hue_principal
+        principal: options.ini.desktop.kerberos.hue_principal
         randkey: true
-        keytab: "/etc/hue/conf/hue.service.keytab"
-        uid: hue.user.name
-        gid: hue.group.name
+        keytab: options.ini.desktop.kerberos.hue_keytab
+        uid: options.user.name
+        gid: options.group.name
 
 ## SSL Client
 
       @call header: 'SSL Client', ->
-        hue.ca_bundle = '' unless hue.ssl.client_ca
+        ca_bundle = if options.ssl.client_ca then options.ca_bundle else ''
         @file
-          target: "#{hue.ca_bundle}"
-          source: "#{hue.ssl.client_ca}"
+          target: "#{ca_bundle}"
+          source: "#{options.ssl.client_ca}"
           local: true
-          if: !!hue.ssl.client_ca
+          if: !!options.ssl.client_ca
         @service.init
           target: '/etc/init.d/hue'
           match: /^DAEMON="export REQUESTS_CA_BUNDLE='.*';\$DAEMON"$/m
-          replace: "DAEMON=\"export REQUESTS_CA_BUNDLE='#{hue.ca_bundle}';$DAEMON\""
+          replace: "DAEMON=\"export REQUESTS_CA_BUNDLE='#{ca_bundle}';$DAEMON\""
           append: /^DAEMON=.*$/m
           mode: 0o755
 
 ## SSL Server
 
-Upload and register the SSL certificate and private key respectively defined
-by the "hdp.hue.ssl.certificate" and "hdp.hue.ssl.private_key" 
-configuration properties. It follows the [official Hue Web Server 
-Configuration][web]. The "hue" service is restarted if there was any 
-changes.
+Upload and register the SSL certificate and private key respectively defined by
+the "hdp.hue.ssl.certificate" and "hdp.hue.ssl.private_key"  configuration
+properties. It follows the [official Hue Web Server
+Configuration](http://gethue.com/docs-3.5.0/manual.html#_web_server_configuration).
+The "hue" service is restarted if there was any  changes.
 
       @call header: 'SSL Server', ->
         @file.download
-          source: hue.ssl.certificate
-          target: "#{hue.conf_dir}/cert.pem"
-          uid: hue.user.name
-          gid: hue.group.name
+          source: options.ssl.certificate
+          target: "#{options.conf_dir}/cert.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.download
-          source: hue.ssl.private_key
-          target: "#{hue.conf_dir}/key.pem"
-          uid: hue.user.name
-          gid: hue.group.name
+          source: options.ssl.private_key
+          target: "#{options.conf_dir}/key.pem"
+          uid: options.user.name
+          gid: options.group.name
         @file.ini
-          target: "#{hue.conf_dir}/hue.ini"
+          target: "#{options.conf_dir}/hue.ini"
           content: desktop:
-            ssl_certificate: "#{hue.conf_dir}/cert.pem"
-            ssl_private_key: "#{hue.conf_dir}/key.pem"
+            ssl_certificate: "#{options.conf_dir}/cert.pem"
+            ssl_private_key: "#{options.conf_dir}/key.pem"
           merge: true
           parse: misc.ini.parse_multi_brackets
           stringify: misc.ini.stringify_multi_brackets
@@ -216,11 +269,11 @@ In the current version "2.5.1", the HTML of the banner is escaped.
             match: '${conf.CUSTOM.BANNER_TOP_HTML.get()}'
             replace: '${ conf.CUSTOM.BANNER_TOP_HTML.get() | n,unicode }'
             bck: true
-            ,
+          ,
             match: /\.banner \{([\s\S]*?)\}/
-            replace: ".banner {#{hue.banner_style}}"
+            replace: ".banner {#{options.banner_style}}"
             bck: true
-            if: hue.banner_style
+            if: options.banner_style
           ]
 
 ## Clean Temp Files
@@ -228,14 +281,14 @@ In the current version "2.5.1", the HTML of the banner is escaped.
 Clean up the "/tmp" from temporary Hue directories. All the directories which
 modified time are older than 10 days will be removed.
 
-      @cron.add
+      @tools.cron.add
         header: 'Clean Temp Files'
-        cmd: "find /tmp -maxdepth 1 -type d -mtime +10 -user #{hue.user.name} -exec rm {} \\;",
+        cmd: "find /tmp -maxdepth 1 -type d -mtime +10 -user #{options.user.name} -exec rm {} \\;",
         when: '0 */19 * * *'
-        user: "#{hue.user.name}"
-        match: "\\/tmp .*-user #{hue.user.name}"
+        user: "#{options.user.name}"
+        match: "\\/tmp .*-user #{options.user.name}"
         exec: true
-        if: hue.clean_tmp
+        if: options.clean_tmp
 
 ## Dependencies
 
@@ -245,9 +298,3 @@ modified time are older than 10 days will be removed.
 
 *   [Official Hue website](http://gethue.com)
 *   [Hortonworks instructions](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.8.0/bk_installing_manually_book/content/rpm-chap-hue.html)
-
-## Notes
-
-Compilation requirements: ant asciidoc cyrus-sasl-devel cyrus-sasl-gssapi gcc gcc-c++ krb5-devel libtidy libxml2-devel libxslt-devel mvn mysql mysql-devel openldap-devel python-devel python-simplejson sqlite-devel
-
-[web]: http://gethue.com/docs-3.5.0/manual.html#_web_server_configuration
