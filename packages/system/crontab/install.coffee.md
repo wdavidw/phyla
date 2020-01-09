@@ -24,7 +24,7 @@
 ### Apply crontabs
 
         for crontab in crontabs
-          @cron.add
+          @tools.cron.add
             cmd: crontab.cmd
             when: crontab.when
             user: user
@@ -33,8 +33,8 @@
 ## Dependencies
 
     each = require 'each'
-    path = require 'path'
-    string = require '@nikitajs/core/lib/misc/string'
+    # path = require 'path'
+    # string = require '@nikitajs/core/lib/misc/string'
 
 ## Notes
 
