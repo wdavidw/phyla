@@ -42,7 +42,7 @@ Example:
 }
 ```
 
-    module.exports = ({deps, options})->
+    module.exports = ({deps, options, node})->
 
 ## Environment
 
@@ -235,6 +235,7 @@ Example:
       #   hue.ini['beeswax']['ssl']['key'] ?= "#{hue.conf_dir}/key.pem"
       # # Desktop
       options.ini['desktop'] ?= {}
+      options.ini['desktop']['app_blacklist'] ?= 'rdbms,impala,sqoop,sentry,search,solr,spark,zookeeper,security,hbase'
       # hue.ini['desktop']['django_debug_mode'] ?= '0' # Disable debug by default
       # hue.ini['desktop']['http_500_debug_mode'] ?= '0' # Disable debug by default
       # hue.ini['desktop']['http'] ?= {}
@@ -257,28 +258,38 @@ Example:
       options.ini['desktop']['ssl_private_key'] ?= path.join options.conf_dir , 'key.pem'
       options.ini['desktop']['ssl_cacerts'] ?= path.join options.conf_dir , 'ca.crt'
       # Kerberos
-      # options.ini.desktop.kerberos ?= {}
-      # options.ini.desktop.kerberos.hue_keytab ?= '/etc/hue/conf/hue.service.keytab'
-      # options.ini.desktop.kerberos.hue_principal ?= "hue/#{@config.host}@#{ryba.realm}"
-      # # Path to kinit
+      options.ini.desktop.kerberos ?= {}
+      options.ini.desktop.kerberos.hue_keytab ?= '/etc/hue/conf/hue.service.keytab'
+      options.ini.desktop.kerberos.hue_principal ?= "hue/#{node.fqdn}@#{deps.ipa_client.options.realm_name}"
+      # # Path to kinitdeps.ipa_server
       # # For RHEL/CentOS 5.x, kinit_path is /usr/kerberos/bin/kinit
       # # For RHEL/CentOS 6.x, kinit_path is /usr/bin/kinit
-      # hue.ini['desktop']['kerberos']['kinit_path'] ?= '/usr/bin/kinit'
+      options.ini.desktop.kerberos.kinit_path ?= '/usr/bin/kinit'
+      # It does work without this
+      # options.ini.desktop.kerberos.ccache_path ?= "/tmp/krb5cc_0"
       # # Uncomment all security_enabled settings and set them to true
-      # hue.ini.hadoop ?= {}
-      # hue.ini.hadoop.hdfs_clusters ?= {}
-      # hue.ini.hadoop.hdfs_clusters.default ?= {}
-      # hue.ini.hadoop.hdfs_clusters.default.security_enabled = 'true'
+      # HDFS
+      options.ini.hadoop ?= {}
+      options.ini.hadoop.hdfs_clusters ?= {}
+      options.ini.hadoop.hdfs_clusters.default ?= {}
+      options.ini.hadoop.hdfs_clusters.default.security_enabled = 'true'
       # hue.ini.hadoop.mapred_clusters ?= {}
       # hue.ini.hadoop.mapred_clusters.default ?= {}
       # hue.ini.hadoop.mapred_clusters.default.security_enabled = 'true'
-      # hue.ini.hadoop.yarn_clusters ?= {}
-      # hue.ini.hadoop.yarn_clusters.default ?= {}
-      # hue.ini.hadoop.yarn_clusters.default.security_enabled = 'true'
-      # hue.ini.liboozie ?= {}
-      # hue.ini.liboozie.security_enabled = 'true'
-      # hue.ini.hcatalog ?= {}
-      # hue.ini.hcatalog.security_enabled = 'true'
+      # YARN
+      options.ini.hadoop.yarn_clusters ?= {}
+      options.ini.hadoop.yarn_clusters.default ?= {}
+      options.ini.hadoop.yarn_clusters.default.security_enabled = 'true'
+      options.ini.hadoop.yarn_clusters.default.submit_to = 'True'
+      # OOZIE
+      options.ini.liboozie ?= {}
+      options.ini.liboozie.security_enabled ?= 'true'
+      # HIVE
+      options.ini.beeswax ?= {}
+      options.ini.beeswax.hive_conf_dir ?= '/etc/hive/conf'
+      options.ini.beeswax.server_conn_timeout ?= 240
+      options.ini.beeswax.max_number_of_sessions ?= 1
+      
 
 ## Wait
 
