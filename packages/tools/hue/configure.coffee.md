@@ -235,7 +235,7 @@ Example:
       #   hue.ini['beeswax']['ssl']['key'] ?= "#{hue.conf_dir}/key.pem"
       # # Desktop
       options.ini['desktop'] ?= {}
-      options.ini['desktop']['app_blacklist'] ?= 'rdbms,impala,sqoop,sentry,search,solr,spark,zookeeper,security,hbase'
+      options.ini['desktop']['app_blacklist'] ?= 'rdbms,impala,sqoop,sentry,search,solr,zookeeper,security,hbase'
       # hue.ini['desktop']['django_debug_mode'] ?= '0' # Disable debug by default
       # hue.ini['desktop']['http_500_debug_mode'] ?= '0' # Disable debug by default
       # hue.ini['desktop']['http'] ?= {}
