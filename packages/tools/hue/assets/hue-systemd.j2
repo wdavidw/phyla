@@ -1,0 +1,9 @@
+[Unit]
+Description=Hue
+
+[Service]
+User=hue
+ExecStart=/usr/share/hue/build/env/bin/supervisor
+
+[Install]
+WantedBy=multi-user.target

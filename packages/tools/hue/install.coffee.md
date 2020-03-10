@@ -248,10 +248,18 @@ The "hue" service is restarted if there was any  changes.
           stringify: misc.ini.stringify_multi_brackets
           separator: '='
           comment: '#'
-        @service
-          name: 'hue'
-          state: 'restarted'
-          if: -> @status -1
+          
+## Systemd Service
+
+      @service.init
+        header: 'Systemd Script'
+        target: '/etc/systemd/system/hue.service'
+        source: "#{__dirname}/assets/hue-systemd.j2"
+        local: true
+        # context: options: options
+        uid: 'root'
+        gid: 'root'
+        mode: 0o0644
 
 ## Fix Banner
 
