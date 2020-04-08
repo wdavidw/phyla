@@ -6,19 +6,19 @@
 ## Install pip
 
       @service
-        header: "Install python2-pip package"
-        name: "python2-pip"
+        header: "Install python3-pip package"
+        name: "python3-pip"
 
       @system.execute
         header: "Upgrade pip"
-        cmd: "pip install --upgrade pip"
+        cmd: "pip3 install --upgrade pip"
 
 ### Install pip packages
 
       for pckg in options.packages
         @system.execute
           header: "Install #{pckg} pip"
-          cmd: "pip install #{pckg}"
+          cmd: "pip3 install #{pckg}"
 
 ## Dependencies
 
