@@ -1,0 +1,66 @@
+{
+  "name": "@rybajs/mariadb",
+  "version": "0.0.1",
+  "description": "MariaDB deployment",
+  "keywords": [
+    "database",
+    "mariadb",
+    "nosql"
+  ],
+  "author": "David Worms <david@adaltas.com>",
+  "homepage": "http://www.ryba.io",
+  "license": "MIT",
+  "coffeelintConfig": {
+    "indentation": {
+      "level": "error",
+      "value": 2
+    },
+    "line_endings": {
+      "level": "error",
+      "value": "unix"
+    },
+    "max_line_length": {
+      "level": "ignore"
+    }
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "peerDependencies": {
+    "masson": "0.x"
+  },
+  "dependencies": {
+    "glob": "~7.1.6",
+    "masson": "^0.2.0",
+    "mixme": "^0.3.5",
+    "nikita": "^0.9.5",
+    "regexp-quote": "~0.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://wdavidw@github.com/ryba-io/ryba.git"
+  },
+  "scripts": {
+    "test": "mocha 'test/**/*.coffee'"
+  },
+  "bugs": {
+    "url": "https://github.com/ryba-io/ryba/issues"
+  },
+  "devDependencies": {
+    "coffeescript": "^2.5.1",
+    "mocha": "7.1.1",
+    "should": "~13.2.3",
+    "ssh2-they": "^2.0.4"
+  },
+  "mocha": {
+    "throw-deprecation": true,
+    "recursive": true,
+    "reporter": "spec",
+    "timeout": 40000,
+    "require" : ["should", "coffeescript/register"]
+  }
+}
