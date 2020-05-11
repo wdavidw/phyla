@@ -4,6 +4,8 @@ Description=Hue
 [Service]
 User=hue
 ExecStart=/usr/share/hue/build/env/bin/supervisor
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
