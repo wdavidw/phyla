@@ -1,0 +1,11 @@
+[Unit]
+Description=Keycloak
+
+[Service]
+User=root
+ExecStart=/opt/keycloak-10.0.1/bin/standalone.sh
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
