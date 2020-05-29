@@ -9,7 +9,6 @@ consistency reasons.
 
     module.exports = header: 'MariaDB Server Replication', handler: ({options}) ->
       return unless options.ha_enabled
-      
       remote_master =
         database: null
         admin_username: options.repl_master.admin_username
@@ -26,13 +25,15 @@ consistency reasons.
         silent: false
 
 ## Wait
-Wait for master remote login.
 
+Wait for master remote login.
+      
       @wait.execute
         header: 'Wait Root remote login'
         cmd: db.cmd remote_master, "show databases"
 
 ## Grant Privileges
+
 Grant privileges on the remote master server to the user used for replication.
 
       @call header: 'Replication Activation', handler: ->
@@ -47,6 +48,7 @@ Grant privileges on the remote master server to the user used for replication.
           unless_exec: "#{db.cmd remote_master, 'select User from mysql.user ;'} | grep '#{options.repl_master.username}'"
 
 ## Setup Replication
+
 Gather the target master informations, then start the slave replication.
 
         @call
@@ -76,7 +78,7 @@ Gather the target master informations, then start the slave replication.
                   MASTER_LOG_POS=#{master_pos} ;
                   START SLAVE ;
                 """
-
+      
 ## Dependencies
 
     db = require '@nikitajs/core/lib/misc/db'

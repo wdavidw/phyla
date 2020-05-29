@@ -1,6 +1,6 @@
 normalize = require 'masson/lib/config/normalize'
 
-describe 'MariaDB - server configuration', ->
+describe 'MariaDB - Configuration tests', ->
     
   it 'default properties', () ->
     normalize

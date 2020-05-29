@@ -7,16 +7,16 @@
         ssl: module: '@rybajs/tools/ssl', local: true
         mariadb: module: './src/server'
       configure:
-        './src/server/configure'
+        'masson/commons/mariadb/server/configure'
       commands:
         'check':
-          './src/server/check'
+          'masson/commons/mariadb/server/check'
         'install': [
-          './src/server/install'
-          './src/server/replication'
-          './src/server/check'
+          'masson/commons/mariadb/server/install'
+          'masson/commons/mariadb/server/replication'
+          'masson/commons/mariadb/server/check'
         ]
         'stop':
-          './src/server/stop'
+          'masson/commons/mariadb/server/stop'
         'start':
-          './src/server/start'
+          'masson/commons/mariadb/server/start'
