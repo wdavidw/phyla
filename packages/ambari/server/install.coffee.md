@@ -124,11 +124,11 @@ Load the database with initial data
 
         switch options.db.engine
           when 'mysql', 'mariadb'
-            load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
-            created = db.cmd(options.db, 'show tables') + '|  grep clusters'
+            load = "#{cmd admin_username:options.db.admin_username, admin_password:options.db.admin_password, engine:options.db.engine, host:options.db.host, database:options.db.database, cmd:null}" + '< /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
+            created = "#{cmd admin_username:options.db.admin_username, admin_password:options.db.admin_password, engine:options.db.engine, host:options.db.host, database:options.db.database, cmd:'show tables'} | grep clusters"
           when 'postgresql'
-            load = db.cmd(options.db, null) + '< /var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql'
-            created = db.cmd(options.db, null) + 'show tables |  grep clusters'
+            load = "#{cmd admin_username:options.db.admin_username, admin_password:options.db.admin_password, engine:options.db.engine, host:options.db.host, database:options.db.database, cmd:null}" + '< /var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql'
+            created = "#{cmd admin_username:options.db.admin_username, admin_password:options.db.admin_password, engine:options.db.engine, host:options.db.host, database:options.db.database, cmd:'show tables'} | grep clusters"
         @system.execute
           header: 'Init'
           cmd: load
@@ -491,6 +491,7 @@ Start the service or restart it if there were any changes.
 
     path = require 'path'
     url = require 'url'
-    db = require '@nikitajs/core/lib/misc/db'
+    require '@nikitajs/db/lib/register'
+    {cmd} = require '@nikitajs/db/lib/query'
 
 [sr]: http://docs.hortonworks.com/HDPDocuments/Ambari-2.2.2.0/bk_Installing_HDP_AMB/content/_meet_minimum_system_requirements.html
