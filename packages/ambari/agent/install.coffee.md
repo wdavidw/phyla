@@ -34,11 +34,12 @@ Install Ambari Agent package.
         @service
           header: 'openssl'
           name: 'openssl'
-        @service
-          header: 'nscd'
-          name: 'nscd'
-          startup: true
-          action: 'start'
+        # leo (08/07/20) nscd coupled with sssd can be a disaster (https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/usingnscd-sssd) so let's not install it for now
+        # @service
+        #   header: 'nscd'
+        #   name: 'nscd'
+        #   startup: true
+        #   action: 'start'
         # When starting solr in Ambari Infra, it will complain with "Please
         # install lsof as this script needs it to determine if Solr is listening
         # on port 8983."
