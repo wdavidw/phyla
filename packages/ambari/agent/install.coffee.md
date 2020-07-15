@@ -35,6 +35,7 @@ Install Ambari Agent package.
           header: 'openssl'
           name: 'openssl'
         # leo (08/07/20) nscd coupled with sssd can be a disaster (https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/usingnscd-sssd) so let's not install it for now
+        # UPDATE: now managed by @rybajs/system/nscd with the righ config to work with sssd
         # @service
         #   header: 'nscd'
         #   name: 'nscd'
