@@ -5,7 +5,7 @@ nikita(
   $debug: true,
   () ->
     await @log.cli()
-    .log.md "#{process.env.PWD}/log"
+    # .log.md "#{process.env.PWD}/log"
     # This works
     .execute
       trap: false

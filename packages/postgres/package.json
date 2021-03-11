@@ -16,7 +16,9 @@
   "bugs": {
     "url": "https://github.com/ryba-io/ryba/issues"
   },
-  "dependencies": {
-    "coffeescript": "^2.5.1"
+  "dependencies": {},
+  "devDependencies": {
+    "coffeescript": "^2.5.1",
+    "nikita": "^1.0.0-alpha.1"
   }
 }
