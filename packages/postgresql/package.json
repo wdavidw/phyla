@@ -1,5 +1,5 @@
 {
-  "name": "@rybajs/postgres",
+  "name": "@rybajs/postgresql",
   "version": "0.0.1",
   "description": "PostgreSQL deployment",
   "keywords": [
