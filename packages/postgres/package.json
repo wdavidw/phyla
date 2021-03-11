@@ -1,0 +1,22 @@
+{
+  "name": "@rybajs/postgres",
+  "version": "0.0.1",
+  "description": "PostgreSQL deployment",
+  "keywords": [
+    "database",
+    "postgresql"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryba-io/ryba.git"
+  },
+  "author": "Gauthier Leonard <gauthier@adaltas.com>",
+  "homepage": "http://www.ryba.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ryba-io/ryba/issues"
+  },
+  "dependencies": {
+    "coffeescript": "^2.5.1"
+  }
+}
