@@ -1,13 +1,14 @@
 nikita = require 'nikita'
 path = require 'path'
 
-nikita(
-  $debug: true,
-  () ->
+(->
+  await nikita
+    $debug: true,
+  , ->
     await @log.cli()
     # .log.md "#{process.env.PWD}/log"
     # This works
-    .execute
+    await @execute
       trap: false
       command: [
         "cat <<'NIKITALXDEXEC' | lxc exec ryba-pg-test-1 -- sh"
@@ -24,7 +25,7 @@ nikita(
         'NIKITALXDEXEC'
       ].join '\n'
     # This fails at openssl install
-    .lxc.cluster
+    await @lxc.cluster
       $header: 'Create PostgreSQL test cluster'
       networks:
         rybapgtestpub:
@@ -60,15 +61,14 @@ nikita(
             nikita:
               sudo: true
               authorized_keys: path.join __dirname, "./assets/id_rsa.pub"
+)()
 
-).catch console.log
-
-  # prevision: () ->
-  #   @tools.ssh.keygen
-  #     header: 'SSH key'
-  #     target: path.join __dirname, "./assets/id_rsa"
-  #     bits: 2048
-  #     key_format: 'PEM'
-  #     comment: 'nikita'
+# prevision: () ->
+#   @tools.ssh.keygen
+#     header: 'SSH key'
+#     target: path.join __dirname, "./assets/id_rsa"
+#     bits: 2048
+#     key_format: 'PEM'
+#     comment: 'nikita'
 
 # await console.log(status)
