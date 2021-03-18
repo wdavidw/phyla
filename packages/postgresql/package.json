@@ -19,6 +19,6 @@
   "dependencies": {},
   "devDependencies": {
     "coffeescript": "^2.5.1",
-    "nikita": "^1.0.0-alpha.1"
+    "shell": "^0.8.4"
   }
 }
